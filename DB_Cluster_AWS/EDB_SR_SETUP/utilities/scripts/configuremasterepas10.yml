@@ -1,0 +1,54 @@
+---
+    
+    - name: Add entry in pg_hba file
+      blockinfile:
+         path: /var/lib/edb/as10/data/pg_hba.conf
+         marker: "#{mark} ANSIBLE MANAGED BLOCK FOR REPLICATION"
+         block: |
+           host replication edbrepuser {{ ip1 }}/32 md5
+           host replication edbrepuser {{ ip2 }}/32 md5
+           host replication edbrepuser {{ ip3 }}/32 md5
+      become: yes
+    
+    - name: Add entry in postgresql file
+      blockinfile:
+         path: /var/lib/edb/as10/data/postgresql.conf
+         block: |
+             wal_level = hot_standby
+             max_wal_senders = 8
+             wal_keep_segments = 128
+             archive_mode = on
+             archive_command = 'aws s3 cp %p s3://{{ S3BUCKET }}/%f'
+      become: yes
+  
+    - name: change max connection setting
+      lineinfile:
+         path: /var/lib/edb/as10/data/postgresql.conf
+         regexp: '^#max_connections = 100'
+         line: max_connections = 200 
+      become: yes
+
+    - name: Change synchronous_commit setting if replication type is synchronous
+      lineinfile:
+        path: /var/lib/edb/as10/data/postgresql.conf
+        regexp: '^#synchronous_commit = on'
+        line: synchronous_commit = on
+      become: yes
+      when: REPLICATION_TYPE == 'synchronous'
+     
+    - name: Restart service
+      systemd:
+         name: edb-as-10
+         state: restarted
+      become: yes
+
+
+    - name: Create replication role
+      shell: | 
+         psql -d edb -U {{EPASDBUSER}} -c "CREATE ROLE edbrepuser WITH REPLICATION LOGIN PASSWORD '{{ REPLICATION_USER_PASSWORD }}'"
+         psql -d edb -U {{EPASDBUSER}} -c "ALTER USER {{EPASDBUSER}} WITH ENCRYPTED PASSWORD '{{DBPASSWORD}}'"
+      become: yes
+   
+      
+           
+    
