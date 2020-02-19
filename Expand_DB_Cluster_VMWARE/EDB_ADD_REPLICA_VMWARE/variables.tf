@@ -85,3 +85,18 @@ variable "template_name" {
    description = "Provide template name for base centos 7"
    type = string
 }   
+
+variable "datastore" {
+     description = "Provide Datastore name"
+     type = string
+}
+
+variable "compute_cluster" {
+     description = "Provide Compute cluster name"
+     type = string
+}
+
+variable "network" {
+     description = "Provide Network name"
+     type = string
+}

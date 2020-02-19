@@ -7,6 +7,9 @@
 ### user
 ### password
 ### template_name
+### datastore
+### compute_cluster
+### network
 #############################################
 
 ### Optional Field in this config file
@@ -67,6 +70,18 @@ module "edb-db-cluster" {
   # Enter vmware vsphere data center name.
  
   dcname = ""
+
+  # Enter datastore name.
+
+  datastore = ""
+ 
+  # Enter Compute Cluster name.
+
+  compute_cluster = ""
+
+  # Enter network name.
+
+  network = ""
 
   # Enter number for cpu core for your new VM. By default it is 2 core.
 

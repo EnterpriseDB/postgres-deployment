@@ -14,7 +14,10 @@
 ### ssh_password
 ### user
 ### password
-### vsphere_server 
+### vsphere_server
+### datastore
+### compute_cluster
+### network 
 #############################################
 
 ### Optional Field in this config file
@@ -71,6 +74,18 @@ module "edb-expand-db-cluster" {
  # Provide vmware vsphere datacenter name....
  
   dcname = ""
+
+ # Enter datastore name.
+
+  datastore = ""
+ 
+  # Enter Compute Cluster name.
+
+  compute_cluster = ""
+
+  # Enter network name
+
+  network = ""
 
  # Enter number of CPU core for new VM. If you leave blank it will create with 2 core CPU
 

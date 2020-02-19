@@ -73,3 +73,19 @@ variable "template_name" {
     type = string
 }    
  
+
+variable "datastore" {
+     description = "Provide Datastore name"
+     type = string
+}
+
+variable "compute_cluster" {
+     description = "Provide Compute cluster name"
+     type = string
+}
+
+variable "network" {
+     description = "Provide Network name"
+     type = string
+}
+
