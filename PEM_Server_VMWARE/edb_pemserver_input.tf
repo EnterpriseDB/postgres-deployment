@@ -9,6 +9,9 @@
 ### user
 ### password
 ### vsphere_server
+### datastore
+### compute_cluster
+### network
 #############################################
 ##### Optional values
 ### cpucore
@@ -48,6 +51,18 @@ module "edb-pem-server" {
   # Provide vmware vsphere data center name
   
    dcname = ""
+
+  # Enter datastore name
+
+  datastore = ""
+ 
+  # Enter Compute Cluster name
+
+  compute_cluster = ""
+
+  # Enter network name
+
+  network = ""
 
   # Enter cpu core for new VM. By default it is 2
  
