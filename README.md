@@ -6,8 +6,8 @@ Having the Postgres/EDB Postgres Advanced Server deployment scripts available on
 
 At present, the scripts are available for 2 providers AWS and VMware(vsphere). We will be expanding on the providers in the upcoming versions
 
-AWS
+[AWS](https://github.com/EnterpriseDB/postgres-deployment/wiki/AWS)
 
-VMware Vsphere
+[VMware Vsphere](https://github.com/EnterpriseDB/postgres-deployment/wiki/VMware---Vsphere)
 
 Terraform is used to stand up virtual machines or cloud instances, and then we hand over the reins to Ansible to finish up the configuration of the Postgres database and tools like Failover Manager for high availability and fault tolerance and Postgres Enterprise Manager for monitoring the Postgres cluster.
