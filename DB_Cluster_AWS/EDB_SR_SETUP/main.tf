@@ -166,7 +166,7 @@ resource "null_resource" "configureslave1" {
 depends_on = [null_resource.configuremaster]
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(var.ssh_key_path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${aws_eip.master-ip.private_ip} ip2=${aws_instance.EDB_DB_Cluster[2].private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SELFIP1=${aws_instance.EDB_DB_Cluster[1].public_ip} SELFIP2=${aws_instance.EDB_DB_Cluster[2].public_ip} MASTER=${aws_eip.master-ip.public_ip} S3BUCKET=${var.s3bucket}' --limit ${aws_instance.EDB_DB_Cluster[1].public_ip},${aws_eip.master-ip.public_ip}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(var.ssh_key_path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${aws_eip.master-ip.private_ip} ip2=${aws_instance.EDB_DB_Cluster[2].private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SLAVE1=${aws_instance.EDB_DB_Cluster[1].public_ip} SLAVE2=${aws_instance.EDB_DB_Cluster[2].public_ip} MASTER=${aws_eip.master-ip.public_ip} S3BUCKET=${var.s3bucket}' --limit ${aws_instance.EDB_DB_Cluster[1].public_ip},${aws_eip.master-ip.public_ip}"
 
 }
 
@@ -181,7 +181,7 @@ resource "null_resource" "configureslave2" {
 depends_on = [null_resource.configuremaster]
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(var.ssh_key_path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${aws_eip.master-ip.private_ip} ip2=${aws_instance.EDB_DB_Cluster[1].private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SELFIP2=${aws_instance.EDB_DB_Cluster[2].public_ip} SELFIP1=${aws_instance.EDB_DB_Cluster[1].public_ip} MASTER=${aws_eip.master-ip.public_ip} S3BUCKET=${var.s3bucket}' --limit ${aws_instance.EDB_DB_Cluster[2].public_ip},${aws_eip.master-ip.public_ip}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(var.ssh_key_path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${aws_eip.master-ip.private_ip} ip2=${aws_instance.EDB_DB_Cluster[1].private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SLAVE2=${aws_instance.EDB_DB_Cluster[2].public_ip} SLAVE1=${aws_instance.EDB_DB_Cluster[1].public_ip} MASTER=${aws_eip.master-ip.public_ip} S3BUCKET=${var.s3bucket}' --limit ${aws_instance.EDB_DB_Cluster[2].public_ip},${aws_eip.master-ip.public_ip}"
 
 }
 

@@ -120,7 +120,7 @@ resource "null_resource" "configureslave1" {
 depends_on = [null_resource.configuremaster]
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address} ip2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SELFIP1=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} SELFIP2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} MASTER=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}' --limit ${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address},${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address} ip2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SLAVE1=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} SLAVE2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} MASTER=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}' --limit ${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address},${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}"
 
 }
 
@@ -136,7 +136,7 @@ resource "null_resource" "configureslave2" {
 depends_on = [null_resource.configuremaster]
 
 provisioner "local-exec" {  
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address} ip2=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SELFIP1=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} SELFIP2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} MASTER=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}' --limit ${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address},${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address} ip2=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${var.dbengine} REPLICATION_TYPE=${var.replication_type} SLAVE1=${vsphere_virtual_machine.EDB_SR_SETUP[1].default_ip_address} SLAVE2=${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address} MASTER=${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}' --limit ${vsphere_virtual_machine.EDB_SR_SETUP[2].default_ip_address},${vsphere_virtual_machine.EDB_SR_SETUP[0].default_ip_address}"
 
 }
 

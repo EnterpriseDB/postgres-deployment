@@ -115,6 +115,23 @@
  - hosts: "{{MASTER}}"
    
    tasks:
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/edb/as10/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous'   
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as10/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous' 
     
      - name: Change in postgresql.conf file
        lineinfile:
@@ -123,7 +140,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true
-       when: DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous'
        
   
      - name: restart service
@@ -132,7 +150,24 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'epas10'  and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       when: DB_ENGINE == 'epas10'  and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/edb/as11/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous'
+ 
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as11/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous'
 
      - name: Change in postgresql.conf file
        lineinfile:
@@ -141,7 +176,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true 
-       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous' 
        
   
      - name: restart service
@@ -150,7 +186,24 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Check cluster replication status 
+       lineinfile:
+         path: /var/lib/edb/as12/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous'  
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as12/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous'
 
 
      - name: Change in postgresql.conf file
@@ -160,7 +213,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true
-       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous' 
        
   
      - name: restart service
@@ -169,7 +223,24 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Check cluster replication status 
+       lineinfile:
+         path: /var/lib/pgsql/10/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/10/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous'
 
      - name: Change in postgresql.conf file
        lineinfile:
@@ -178,7 +249,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' 
        
   
      - name: restart service
@@ -187,7 +259,24 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous'
+   
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/pgsql/11/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent 
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous'  
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/11/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous'
 
      - name: Change in postgresql.conf file 
        lineinfile:
@@ -196,7 +285,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous' 
        
   
      - name: restart service
@@ -205,7 +295,24 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/pgsql/12/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/12/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous'
 
      - name: Change in postgresql.conf file
        lineinfile:
@@ -214,7 +321,8 @@
           line: synchronous_standby_names = 'any 1 (slave3)'
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous' 
        
   
      - name: restart service
@@ -223,4 +331,4 @@
           state: restarted
        become: yes
        run_once: true
-       when: DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER     
+       when: DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous'      

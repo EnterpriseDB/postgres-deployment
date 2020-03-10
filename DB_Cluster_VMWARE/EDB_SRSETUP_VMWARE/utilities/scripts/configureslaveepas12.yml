@@ -52,7 +52,7 @@
          sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user=edbrepuser password={{ REPLICATION_USER_PASSWORD }} host={{ ip1 }} port=5444 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave1'@g" /var/lib/edb/as12/data/postgresql.conf
          sed -i -e 's/target_session_attrs=any/& application_name=slave1/' /var/lib/edb/as12/data/postgresql.auto.conf 
      become: yes
-     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SELFIP1
+     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SLAVE1
 
 
    - name: Modify paramter in postgresql.conf file if synchronous replication
@@ -60,7 +60,7 @@
           sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user=edbrepuser password={{ REPLICATION_USER_PASSWORD }} host={{ ip1 }} port=5444 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave2'@g" /var/lib/edb/as12/data/postgresql.conf
           sed -i -e 's/target_session_attrs=any/& application_name=slave2/' /var/lib/edb/as12/data/postgresql.auto.conf 
      become: yes
-     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SELFIP2
+     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SLAVE2
 
 
    - name: Add entry in pg_hba file
@@ -68,14 +68,14 @@
          path: /var/lib/edb/as12/data/pg_hba.conf
          line: host replication edbrepuser {{ ip2 }}/32 md5
      become: yes
-     when: inventory_hostname == SELFIP1
+     when: inventory_hostname == SLAVE1
 
    - name: Add entry in pg_hba file
      lineinfile:
          path: /var/lib/edb/as12/data/pg_hba.conf
          line: host replication edbrepuser {{ ip1 }}/32 md5
      become: yes
-     when: inventory_hostname == SELFIP2
+     when: inventory_hostname == SLAVE2
    
    - name: Start DB process
      systemd:

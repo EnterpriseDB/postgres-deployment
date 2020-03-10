@@ -50,12 +50,12 @@
    - name: Modify recovery.conf file if replication type synchronous
      shell: sed -i -e 's/target_session_attrs=any/& application_name=slave1/' /var/lib/edb/as11/data/recovery.conf
      become: yes
-     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SELFIP1
+     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SLAVE1
 
    - name: Modify recovery.conf file if replication type synchronous
      shell: sed -i -e 's/target_session_attrs=any/& application_name=slave2/' /var/lib/edb/as11/data/recovery.conf
      become: yes
-     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SELFIP2
+     when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == SLAVE2
  
    
    - name: Remove extra lines in file
@@ -67,14 +67,14 @@
          path: /var/lib/edb/as11/data/pg_hba.conf
          line: host replication edbrepuser {{ ip2 }}/32 md5
      become: yes
-     when: inventory_hostname == SELFIP1
+     when: inventory_hostname == SLAVE1
 
    - name: Add entry in pg_hba file
      lineinfile:
          path: /var/lib/edb/as11/data/pg_hba.conf
          line: host replication edbrepuser {{ ip1 }}/32 md5
      become: yes 
-     when: inventory_hostname == SELFIP2
+     when: inventory_hostname == SLAVE2
 
    - name: Start DB process
      systemd:
