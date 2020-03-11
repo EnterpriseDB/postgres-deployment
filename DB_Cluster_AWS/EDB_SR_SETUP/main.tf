@@ -3,6 +3,14 @@ data "aws_ami" "centos_ami" {
   owners      = ["aws-marketplace"]
 
   filter {
+    name = "description"
+    
+    values = [
+      "CentOS Linux 7 x86_64 HVM EBS*"
+    ]
+ }
+
+  filter {
     name = "name"
 
     values = [

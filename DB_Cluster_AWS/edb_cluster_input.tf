@@ -65,7 +65,7 @@ module "edb-db-cluster" {
 
   # Enter subnet ID where instance going to create in format ["subnetid1","subnetid2", "subnetid3"]
 
-  subnet_id = ["subnetid1", "subnetid2", "subnetid3"]
+  subnet_id = ["subnet1", "subnet2", "subnet3"]
 
   # Enter AWS Instance type like t2.micro, t3.large, c4.2xlarge m5.2xlarge etc....
  
