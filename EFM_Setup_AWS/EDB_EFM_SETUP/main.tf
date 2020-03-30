@@ -23,11 +23,11 @@ provisioner "local-exec" {
 }  
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.SR.outputs.Slave1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.SR.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.SR.outputs.Standby1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.SR.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.SR.outputs.Slave2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.SR.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.SR.outputs.Standby2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.SR.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
@@ -36,7 +36,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configuremaster.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Master-PublicIP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configuremaster.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Master-PublicIP}"
 
 }
 
@@ -54,7 +54,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} selfip=${data.terraform_remote_state.SR.outputs.Slave1-PrivateIP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE}  NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Slave1-PublicIP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} selfip=${data.terraform_remote_state.SR.outputs.Standby1-PrivateIP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE}  NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Standby1-PublicIP}"
 
 }
 
@@ -72,7 +72,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} selfip=${data.terraform_remote_state.SR.outputs.Slave2-PrivateIP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Slave2-PublicIP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.SR.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-PrivateIP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.SR.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.SR.outputs.Region} selfip=${data.terraform_remote_state.SR.outputs.Standby2-PrivateIP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.SR.outputs.S3BUCKET}' --limit ${data.terraform_remote_state.SR.outputs.Standby2-PublicIP}"
 
 }
 

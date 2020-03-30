@@ -31,11 +31,11 @@ provisioner "local-exec" {
 }  
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 

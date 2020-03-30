@@ -23,11 +23,11 @@ provisioner "local-exec" {
 }  
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.SR.outputs.Slave1-IP} ansible_user=${data.terraform_remote_state.SR.outputs.SSH-USER} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.SR.outputs.Standby1-IP} ansible_user=${data.terraform_remote_state.SR.outputs.SSH-USER} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.SR.outputs.Slave2-IP} ansible_user=${data.terraform_remote_state.SR.outputs.SSH-USER} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.SR.outputs.Standby2-IP} ansible_user=${data.terraform_remote_state.SR.outputs.SSH-USER} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
@@ -37,7 +37,7 @@ provisioner "local-exec" {
 
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts ${path.module}/utilities/scripts/configuremaster.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-IP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-IP} EFM_USER_PASSWORD=${var.efm_role_password}  USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Master-IP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts ${path.module}/utilities/scripts/configuremaster.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-IP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-IP} EFM_USER_PASSWORD=${var.efm_role_password}  USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Master-IP}"
 
 }
 
@@ -55,7 +55,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts  ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-IP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-IP} EFM_USER_PASSWORD=${var.efm_role_password} selfip=${data.terraform_remote_state.SR.outputs.Slave1-IP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Slave1-IP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts  ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-IP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-IP} EFM_USER_PASSWORD=${var.efm_role_password} selfip=${data.terraform_remote_state.SR.outputs.Standby1-IP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Standby1-IP}"
 
 }
 
@@ -73,7 +73,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Slave1-IP} ip3=${data.terraform_remote_state.SR.outputs.Slave2-IP} EFM_USER_PASSWORD=${var.efm_role_password} selfip=${data.terraform_remote_state.SR.outputs.Slave2-IP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Slave2-IP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts ${path.module}/utilities/scripts/configureslave.yml --extra-vars='ip1=${data.terraform_remote_state.SR.outputs.Master-IP} ip2=${data.terraform_remote_state.SR.outputs.Standby1-IP} ip3=${data.terraform_remote_state.SR.outputs.Standby2-IP} EFM_USER_PASSWORD=${var.efm_role_password} selfip=${data.terraform_remote_state.SR.outputs.Standby2-IP} USER=${var.EDB_Yum_Repo_Username} PASS=${var.EDB_Yum_Repo_Password} DB_ENGINE=${data.terraform_remote_state.SR.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${data.terraform_remote_state.SR.outputs.Standby2-IP}"
 
 }
 

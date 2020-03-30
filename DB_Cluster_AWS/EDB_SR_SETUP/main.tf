@@ -88,7 +88,7 @@ root_block_device {
 }
 
 tags = {
-  Name = count.index == 0 ? "${var.dbengine}-master" : "${var.dbengine}-slave${count.index}"
+  Name = count.index == 0 ? "${local.CLUSTER_NAME}-master" : "${local.CLUSTER_NAME}-standby${count.index}"
   Created_By = "Terraform"
 }
 
@@ -139,6 +139,7 @@ locals {
   DBUSEREPAS="${var.db_user == "" || var.dbengine == regexall("${var.dbengine}", "epas10 eaps11 epas12") ? "enterprisedb" : var.db_user}"
   DBPASS="${var.db_password == "" ? "postgres" : var.db_password}"
   REGION="${substr("${aws_instance.EDB_DB_Cluster[0].availability_zone}", 0, 9)}"
+  CLUSTER_NAME="${var.cluster_name == "" ? var.dbengine : var.cluster_name}"
 }
 
 #####################################

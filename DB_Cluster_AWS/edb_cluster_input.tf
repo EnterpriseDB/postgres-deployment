@@ -19,6 +19,7 @@
 ### replication_type } by default asynchronous
 ### db_user
 ### db_password
+### cluster_name
 ###########################################
 
 ### Default User DB credentials##########
@@ -59,13 +60,17 @@ module "edb-db-cluster" {
 
   EDB_yumrepo_password = ""
 
+  # Provide cluster name. Leaving this field blank will tag cluster with dbengine name.
+
+  cluster_name = ""
+
   # Enter this mandatory field which is VPC ID
 
   vpc_id = ""
 
   # Enter subnet ID where instance going to create in format ["subnetid1","subnetid2", "subnetid3"]
 
-  subnet_id = ["subnet1", "subnet2", "subnet3"]
+  subnet_id = ["subnet-1", "subnet-2", "subnet-3"]
 
   # Enter AWS Instance type like t2.micro, t3.large, c4.2xlarge m5.2xlarge etc....
  
@@ -117,11 +122,11 @@ output "Master-PublicIP" {
   value = "${module.edb-db-cluster.Master-IP}"
 }
 
-output "Slave1-PublicIP" {
+output "Standby1-PublicIP" {
   value = "${module.edb-db-cluster.Slave-IP-1}"
 }
 
-output "Slave2-PublicIP" {
+output "Standby2-PublicIP" {
   value = "${module.edb-db-cluster.Slave-IP-2}"
 }
 
@@ -129,11 +134,11 @@ output "Master-PrivateIP" {
    value = "${module.edb-db-cluster.Master-PrivateIP}"
 }
 
-output "Slave1-PrivateIP" {
+output "Standby1-PrivateIP" {
   value = "${module.edb-db-cluster.Slave-1-PrivateIP}"
 }
 
-output "Slave2-PrivateIP" {
+output "Standby2-PrivateIP" {
   value = "${module.edb-db-cluster.Slave-2-PrivateIP}"
 }
 
@@ -155,4 +160,8 @@ output "Key-Pair-Path" {
 
 output "S3BUCKET" {
   value = "${module.edb-db-cluster.S3BUCKET}"
+}
+
+output "CLUSTER_NAME" {
+  value = "${module.edb-db-cluster.CLUSTER_NAME}"
 }

@@ -137,6 +137,6 @@ module "edb-expand-db-cluster" {
 
 }  
 
-output "Slave-IP" {
+output "Standby-IP" {
   value = "${module.edb-expand-db-cluster.Slave-IP}"
 }

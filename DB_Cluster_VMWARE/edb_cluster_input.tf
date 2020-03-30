@@ -21,6 +21,7 @@
 ### db_password
 ### cpucore
 ### ramsize
+### cluster_name
 ###########################################
 
 ### Default User DB credentials##########
@@ -38,6 +39,8 @@
 ########################################
 
 provider "vsphere" {
+
+
   # Enter vmware vsphere login username
  
   user = ""
@@ -66,6 +69,10 @@ module "edb-db-cluster" {
   # Enter EDB yum repository credentials for usage of any EDB tools
 
   EDB_yumrepo_password = ""
+
+  # Provide DB cluster name to tag. Leaving it blank will use dbengine name as a tag.
+
+  cluster_name = ""
 
   # Enter vmware vsphere data center name.
  
@@ -130,11 +137,11 @@ output "Master-IP" {
   value = "${module.edb-db-cluster.Master-IP}"
 }
 
-output "Slave1-IP" {
+output "Standby1-IP" {
   value = "${module.edb-db-cluster.Slave-IP-1}"
 }
 
-output "Slave2-IP" {
+output "Standby2-IP" {
   value = "${module.edb-db-cluster.Slave-IP-2}"
 }
 
@@ -146,3 +153,6 @@ output "SSH-USER" {
   value = "${module.edb-db-cluster.SSH-USER}"
 }
  
+output "CLUSTER_NAME" {
+  value = "${module.edb-db-cluster.CLUSTER_NAME}"
+}

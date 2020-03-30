@@ -98,7 +98,7 @@ module "edb-expand-db-cluster" {
   db_password = ""  
 }  
 
-output "Slave-PublicIP" {
+output "Standby-PublicIP" {
   value = "${module.edb-expand-db-cluster.Slave-PublicIP}"
 }
 

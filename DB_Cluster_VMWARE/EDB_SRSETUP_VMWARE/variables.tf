@@ -89,3 +89,7 @@ variable "network" {
      type = string
 }
 
+variable "cluster_name" {
+     description = "Provide cluster name"
+     type = string
+}

@@ -30,11 +30,11 @@ provisioner "local-exec" {
 }  
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-IP} ansible_user=${var.ssh_user} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-IP} ansible_user=${var.ssh_user} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-IP} ansible_user=${var.ssh_user} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-IP} ansible_user=${var.ssh_user} ansible_ssh_pass=${var.ssh_password}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 

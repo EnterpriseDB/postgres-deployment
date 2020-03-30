@@ -16,4 +16,7 @@ output "SSH-USER" {
  value = var.ssh_user
 }
 
-
+output "CLUSTER_NAME" {
+ value = var.cluster_name
+}
+ 

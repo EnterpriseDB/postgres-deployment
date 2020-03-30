@@ -105,7 +105,7 @@ root_block_device {
 }
 
 tags = {
-  Name = "${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE}-slave3"
+  Name = "${local.CLUSTERNAME}-standby3"
   Created_By = "Terraform"
 }
 
@@ -145,6 +145,7 @@ locals {
   DBUSERPG="${var.db_user == "" || data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE == regexall("${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE}", "pg10 pg11 pg12") ? "postgres" : var.db_user}"
   DBUSEREPAS="${var.db_user == "" || data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE == regexall("${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE}", "eaps10 epas11 epas12") ? "enterprisedb" : var.db_user}"
   DBPASS="${var.db_password == "" ? "postgres" : var.db_password}"
+  CLUSTERNAME="${data.terraform_remote_state.DB_CLUSTER.outputs.CLUSTER_NAME == "" ? data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE : data.terraform_remote_state.DB_CLUSTER.outputs.CLUSTER_NAME}"
 }
 ######################################
 
@@ -166,17 +167,17 @@ resource "null_resource" "configure_streaming_replication" {
 } 
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 provisioner "local-exec" {
-    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
+    command = "echo '${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PublicIP} ansible_ssh_private_key_file=${data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path}' >> ${path.module}/utilities/scripts/hosts"
 }
 
 
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PrivateIP} ip3=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PrivateIP} IPPRIVATE=${aws_instance.EDB_Expand_DBCluster.private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE} REPLICATION_TYPE=${var.replication_type} MASTER=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} SLAVE1=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PublicIP} SLAVE2=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PublicIP} NEWSLAVE=${aws_instance.EDB_Expand_DBCluster.public_ip} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.DB_CLUSTER.outputs.S3BUCKET}'" 
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path)}' '${path.module}/utilities/scripts/configureslave.yml' --extra-vars='ip1=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PrivateIP} ip3=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PrivateIP} IPPRIVATE=${aws_instance.EDB_Expand_DBCluster.private_ip} REPLICATION_USER_PASSWORD=${var.replication_password} DB_ENGINE=${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE} REPLICATION_TYPE=${var.replication_type} MASTER=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} SLAVE1=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PublicIP} SLAVE2=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PublicIP} NEWSLAVE=${aws_instance.EDB_Expand_DBCluster.public_ip} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS} S3BUCKET=${data.terraform_remote_state.DB_CLUSTER.outputs.S3BUCKET}'" 
 
 }
 
@@ -196,7 +197,7 @@ provisioner "local-exec" {
 }
 
 provisioner "local-exec" {
-   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureefm.yml --extra-vars='ip1=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PrivateIP} ip3=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.DB_CLUSTER.outputs.Region} selfip=${aws_instance.EDB_Expand_DBCluster.private_ip} USER=${var.EDB_yumrepo_username} PASS=${var.EDB_yumrepo_password} DB_ENGINE=${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} IPPRIVATE=${aws_instance.EDB_Expand_DBCluster.private_ip} SLAVE1=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PublicIP} SLAVE2=${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PublicIP} S3BUCKET=${data.terraform_remote_state.DB_CLUSTER.outputs.S3BUCKET} NEWSLAVE=${aws_instance.EDB_Expand_DBCluster.public_ip} MASTER=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${aws_instance.EDB_Expand_DBCluster.public_ip},${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP},${data.terraform_remote_state.DB_CLUSTER.outputs.Slave2-PublicIP},${data.terraform_remote_state.DB_CLUSTER.outputs.Slave1-PublicIP}"
+   command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts -u centos --private-key '${file(data.terraform_remote_state.DB_CLUSTER.outputs.Key-Pair-Path)}' ${path.module}/utilities/scripts/configureefm.yml --extra-vars='ip1=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PrivateIP} ip2=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PrivateIP} ip3=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PrivateIP} EFM_USER_PASSWORD=${var.efm_role_password} MASTER_PUB_IP=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} REGION_NAME=${data.terraform_remote_state.DB_CLUSTER.outputs.Region} selfip=${aws_instance.EDB_Expand_DBCluster.private_ip} USER=${var.EDB_yumrepo_username} PASS=${var.EDB_yumrepo_password} DB_ENGINE=${data.terraform_remote_state.DB_CLUSTER.outputs.DBENGINE} NOTIFICATION_EMAIL=${var.notification_email_address} IPPRIVATE=${aws_instance.EDB_Expand_DBCluster.private_ip} SLAVE1=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PublicIP} SLAVE2=${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PublicIP} S3BUCKET=${data.terraform_remote_state.DB_CLUSTER.outputs.S3BUCKET} NEWSLAVE=${aws_instance.EDB_Expand_DBCluster.public_ip} MASTER=${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${aws_instance.EDB_Expand_DBCluster.public_ip},${data.terraform_remote_state.DB_CLUSTER.outputs.Master-PublicIP},${data.terraform_remote_state.DB_CLUSTER.outputs.Standby2-PublicIP},${data.terraform_remote_state.DB_CLUSTER.outputs.Standby1-PublicIP}"
 
 }
 

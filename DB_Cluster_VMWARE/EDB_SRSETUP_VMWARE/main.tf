@@ -23,7 +23,7 @@ data "vsphere_virtual_machine" "template" {
 }
 
 resource "vsphere_virtual_machine" "EDB_SR_SETUP" {
-  name             = count.index == 0 ? "${var.dbengine}-master" : "${var.dbengine}-slave${count.index}"
+  name             = count.index == 0 ? "${local.CLUSTER_NAME}-master" : "${local.CLUSTER_NAME}-standby${count.index}"
   count = 3
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
@@ -75,10 +75,6 @@ provisioner "local-exec" {
     command = "ansible-playbook -i ${path.module}/utilities/scripts/hosts  '${path.module}/utilities/scripts/install${var.dbengine}.yml' --extra-vars='USER=${var.EDB_yumrepo_username} PASS=${var.EDB_yumrepo_password} PGDBUSER=${local.DBUSERPG}  EPASDBUSER=${local.DBUSEREPAS}' --limit ${self.default_ip_address}" 
 }
 
-lifecycle {
-    create_before_destroy = true
-  }
-
 
 }
 
@@ -89,7 +85,7 @@ locals {
   DBPASS="${var.db_password == "" ? "postgres" : var.db_password}"
   CPUCORE="${var.cpucore == "" ? "2" : var.cpucore}"
   RAM="${var.ramsize == "" ? "1024" : var.ramsize}"
-
+  CLUSTER_NAME="${var.cluster_name == "" ? var.dbengine : var.cluster_name}"
 }
 
 #####################################

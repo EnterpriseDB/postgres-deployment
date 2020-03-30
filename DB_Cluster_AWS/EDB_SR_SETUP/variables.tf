@@ -89,3 +89,9 @@ variable "s3bucket" {
    description = "Enter s3 bucket name for wal archive followed by folder name"
    type = string
 }    
+
+variable "cluster_name" {
+   description = "Provide cluster name"
+   type = string
+}
+

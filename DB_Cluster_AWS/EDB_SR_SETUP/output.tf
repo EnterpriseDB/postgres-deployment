@@ -37,4 +37,8 @@ value = var.db_user
 
 output "S3BUCKET" {
 value = var.s3bucket
-} 
+}
+
+output "CLUSTER_NAME" {
+value = var.cluster_name
+}   
