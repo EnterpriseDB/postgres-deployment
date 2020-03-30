@@ -16,3 +16,7 @@ Terraform is used to stand up virtual machines or cloud instances, and then we h
 In case of already running infrastructure be it on [AWS](https://github.com/EnterpriseDB/postgres-deployment/wiki/AWS)
  or [VMware Vsphere](https://github.com/EnterpriseDB/postgres-deployment/wiki/VMware---Vsphere)
 the user also have an option to use Ansible scripts made available here to configure the Postgres database and tools like [Failover Manage](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-failover-manager)r for high availability and fault tolerance and [Postgres Enterprise Manager](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-enterprise-manager-pem) for monitoring the Postgres cluster.
+
+# EDB Bart (backup and recovery tool).
+
+EDB Bart tool added and documentation can be found  [here](https://github.com/EnterpriseDB/postgres-deployment/wiki/AWS) for AWS provider and [here](https://github.com/EnterpriseDB/postgres-deployment/wiki/VMware---Vsphere) for Vmware Vsphere provider.
