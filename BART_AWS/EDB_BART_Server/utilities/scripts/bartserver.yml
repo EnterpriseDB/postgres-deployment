@@ -445,7 +445,7 @@
        name: "incremental backup"
        minute: "45"
        hour: "0"
-       job: "bart backup -s DBSERVER -F p > /dev/null"
+       job: "backupid=`bart show-backups -s dbserver |awk '{print $2}'| sed '/^$/d'| grep -v 'NAME'| head -1` && bart backup -s DBSERVER -F p --parent $backupid > /dev/null"
      become: yes
   
        
