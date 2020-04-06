@@ -7,6 +7,7 @@
          block: |
            host replication edbrepuser {{ ip1 }}/32 md5
            host replication edbrepuser {{ ip2 }}/32 md5
+           host replication edbrepuser {{ ip3 }}/32 md5
       become: yes
     
     - name: Change parameter in postgresql file
