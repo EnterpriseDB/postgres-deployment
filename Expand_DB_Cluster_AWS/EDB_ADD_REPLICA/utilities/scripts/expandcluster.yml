@@ -5,27 +5,27 @@
    tasks:
 
     - name: Install Database for DBengine 10
-      include: installpg10.yml 
+      include: installpg10ans.yml 
       when: DB_ENGINE == 'pg10' and inventory_hostname == NEWSLAVE
      
     - name: Install Database DBengine pg11
-      include: installpg11.yml 
+      include: installpg11ans.yml 
       when: DB_ENGINE == 'pg11' and inventory_hostname == NEWSLAVE
 
     - name: Install Database for DBengine pg12
-      include: installpg12.yml 
+      include: installpg12ans.yml 
       when: DB_ENGINE == 'pg12' and inventory_hostname == NEWSLAVE
 
     - name: Install Database  for DBengine epas10
-      include: installepas10.yml 
+      include: installepas10ans.yml 
       when: DB_ENGINE == 'epas10' and inventory_hostname == NEWSLAVE
      
     - name: Install Database for DBengine epas11
-      include: installepas11.yml
+      include: installepas11ans.yml
       when: DB_ENGINE == 'epas11' and inventory_hostname == NEWSLAVE
 
     - name: Install Database for DBengine epas12
-      include: installepas12.yml
+      include: installepas12ans.yml
       when: DB_ENGINE == 'epas12' and inventory_hostname == NEWSLAVE
 
  - hosts: all
@@ -142,10 +142,10 @@
        when: DB_ENGINE == 'epas12' and inventory_hostname == NEWSLAVE
 
      - name: Configure EFM
-       include: configureefm.yml
+       include: configureefmans.yml
      
      - name: Configure PEM agent
-       include: installpemagent.yml  
+       include: installpemagentans.yml  
        when: inventory_hostname == NEWSLAVE
   
 
