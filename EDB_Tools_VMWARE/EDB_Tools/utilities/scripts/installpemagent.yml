@@ -1,0 +1,43 @@
+---
+ - hosts: all,!"{{ PEM_IP }}"
+
+   tasks:
+
+    
+    - name: Install pemagent
+      yum: 
+        name: edb-pem-agent
+        state: present
+      become: yes
+
+    - name: Whitelist pem server 
+      shell: sed -i '82ihost  all         all       {{inventory_hostname}}/32   trust' /var/lib/edb/as12/data/pg_hba.conf
+      become: yes
+
+    - name: Reload DB service for dbengine epas12
+      systemd:
+         name: "edb-as-12"
+         state: reloaded
+      become: yes
+
+    - name: Create directory for PEM Agent certificate file
+      file:
+        path: /root/.pem
+        state: directory
+        mode: '0755'
+      become: yes
+   
+    - name: Register pem agent
+      shell: PGPASSWORD={{ DBPASSWORD }} /usr/edb/pem/agent/bin/pemworker --register-agent --pem-server {{ PEM_IP }} --pem-user enterprisedb  --pem-port 5444 --cert-path /root/.pem --display-name {{ inventory_hostname }} 
+      become: yes
+
+    - name: Register agent on pemserver UI
+      shell: PEM_MONITORED_SERVER_PASSWORD={{PEM_WEB_PASSWORD}} PGPASSWORD={{DBPASSWORD}} /usr/edb/pem/agent/bin/pemworker --register-server --pem-user enterprisedb  --server-addr {{ inventory_hostname }} --display-name {{ inventory_hostname }} --server-port 5444 --server-database edb --server-user {{DBUSER}} --remote-monitoring no    
+      become: yes
+
+    - name: Restart pem agent
+      systemd:
+        name: pemagent
+        state: restarted
+      become: yes
+

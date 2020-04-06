@@ -1,0 +1,32 @@
+---
+ - hosts: all
+
+   tasks:
+     
+     - name: Configure slave for DBengine epas12
+       include: configureslaveepas12.yml
+       when: inventory_hostname != MASTER
+  
+ - hosts: "{{MASTER}}"
+   
+   tasks:
+    
+
+     - name: Change in postgresql.conf file
+       lineinfile:
+          path: /var/lib/edb/as12/data/postgresql.conf
+          regexp: "^#synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave1,slave2)'
+       become: yes
+       run_once: true
+       when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: edb-as-12
+          state: restarted
+       become: yes
+       run_once: true
+       when: REPLICATION_TYPE == 'synchronous' and inventory_hostname == MASTER
+
