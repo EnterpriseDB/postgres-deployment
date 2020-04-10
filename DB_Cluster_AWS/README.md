@@ -50,9 +50,9 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 * Set variables in the **```variables.tf```** file
 
 * Variables to set:
-  
+
  * ```user_name``` - Name for the AWS IAM role
- * ```aws_bucket_name``` - Name for the AWS Bucket 
+ * ```aws_bucket_name``` - Name for the AWS Bucket
 Name
 
  * ```aws_bucket_folder``` - Folder Name for the target AWS S3 Bucket
@@ -123,7 +123,7 @@ $ terraform destroy
 * Set variables in the **```edb_cluster_input.tf```** file
 
 * Variables to set:
-  
+
  * ```vpc_id``` - VPC ID for the AWS VPC
  * ```subnet_id``` - The 3 Subnet ID's created by the ```AWS Prerequisites Step```
 
@@ -131,11 +131,11 @@ $ terraform destroy
 
  * ```s3bucket``` - AWS S3 Bucket Name and folder
 
- * ```ssh_keypair``` - Full Path and name of the downloaded AWS EC2 Keypair File created in the AWS Console 
+ * ```ssh_keypair``` - Full Path and name of the downloaded AWS EC2 Keypair File created in the AWS Console
 
  * ```ssh_key_path``` - Full path of the downloaded AWS EC2 Keypair File
 
- * ```db_engine``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12``` 
+ * ```db_engine``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12```
 
  * ```replication_type``` - Postgres Replication to be configured: ```synchronous``` or ```asynchronous```
 
@@ -193,7 +193,8 @@ $ terraform destroy
 
 * Create and set parameters in the **```hosts```** file
  * Create hosts file with following content.
-  *  master_public_ip ansible_user= ansible_ssh_private_key_file=
+
+>master_public_ip ansible_user= ansible_ssh_private_key_file=
   * slave1_public_ip ansible_user= ansible_ssh_private_key_file=
   * slave2_public_ip ansible_user= ansible_ssh_private_key_file=
 
@@ -201,10 +202,10 @@ $ terraform destroy
 
 * Use below command to run ansible playbook. Make sure you are providing extra arguments.
 
- * ansible-playbook -i hosts ./utilities/scripts/setupsr.yml --extra-vars='USER= PASS= EPASDBUSER= PGDBUSER= ip1= ip2= ip3= S3BUCKET= REPLICATION_USER_PASSWORD= DBPASSWORD= REPLICATION_TYPE= DB_ENGINE= MASTER= SLAVE1= SLAVE2='
+>ansible-playbook -i hosts ./utilities/scripts/setupsr.yml --extra-vars='USER= PASS= EPASDBUSER= PGDBUSER= ip1= ip2= ip3= S3BUCKET= REPLICATION_USER_PASSWORD= DBPASSWORD= REPLICATION_TYPE= DB_ENGINE= MASTER= SLAVE1= SLAVE2='
 
 * Variables to set:
-  
+
  * ```PGDBUSER``` - Password for the Postgres Database
  * ```ip1``` - Private IP Address for the Master Instance
 
@@ -227,4 +228,3 @@ $ terraform destroy
 
  * ```SLAVE_2``` - AWS EC2 Slave #2 Public IP Address
 
-* Create resources in AWS VPC with **terraform plan** or **terraform apply**
