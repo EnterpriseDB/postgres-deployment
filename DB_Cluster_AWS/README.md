@@ -52,19 +52,21 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 * Variables to set:
 
    * ```user_name``` - Name for the AWS IAM role
+
    * ```aws_bucket_name``` - Name for the AWS Bucket
 Name
 
- * ```aws_bucket_folder``` - Folder Name for the target AWS S3 Bucket
- * ```public_cidrblock``` - Public CIDR Block for AWS Resources
+   * ```aws_bucket_folder``` - Folder Name for the target AWS S3 Bucket
 
- * ```vpc_cidr_block``` - CIDR Block for the AWS VPC
+   * ```public_cidrblock``` - Public CIDR Block for AWS Resources
 
- * ```public_subnet_1_cidr_block``` - CIDR Block for the AWS Public Subnet #1
+   * ```vpc_cidr_block``` - CIDR Block for the AWS VPC
 
- * ```public_subnet_2_cidr_block``` - CIDR Block for the AWS Public Subnet #2
+   * ```public_subnet_1_cidr_block``` - CIDR Block for the AWS Public Subnet #1
 
- * ```public_subnet_3_cidr_block``` - CIDR Block for the AWS Public Subnet #3
+   * ```public_subnet_2_cidr_block``` - CIDR Block for the AWS Public Subnet #2
+
+   * ```public_subnet_3_cidr_block``` - CIDR Block for the AWS Public Subnet #3
 
 * Create resources in AWS VPC with **terraform plan** or **terraform apply**
 
