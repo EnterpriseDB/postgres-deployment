@@ -51,8 +51,8 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 
 * Variables to set:
 
- * ```user_name``` - Name for the AWS IAM role
- * ```aws_bucket_name``` - Name for the AWS Bucket
+   * ```user_name``` - Name for the AWS IAM role
+   * ```aws_bucket_name``` - Name for the AWS Bucket
 Name
 
  * ```aws_bucket_folder``` - Folder Name for the target AWS S3 Bucket
@@ -124,20 +124,21 @@ $ terraform destroy
 
 * Variables to set:
 
- * ```vpc_id``` - VPC ID for the AWS VPC
- * ```subnet_id``` - The 3 Subnet ID's created by the ```AWS Prerequisites Step```
+   * ```vpc_id``` - VPC ID for the AWS VPC
 
- * ```instance_type``` - Instance Types for the target AWS EC2 Instances
+   * ```subnet_id``` - The 3 Subnet ID's created by the ```AWS Prerequisites Step```
 
- * ```s3bucket``` - AWS S3 Bucket Name and folder
+   * ```instance_type``` - Instance Types for the target AWS EC2 Instances
 
- * ```ssh_keypair``` - Full Path and name of the downloaded AWS EC2 Keypair File created in the AWS Console
+   * ```s3bucket``` - AWS S3 Bucket Name and folder
 
- * ```ssh_key_path``` - Full path of the downloaded AWS EC2 Keypair File
+   * ```ssh_keypair``` - Full Path and name of the downloaded AWS EC2 Keypair File created in the AWS Console
 
- * ```db_engine``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12```
+   * ```ssh_key_path``` - Full path of the downloaded AWS EC2 Keypair File
 
- * ```replication_type``` - Postgres Replication to be configured: ```synchronous``` or ```asynchronous```
+   * ```db_engine``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12```
+
+   * ```replication_type``` - Postgres Replication to be configured: ```synchronous``` or ```asynchronous```
 
 * Create resources in AWS VPC with **terraform plan** or **terraform apply**
 
@@ -195,8 +196,8 @@ $ terraform destroy
  * Create hosts file with following content.
 
 >master_public_ip ansible_user= ansible_ssh_private_key_file=
-  * slave1_public_ip ansible_user= ansible_ssh_private_key_file=
-  * slave2_public_ip ansible_user= ansible_ssh_private_key_file=
+>slave1_public_ip ansible_user= ansible_ssh_private_key_file=
+>slave2_public_ip ansible_user= ansible_ssh_private_key_file=
 
 >Replace username and path to file with your values.
 
@@ -206,25 +207,27 @@ $ terraform destroy
 
 * Variables to set:
 
- * ```PGDBUSER``` - Password for the Postgres Database
- * ```ip1``` - Private IP Address for the Master Instance
+   * ```PGDBUSER``` - Password for the Postgres Database
 
- * ```ip2``` - Private IP Address for the Slave #1
- * ```ip3``` - Private IP Address for the Slave #2
+   * ```ip1``` - Private IP Address for the Master Instance
 
- * ```S3BUCKET``` - AWS S3 Bucket and folder
+   * ```ip2``` - Private IP Address for the Slave #1
 
- * ```REPLICATION_USER_PASSWORD``` - Replication User Name
+   * ```ip3``` - Private IP Address for the Slave #2
 
- * ```DBPASSWORD ``` - Replication User Password
+   * ```S3BUCKET``` - AWS S3 Bucket and folder
 
- * ```REPLICATION_TYPE``` - Replication Type: ```synchronous``` or ```asynchronous```
+   * ```REPLICATION_USER_PASSWORD``` - Replication User Name
 
- * ```DB_ENGINE``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12``
+   * ```DBPASSWORD ``` - Replication User Password
 
- * ```MASTER_1``` - AWS EC2 Master Public IP Address
+   * ```REPLICATION_TYPE``` - Replication Type: ```synchronous``` or ```asynchronous```
 
- * ```SLAVE_1``` - AWS EC2 Slave #1 Public IP Address
+   * ```DB_ENGINE``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12``
 
- * ```SLAVE_2``` - AWS EC2 Slave #2 Public IP Address
+   * ```MASTER_1``` - AWS EC2 Master Public IP Address
+
+   * ```SLAVE_1``` - AWS EC2 Slave #1 Public IP Address
+
+   * ```SLAVE_2``` - AWS EC2 Slave #2 Public IP Address
 
