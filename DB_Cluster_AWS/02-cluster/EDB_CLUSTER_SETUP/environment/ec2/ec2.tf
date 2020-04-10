@@ -55,7 +55,7 @@ resource "aws_instance" "EDB_DB_Cluster" {
   key_name               = var.ssh_keypair
   subnet_id              = var.subnet_id[count.index]
   iam_instance_profile   = var.iam_instance_profile
-  vpc_security_group_ids = [var.custom_security_group_id == "" ? var.aws_security_group_edb_sg[0].id : var.custom_security_group_id]
+  vpc_security_group_ids = [var.custom_security_group_id == "" ? var.aws_security_group_edb_sg[0] : var.custom_security_group_id]
 
 
   root_block_device {

@@ -52,7 +52,8 @@ module "edb-db-cluster" {
   EDB_yumrepo_password = ""
 
   # Enter this mandatory field which is VPC ID
-  vpc_id = ""
+  #vpc_id = ""
+  vpc_id = "vpc-07eda8ebfbf602baf"
 
   # Enter subnet ID where instance going to create in format ["subnetid1","subnetid2", "subnetid3"]
   subnet_id = ["subnet-0aaade8494c52c63a", "subnet-081ea42891ac9af6b", "subnet-09a1c944af4700da9"]
@@ -65,7 +66,6 @@ module "edb-db-cluster" {
   instance_type = "t2.micro"
 
   # Enter IAM Role Name to be attached to instance. Leave blank if you are providing AWS credentials.
-
   iam_instance_profile = ""
 
   # Enter AWS VPC Security Group ID. 
@@ -73,13 +73,16 @@ module "edb-db-cluster" {
   custom_security_group_id = ""
 
   # Provide s3 bucket name followed by folder name for wal archive. Eg. s3bucket=bucketname/foldername
-  s3bucket = ""
+  #s3bucket = ""
+  s3bucket = "edb-postgres/wal"
 
   # Enter SSH key pair name. You must create this before running this terraform config file
-  ssh_keypair = ""
+  #ssh_keypair = ""
+  ssh_keypair = "/home/dortiz/test-edb-deployment-keypair.pem"
 
   # Provide path of ssh private file downloaded on your local system.
-  ssh_key_path = ""
+  #ssh_key_path = ""
+  ssh_key_path = "/home/dortiz/"
 
   # Select database engine(DB) version like pg10-postgresql version10, epas12-Enterprise Postgresql Advanced server etc.
   # DB version support V10-V12
@@ -90,6 +93,7 @@ module "edb-db-cluster" {
   # db_engine = "pg10"
   # db_engine = "pg11"
   # db_engine = "pg12"
+  db_engine = "pg12"
 
   # Enter optional database (DB) User, leave it blank to use default user else enter desired user. 
   db_user = "postgres"
@@ -100,6 +104,7 @@ module "edb-db-cluster" {
   # Enter replication type(synchronous or asynchronous). Leave it blank to use default replication type "asynchronous".
   # replication_type = "synchronous"
   # replication_type = "asynchronous"
+  replication_type = "synchronous"
 
   # Enter replication user password
   replication_password = "postgres"
