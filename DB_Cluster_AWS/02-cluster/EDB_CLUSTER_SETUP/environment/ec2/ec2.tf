@@ -49,9 +49,9 @@ data "aws_ami" "centos_ami" {
 
 
 resource "aws_instance" "EDB_DB_Cluster" {
-  count                  = length(var.subnet_id)
-  ami                    = data.aws_ami.centos_ami.id
-  instance_type          = var.instance_type
+  count         = length(var.subnet_id)
+  ami           = data.aws_ami.centos_ami.id
+  instance_type = var.instance_type
   #key_name               = aws_key_pair.generated_sshkey.key_name
   key_name               = var.ssh_keypair
   subnet_id              = var.subnet_id[count.index]
