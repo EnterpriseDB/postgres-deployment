@@ -2,19 +2,9 @@ variable "subnet_id" {}
 variable "iam_instance_profile" {}
 variable "instance_type" {}
 variable "ssh_keypair" {}
-variable "ssh_key_path" {}
 variable "custom_security_group_id" {}
-variable "aws_security_group_edb_sg" {}
 variable "db_engine" {}
 variable "created_by" {}
-variable "db_user" {}
-variable "db_password" {}
-variable "s3bucket" {}
-variable "replication_type" {}
-variable "replication_password" {}
-variable "ssh_user" {}
-variable "EDB_yumrepo_username" {}
-variable "EDB_yumrepo_password" {}
 
 
 data "aws_ami" "centos_ami" {
@@ -76,12 +66,4 @@ resource "aws_instance" "EDB_DB_Cluster" {
 resource "aws_eip" "master-ip" {
   instance = aws_instance.EDB_DB_Cluster[0].id
   vpc      = true
-}
-
-
-locals {
-  DBUSERPG   = "${var.db_user == "" || var.db_engine == regexall("${var.db_engine}", "pg10 pg11 pg12") ? "postgres" : var.db_user}"
-  DBUSEREPAS = "${var.db_user == "" || var.db_engine == regexall("${var.db_engine}", "epas10 eaps11 epas12") ? "enterprisedb" : var.db_user}"
-  DBPASS     = "${var.db_password == "" ? "postgres" : var.db_password}"
-  REGION     = "${substr("${aws_instance.EDB_DB_Cluster[0].availability_zone}", 0, 9)}"
 }
