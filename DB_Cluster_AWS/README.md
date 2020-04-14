@@ -38,8 +38,7 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 ### Components
 1. 1 VPC in your AWS account
 2. Minimum of 3 Subnets with Public IP enabled
-3. 1 key pair to be downloaded as a .pem file locally
-4. 1 S3 bucket with a folder
+3. 1 S3 bucket with a folder
 
 **Steps**
 
