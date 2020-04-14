@@ -53,10 +53,10 @@ module "edb-db-cluster" {
 
   # Enter this mandatory field which is VPC ID
   #vpc_id = ""
-  vpc_id = "vpc-0fd2b4a8062a8481f"
+  vpc_id = "vpc-08a04f03906c31679"
 
   # Enter subnet ID where instance going to create in format ["subnetid1","subnetid2", "subnetid3"]
-  subnet_id = ["subnet-005115533b627ad95", "subnet-04c8a12bccbcaf065", "subnet-0e5197d0def3c85e6"]
+  subnet_id = ["subnet-0f6632ce6df093421", "subnet-0f707cf45e1af67e9", "subnet-08ef89082ec6080d4"]
 
   # Enter AWS Instance type like t2.micro, t3.large, c4.2xlarge m5.2xlarge etc....
   # instance_type = "t2.micro"
@@ -70,17 +70,22 @@ module "edb-db-cluster" {
 
   # Enter AWS VPC Security Group ID. 
   # If left blank new security group will create and attached to newly created instance ...
-  custom_security_group_id = "sg-06cf8d22f9c9e0bb2"
+  custom_security_group_id = "sg-059c08437dbc49df8"
 
-  # Provide s3 bucket name followed by folder name for wal archive. Eg. s3bucket=bucketname/foldername
+  # Provide s3 bucket name followed by folder name for 'wal' archive. 
+  # Example: s3bucket=<bucketname>/<foldername>
   #s3bucket = "s3bucket="
   s3bucket = "s3bucket=edb-postgres/wal"
 
-  # Enter SSH key pair name. You must create this before running this terraform config file
+  # Enter SSH key pair name. 
+  # Items to exclude: full path and file extension (.pem or .ppk)
+  # Example: ssh_keypair = "<nameofkeypairfile>"
   #ssh_keypair = ""
   ssh_keypair = "edb-postgres-cluster"
 
   # Provide path of ssh private file downloaded on your local system.
+  # Include: Full path of the SSH Key Pair File, name of the SSH Key Pair File and file extension
+  # Example: "/<file>.pem"
   #ssh_key_path = ""
   ssh_key_path = "/home/dortiz/edb-postgres-cluster.pem"
 
