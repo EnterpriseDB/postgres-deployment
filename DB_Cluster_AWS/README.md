@@ -123,6 +123,8 @@ $ terraform destroy
 
 * Copy the recently created key pair file to a location that will be utilized in the steps below
 
+* Create a folder with a name of your choice in the AWS S3 Bucket recently created, example: ```wal```
+
 * Terraform must be initialized
 
 * Navigate to the **02-cluster** folder
