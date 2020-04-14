@@ -121,6 +121,8 @@ $ terraform destroy
 
 * Create a key pair in the AWS EC2 Console -> Services -> EC2 -> Network & Security -> Key Pairs -> Create key pair
 
+* Copy the recently created key pair file to a location that will be utilized in the steps below
+
 * Terraform must be initialized
 
 * Navigate to the **02-cluster** folder
