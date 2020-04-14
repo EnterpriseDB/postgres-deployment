@@ -72,6 +72,8 @@ Name
 
 * AWS region must be provided when the **terraform plan** or **terraform apply** command are executed
 
+* Create a folder with a name of your choice in the recently created bucket, example: ```wal```
+
 **Terraform Commands**
 
 Initialize terraform.
@@ -113,10 +115,12 @@ $ terraform destroy
 ### Components
 1. 1 VPC in your AWS account
 2. Minimum of 3 Subnets with Public IP enabled
-3. 1 key pair to be downloaded as a .pem file locally
+3. 1 key pair to be created and downloaded as a .pem file locally
 4. 1 S3 bucket with a folder
 
 **Steps**
+
+* Create a key pair in the AWS EC2 Console -> Services -> EC2 -> Network & Security -> Key Pairs -> Create key pair
 
 * Terraform must be initialized
 
@@ -134,9 +138,9 @@ $ terraform destroy
 
    * ```s3bucket``` - AWS S3 Bucket Name and folder
 
-   * ```ssh_keypair``` - Full Path and name of the downloaded AWS EC2 Keypair File created in the AWS Console
+   * ```ssh_keypair``` - Name of the downloaded AWS EC2 Keypair File created in the AWS Console. Excluding path and ```.pem``` extension
 
-   * ```ssh_key_path``` - Full path of the downloaded AWS EC2 Keypair File
+   * ```ssh_key_path``` - Full path of the downloaded AWS EC2 Keypair File. Must include the name of the key pair file and extension.
 
    * ```db_engine``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12```
 

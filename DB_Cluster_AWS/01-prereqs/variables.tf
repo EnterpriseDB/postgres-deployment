@@ -27,7 +27,7 @@ variable "name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "edb-test"
+  default     = "edb-iam-postgres"
 }
 
 variable "user_path" {
