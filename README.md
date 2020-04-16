@@ -3,7 +3,7 @@ Improving the Postgres deployment experience by designing and developing automat
 
 Having the Postgres/EDB Postgres Advanced Server deployment scripts available on the git repo allows any user, be it an EDB staff member or any user looking to deploy Postgres/[EDB Postgres Advanced Server](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-advanced-server) (EPAS) quickly in a matter of minutes. We have used Terraform for provisioning the infrastructure across multiple providers.
 
-At present, the scripts are available for 2 providers AWS and VMware(vsphere). We will be expanding on the providers in the upcoming versions
+At present, the scripts are available for 2 providers AWS and VMware(vsphere). We will be expanding on the providers in the upcoming versions. [Wiki](https://github.com/EnterpriseDB/postgres-deployment/wiki) page has more details if you need help.
 
 [AWS](https://github.com/EnterpriseDB/postgres-deployment/wiki/AWS)
 
