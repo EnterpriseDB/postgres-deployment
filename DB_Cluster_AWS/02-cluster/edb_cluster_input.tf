@@ -53,10 +53,10 @@ module "edb-db-cluster" {
 
   # Enter this mandatory field which is VPC ID
   #vpc_id = ""
-  vpc_id = "vpc-08a04f03906c31679"
+  vpc_id = "vpc-0cf014b73fb256667"
 
   # Enter subnet ID where instance going to create in format ["subnetid1","subnetid2", "subnetid3"]
-  subnet_id = ["subnet-0f6632ce6df093421", "subnet-0f707cf45e1af67e9", "subnet-08ef89082ec6080d4"]
+  subnet_id = ["subnet-0776d21801ef2a4ea", "subnet-0d380d63c55321e9e", "subnet-0d3397245ca6dfbcc"]
 
   # Enter AWS Instance type like t2.micro, t3.large, c4.2xlarge m5.2xlarge etc....
   # instance_type = "t2.micro"
@@ -70,7 +70,7 @@ module "edb-db-cluster" {
 
   # Enter AWS VPC Security Group ID. 
   # If left blank new security group will create and attached to newly created instance ...
-  custom_security_group_id = "sg-059c08437dbc49df8"
+  custom_security_group_id = "sg-07e44071b55fd91b0"
 
   # Provide s3 bucket name followed by folder name for 'wal' archive. 
   # Example: s3bucket=<bucketname>/<foldername>

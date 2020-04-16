@@ -16,6 +16,14 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 4. Configure Postgres Replication on the AWS EC2 Instances
 
 ----
+### Demo Tutorials
+* ```01-prereqs``` [Guidance for Prerequisites creation in AWS Account](05-demos/01-PreReqs.gif)
+* ```02-Cluster``` [Guidance for Cluster creation in AWS Account](05-demos/02-Cluster.gif)
+
+----
+#
+
+----
 ### Skipping Steps
 * If you already have AWS resources matching the ```AWS Prerequisites``` step you can skip to the ```Setup up AWS EC2 Instances``` step.
 * If you already have AWS resources matching the ```AWS Prerequisites``` step and the ```AWS EC2 Instances``` step you can skip to the ```Configure Postgres Replication on the AWS EC2 Instances``` step.
