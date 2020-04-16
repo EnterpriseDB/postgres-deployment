@@ -17,8 +17,8 @@ Before starting to setup the Postgres Cluster, it is best to get familiar with t
 
 ----
 ### Demo Tutorials
-* ```01-prereqs``` ![Guidance for Prerequisites creation in AWS Account](05-demos/01-PreReqs.gif)
-* ```02-Cluster``` ![Guidance for Cluster creation in AWS Account](05-demos/02-Cluster.gif)
+* ```[01-prereqs](05-demos/01-PreReqs.mp4)``` ![Guidance for Prerequisites creation in AWS Account](05-demos/01-PreReqs.gif)
+* ```[02-Cluster](05-demos/02-Cluster.mp4)``` ![Guidance for Cluster creation in AWS Account](05-demos/02-Cluster.gif)
 
 ----
 ### Skipping Steps
