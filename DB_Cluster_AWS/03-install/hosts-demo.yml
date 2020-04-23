@@ -1,0 +1,20 @@
+---
+hosts:
+  master:
+    node_type: master
+    private_ip: 172.24.32.1
+    public_ip: ec2-54-184-18-228.us-west-2.compute.amazonaws.com
+    user: centos
+    ssh_private_key_file: test
+  standby1:
+    node_type: standby
+    private_ip: 172.24.32.2
+    public_ip: ec2-34-220-94-31.us-west-2.compute.amazonaws.com
+    user: centos
+    ssh_private_key_file: test
+  standby2:
+    node_type: standby
+    private_ip: 172.24.32.3
+    public_ip: ec2-34-222-245-116.us-west-2.compute.amazonaws.com
+    user: centos
+    ssh_private_key_file: test

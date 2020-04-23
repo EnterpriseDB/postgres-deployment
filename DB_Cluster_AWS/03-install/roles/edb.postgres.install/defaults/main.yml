@@ -1,0 +1,7 @@
+---
+# Default empty RPM Repo
+#postgresql_rpmrepo: ""
+# Working RPM Repo For Debian10 and Ubuntu18
+#postgresql_rpmrepo: "http://apt.postgresql.org/pub/repos/apt/"
+# For CentOS7
+postgresql_rpmrepo: "http://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
