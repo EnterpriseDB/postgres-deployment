@@ -249,7 +249,7 @@ $ terraform destroy
 2. Search for the pgsql-xx folder under /usr
 
 
-#Text below is in progress
+# Text below is in progress
 
 ### Postgres Replication Setup
 ##### Dependencies
