@@ -29,7 +29,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 ----
 ### Skipping Steps
-* If you already have AWS resources matching the ```AWS Prerequisites``` step you can skip to the ```Set up AWS EC2 Instances``` step.
+* If you already have AWS resources matching the ```AWS Prerequisites Setup``` step you can skip to the ```Set up AWS EC2 Instances``` step.
 * If you already have AWS resources matching the ```AWS Prerequisites``` step and the ```Set up AWS EC2 Instances``` step you can skip to the ```Install Postgres on AWS EC2 Instances``` step.
 * If you already have AWS resources matching the ```AWS Prerequisites```, ```Set up AWS EC2 Instances```, and the ```Install Postgres on AWS EC2 Instances``` step you can skip to the ```Configure Replication on AWS EC2 Instances``` step.
 
