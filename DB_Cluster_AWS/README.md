@@ -205,6 +205,50 @@ To destroy resources recently created.
 $ terraform destroy
 ```
 
+### AWS EC2 Instances Postgres Installation
+#### Dependencies
+1. Terraform
+2. AWS Prerequisites
+3. Ansible
+
+### Components
+1. 1 VPC in your AWS account
+2. Minimum of 3 Subnets with Public IP enabled
+3. 1 key pair to be created and downloaded as a .pem file locally
+4. 1 S3 bucket with a folder
+5. Previously existing Security Group for EC2 Instances with Inbound and Outbound Rules
+
+**Steps**
+
+* Navigate to the **03-install** folder
+
+* Set parameters in the **```hosts.yml```** file
+
+* Variables to set:
+
+   * ```master``` - Allows for multiple masters and standbys. Options are: master, standby1, standby2, etc...
+
+   * ```public_ip``` - The Public IP Address for the instance to install upon. Available on the AWS EC2 console.
+
+* Ansible command line parameters to set:
+
+   * ```OS``` - Supporting: Ubuntu18, Debian10 or CentOS7
+
+   * ```PG_VERSION``` - Versions supported: Ubuntu18-10, 11 and 12, Debian10-10 and CentOS7-10, 11 and 12.
+
+* Example of ansible command line parameters:
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=10"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=11"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=12"
+
+### Verify which resources were created
+1. ssh into any given EC2 instance of the cluster
+2. Search for the pgsql-xx folder under /usr
+
+
 **Text below is in progress**
 
 ### Postgres Replication Setup
