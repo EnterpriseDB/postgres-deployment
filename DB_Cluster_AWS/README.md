@@ -205,7 +205,7 @@ To destroy resources recently created.
 $ terraform destroy
 ```
 
-** Text below is in progress **
+**Text below is in progress**
 
 ### Postgres Replication Setup
 ##### Dependencies
