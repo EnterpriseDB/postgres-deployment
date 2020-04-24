@@ -26,6 +26,8 @@ Before starting to delve into this repository, it is best to get familiar with t
 ### Demo Tutorials
 * [Prerequisites Video - 01-prereqs](06-demos/) ![Guidance for Prerequisites creation in AWS Account](06-demos/01-PreReqs.gif)
 * [Cluster Video - 02-Cluster](06-demos/) ![Guidance for Cluster creation in AWS Account](06-demos/02-Cluster.gif)
+* [Postgres Install Video - 03-Install](06-demos/) ![Guidance for Postgres Installation on AWS EC2 Instances](06-demos/03-Install.gif)
+
 
 ----
 ### Skipping Steps
