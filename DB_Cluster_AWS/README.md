@@ -1,6 +1,8 @@
 # Getting Started
 **The content of this repository is not production ready and may be unstable.**
 
+The intention of this repository is as an introductory self starting guide.
+
 Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
 
 ## The overall process consists of the following steps:
