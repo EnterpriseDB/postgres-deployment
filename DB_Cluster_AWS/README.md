@@ -14,20 +14,24 @@ Before starting to delve into this repository, it is best to get familiar with t
 (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
 2. Set up AWS Prerequites resources
    * Performed by Terraform scripts in "01-prerequisites" folder
-   * Performed by Terraform scripts in "02-cluster" folder
-   * Perform by Ansible scripts in "03-replication" folder
-3. Set up AWS EC2 Instances
-4. Configure Postgres Replication on the AWS EC2 Instances
-
+3. Set up AWS EC2 Instances and dependencies
+   * Perform by Terraform scripts in "02-cluster" folder
+4. Install Postgres on AWS EC2 Instances
+   * Performed by Ansible scripts in "03-install" folder
+4. Configure Postgres Replication on AWS EC2 Instances
+   * Performed by Ansible scripts in "04-replication" folder
+5. Execute SQL Scripts
+   * Performed by Ansible scripts in "05-sqlexec" folder
 ----
 ### Demo Tutorials
-* [Prerequisites Video - 01-prereqs](05-demos/) ![Guidance for Prerequisites creation in AWS Account](05-demos/01-PreReqs.gif)
-* [Cluster Video - 02-Cluster](05-demos/) ![Guidance for Cluster creation in AWS Account](05-demos/02-Cluster.gif)
+* [Prerequisites Video - 01-prereqs](06-demos/) ![Guidance for Prerequisites creation in AWS Account](06-demos/01-PreReqs.gif)
+* [Cluster Video - 02-Cluster](06-demos/) ![Guidance for Cluster creation in AWS Account](06-demos/02-Cluster.gif)
 
 ----
 ### Skipping Steps
-* If you already have AWS resources matching the ```AWS Prerequisites``` step you can skip to the ```Setup up AWS EC2 Instances``` step.
-* If you already have AWS resources matching the ```AWS Prerequisites``` step and the ```AWS EC2 Instances``` step you can skip to the ```Configure Postgres Replication on the AWS EC2 Instances``` step.
+* If you already have AWS resources matching the ```AWS Prerequisites``` step you can skip to the ```Set up AWS EC2 Instances``` step.
+* If you already have AWS resources matching the ```AWS Prerequisites``` step and the ```Set up AWS EC2 Instances``` step you can skip to the ```Install Postgres on AWS EC2 Instances``` step.
+* If you already have AWS resources matching the ```AWS Prerequisites```, ```Set up AWS EC2 Instances```, and the ```Install Postgres on AWS EC2 Instances``` step you can skip to the ```Configure Replication on AWS EC2 Instances``` step.
 
 ----
 ### Software Prerequisites
@@ -115,7 +119,7 @@ $ terraform destroy
 ```
 
 
-### AWS EC2 Instances Setup for Postgres
+### Set up AWS EC2 Instances
 #### Dependencies
 1. Terraform
 2. AWS Prerequisites
@@ -205,7 +209,7 @@ To destroy resources recently created.
 $ terraform destroy
 ```
 
-### AWS EC2 Instances Postgres Installation
+### Install Postgres on AWS EC2 Instances
 #### Dependencies
 1. Terraform
 2. AWS Prerequisites
@@ -251,7 +255,7 @@ $ terraform destroy
 
 # Text below is in progress
 
-### Postgres Replication Setup
+### Configure Postgres Replication on AWS EC2 Instances
 ##### Dependencies
 1. Ansible
 2. AWS Prerequisites
