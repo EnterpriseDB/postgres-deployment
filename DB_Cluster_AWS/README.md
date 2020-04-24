@@ -126,6 +126,19 @@ $ terraform destroy
 3. 1 key pair to be created and downloaded as a .pem file locally
 4. 1 S3 bucket with a folder
 
+----
+### Changing the Image from the current: CentOS 7 to a different image
+* To change the image: Navigate to the ```DB_Cluster_AWS/02-cluster/EDB_CLUSTER_SETUP/environment/ec2/ec2.tf``` file
+* Search for the ``` data "aws_ami" "centos_ami" { ``` text - Should be on line 10
+* Locate the values text ``` "CentOS Linux 7 x86_64 HVM EBS*" ``` - Should be on line 18
+* Change this text on line 18 to match the Image naming convention you seek to install
+* Change the text to match the desired image on line 26 - ``` "CentOS Linux 7 x86_64 HVM EBS *"
+* Determine if there is a need to change the text on 31 for the architecture type of the image
+* Evaluate if there is a need to change the ``` root-device-type ``` on line 36
+
+----
+###
+
 **Steps**
 
 * Create a key pair in the AWS EC2 Console -> Services -> EC2 -> Network & Security -> Key Pairs -> Create key pair
