@@ -1,5 +1,7 @@
 # Getting Started
-Before starting to setup the Postgres Cluster, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
+**The content of this repository is not production ready and may be unstable.**
+
+Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
 
 ## The overall process consists of the following steps:
 
