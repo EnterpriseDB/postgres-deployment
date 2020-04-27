@@ -1,0 +1,87 @@
+---
+- name: Install Additional Packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages: 
+      - wget
+      - bash-completion
+    state: present     
+  become: yes
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Import GPG Repository Key
+  shell: |
+    sudo apt-get install wget ca-certificates
+  become: yes
+  when: PG_VERSION == '10' or PG_VERSION == '11' or PG_VERSION == '12'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Import Repository
+  shell: |
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  become: yes
+  when: PG_VERSION == '10' or PG_VERSION == '11' or PG_VERSION == '12'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Add PostgreSQL Repository
+  shell: |
+    #sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list'
+    sudo sh -c 'echo "deb {{ postgresql_enablerepo }} `lsb_release -cs`-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list'
+  become: yes
+  when: PG_VERSION == '10' or PG_VERSION == '11' or PG_VERSION == '12'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Upgrade all apt packages
+  apt:
+    upgrade=dist force_apt_get=yes
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Install Postgres 10
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages: 
+      - postgresql
+      - postgresql-contrib
+    state: present     
+  become: yes
+  when: PG_VERSION == '10'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Install Postgres 11
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages: 
+      - postgresql-11
+      - postgresql-client-11
+    state: present     
+  become: yes
+  when: PG_VERSION == '11'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Install Postgres 12
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages: 
+      - postgresql-12
+      - postgresql-client-12
+    state: present     
+  become: yes
+  when: PG_VERSION == '12'
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Install python pip
+  apt:
+    name: python-pip
+    state: present    
+  become: yes
+
+- name: Start Postgres Service
+  shell: |
+    sudo service postgresql start
+  become: yes
+  when: PG_VERSION == '10' or PG_VERSION == '11' or PG_VERSION == '12'
+  delegate_to: "{{ item.value.public_ip }}"
