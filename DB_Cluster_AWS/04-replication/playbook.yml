@@ -7,7 +7,7 @@
   #ignore_errors: yes
   
   vars_files:
-    - hosts.yml
+    - /home/dortiz/hosts-dev.yml
 
   pre_tasks:
     - set_fact:

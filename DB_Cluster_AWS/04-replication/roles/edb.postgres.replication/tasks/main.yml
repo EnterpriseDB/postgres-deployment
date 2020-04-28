@@ -2,7 +2,7 @@
 # Tasks file for edb.postgres.install Role
 
 # Configure Variables
-- name: Display current Node to Install
+- name: Display details of Node to Configure
   block:
     - debug:
         msg: 
@@ -11,14 +11,82 @@
              Node Type = {{ item.value.node_type }},
              Public IP = {{ item.value.public_ip }}"
 
-- include_tasks: setup-CentOS7P12.yml
-  #when: ansible_os_family == 'Debian'
-  when: OS == 'CentOS7' and PG_VERSION == '12'
-  
-- include_tasks: setup-Debian10.yml
-  #when: ansible_os_family == 'Debian'
-  when: OS == 'Debian10'
+# Setting variables available in all nodes
+- name: Assign node type
+  set_fact:
+    NODE_TYPE: "{{ item.value.node_type }}"
+  register: output
 
-- include_tasks: setup-Ubuntu18.yml
-  #when: ansible_os_family == 'Ubuntu'
-  when: OS == 'Ubuntu18'
+- name: Assign Private IP 1
+  set_fact:
+    PRIVATE_IP1: "{{ item.value.private_ip1}}"
+  register: output
+
+- name: Assign Private IP 2
+  set_fact:
+    PRIVATE_IP2: "{{ item.value.private_ip2}}"
+  register: output
+
+- name: Assign Public IP Address
+  set_fact:
+    PUBLIC_IP: "{{ item.value.public_ip}}"
+  register: output
+
+# Setting variables available only on master
+- name: Assign PGDBUSER
+  set_fact:
+    PGDBUSER: "{{ item.value.pgdbuser}}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Assign DBPASSWORD
+  set_fact:
+    DBPASSWORD: "{{ item.value.dbpassword }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Assign EDBREPUSER
+  set_fact:
+    EDBREPUSER: "{{ item.value.edbrepuser }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Assign REPLICATION_USER_PASSWORD
+  set_fact:
+    REPLICATION_USER_PASSWORD: "{{ item.value.replication_user_password }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Assign REPLICATION_TYPE
+  set_fact:
+    REPLICATION_TYPE: "{{ item.value.replication_type }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Assign S3 Bucket
+  set_fact:
+    S3BUCKET: "{{ item.value.s3bucket }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+# Setting Postgres12 Bin and Data Folder
+- name: Assign Postgres bin Folder
+  set_fact:
+    POSTGRES12_BIN_FOLDER: "/usr/pgsql-12/bin/"
+  register: output
+  when: PG_VERSION == '12'
+
+- name: Assign Postgres data Folder
+  set_fact:
+    POSTGRES12_DATA_FOLDER: "/var/lib/pgsql/12/data/"
+  register: output
+  when: PG_VERSION == '12'
+
+# Postgres12 Master and Standby
+- include_tasks: setup-CentOS7P12Master.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '12' and item.value.node_type == 'master'
+
+- include_tasks: setup-CentOS7P12Standby.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '12' and item.value.node_type == 'standby'
