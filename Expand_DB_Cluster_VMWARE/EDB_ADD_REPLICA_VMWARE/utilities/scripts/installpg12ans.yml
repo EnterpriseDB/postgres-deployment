@@ -34,7 +34,6 @@
        sudo /sbin/runuser -l postgres -c '/usr/pgsql-12/bin/initdb -U {{PGDBUSER}} -D /var/lib/pgsql/12/data'
        sed -i 's/local   all             all                                     peer/local   all             all                                     trust/g'  /var/lib/pgsql/12/data/pg_hba.conf
        sed -i 's@host    all             all             127.0.0.1/32            ident@host    all             all             127.0.0.1/32            trust@g' /var/lib/pgsql/12/data/pg_hba.conf                   
-       pip install awscli
      become: yes
      when: PGDBUSER != 'postgres'
 
@@ -43,7 +42,6 @@
        /usr/pgsql-12/bin/postgresql-12-setup initdb
        sed -i 's/local   all             all                                     peer/local   all             all                                     trust/g'  /var/lib/pgsql/12/data/pg_hba.conf
        sed -i 's@host    all             all             127.0.0.1/32            ident@host    all             all             127.0.0.1/32            trust@g' /var/lib/pgsql/12/data/pg_hba.conf
-       pip install awscli
      become: yes
      when: PGDBUSER == 'postgres'
 
