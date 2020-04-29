@@ -61,7 +61,7 @@ Author Information
 ------------------
 
 Author: 
-Doug Ortiz
-EDB Postgres DevOps
-doug.ortiz@enterprisedb.com
-www.enterprisedb.com
+* Doug Ortiz
+* EDB Postgres DevOps
+* doug.ortiz@enterprisedb.com
+* www.enterprisedb.com
