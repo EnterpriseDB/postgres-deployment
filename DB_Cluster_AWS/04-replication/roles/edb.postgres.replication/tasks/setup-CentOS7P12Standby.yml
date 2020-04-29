@@ -2,7 +2,7 @@
 # Standby configuration settings
 
 # Display details of Node being configured
-- name: Display current Standby Node to Configure
+- name: Display Details of Standby Node to Configure
   block:
     - debug:
         msg: 

@@ -139,7 +139,7 @@
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Enable Standby Names Setting
+- name: Enable and Configure Standby Names Setting
   lineinfile:
     path: /var/lib/pgsql/12/data/postgresql.conf
     regexp: "^#synchronous_standby_names = .*"
