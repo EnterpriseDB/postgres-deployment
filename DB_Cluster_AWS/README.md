@@ -270,6 +270,14 @@ $ terraform destroy
 5. Previously existing Security Group for EC2 Instances with Inbound and Outbound Rules
 6. 3 AWS EC2 Instances 
 
+### Postgres Archiving towards AWS S3 Bucket
+In order for Archiving to be supported for archiving, either for archiving storage or retrieval the following steps must be followed:
+1. [Install the AWS CLI] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+2. [Configuring the AWS CLI] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+3. Update the roles/tasks/setup-xxxxxxx.yml matching your OS and Postgres Version for Master and Standby.
+   Search for 'aws' and uncomment the commented lines
+4. Execute the Postgres ```Configure Postgres Replication on AWS EC2 Instances``` step
+
 **Steps**
 
 * Navigate to the **04-replication** folder
