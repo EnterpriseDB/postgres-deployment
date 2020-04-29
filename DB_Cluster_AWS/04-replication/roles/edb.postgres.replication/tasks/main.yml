@@ -12,75 +12,80 @@
              Public IP = {{ item.value.public_ip }}"
 
 # Setting variables available in all nodes
-- name: Assign node type
+- name: Set Node Type
   set_fact:
     NODE_TYPE: "{{ item.value.node_type }}"
   register: output
 
-- name: Assign Private IP 1
+- name: Set Private IP 1
   set_fact:
     PRIVATE_IP1: "{{ item.value.private_ip1}}"
   register: output
 
-- name: Assign Private IP 2
+- name: Set Private IP 2
   set_fact:
     PRIVATE_IP2: "{{ item.value.private_ip2}}"
   register: output
 
-- name: Assign Public IP Address
+- name: SEt Public IP Address
   set_fact:
     PUBLIC_IP: "{{ item.value.public_ip}}"
   register: output
 
 # Setting variables available only on master
-- name: Assign PGDBUSER
+- name: Set PGDBUSER
   set_fact:
     PGDBUSER: "{{ item.value.pgdbuser}}"
   register: output
   when: item.value.node_type == 'master'
 
-- name: Assign DBPASSWORD
+- name: Set DBPASSWORD
   set_fact:
     DBPASSWORD: "{{ item.value.dbpassword }}"
   register: output
   when: item.value.node_type == 'master'
 
-- name: Assign EDBREPUSER
+- name: Set EDBREPUSER
   set_fact:
     EDBREPUSER: "{{ item.value.edbrepuser }}"
   register: output
   when: item.value.node_type == 'master'
 
-- name: Assign REPLICATION_USER_PASSWORD
+- name: Set REPLICATION_USER_PASSWORD
   set_fact:
     REPLICATION_USER_PASSWORD: "{{ item.value.replication_user_password }}"
   register: output
   when: item.value.node_type == 'master'
 
-- name: Assign REPLICATION_TYPE
+- name: Set REPLICATION_TYPE
   set_fact:
     REPLICATION_TYPE: "{{ item.value.replication_type }}"
   register: output
   when: item.value.node_type == 'master'
 
-- name: Assign S3 Bucket
+- name: Set S3 Bucket
   set_fact:
     S3BUCKET: "{{ item.value.s3bucket }}"
   register: output
   when: item.value.node_type == 'master'
 
-# Setting Postgres12 Bin and Data Folder
-- name: Assign Postgres bin Folder
+# Setting Postgres12 Port, Bin and Data Folder
+- name: Set Postgres bin Folder
   set_fact:
     POSTGRES12_BIN_FOLDER: "/usr/pgsql-12/bin/"
   register: output
   when: PG_VERSION == '12'
 
-- name: Assign Postgres data Folder
+- name: Set Postgres data Folder
   set_fact:
     POSTGRES12_DATA_FOLDER: "/var/lib/pgsql/12/data/"
   register: output
   when: PG_VERSION == '12'
+
+- name: Set Postgres REPLICATION_PORT
+  set_fact:
+    REPLICATION_PORT: "5432"
+  register: output
 
 # Postgres12 Master and Standby
 - include_tasks: setup-CentOS7P12Master.yml

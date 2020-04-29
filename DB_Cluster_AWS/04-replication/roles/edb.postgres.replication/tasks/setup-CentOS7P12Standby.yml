@@ -25,7 +25,7 @@
 - name: Create pgpass file
   lineinfile:
     path: /var/lib/edb/.pgpass
-    line: "*:5444:*:{{ EDBREPUSER }}:{{ REPLICATION_USER_PASSWORD }}"
+    line: "*:{{ REPLICATION_PORT }}:*:{{ EDBREPUSER }}:{{ REPLICATION_USER_PASSWORD }}"
     create: yes
     owner: postgres
     group: postgres
@@ -48,7 +48,7 @@
 
 - name: Perform pgbase back-up
   shell: |
-    PGPASSWORD="{{ REPLICATION_USER_PASSWORD }}" {{ POSTGRES12_BIN_FOLDER }}pg_basebackup -R -D {{ POSTGRES12_DATA_FOLDER }} --host={{ item.value.private_ip1 }} --port=5432 --username={{ EDBREPUSER }}
+    PGPASSWORD="{{ REPLICATION_USER_PASSWORD }}" {{ POSTGRES12_BIN_FOLDER }}pg_basebackup -R -D {{ POSTGRES12_DATA_FOLDER }} --host={{ item.value.private_ip1 }} --port={{ REPLICATION_PORT }} --username={{ EDBREPUSER }}
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -77,7 +77,7 @@
 
 - name: Configure Replication Parameters in postgresql.conf file
   shell: | 
-    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port=5444 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave1'@g" {{ POSTGRES12_DATA_FOLDER }}postgresql.conf
+    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port={{ REPLICATION_PORT }} sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave1'@g" {{ POSTGRES12_DATA_FOLDER }}postgresql.conf
     sed -i -e 's/target_session_attrs=any/& application_name=slave1/' {{ POSTGRES12_DATA_FOLDER }}postgresql.auto.conf 
   become: yes
   when: REPLICATION_TYPE == 'synchronous'
@@ -85,7 +85,7 @@
 
 - name: Configure Replication Connection Parameters in postgresql.conf file
   shell: |
-    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port=5444 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave2'@g" '{{ POSTGRES12_DATA_FOLDER }}postgresql.conf'
+    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port={{ REPLICATION_PORT }} sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave2'@g" '{{ POSTGRES12_DATA_FOLDER }}postgresql.conf'
     sed -i -e 's/target_session_attrs=any/& application_name=slave2/' '{{ POSTGRES12_DATA_FOLDER }}postgresql.auto.conf'
   become: yes
   when: REPLICATION_TYPE == 'synchronous'
