@@ -77,3 +77,22 @@
 - include_tasks: setup-CentOS7P12Standby.yml
   #when: ansible_os_family == 'Debian'
   when: OS == 'CentOS7' and PG_VERSION == '12' and item.value.node_type == 'standby'
+
+# Postgres11 Master and Standby
+- include_tasks: setup-CentOS7P11Master.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '11' and item.value.node_type == 'master'
+
+- include_tasks: setup-CentOS7P12Standby.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '11' and item.value.node_type == 'standby'
+
+# Postgres10 Master and Standby
+- include_tasks: setup-CentOS7P11Master.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '10' and item.value.node_type == 'master'
+
+- include_tasks: setup-CentOS7P12Standby.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '10' and item.value.node_type == 'standby'
+

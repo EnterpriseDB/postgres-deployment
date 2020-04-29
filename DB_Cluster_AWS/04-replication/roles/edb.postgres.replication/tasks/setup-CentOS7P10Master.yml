@@ -2,14 +2,14 @@
 # Initialize Postgres Data Folder
 - name: Empty Postgres Data Directory
   shell: |
-    rm -rf {{ POSTGRES12_DATA_FOLDER }}
+    rm -rf {{ POSTGRES10_DATA_FOLDER }}
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
 # Initialize Postgres Service
 - name: Start InitDB process
   shell: |
-    {{ POSTGRES12_BIN_FOLDER }}postgresql-12-setup initdb
+    {{ POSTGRES10_BIN_FOLDER }}postgresql-10-setup initdb
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -22,7 +22,7 @@
 # Enable Postgres Service
 - name: Enable Postgres Service
   shell: |
-    systemctl enable postgresql-12.service
+    systemctl enable postgresql-10.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -35,7 +35,7 @@
 # Restart Postgres Service
 - name: Restart Postgres Service
   shell: |
-    systemctl restart postgresql-12.service
+    systemctl restart postgresql-10.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -47,7 +47,7 @@
 
 - name: Adding IP Address Entries into pg_hba file
   blockinfile:
-    path: "{{ POSTGRES12_DATA_FOLDER }}pg_hba.conf"
+    path: "{{ POSTGRES10_DATA_FOLDER }}pg_hba.conf"
     marker: "# {mark} ANSIBLE MANAGED BLOCK FOR REPLICATION"
     block: |
       host replication {{ EDBREPUSER }} {{ item.value.private_ip1 }}/32 md5
@@ -74,7 +74,7 @@
 
 - name: Uncomment Parameters in Postgresql Configuration File
   lineinfile:
-    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
+    path: "{{ POSTGRES10_DATA_FOLDER }}postgresql.conf"
     regexp: '{{item.From}}'
     line: '{{item.To}}'
   with_items:
@@ -98,7 +98,7 @@
 
 - name: Enable Synchronous Commit Setting
   lineinfile:
-    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
+    path: "{{ POSTGRES10_DATA_FOLDER }}postgresql.conf"
     regexp: '^#synchronous_commit = on'
     line: synchronous_commit = on
   become: yes
@@ -108,21 +108,21 @@
 # Stop Postgres Service
 - name: Stop Postgres Service
   shell: |
-    systemctl stop postgresql-12.service
+    systemctl stop postgresql-10.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
 # Enable Postgres Service
 - name: Enable Postgres Service
   shell: |
-    systemctl enable postgresql-12.service
+    systemctl enable postgresql-10.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
 # Restart Postgres Service
 - name: Restart Postgres Service
   shell: |
-    systemctl restart postgresql-12.service
+    systemctl restart postgresql-10.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -141,7 +141,7 @@
 
 - name: Enable and Configure Standby Names Setting
   lineinfile:
-    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
+    path: "{{ POSTGRES10_DATA_FOLDER }}postgresql.conf"
     regexp: "^#synchronous_standby_names = .*"
     line: synchronous_standby_names = 'any 1 (slave1,slave2)'
   become: yes

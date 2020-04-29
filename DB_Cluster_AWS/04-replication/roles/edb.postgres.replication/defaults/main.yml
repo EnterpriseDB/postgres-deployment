@@ -5,9 +5,18 @@
 #postgresql_rpmrepo: "http://apt.postgresql.org/pub/repos/apt/"
 # For CentOS7
 postgresql_rpmrepo: "http://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+
+# POSTGRES Shared Constants
+REPLICATION_PORT: "5432"
 # POSTGRES12 Constants
 POSTGRES12_BIN_FOLDER: "/usr/pgsql-12/bin/"
 POSTGRES12_DATA_FOLDER: "/var/lib/pgsql/12/data/"
-REPLICATION_PORT: "5432"
 POSTGRES12_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
-POSTGRES12_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
+# POSTGRES11 Constants
+POSTGRES11_BIN_FOLDER: "/usr/pgsql-11/bin/"
+POSTGRES11_DATA_FOLDER: "/var/lib/pgsql/11/data/"
+POSTGRES11_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
+# POSTGRES10 Constants
+POSTGRES10_BIN_FOLDER: "/usr/pgsql-11/bin/"
+POSTGRES10_DATA_FOLDER: "/var/lib/pgsql/11/data/"
+POSTGRES10_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
