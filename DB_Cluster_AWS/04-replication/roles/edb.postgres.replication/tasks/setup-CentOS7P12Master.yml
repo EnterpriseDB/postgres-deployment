@@ -2,7 +2,8 @@
 # Initialize Postgres Data Folder
 - name: Empty Postgres Data Directory
   shell: |
-    rm -rf /var/lib/pgsql/12/data
+    #rm -rf /var/lib/pgsql/12/data
+    rm -rf {{ POSTGRES12_DATA_FOLDER }}
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -47,7 +48,7 @@
 
 - name: Adding IP Address Entries into pg_hba file
   blockinfile:
-    path: /var/lib/pgsql/12/data/pg_hba.conf
+    path: "{{ POSTGRES12_DATA_FOLDER }}pg_hba.conf"
     marker: "# {mark} ANSIBLE MANAGED BLOCK FOR REPLICATION"
     block: |
       host replication {{ EDBREPUSER }} {{ item.value.private_ip1 }}/32 md5
@@ -74,7 +75,7 @@
 
 - name: Uncomment Parameters in Postgresql Configuration File
   lineinfile:
-    path: /var/lib/pgsql/12/data/postgresql.conf
+    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
     regexp: '{{item.From}}'
     line: '{{item.To}}'
   with_items:
@@ -98,7 +99,7 @@
 
 - name: Enable Synchronous Commit Setting
   lineinfile:
-    path: /var/lib/pgsql/12/data/postgresql.conf
+    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
     regexp: '^#synchronous_commit = on'
     line: synchronous_commit = on
   become: yes
@@ -141,7 +142,7 @@
 
 - name: Enable and Configure Standby Names Setting
   lineinfile:
-    path: /var/lib/pgsql/12/data/postgresql.conf
+    path: "{{ POSTGRES12_DATA_FOLDER }}postgresql.conf"
     regexp: "^#synchronous_standby_names = .*"
     line: synchronous_standby_names = 'any 1 (slave1,slave2)'
   become: yes

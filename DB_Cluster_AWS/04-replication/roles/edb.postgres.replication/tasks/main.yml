@@ -87,6 +87,11 @@
     REPLICATION_PORT: "5432"
   register: output
 
+- name: Set Postgres pgpass folder and file
+  set_fact:
+    POSTGRES12_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
+  register: output
+
 # Postgres12 Master and Standby
 - include_tasks: setup-CentOS7P12Master.yml
   #when: ansible_os_family == 'Debian'

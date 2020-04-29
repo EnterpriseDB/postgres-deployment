@@ -24,7 +24,7 @@
 
 - name: Create pgpass file
   lineinfile:
-    path: /var/lib/edb/.pgpass
+    path: "{{ POSTGRES12_PGPASS_FOLDER_AND_FILE }}"
     line: "*:{{ REPLICATION_PORT }}:*:{{ EDBREPUSER }}:{{ REPLICATION_USER_PASSWORD }}"
     create: yes
     owner: postgres
@@ -52,7 +52,7 @@
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Change permission of data directory
+- name: Change Permissions of Data Folder
   file:
     path: "{{ POSTGRES12_DATA_FOLDER }}"
     state: directory
