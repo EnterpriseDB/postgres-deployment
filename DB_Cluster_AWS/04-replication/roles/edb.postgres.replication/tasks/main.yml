@@ -69,29 +69,6 @@
   register: output
   when: item.value.node_type == 'master'
 
-# Setting Postgres12 Port, Bin and Data Folder
-- name: Set Postgres bin Folder
-  set_fact:
-    POSTGRES12_BIN_FOLDER: "/usr/pgsql-12/bin/"
-  register: output
-  when: PG_VERSION == '12'
-
-- name: Set Postgres data Folder
-  set_fact:
-    POSTGRES12_DATA_FOLDER: "/var/lib/pgsql/12/data/"
-  register: output
-  when: PG_VERSION == '12'
-
-- name: Set Postgres REPLICATION_PORT
-  set_fact:
-    REPLICATION_PORT: "5432"
-  register: output
-
-- name: Set Postgres pgpass folder and file
-  set_fact:
-    POSTGRES12_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
-  register: output
-
 # Postgres12 Master and Standby
 - include_tasks: setup-CentOS7P12Master.yml
   #when: ansible_os_family == 'Debian'
