@@ -27,8 +27,8 @@
     path: "{{ POSTGRES10_PGPASS_FOLDER_AND_FILE }}"
     line: "*:{{ REPLICATION_PORT }}:*:{{ EDBREPUSER }}:{{ REPLICATION_USER_PASSWORD }}"
     create: yes
-    owner: postgres
-    group: postgres
+    owner: "{{ PGDBUSER }}" 
+    group: "{{ PGDBUSER }}"
     mode: '0600'
   become: yes
   delegate_to: "{{ PUBLIC_IP }}"
@@ -56,8 +56,8 @@
   file:
     path: "{{ POSTGRES10_DATA_FOLDER }}"
     state: directory
-    owner: postgres
-    group: postgres
+    owner: "{{ PGDBUSER }}"
+    group: "{{ PGDBUSER }}"
     recurse: yes
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
