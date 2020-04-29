@@ -1,12 +1,12 @@
 ---
-# Empty Postgres Data Directory 
+# Initialize Postgres Data Folder
 - name: Empty Postgres Data Directory
   shell: |
     rm -rf /var/lib/pgsql/12/data
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-# Start InitDB Postgres Service
+# Initialize Postgres Service
 - name: Start InitDB process
   shell: |
     {{ POSTGRES12_BIN_FOLDER }}postgresql-12-setup initdb
@@ -45,7 +45,7 @@
     timeout: 10
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Adding Entry into pg_hba file
+- name: Adding IP Address Entries into pg_hba file
   blockinfile:
     path: /var/lib/pgsql/12/data/pg_hba.conf
     marker: "# {mark} ANSIBLE MANAGED BLOCK FOR REPLICATION"
@@ -56,7 +56,7 @@
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Display current Node to Install
+- name: Display Details of Node to Configure
   block:
     - debug:
         msg: 
@@ -72,7 +72,7 @@
              REPLICATION_USER_PASSWORD = {{ REPLICATION_USER_PASSWORD }},
              DBPASSWORD = {{ DBPASSWORD }}"
 
-- name: Uncomment parameters in Postgresql Configuration File
+- name: Uncomment Parameters in Postgresql Configuration File
   lineinfile:
     path: /var/lib/pgsql/12/data/postgresql.conf
     regexp: '{{item.From}}'
@@ -96,7 +96,7 @@
   become: yes
   delegate_to: "{{ PUBLIC_IP }}"
 
-- name: Update synchronous commit setting
+- name: Enable Synchronous Commit Setting
   lineinfile:
     path: /var/lib/pgsql/12/data/postgresql.conf
     regexp: '^#synchronous_commit = on'
@@ -109,6 +109,13 @@
 - name: Stop Postgres Service
   shell: |
     systemctl stop postgresql-12.service
+  become: yes
+  delegate_to: "{{ item.value.public_ip }}"
+
+# Enable Postgres Service
+- name: Enable Postgres Service
+  shell: |
+    systemctl enable postgresql-12.service
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
@@ -132,7 +139,7 @@
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Change standby names setting in postgresql.conf file
+- name: Enable Standby Names Setting
   lineinfile:
     path: /var/lib/pgsql/12/data/postgresql.conf
     regexp: "^#synchronous_standby_names = .*"
