@@ -255,62 +255,85 @@ $ terraform destroy
 2. Search for the pgsql-xx folder under /usr
 
 
-# Text below is in progress
-
 ### Configure Postgres Replication on AWS EC2 Instances
 ##### Dependencies
 1. Ansible
 2. AWS Prerequisites
 3. Postgres AWS EC2 Instances
+4. Install Postgres on AWS EC2 Instances
 
 ### Components
 1. 1 VPC in your AWS account
 2. Minimum of 3 Subnets with Public IP enabled
 3. 1 key pair to be downloaded as a .pem file locally
 4. 1 S3 bucket with a folder
+5. Previously existing Security Group for EC2 Instances with Inbound and Outbound Rules
+6. 3 AWS EC2 Instances 
 
 **Steps**
 
-* Terraform must be initialized
-
-* Navigate to the **03-replication** folder
+* Navigate to the **04-replication** folder
 
 * Create and set parameters in the **```hosts```** file
- * Create hosts file with following content.
 
->master_public_ip ansible_user= ansible_ssh_private_key_file=
->slave1_public_ip ansible_user= ansible_ssh_private_key_file=
->slave2_public_ip ansible_user= ansible_ssh_private_key_file=
+* Variables to set in hosts.yml file:
 
->Replace username and path to file with your values.
+   * master:
 
-* Use below command to run ansible playbook. Make sure you are providing extra arguments.
+     * ```node_type``` - 'master' or 'standby'. 'standby' should be suffixed with node number, ex.: 'standby1'
 
->ansible-playbook -i hosts ./utilities/scripts/setupsr.yml --extra-vars='USER= PASS= EPASDBUSER= PGDBUSER= ip1= ip2= ip3= S3BUCKET= REPLICATION_USER_PASSWORD= DBPASSWORD= REPLICATION_TYPE= DB_ENGINE= MASTER= SLAVE1= SLAVE2='
+     * ```private_ip1``` - Private IP Address for Master Node
 
-* Variables to set:
+     * ```private_ip2``` - Private IP Address for Standby Node 1
 
-   * ```PGDBUSER``` - Password for the Postgres Database
+     * ```private_ip3``` - Private IP Address for Standby Node 2
 
-   * ```ip1``` - Private IP Address for the Master Instance
+     * ```public_ip``` - Public IP for Master Node
 
-   * ```ip2``` - Private IP Address for the Slave #1
+     * ```pgdbuser``` - Postgres Database User Account
 
-   * ```ip3``` - Private IP Address for the Slave #2
+     * ```dbpassword``` - Postgres Database Password for Postgres Database User Account
 
-   * ```S3BUCKET``` - AWS S3 Bucket and folder
+     * ```edbrepuser``` - Postgres Database Replication User Account
 
-   * ```REPLICATION_USER_PASSWORD``` - Replication User Name
+     * ```replication_user_password``` - Password for Replication User Account
 
-   * ```DBPASSWORD ``` - Replication User Password
+     * ```replication_type``` - 'synchronous' or 'asynchronous'
 
-   * ```REPLICATION_TYPE``` - Replication Type: ```synchronous``` or ```asynchronous```
+     * ```s3bucket``` - AWS S3 Bucket utilized for Write Access Log Archiving
 
-   * ```DB_ENGINE``` - Postgres Database Engine Version to be installed. Examples: ```epas10, epas11, epas12, pg10, pg11 or pg12``
+   * standby1..x:
 
-   * ```MASTER_1``` - AWS EC2 Master Public IP Address
+     * ```node_type``` - 'standby'
 
-   * ```SLAVE_1``` - AWS EC2 Slave #1 Public IP Address
+     * ```private_ip1``` - Private IP Address for Standby Node 1. Used for replication.
 
-   * ```SLAVE_2``` - AWS EC2 Slave #2 Public IP Address
+     * ```private_ip2``` - Private IP Address for Standby Node 2. Used for replication.
 
+     * ```public_ip``` - PUblic IP Address for Node
+
+* Ansible command line parameters to set:
+
+   * ```OS``` - Supporting: CentOS7
+
+   * ```PG_VERSION``` - Versions supported: 10, 11 and 12.
+
+* Example of ansible command line parameters:
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=10"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=11"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=12"
+
+### Verify which resources were created
+1. ssh into the AWS EC2 Master Node of the Postgres Database Cluster
+2. Login as postgres user
+3. Login into psql
+4. Verify that there are no Tables existing
+5. Create a table
+6. Insert records into table
+7. ssh into AWS EC2 Standby Node of the Postgres Database Cluster
+8. Login as postgres user
+9. Login into psql
+10. Select records from created table in Master Node
