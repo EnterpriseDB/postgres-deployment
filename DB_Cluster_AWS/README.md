@@ -393,19 +393,9 @@ In order for Archiving to be supported for archiving, either for archiving stora
 
      * ```pgdbpassword``` - Postgres Database Password for Postgres Database User Account
 
-* Ansible command line parameters to set:
-
-   * ```OS``` - Supporting: CentOS7
-
-   * ```PG_VERSION``` - Versions supported: 10, 11 and 12.
-
 * Example of ansible command line parameters:
 
-   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=10"
-
-   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=11"
-
-   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=12"
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem'
 
 ### Verify which resources were created
 1. ssh into the AWS EC2 Master Node of the Postgres Database Cluster

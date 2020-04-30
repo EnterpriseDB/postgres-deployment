@@ -5,9 +5,7 @@
   block:
     - debug:
         msg: 
-            "Operating System = {{ OS }}:
-             Postgres Version = {{ PG_VERSION }},
-             NODE_TYPE = {{ item.value.node_type }},
+             "NODE_TYPE = {{ item.value.node_type }}:
              PRIVATE_IP = {{ item.value.private_ip }},
              PUBLIC_IP = {{ item.value.public_ip }},
              DATABASE = {{ item.value.database }},
@@ -61,6 +59,6 @@
   delegate_to: "{{ PUBLIC_IP }}"
 
 # Postgres12 Master
-- include_tasks: SQLExec-Centos7P12.yml
+- include_tasks: SQLExec.yml
   #when: ansible_os_family == 'Debian'
-  when: OS == 'CentOS7' and PG_VERSION == '12' and item.value.node_type == 'master'
+  when: item.value.node_type == 'master'
