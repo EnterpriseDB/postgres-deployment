@@ -352,3 +352,66 @@ In order for Archiving to be supported for archiving, either for archiving stora
 8. Login as postgres user
 9. Login into psql
 10. Select records from created table in Master Node
+
+### Execute SQL Statements on Postgres Cluster
+##### Dependencies
+1. Ansible
+2. AWS Prerequisites
+3. Postgres AWS EC2 Instances
+4. Install Postgres on AWS EC2 Instances
+5. Replication Configuration on Postgres Cluster on AWS EC2 Instances
+
+### Components
+1. 1 VPC in your AWS account
+2. Minimum of 3 Subnets with Public IP enabled
+3. 1 key pair to be downloaded as a .pem file locally
+4. 1 S3 bucket with a folder
+5. Previously existing Security Group for EC2 Instances with Inbound and Outbound Rules
+6. 3 AWS EC2 Instances 
+
+**Steps**
+
+* Navigate to the **05-replication** folder
+
+* Create and set parameters in the **```hosts```** file
+
+* Variables to set in hosts.yml file:
+
+   * master:
+
+     * ```node_type``` - 'master' is the only parameter accepted
+
+     * ```private_ip``` - Private IP Address for Master Node
+
+     * ```public_ip``` - Public IP for Master Node
+
+     * ```database``` - Database to connect
+
+     * ```pgdbuser``` - Postgres Database User Account
+
+     * ```pgdbpassword``` - Postgres Database Password for Postgres Database User Account
+
+* Ansible command line parameters to set:
+
+   * ```OS``` - Supporting: CentOS7
+
+   * ```PG_VERSION``` - Versions supported: 10, 11 and 12.
+
+* Example of ansible command line parameters:
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=10"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=11"
+
+   * sudo ansible-playbook playbook.yml -u centos --private-key 'edb-postgres-cluster.pem' --extra-vars="OS=CentOS7 PG_VERSION=12"
+
+### Verify which resources were created
+1. ssh into the AWS EC2 Master Node of the Postgres Database Cluster
+2. Login as postgres user
+3. Login into psql
+4. Verify the 'students' table does not exist in 'postgres' database
+5. Execute the SQL Exec Role - Creates a table, inserts a record into the table and deletes the table
+7. ssh into AWS EC2 Standby Node of the Postgres Database Cluster
+8. Login as postgres user
+9. Login into psql
+10. Verify the 'students' table does not exist in 'postgres' database
