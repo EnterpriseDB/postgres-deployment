@@ -371,7 +371,7 @@ In order for Archiving to be supported for archiving, either for archiving stora
 
 **Steps**
 
-* Navigate to the **05-replication** folder
+* Navigate to the **05-sqlexec** folder
 
 * Create and set parameters in the **```hosts```** file
 
