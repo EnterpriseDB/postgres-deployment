@@ -1,5 +1,9 @@
 # Getting Started
-**The content of this repository is not production ready and may be unstable.**
+Postgres Deployment scripts are an easy way to deploy Postgres and EDB Tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section. Feel free to leave comments there. However, these scripts are not officially supported by the EnterpriseDb Team.
+
+EnterpriseDb has the largest base of PostgreSQL experts available.
+
+Learn more about [Professional Support] (https://www.enterprisedb.com/services/ongoing-postgresql-help/postgresql-technical-support)
 
 The intention of this repository is as an introductory self starting guide.
 
@@ -27,6 +31,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 * [Prerequisites Video - 01-prereqs](06-demos/) ![Guidance for Prerequisites creation in AWS Account](06-demos/01-PreReqs.gif)
 * [Cluster Video - 02-Cluster](06-demos/) ![Guidance for Cluster creation in AWS Account](06-demos/02-Cluster.gif)
 * [Postgres Install Video - 03-Install](06-demos/) ![Guidance for Postgres Installation on AWS EC2 Instances](06-demos/03-Install.gif)
+* [Postgres Replication Configuration Video - 04-01-Replication Configuration](06-demos/) ![Guidance for Postgres Replication Configuration](06-demos/04-01-Replication Configuration.gif)
+* [Postgres Replication Verification Video - 04-02-Replication Verification](06-demos/) ![Guidance for Postgres Replication Verification](06-demos/04-01-Replication Verification.gif)
+* [Postgres SQL Exec Video - 05-SQLExec](06-demos/) ![Guidance for Postgres SQL Exec](06-demos/05-SQLExec.gif)
 
 
 ----

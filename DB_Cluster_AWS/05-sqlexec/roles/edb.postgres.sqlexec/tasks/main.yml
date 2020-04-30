@@ -1,0 +1,66 @@
+---
+# Tasks file for edb.postgres.sqlexec Role
+
+- name: Display details of Node to Configure
+  block:
+    - debug:
+        msg: 
+            "Operating System = {{ OS }}:
+             Postgres Version = {{ PG_VERSION }},
+             NODE_TYPE = {{ item.value.node_type }},
+             PRIVATE_IP = {{ item.value.private_ip }},
+             PUBLIC_IP = {{ item.value.public_ip }},
+             DATABASE = {{ item.value.database }},
+             PGDBUSER = {{ item.value.pgdbuser }},
+             PGDBPASSWORD = {{ item.value.pgdbpassword }}"
+
+# Setting variables available in all nodes
+- name: Set Node Type
+  set_fact:
+    NODE_TYPE: "{{ item.value.node_type }}"
+  register: output
+
+- name: Set Private IP
+  set_fact:
+    PRIVATE_IP: "{{ item.value.private_ip }}"
+  register: output
+
+- name: Set Public IP Address
+  set_fact:
+    PUBLIC_IP: "{{ item.value.public_ip }}"
+  register: output
+
+- name: Set Database
+  set_fact:
+    DATABASE: "{{ item.value.database }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Set PGDBUSER
+  set_fact:
+    PGDBUSER: "{{ item.value.pgdbuser }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+- name: Set PGDBPASSWORD
+  set_fact:
+    PGDBPASSWORD: "{{ item.value.pgdbpassword }}"
+  register: output
+  when: item.value.node_type == 'master'
+
+# Install Packages before any tasks are executed
+- name: Install psycopg2 Package PreRequisite
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - python-psycopg2
+    state:
+      present
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
+# Postgres12 Master
+- include_tasks: SQLExec-Centos7P12.yml
+  #when: ansible_os_family == 'Debian'
+  when: OS == 'CentOS7' and PG_VERSION == '12' and item.value.node_type == 'master'
