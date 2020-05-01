@@ -323,9 +323,9 @@ In order for Archiving to be supported for archiving, either for archiving stora
 
      * ```node_type``` - 'standby'
 
-     * ```private_ip1``` - Private IP Address for Standby Node 1. Used for replication.
+     * ```private_ip1``` - Enter 'private_ip1' from master node.
 
-     * ```private_ip2``` - Private IP Address for Standby Node 2. Used for replication.
+     * ```private_ip2``` - Enter 'private_ip2' from master node.
 
      * ```public_ip``` - PUblic IP Address for Node
 
