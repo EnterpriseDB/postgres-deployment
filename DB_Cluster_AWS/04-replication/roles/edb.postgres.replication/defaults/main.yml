@@ -17,6 +17,6 @@ POSTGRES11_BIN_FOLDER: "/usr/pgsql-11/bin/"
 POSTGRES11_DATA_FOLDER: "/var/lib/pgsql/11/data/"
 POSTGRES11_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
 # POSTGRES10 Constants
-POSTGRES10_BIN_FOLDER: "/usr/pgsql-11/bin/"
-POSTGRES10_DATA_FOLDER: "/var/lib/pgsql/11/data/"
+POSTGRES10_BIN_FOLDER: "/usr/pgsql-10/bin/"
+POSTGRES10_DATA_FOLDER: "/var/lib/pgsql/10/data/"
 POSTGRES10_PGPASS_FOLDER_AND_FILE: "/var/lib/edb/.pgpass"
