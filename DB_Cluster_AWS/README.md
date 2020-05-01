@@ -327,7 +327,7 @@ In order for Archiving to be supported for archiving, either for archiving stora
 
      * ```private_ip2``` - Enter 'private_ip2' from master node.
 
-     * ```public_ip``` - PUblic IP Address for Node
+     * ```public_ip``` - Public IP Address for Node
 
 * Ansible command line parameters to set:
 
