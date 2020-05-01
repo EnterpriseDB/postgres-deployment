@@ -32,7 +32,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * [Cluster Video - 02-Cluster](06-demos/) ![Guidance for Cluster creation in AWS Account](06-demos/02-Cluster.gif)
 * [Postgres Install Video - 03-Install](06-demos/) ![Guidance for Postgres Installation on AWS EC2 Instances](06-demos/03-Install.gif)
 * [Postgres Replication Configuration Video - 04-01-Replication_Configuration](06-demos/) ![Guidance for Postgres Replication Configuration](06-demos/04-01-Replication_Configuration.gif)
-* [Postgres Replication Verification Video - 04-02-Replication_Verification](06-demos/) ![Guidance for Postgres Replication Verification](06-demos/04-01-Replication_Verification.gif)
+* [Postgres Replication Verification Video - 04-02-Replication_Verification](06-demos/) ![Guidance for Postgres Replication Verification](06-demos/04-02-Replication_Verification.gif)
 * [Postgres SQL Exec Video - 05-SQLExec](06-demos/) ![Guidance for Postgres SQL Exec](06-demos/05-SQLExec.gif)
 
 
