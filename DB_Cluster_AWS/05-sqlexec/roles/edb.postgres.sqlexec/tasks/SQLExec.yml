@@ -12,6 +12,16 @@
              PGDBUSER = {{ item.value.pgdbuser }},
              PGDBPASSWORD = {{ item.value.pgdbpassword }}"
 
+- name: Drop Table if exists in Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: DROP TABLE IF EXISTS students
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
 - name: Create Table in Postgres DB
   postgresql_query:
     db: "{{ DATABASE }}"
