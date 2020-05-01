@@ -88,7 +88,7 @@
     - { From: "#max_sync_workers_per_subscription = 2", To: "max_sync_workers_per_subscription = 2" }
     - { From: "#listen_addresses = 'localhost'", To: "listen_addresses = '*'" } 
     - { From: "#max_connections = 100", To: "max_connections = 200" }
-    - { From: "#archive_mode = off", To: "archive_mode = on" }
+    #- { From: "#archive_mode = off", To: "archive_mode = on" }
     # AWS CLI does not require installation but it will not work automatically.
     # For the archive command to work the AWS CLI must be installed along with the 
     # AWS Credentials being fully configured.
