@@ -3,8 +3,8 @@ variable "iam_instance_profile" {}
 variable "instance_type" {}
 variable "ssh_keypair" {}
 variable "custom_security_group_id" {}
-variable "db_engine" {}
 variable "created_by" {}
+variable "cluster_name" {}
 
 
 data "aws_ami" "centos_ami" {
@@ -56,7 +56,7 @@ resource "aws_instance" "EDB_DB_Cluster" {
   }
 
   tags = {
-    Name       = count.index == 0 ? format("%s-%s", var.db_engine, "master") : format("%s-%s%s", var.db_engine, "slave", count.index)
+    Name       = count.index == 0 ? format("%s-%s", var.cluster_name, "master") : format("%s-%s%s", var.cluster_name, "slave", count.index)
     Created_By = var.created_by
   }
 

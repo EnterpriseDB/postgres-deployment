@@ -1,14 +1,9 @@
-variable "EDB_yumrepo_username" {
-  description = "yum repo user name"
+variable "cluster_name" {
+  description = "The name to the cluster"
   default     = ""
   type        = string
 }
 
-variable "EDB_yumrepo_password" {
-  description = "yum repo user password"
-  default     = ""
-  type        = string
-}
 
 variable "vpc_id" {
   type        = string
@@ -57,39 +52,7 @@ variable "ssh_key_path" {
 }
 
 
-variable "db_engine" {
-  description = "DBEngine from pg10, pg11, pg12, epas10, epas11, epas12"
-  type        = string
-  default     = "pg12"
-}
 
-variable "replication_type" {
-  description = "Replication type 'asynchronous' or 'synchronous'"
-  type        = string
-  default     = "asynchronous"
-}
-
-variable "replication_password" {
-  description = "Replication Password"
-  type        = string
-}
-
-variable "db_user" {
-  description = "Optional DB User Name"
-  type        = string
-  default     = "postgres"
-}
-
-variable "db_password" {
-  description = "Custom DB Password"
-  type        = string
-  default     = "postgres"
-}
-
-variable "s3bucket" {
-  description = "S3 bucket name for wal archive followed by folder name"
-  type        = string
-}
 
 variable "created_by" {
   type        = string

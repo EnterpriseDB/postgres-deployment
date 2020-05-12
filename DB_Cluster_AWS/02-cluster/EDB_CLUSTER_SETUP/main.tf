@@ -45,6 +45,6 @@ module "ec2" {
   iam_instance_profile      = var.iam_instance_profile
   ssh_keypair               = var.ssh_keypair
   custom_security_group_id  = var.custom_security_group_id
-  db_engine                 = var.db_engine
   created_by                = var.created_by
+  cluster_name              = var.cluster_name
 }

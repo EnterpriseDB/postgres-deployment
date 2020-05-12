@@ -71,23 +71,27 @@
     block: |
       trigger_file = '{{ POSTGRES11_DATA_FOLDER }}waltrigger'
       # This will not work without having the AWS CLI Installed and AWS Credentials configured.
-      #restore_command = 'aws s3 cp s3://{{ S3BUCKET }}/%f %p'
+      restore_command = 'aws s3 cp s3://{{ S3BUCKET }}/%f %p'
       recovery_target_timeline = 'latest'
   become: yes
+  delegate_to: "{{ item.value.public_ip }}"
                                                          
 - name: Update recovery.conf File
-    shell: sed -i -e 's/target_session_attrs=any/& application_name=slave1/' "{{ POSTGRES11_DATA_FOLDER }}recovery.conf"
-    become: yes
+  shell: sed -i -e 's/target_session_attrs=any/& application_name=slave1/' "{{ POSTGRES11_DATA_FOLDER }}recovery.conf"
+  become: yes
   when: REPLICATION_TYPE == 'synchronous'
-                                                                            
+  delegate_to: "{{ PUBLIC_IP }}"
+                                                                          
 - name: Modify recovery.conf file if replication type synchronous
   shell: sed -i -e 's/target_session_attrs=any/& application_name=slave2/' "{{ POSTGRES11_DATA_FOLDER }}recovery.conf"
   become: yes
   when: REPLICATION_TYPE == 'synchronous'
-                                                                                         
+  delegate_to: "{{ item.value.public_ip }}"
+                                                                                       
 - name: Remove extra lines in file
   shell: sed -i '$ d' "{{ POSTGRES11_DATA_FOLDER }}postgresql.conf"
   become: yes 
+  delegate_to: "{{ item.value.public_ip }}"
   
 - name: Add Replication IP Address 1 Entry to pg_hba Configuration File
   lineinfile:

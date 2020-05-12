@@ -62,31 +62,27 @@
   become: yes
   delegate_to: "{{ item.value.public_ip }}"
 
-- name: Uncomment parameters in postgresql.conf file
-  lineinfile:
-    path: "{{ POSTGRES10_DATA_FOLDER }}postgresql.conf"
-    regexp: "{{item.From}}"
-    line: "{{item.To}}"
-  with_items:
-    - { From: "^#promote_trigger_file = ''", To: "promote_trigger_file = '{{ POSTGRES10_DATA_FOLDER }}waltrigger'" }
-    # AWS CLI must be installed on each standby node in order for the command to work from each node
-    #- { From: "^#restore_command = ''", To: "restore_command = 'aws s3 cp s3://{{ S3BUCKET }}/%f %p'" }
-    - { From: "#recovery_target_timeline = 'latest'", To: "recovery_target_timeline = 'latest'" }
+
+- name: Create recovery.conf file
+  blockinfile:
+         path: "{{ POSTGRES10_DATA_FOLDER }}recovery.conf"
+         owner: "{{ PGDBUSER }}"
+         group: "{{ PGDBUSER }}"
+         block: |
+           trigger_file = '{{ POSTGRES10_DATA_FOLDER }}waltrigger'
+           restore_command = 'aws s3 cp s3://{{ S3BUCKET }}/%f %p'
+           recovery_target_timeline = 'latest'
   become: yes
   delegate_to: "{{ PUBLIC_IP }}"
 
 - name: Configure Replication Parameters in postgresql.conf file
-  shell: | 
-    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port={{ REPLICATION_PORT }} sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave1'@g" {{ POSTGRES10_DATA_FOLDER }}postgresql.conf
-    sed -i -e 's/target_session_attrs=any/& application_name=slave1/' {{ POSTGRES10_DATA_FOLDER }}postgresql.auto.conf 
+  shell: sed -i -e 's/target_session_attrs=any/& application_name=slave1/' "{{ POSTGRES10_DATA_FOLDER }}recovery.conf" 
   become: yes
   when: REPLICATION_TYPE == 'synchronous'
   delegate_to: "{{ PUBLIC_IP }}"
 
 - name: Configure Replication Connection Parameters in postgresql.conf file
-  shell: |
-    sed -i "s@#primary_conninfo = ''@primary_conninfo = 'user={{ EDBREPUSER }} password={{ REPLICATION_USER_PASSWORD }} host={{ PRIVATE_IP1 }} port={{ REPLICATION_PORT }} sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any application_name=slave2'@g" '{{ POSTGRES10_DATA_FOLDER }}postgresql.conf'
-    sed -i -e 's/target_session_attrs=any/& application_name=slave2/' '{{ POSTGRES10_DATA_FOLDER }}postgresql.auto.conf'
+  shell: sed -i -e 's/target_session_attrs=any/& application_name=slave2/' "{{ POSTGRES10_DATA_FOLDER }}recovery.conf"
   become: yes
   when: REPLICATION_TYPE == 'synchronous'
   delegate_to: "{{ item.value.public_ip }}"

@@ -8,17 +8,14 @@
         msg: 
             "Operating System = {{ OS }}:
              Postgres Version = {{ PG_VERSION }},
-             Node Type = {{ item.value.node_type }},
+             Node Type        = {{ item.value.node_type }},
              Public IP = {{ item.value.public_ip }}"
 
 - include_tasks: setup-CentOS7.yml
-  #when: ansible_os_family == 'Debian'
   when: OS == 'CentOS7'
   
 - include_tasks: setup-Debian10.yml
-  #when: ansible_os_family == 'Debian'
   when: OS == 'Debian10'
 
 - include_tasks: setup-Ubuntu18.yml
-  #when: ansible_os_family == 'Ubuntu'
   when: OS == 'Ubuntu18'
