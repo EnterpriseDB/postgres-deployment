@@ -96,3 +96,69 @@
   #when: ansible_os_family == 'Debian'
   when: OS == 'CentOS7' and PG_VERSION == '10' and item.value.node_type == 'standby'
 
+
+# Postgres12 Master and Standby
+- include_tasks: setup-Debian10P12Master.yml
+  when: OS == 'Debian10' and PG_VERSION == '12' and item.value.node_type == 'master'
+
+- include_tasks: setup-Debian10P12Standby.yml
+  when: OS == 'Debian10' and PG_VERSION == '12' and item.value.node_type == 'standby'
+
+# Postgres11 Master and Standby
+- include_tasks: setup-Debian10P11Master.yml
+  when: OS == 'Debian10' and PG_VERSION == '11' and item.value.node_type == 'master'
+
+- include_tasks: setup-Debian10P11Standby.yml
+  when: OS == 'Debian10' and PG_VERSION == '11' and item.value.node_type == 'standby'
+
+# Postgres10 Master and Standby
+- include_tasks: setup-Debian10P10Master.yml
+  when: OS == 'Debian10' and PG_VERSION == '10' and item.value.node_type == 'master'
+
+- include_tasks: setup-Debian10P10Standby.yml
+  when: OS == 'Debian10' and PG_VERSION == '10' and item.value.node_type == 'standby'
+
+
+
+# Postgres12 Master and Standby
+- include_tasks: setup-Ubuntu18P12Master.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '12' and item.value.node_type == 'master'
+
+- include_tasks: setup-Ubuntu18P12Standby.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '12' and item.value.node_type == 'standby'
+
+# Postgres11 Master and Standby
+- include_tasks: setup-Ubuntu18P11Master.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '11' and item.value.node_type == 'master'
+
+- include_tasks: setup-Ubuntu18P11Standby.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '11' and item.value.node_type == 'standby'
+
+# Postgres10 Master and Standby
+- include_tasks: setup-Ubuntu18P10Master.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '10' and item.value.node_type == 'master'
+
+- include_tasks: setup-Ubuntu18P10Standby.yml
+  when: OS == 'Ubuntu18' and PG_VERSION == '10' and item.value.node_type == 'standby'
+
+# Postgres12 Master and Standby
+- include_tasks: setup-RHEL7P12Master.yml
+  when: OS == 'RHEL7' and PG_VERSION == '12' and item.value.node_type == 'master'
+
+- include_tasks: setup-RHEL7P12Standby.yml
+  when: OS == 'RHEL7' and PG_VERSION == '12' and item.value.node_type == 'standby'
+
+# Postgres11 Master and Standby
+- include_tasks: setup-RHEL7P11Master.yml
+  when: OS == 'RHEL7' and PG_VERSION == '11' and item.value.node_type == 'master'
+
+- include_tasks: setup-RHEL7P11Standby.yml
+  when: OS == 'RHEL7' and PG_VERSION == '11' and item.value.node_type == 'standby'
+
+# Postgres10 Master and Standby
+- include_tasks: setup-RHEL7P10Master.yml
+  when: OS == 'RHEL7' and PG_VERSION == '10' and item.value.node_type == 'master'
+
+- include_tasks: setup-RHEL7P10Standby.yml
+  when: OS == 'RHEL7' and PG_VERSION == '10' and item.value.node_type == 'standby'
+
