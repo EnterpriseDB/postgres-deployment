@@ -7,7 +7,7 @@ Open a hosts file in vi editor and provide all 3 server public IP..
 
 Run ansible playbooks as follows
 
-ansible-playbook -i hosts  setupsr.yml --extra-vars=USER= PASS= EPASDBUSER= PGDBUSER= ip1= ip2= ip3= S3BUCKET= REPLICATION_USER_PASSWORD= DBPASSWORD= REPLICATION_TYPE= DB_ENGINE= MASTER= SLAVE1= SLAVE2='
+ansible-playbook -i hosts  setupsr.yml --extra-vars='USER= PASS= EPASDBUSER= PGDBUSER= ip1= ip2= ip3= S3BUCKET= REPLICATION_USER_PASSWORD= DBPASSWORD= REPLICATION_TYPE= DB_ENGINE= MASTER= SLAVE1= SLAVE2='
 
 Here
 
@@ -43,7 +43,7 @@ SLAVE2 is slave2 server public IP
 
 Sample ansible playbook run example is
 
-ansible-playbook -i hosts  setupsr.yml --extra-vars=USER= PASS= EPASDBUSER= PGDBUSER=postgres ip1=10.0.2.3 ip2=10.0.2.2 ip3=10.0.2.1 S3BUCKET=/mydbbackup/wal REPLICATION_USER_PASSWORD=admin DBPASSWORD=postgres REPLICATION_TYPE=synchronous DB_ENGINE=pg12 MASTER=114.2.5.7 SLAVE1=54.3.5.6 SLAVE2=53.2.3.1'
+ansible-playbook -i hosts  setupsr.yml --extra-vars='USER= PASS= EPASDBUSER= PGDBUSER=postgres ip1=10.0.2.3 ip2=10.0.2.2 ip3=10.0.2.1 S3BUCKET=/mydbbackup/wal REPLICATION_USER_PASSWORD=admin DBPASSWORD=postgres REPLICATION_TYPE=synchronous DB_ENGINE=pg12 MASTER=114.2.5.7 SLAVE1=54.3.5.6 SLAVE2=53.2.3.1'
 
 
 
