@@ -1,0 +1,371 @@
+---
+
+ - hosts: "{{ NEWSLAVE }}"
+
+   tasks:
+
+    - name: Install Database for DBengine 10
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installpg10ans.yml 
+      when: DB_ENGINE == 'pg10' and inventory_hostname == NEWSLAVE
+     
+    - name: Install Database DBengine pg11
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installpg11ans.yml 
+      when: DB_ENGINE == 'pg11' and inventory_hostname == NEWSLAVE
+
+    - name: Install Database for DBengine pg12
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installpg12ans.yml 
+      when: DB_ENGINE == 'pg12' and inventory_hostname == NEWSLAVE
+
+    - name: Install Database  for DBengine epas10
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installepas10ans.yml 
+      when: DB_ENGINE == 'epas10' and inventory_hostname == NEWSLAVE
+     
+    - name: Install Database for DBengine epas11
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installepas11ans.yml
+      when: DB_ENGINE == 'epas11' and inventory_hostname == NEWSLAVE
+
+    - name: Install Database for DBengine epas12
+      include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installepas12ans.yml
+      when: DB_ENGINE == 'epas12' and inventory_hostname == NEWSLAVE
+
+ - hosts: all,!"{{ PEM_IP }}"
+
+   tasks:
+
+     - name: Whitelist new server in master pg_hba file for epas10 dbengine
+       lineinfile:
+          path: /var/lib/edb/as10/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'epas10' and inventory_hostname != NEWSLAVE
+     
+     - name: Whitelist new server in master pg_hba file for epas11 dbengine
+       lineinfile:
+          path: /var/lib/edb/as11/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'epas11' and inventory_hostname != NEWSLAVE 
+
+     - name: Whitelist new server in master pg_hba file for epas10 dbengine
+       lineinfile:
+          path: /var/lib/edb/as12/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'epas12' and inventory_hostname != NEWSLAVE
+
+     - name: Whitelist new server in master pg_hba file for pg10 dbengine
+       lineinfile:
+          path: /var/lib/pgsql/10/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'pg10' and inventory_hostname != NEWSLAVE
+
+     - name: Whitelist new server in master pg_hba file for pg11 dbengine
+       lineinfile:
+          path: /var/lib/pgsql/11/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'pg11' and inventory_hostname != NEWSLAVE
+ 
+     - name: Whitelist new server in master pg_hba file for pg12 dbengine
+       lineinfile:
+          path: /var/lib/pgsql/12/data/pg_hba.conf
+          line: host replication edbrepuser {{ NEWSLAVE }}/32 md5
+       become: yes
+       when: DB_ENGINE == 'pg12' and inventory_hostname != NEWSLAVE 
+
+
+     - name: Reload DB service on master
+       systemd:
+         name: edb-as-10
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'epas10' and inventory_hostname != NEWSLAVE
+     
+     - name: Reload DB service on master
+       systemd:
+         name: edb-as-11
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'epas11' and inventory_hostname != NEWSLAVE
+  
+     - name: Reload DB service on master
+       systemd:
+         name: edb-as-12
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'epas12' and inventory_hostname != NEWSLAVE
+ 
+     - name: Reload DB service on master
+       systemd:
+         name: postgresql-10
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'pg10' and inventory_hostname != NEWSLAVE
+
+     - name: Reload DB service on master
+       systemd:
+         name: postgresql-11
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'pg11' and inventory_hostname != NEWSLAVE
+ 
+     - name: Reload DB service on master
+       systemd:
+         name: postgresql-12
+         state: reloaded
+       become: yes
+       when: DB_ENGINE == 'pg12' and inventory_hostname != NEWSLAVE
+   
+     - name: Configure slave for DBengine pg10
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslavepg10.yml 
+       when: DB_ENGINE == 'pg10' and inventory_hostname == NEWSLAVE
+     
+     - name: Configure slave for DBengine pg11
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslavepg11.yml 
+       when: DB_ENGINE == 'pg11' and inventory_hostname == NEWSLAVE
+
+     - name: Configure slave for DBengine pg12
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslavepg12.yml 
+       when: DB_ENGINE == 'pg12' and inventory_hostname == NEWSLAVE
+
+     - name: Configure slave for DBengine epas10
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslaveepas10.yml 
+       when: DB_ENGINE == 'epas10' and inventory_hostname == NEWSLAVE
+     
+     - name: Configure slave for DBengine epas11
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslaveepas11.yml
+       when: DB_ENGINE == 'epas11' and inventory_hostname == NEWSLAVE
+
+     - name: Configure slave for DBengine epas12
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureslaveepas12.yml
+       when: DB_ENGINE == 'epas12' and inventory_hostname == NEWSLAVE
+
+     - name: Configure EFM
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/configureefmans.yml
+     
+     - name: Configure PEM agent
+       include: ../EDB_ADD_REPLICA_VMWARE/utilities/scripts/installpemagentans.yml  
+       when: inventory_hostname == NEWSLAVE
+  
+
+
+ - hosts: "{{MASTER}}"
+   
+   tasks:
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/edb/as10/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous'   
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as10/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Change in postgresql.conf file
+       lineinfile:
+          path: /var/lib/edb/as10/data/postgresql.conf
+          regexp: "^synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       ignore_errors: true
+       run_once: true
+       when: out.msg == "" and DB_ENGINE == 'epas10' and REPLICATION_TYPE == 'synchronous'
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: edb-as-10
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'epas10'  and REPLICATION_TYPE == 'synchronous'
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/edb/as11/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous'
+ 
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as11/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and  DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change in postgresql.conf file
+       lineinfile:
+          path: /var/lib/edb/as11/data/postgresql.conf
+          regexp: "^#synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       run_once: true
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous' 
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: edb-as-11
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'epas11' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Check cluster replication status 
+       lineinfile:
+         path: /var/lib/edb/as12/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous'  
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/edb/as12/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when:  out.msg == "1 line(s) removed" and DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change in postgresql.conf file
+       replace:
+          path: /var/lib/edb/as12/data/postgresql.conf
+          regexp: "^#synchronous_standby_names = .*"
+          replace: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       run_once: true
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous'
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: edb-as-12
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'epas12' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Check cluster replication status 
+       lineinfile:
+         path: /var/lib/pgsql/10/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes
+       register: out
+       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/10/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change in postgresql.conf file
+       lineinfile:
+          path: /var/lib/pgsql/10/data/postgresql.conf
+          regexp: "^#synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       run_once: true
+       ignore_errors: true
+       when: out.msg == "" and  DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous'
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: postgresql-10
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'pg10' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/pgsql/11/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent 
+       check_mode: yes
+       changed_when: false
+       become: yes 
+       register: out
+       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous'  
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/11/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when: out.msg == "1 line(s) removed" and DB_ENGINE == 'pg11'   
+
+     - name: Change in postgresql.conf file 
+       lineinfile:
+          path: /var/lib/pgsql/11/data/postgresql.conf
+          regexp: "^#synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       run_once: true
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous'
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: postgresql-11
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'pg11' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Check cluster replication status
+       lineinfile:
+         path: /var/lib/pgsql/12/data/postgresql.conf
+         regexp: 'slave1,slave2'
+         state: absent
+       check_mode: yes
+       changed_when: false
+       become: yes 
+       register: out
+       when: DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous'
+
+     - name: Change postgresql.conf file
+       shell: sed -i -e "s/slave2/slave2,slave3/g" /var/lib/pgsql/12/data/postgresql.conf
+       become: yes
+       ignore_errors: true
+       when:  out.msg == "1 line(s) removed" and DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous' 
+
+     - name: Change in postgresql.conf file
+       lineinfile:
+          path: /var/lib/pgsql/12/data/postgresql.conf
+          regexp: "^synchronous_standby_names = .*"
+          line: synchronous_standby_names = 'any 1 (slave3)'
+       become: yes
+       run_once: true
+       ignore_errors: true
+       when: out.msg == "" and DB_ENGINE == 'pg12' and REPLICATION_TYPE == 'synchronous' 
+       
+  
+     - name: Restart DB service
+       systemd:
+          name: postgresql-12
+          state: restarted
+       become: yes
+       run_once: true
+       when: DB_ENGINE == 'pg12' and  REPLICATION_TYPE == 'synchronous'         

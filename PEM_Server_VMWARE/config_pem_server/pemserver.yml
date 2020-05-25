@@ -1,0 +1,108 @@
+---
+ - hosts: all
+
+   tasks:
+ 
+   - name: Install the latest edb repo
+     yum:
+       name: https://yum.enterprisedb.com/edbrepos/edb-repo-latest.noarch.rpm
+       state: present
+     become: yes
+
+   - name: move file
+     shell: mv /etc/yum.repos.d/edb.repo /etc/yum.repos.d/edb.repo.bkp
+     become: yes
+
+   - name: Create repo file
+     blockinfile:
+         path: /etc/yum.repos.d/edb.repo
+         create: yes
+         block: |
+           [edbas11]
+           name=EnterpriseDB Advanced Server 11 $releasever - $basearch
+           baseurl=https://{{USER}}:{{PASS}}@yum.enterprisedb.com/edb/redhat/rhel-$releasever-$basearch
+           enabled=1
+           gpgcheck=1
+           gpgkey=file:///etc/pki/rpm-gpg/ENTERPRISEDB-GPG-KEY
+
+           [enterprisedb-dependencies]
+           name=EnterpriseDB Dependencies $releasever - $basearch
+           baseurl=https://{{USER}}:{{PASS}}@yum.enterprisedb.com/dependencies/redhat/rhel-$releasever-$basearch
+           enabled=1
+           gpgkey=file:///etc/pki/rpm-gpg/ENTERPRISEDB-GPG-KEY
+
+           [enterprisedb-tools]
+           name=EnterpriseDB Tools $releasever - $basearch 
+           baseurl=https://{{USER}}:{{PASS}}@yum.enterprisedb.com/tools/redhat/rhel-$releasever-$basearch
+           enabled=1
+           gpgcheck=1
+           gpgkey=file:///etc/pki/rpm-gpg/ENTERPRISEDB-GPG-KEY
+     become: yes   
+
+   - name: Install epass-11 server and dependant package
+     yum:
+       name: "{{ packages }}"
+     vars:
+       packages: 
+        - epel-release
+        - centos-release-scl
+       state: present     
+     become: yes
+
+   - name: install llvm,epas,pem server
+     yum:
+       name: "{{ packages }}" 
+     vars:
+       packages:
+         - llvm-toolset-7
+         - edb-as11-server
+         - edb-pem
+       stage: present
+     become: yes  
+
+   - name: Install python pip
+     yum:
+       name: python-pip
+       state: present    
+     become: yes
+      
+   - name: Initialize DB and allow localhost to connect DB
+     shell: |
+       PGSETUP_INITDB_OPTIONS="-E UTF-8" /usr/edb/as11/bin/edb-as-11-setup initdb
+       sed -i 's/local   all             all                                     peer/local   all             all                                     trust/g'  /var/lib/edb/as11/data/pg_hba.conf
+       sed -i 's@host    all             all             127.0.0.1/32            ident@host    all             all             127.0.0.1/32            trust@g' /var/lib/edb/as11/data/pg_hba.conf                   
+       pip install awscli
+     become: yes
+
+   - name: Allow all host to connect PEM Server DB
+     lineinfile:
+        path: /var/lib/edb/as11/data/pg_hba.conf
+        line: host  all         all       0.0.0.0/0   trust
+     become: yes
+
+   - name: Start DB Service
+     systemd: 
+        name: edb-as-11
+        state: restarted
+     become: yes
+   
+   - name: Assign password to DB user
+     shell: psql -d edb -U enterprisedb -c "ALTER USER enterprisedb WITH ENCRYPTED PASSWORD '{{DB_PASSWORD}}'"
+     become: yes
+  
+   - name: Create directory for PEM Agent certificate file
+     file:
+        path: /root/.pem
+        state: directory
+        mode: '0755'
+     become: yes
+
+   - name: Configure pem server
+     shell: /usr/edb/pem/bin/configure-pem-server.sh -acp /root/.pem -ci 0.0.0.0/0 -dbi /usr/edb/as11 -ds edb-as-11 -ho {{PEM_IP}} -p 5444 -sp {{DB_PASSWORD}} -su enterprisedb -t 1 
+     become: yes
+
+   - name: flush iptables
+     shell: iptables -F 
+     become: yes
+     
+

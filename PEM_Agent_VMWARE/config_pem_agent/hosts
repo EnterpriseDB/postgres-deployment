@@ -1,0 +1,9 @@
+
+#### Sample file input ###
+
+### 54.30.2.1 ansible_user=centos ansible_ssh_pass=
+### 54.30.2.2 ansible_user=centos ansible_ssh_pass=
+### 54.30.2.3 ansible_user=centos ansible_ssh_pass
+
+
+
