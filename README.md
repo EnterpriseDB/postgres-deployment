@@ -20,3 +20,7 @@ Terraform is used to stand up virtual machines or cloud instances, and then we h
 # Existing Instances available - **Only** Configure Postgres Platform
 In case of already running infrastructure be it on AWS or VMWare-Vsphere the user also have an option to use [Ansible scripts](https://github.com/EnterpriseDB/postgres-deployment/wiki/Ansible-Playbooks-for-EDB-tools) made available on the wiki page, to configure the Postgres database and tools like [Failover Manager](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-failover-manager)for high availability and fault tolerance and [Postgres Enterprise Manager](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-enterprise-manager-pem) for monitoring the Postgres cluster and [EDB Backup and Recovery Tool](https://www.enterprisedb.com/enterprise-postgres/edb-postgres-backup-and-recovery-tool)for backup and recovery purposes.
 
+# Support
+Postgres Deployment scripts are an easy way to deploy Postgres and EDB tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section so feel free to leave comments there; however, these scripts are not officially supported by the EnterpriseDB team.
+EnterpriseDB has the largest base of PostgreSQL experts available. Learn more about Professional Support.
+
