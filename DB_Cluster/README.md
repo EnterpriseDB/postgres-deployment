@@ -62,7 +62,10 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Variables to set:
 
-   * Refer to the ```README.md``` within the cloud vendor being utilized
+   * **Refer to the ```README.md``` within the cloud vendor being utilized**
+     * [AWS](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-aws)
+     * [GCP](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-gcp)
+     * [Azure](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-azure)
 
 * Create resources in AWS VPC with **terraform plan** or **terraform apply**
 
