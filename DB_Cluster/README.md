@@ -20,9 +20,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 3. Create Cloud Infrastructure Prerequisites Resources in Cloud Vendors such as: AWS, GCP and Azure
    * Performed by Terraform scripts in ```01-prerequisites-terraform-<cloud>``` folder
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
-   * Performed by Ansible scripts in Ansible Galaxy downloaded collection: edb_devops.edb_postgres
+   * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in "03-sqlexec" folder
+   * Performed by Ansible scripts in ```03-sqlexec``` folder
 
 ----
 ### Software Prerequisites
