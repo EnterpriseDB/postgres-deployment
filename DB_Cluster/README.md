@@ -15,8 +15,7 @@ Before starting to delve into this repository, it is best to get familiar with t
    * Linux based Operating System
    * Package dependencies installation are accomplished via bash script
    * Cloud Vendor SDK or CLI installed via bash script
-   * Requires configuration of AWS Command Line Interface for authentication towards AWS
-     * [Configuring the AWS CLI] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+   * Requires configuration of Cloud Vendor SDK or Command Line Interface for authentication
 2. Configure Cloud Vendor SDK or CLI with credentials
 3. Create Cloud Infrastructure Prerequisites Resources in Cloud Vendors such as: AWS, GCP and Azure
    * Performed by Terraform scripts in "01-prerequisites-terraform-<cloud>" folder
@@ -53,11 +52,11 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster``` finishing with pressing the **Enter** button
 
-* Type: ```./00-prereqs-dependencies.sh`` and execute the bash script by pressing the **Enter** button
+* Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
 
 * Follow the instructions and update the files that are displayed within the editor
 
-* Type: ```./01-<cloud>.sh`` and execute the bash script by pressing the **Enter** button
+* Type: ```./01-<cloud>.sh``` and execute the bash script by pressing the **Enter** button
 
 * Follow the instructions and update the files that are displayed within the editor
 
