@@ -12,32 +12,25 @@ Before starting to delve into this repository, it is best to get familiar with t
 ## The overall process consists of the following steps:
 
 1. Set up Software Prerequisites
-   * Accomplished manually
+   * Linux based Operating System
+   * Package dependencies installation are accomplished via bash script
+   * Cloud Vendor SDK or CLI installed via bash script
    * Requires configuration of AWS Command Line Interface for authentication towards AWS
-   * [Configuring the AWS CLI]
-(https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
-2. Set up AWS Prerequites resources in Cloud Vendors such as: AWS, GCP and Azure
-   * Performed by Terraform scripts in "01-prerequisites-terraform" folder
+     * [Configuring the AWS CLI] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+2. Configure Cloud Vendor SDK or CLI with credentials
+3. Create Cloud Infrastructure Prerequisites Resources in Cloud Vendors such as: AWS, GCP and Azure
+   * Performed by Terraform scripts in "01-prerequisites-terraform-<cloud>" folder
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
-   * Performed by Ansible scripts in repository available at: [edb-ansible](https://github.com/EnterpriseDB/edb-ansible)
+   * Performed by Ansible scripts in Ansible Galaxy downloaded collection: edb_devops.edb_postgres
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in "02-sqlexec" folder
-----
-### Demo Tutorials
-* [Prerequisites Video - 01-prereqs](03-demos/) ![Guidance for Prerequisites creation in AWS Account](03-demos/01-PreReqs.gif)
-* [Postgres SQL Exec Video - 02-SQLExec](03-demos/) ![Guidance for Postgres SQL Exec](03-demos/05-SQLExec.gif)
-
-
-----
-### Skipping Steps
-* If you already have Prerequisites matching the ```Prerequisites``` step you can skip to the ```Install Postgres or EnterpriseDB Postgres Advanced Server``` step.
+   * Performed by Ansible scripts in "03-sqlexec" folder
 
 ----
 ### Software Prerequisites
 1. Terraform installed
 2. Ansible installed
 
-**Require Manual Installation**
+**Require Installation**
 
 * [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
 
@@ -45,85 +38,38 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 ### Prerequisites Setup
 ##### Dependencies
-1. Terraform
+1. Vendor Cloud SDK ( AWS, GCP or Azure )
+2. Packages: curl, wget and git
+1. Terraform >= 0.13
+2. Ansible >= 2.9
 
-### Components
-1. 1 VPC, VPN or Project in your Cloud account
-2. Minimum of 3 Subnets with Public IP enabled
-3. Minimum of 3 Instances
+### Steps
 
-**Steps**
+* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
-* Terraform must be initialized
+* Extract the zip file to a desired destination
+ 
+* Open the ```Terminal``` command line
 
-* Navigate to the **01-prereqs-terraform** folder
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster``` finishing with pressing the **Enter** button
 
-* Set variables in the **```variables.tf```** file to match your desired settings
+* Type: ```./00-prereqs-dependencies.sh`` and execute the bash script by pressing the **Enter** button
 
-* Variables to set:
+* Follow the instructions and update the files that are displayed within the editor
 
-   * **Refer to the ```README.md``` within the cloud vendor being utilized**
-     * [AWS](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-aws)
-     * [GCP](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-gcp)
-     * [Azure](https://github.com/EnterpriseDB/postgres-deployment/tree/dev/DB_Cluster/01-prereqs-terraform/edb-tf-azure)
+* Type: ```./01-<cloud>.sh`` and execute the bash script by pressing the **Enter** button
 
-* Create resources in AWS VPC with **terraform plan** or **terraform apply**
-
-* AWS region must be provided when the **terraform plan** or **terraform apply** command are executed
-
-
-**Terraform Commands**
-
-Initialize terraform.
-
-```
-$ terraform init
-```
-
-Assess what resources will be created with this command.
-
-```
-$ terraform plan
-```
-
-Create the resources in AWS.
-
-```
-$ terraform apply
-```
-
-Verify which resources were created.
-
-```
-$ terraform show
-```
-
-To destroy resources recently created.
-
-```
-$ terraform destroy
-```
+* Follow the instructions and update the files that are displayed within the editor
 
 
 ### Execute SQL Statements on Postgres Cluster
 ##### Dependencies
 1. Ansible
-2. Prerequisites
-3. Postgres Instances
-4. Installation of Postgres on Instances
-
-### Components
-1. 1 VPC, VPN or Project in your Cloud account
-2. Minimum of 3 Subnets
-3. Previously existing Security Rules for Instances with Inbound and Outbound Rules
-4. Minimum of 3 Instances 
+2. Cloud Infrastructure Prerequisites
+3. Previously setup and configured Postgres or EnterpriseDB Postgres Advanced Server Instances
 
 **Steps**
 
 * Navigate to the **02-sqlexec** folder
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
-
-* Example of ansible command line parameters:
-
-   * ansible-playbook playbook.yml -u <user> --private-key '<keyfilename>.pem'
