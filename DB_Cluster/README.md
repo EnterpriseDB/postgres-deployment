@@ -61,7 +61,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Follow the instructions to install the AWS CLI
 
 * Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button
-  ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
+  ![AWS CLI v2 Installation](05-demos/AWS_CLI_v2_Installation.gif)
 * Type: ```./02-<cloud>-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
 
 * **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed proceed to the next step**
