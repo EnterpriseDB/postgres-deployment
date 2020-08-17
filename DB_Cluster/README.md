@@ -22,7 +22,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in ```03-sqlexec``` folder
+   * Performed by Ansible scripts in ```04-sqlexec``` folder
 
 ----
 ### Software Prerequisites
@@ -78,4 +78,4 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Navigate to the **04-sqlexec** folder
 
-* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
+* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```04-sqlexec``` directory
