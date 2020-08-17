@@ -61,13 +61,17 @@ module "edb-db-cluster" {
   # The source module used for creating AWS clusters.
   source = "./environments/ec2"
 
-  vpc_id                   = module.vpc.vpc_id
-  instance_count           = var.instance_count
-  cluster_name             = var.cluster_name
-  instance_type            = var.instance_type
-  custom_security_group_id = module.security.aws_security_group_id
-  ssh_keypair              = var.ssh_keypair
-  created_by               = var.created_by
+  os                         = var.os
+  vpc_id                     = module.vpc.vpc_id
+  instance_count             = var.instance_count
+  cluster_name               = var.cluster_name
+  instance_type              = var.instance_type
+  ansible_inventory_filename = var.ansible_inventory_filename
+  add_hosts_filename         = var.add_hosts_filename
+  custom_security_group_id   = module.security.aws_security_group_id
+  ssh_keypair                = var.ssh_keypair
+  ssh_key_path               = var.ssh_key_path
+  created_by                 = var.created_by
 
   depends_on = [module.routes]
 }

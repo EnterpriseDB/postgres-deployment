@@ -1,4 +1,10 @@
 # Most frequently accessed settings
+# OS
+variable "os" {
+  # Options: 'CentOS7' or 'RHEL7'
+  default = "CentOS7"
+}
+
 # Region
 variable "aws_region" {
   default = "us-west-2"
@@ -7,6 +13,17 @@ variable "aws_region" {
 # Instance Count
 variable "instance_count" {
   default = 3
+}
+
+# Ansible Inventory Filename
+variable "ansible_inventory_filename" {
+  default = "inventory.yml"
+}
+
+# Ansible Add Hosts Filename
+variable "add_hosts_filename" {
+  type    = string
+  default = "add_host.sh"
 }
 
 # Instance Type
@@ -58,14 +75,14 @@ variable "user_force_destroy" {
 variable "ssh_keypair" {
   description = "The SSH key pair name"
   type        = string
-  # Enter SSH key pair name.
-  # Items to exclude: full path and file extension (.pem or .ppk)
-  # Example: ssh_keypair = "<nameofkeypairfile>"
-  default = "edb-postgres-cluster"
+  # Enter SSH key pair name without extension
+  # Example: "<nameofkeypairfile>"
+  default = ""
 }
 
 variable "ssh_key_path" {
   description = "SSH private key path from local machine"
   type        = string
-  default     = "~/edb-postgres-cluster.pem"
+  # Example: "~/mypemfile.pem"
+  default = ""
 }
