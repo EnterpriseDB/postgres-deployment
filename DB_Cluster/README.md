@@ -64,7 +64,7 @@ Before starting to delve into this repository, it is best to get familiar with t
   ![AWS CLI v2 Configuration](05-demos/AWS_CLI_v2_Configuration.gif)
 * Type: ```./02-<cloud>-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
 
-* **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed proceed to the next step**
+* **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed, proceed to the next step**
 
 * Type: ```./03-<cloud>-pg-setup.sh``` and execute the bash script by pressing the **Enter** button
 
