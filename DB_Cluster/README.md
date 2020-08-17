@@ -38,7 +38,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 ### Prerequisites Setup
 ##### Dependencies
 1. Vendor Cloud SDK ( AWS, GCP or Azure )
-2. Packages: curl, wget and git
+2. Packages: curl and wget
 1. Terraform >= 0.13
 2. Ansible >= 2.9
 
@@ -54,12 +54,19 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
 
-* Follow the instructions and update the files that are displayed within the editor
+* Follow the instructions to install the dependent packages
 
 * Type: ```./01-<cloud>.sh``` and execute the bash script by pressing the **Enter** button
 
-* Follow the instructions and update the files that are displayed within the editor
+* Follow the instructions to install the AWS CLI
 
+* Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button
+  ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
+* Type: ```./02-<cloud>-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
+
+* **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed proceed to the next step**
+
+* Type: ```./03-<cloud>-pg-setup.sh``` and execute the bash script by pressing the **Enter** button
 
 ### Execute SQL Statements on Postgres Cluster
 ##### Dependencies
@@ -69,6 +76,6 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 **Steps**
 
-* Navigate to the **02-sqlexec** folder
+* Navigate to the **04-sqlexec** folder
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory

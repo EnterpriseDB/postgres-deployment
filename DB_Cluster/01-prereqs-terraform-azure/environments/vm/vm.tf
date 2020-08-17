@@ -12,8 +12,8 @@ variable sku {}
 
 
 resource "azurerm_subnet" "subnet" {
-  count               = var.instance_count
-  name                = "EDB-PREREQS-SUBNET-${count.index}"
+  count = var.instance_count
+  name  = "EDB-PREREQS-SUBNET-${count.index}"
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name  = var.resourcegroup_name
   virtual_network_name = var.vnet_name
@@ -21,12 +21,12 @@ resource "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_public_ip" "publicip" {
-  count               = var.instance_count
-  name                = "EDB-PREREQS-PUBLIC-IP-${count.index}"
-  location            = var.azure_location
+  count    = var.instance_count
+  name     = "EDB-PREREQS-PUBLIC-IP-${count.index}"
+  location = var.azure_location
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name = var.resourcegroup_name
-  allocation_method = "Static"
+  allocation_method   = "Static"
 
   #tags {
   #  group = var.project_tag
@@ -34,16 +34,16 @@ resource "azurerm_public_ip" "publicip" {
 }
 
 resource "azurerm_network_interface" "Public_Nic" {
-  count               = var.instance_count
-  name                = "EDB-PREREQS-PUBLIC-NIC-${count.index}"
+  count = var.instance_count
+  name  = "EDB-PREREQS-PUBLIC-NIC-${count.index}"
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name = var.resourcegroup_name
-  location = var.azure_location
+  location            = var.azure_location
   #network_security_group_id = data.azurerm_network_security_group.main.id
 
   ip_configuration {
-    name                          = "Private_Nic_${count.index}"
-    subnet_id                     = "${element(azurerm_subnet.subnet.*.id, count.index)}"
+    name      = "Private_Nic_${count.index}"
+    subnet_id = "${element(azurerm_subnet.subnet.*.id, count.index)}"
     #subnet_id                     = "azurerm_subnet.subnet${count.index}"
 
     private_ip_address_allocation = "Dynamic"

@@ -105,7 +105,7 @@ resource "google_compute_firewall" "firewall-openshift-console" {
 }
 
 resource "google_compute_firewall" "firewall-secure-forward" {
-  name    = "${var.network_name}-firewall-secure-forward"
+  name = "${var.network_name}-firewall-secure-forward"
   #network = google_compute_network.edb_prereq_network.name
   network = var.network_name
 
