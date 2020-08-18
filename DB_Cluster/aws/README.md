@@ -78,3 +78,5 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Navigate to the **02-sqlexec** folder
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
+  ![SQLExec](demos/SQLExec.gif)
+
