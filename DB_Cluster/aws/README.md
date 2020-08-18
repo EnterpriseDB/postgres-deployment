@@ -14,15 +14,15 @@ Before starting to delve into this repository, it is best to get familiar with t
 1. Set up Software Prerequisites
    * Linux based Operating System
    * Package dependencies installation are accomplished via bash script
-   * Cloud Vendor SDK or CLI installed via bash script
-   * Requires configuration of Cloud Vendor SDK or Command Line Interface for authentication
-2. Configure Cloud Vendor SDK or CLI with credentials
-3. Create Cloud Infrastructure Prerequisites Resources in Cloud Vendors such as: AWS, GCP and Azure
-   * Performed by Terraform scripts in ```01-prerequisites-terraform-<cloud>``` folder
+   * AWS CLI v2 installed via bash script
+   * Requires configuration of AWS Command Line Interface v2 for authentication
+2. Configure AWS CLI v2 with credentials
+3. Create Cloud Infrastructure Prerequisites Resources
+   * Performed by Terraform scripts in ```01-prerequisites-terraform``` folder
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in ```04-sqlexec``` folder
+   * Performed by Ansible scripts in ```02-sqlexec``` folder
 
 ----
 ### Software Prerequisites
@@ -54,19 +54,18 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
 
-* Follow the instructions to install the dependent packages
-
-* Type: ```./01-<cloud>.sh``` and execute the bash script by pressing the **Enter** button
+* Type: ```./01-aws.sh``` and execute the bash script by pressing the **Enter** button
+  ![AWS CLI v2 Installation](03-demos/AWS_CLI_v2_Installation.gif)
 
 * Follow the instructions to install the AWS CLI
 
 * Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button
-  ![AWS CLI v2 Configuration](05-demos/AWS_CLI_v2_Configuration.gif)
-* Type: ```./02-<cloud>-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
+  ![AWS CLI v2 Configuration](03-demos/AWS_CLI_v2_Configuration.gif)
+* Type: ```./02-aws-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
 
 * **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed, proceed to the next step**
 
-* Type: ```./03-<cloud>-pg-setup.sh``` and execute the bash script by pressing the **Enter** button
+* Type: ```./03-aws-pg-setup.sh``` and execute the bash script by pressing the **Enter** button
 
 ### Execute SQL Statements on Postgres Cluster
 ##### Dependencies
@@ -76,6 +75,6 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 **Steps**
 
-* Navigate to the **04-sqlexec** folder
+* Navigate to the **02-sqlexec** folder
 
-* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```04-sqlexec``` directory
+* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
