@@ -6,7 +6,7 @@ then
   clear
 
   echo "Downloading Ansible Collection 'edb_devops.edb_postgres' ..."
-  ansible-galaxy collection install edb_devops.edb_postgres --force
+  #ansible-galaxy collection install edb_devops.edb_postgres --force
 
   echo "Update Public IP, Private IP and other details in the file..."
   read -e -p "Please provide OS name from 'CentOS7' or 'RHEL7': " osname
@@ -28,7 +28,6 @@ then
 
   if [ "$osname" == RHEL7 ]
   then 
-    gedit ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/RH07_EPAS12_EFM_install.yml
     ansible-playbook -u ec2-user--private-key "$pemfilepath" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/RH07_EPAS12_EFM_install.yml --extra-vars="OS=$osname PG_VERSION=$pgversion EDB_YUM_USERNAME=$yumuser EDB_YUM_PASSWORD=$yumpass"
   fi
 fi

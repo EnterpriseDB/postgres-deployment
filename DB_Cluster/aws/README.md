@@ -26,12 +26,13 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 ----
 ### Software Prerequisites
-1. Terraform installed
-2. Ansible installed
+1. Terraform installed and configured
+2. Ansible installed and configured
 
 **Require Installation**
 
 * [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
+  ![Terraform 0.13 Installation](03-demos/Terraform_0.13_Installation.gif)
 
 * [Ansible Installation] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 
@@ -54,7 +55,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
 
-* Type: ```./01-aws.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
+* Type: ```./01-aws-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
   ![AWS CLI v2 Installation](03-demos/AWS_CLI_v2_Installation.gif)
 
 * Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button

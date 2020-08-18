@@ -8,7 +8,7 @@ then
   read -e -p "Provide: Absolute path of pem file, example: '~/mypemfile.pem': " pemfilepathnameandextension
 
   echo "Creating Prerequisite Resources..."
-  cd 01-prereqs-terraform-aws
+  cd 01-prereqs-terraform
   terraform init
   terraform apply -auto-approve -var="os=$osname" -var="aws_region=$region" -var="instance_count=$instance_count" -var="ssh_keypair=$pemfilename" -var="ssh_key_path=$pemfilepathnameandextension"
 
@@ -23,8 +23,8 @@ then
   fi
   
   # Copy the recently created Ansible Inventory File to Ansible Galaxy Collection
-  cp ./01-prereqs-terraform-aws/inventory.yml ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/hosts.yml
+  cp ./01-prereqs-terraform/inventory.yml ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/hosts.yml
   
   # Copy the 'add-host.sh' script file for local execution  
-  cp ./01-prereqs-terraform-aws/add_host.sh .
+  cp ./01-prereqs-terraform/add_host.sh .
 fi
