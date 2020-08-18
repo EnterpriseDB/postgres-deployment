@@ -18,7 +18,7 @@ Before starting to delve into this repository, it is best to get familiar with t
    * Requires configuration of AWS Command Line Interface v2 for authentication
 2. Configure AWS CLI v2 with credentials
 3. Create Cloud Infrastructure Prerequisites Resources
-   * Performed by Terraform scripts in ```01-prerequisites-terraform``` folder
+   * Performed by Terraform scripts in ```01-prereqs-terraform``` folder
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
