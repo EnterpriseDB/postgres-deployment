@@ -1,7 +1,6 @@
-resource "local_file" "AnsibleInventory" {
+resource "local_file" "AnsibleYamlInventory" {
   count = var.instance_count
-  #filename = yamlencode(var.ansible_inventory_filename)
-  filename = var.ansible_inventory_filename
+  filename = var.ansible_inventory_yaml_filename
   content  = <<EOT
 ---
 servers:
@@ -12,6 +11,25 @@ server${count}:
     private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
     replication_type: synchronous    
   %{endfor~}
+EOT
+}
+
+resource "local_file" "AnsibleIniInventory" {
+  count = var.instance_count
+  filename = var.ansible_inventory_ini_filename
+  content  = <<EOT
+[all]
+%{for count in range(var.instance_count)~}
+${aws_eip.ip[count].public_dns}
+%{endfor~}
+EOT
+}
+
+resource "local_file" "AnsibleOSCSVFile" {
+  filename = var.os_csv_filename
+  content  = <<EOT
+os_name_and_version
+${var.os}
 EOT
 }
 

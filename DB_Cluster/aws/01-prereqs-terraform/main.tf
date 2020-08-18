@@ -66,7 +66,9 @@ module "edb-db-cluster" {
   instance_count             = var.instance_count
   cluster_name               = var.cluster_name
   instance_type              = var.instance_type
-  ansible_inventory_filename = var.ansible_inventory_filename
+  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
+  ansible_inventory_ini_filename = var.ansible_inventory_ini_filename  
+  os_csv_filename = var.os_csv_filename
   add_hosts_filename         = var.add_hosts_filename
   custom_security_group_id   = module.security.aws_security_group_id
   ssh_keypair                = var.ssh_keypair

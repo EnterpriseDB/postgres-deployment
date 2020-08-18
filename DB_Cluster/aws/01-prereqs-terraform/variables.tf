@@ -15,9 +15,20 @@ variable "instance_count" {
   default = 3
 }
 
-# Ansible Inventory Filename
-variable "ansible_inventory_filename" {
+# Ansible Inventory Filenames
+# Ansible Yaml Inventory Filename
+variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
+}
+
+# Ansible Ini Inventory Filename
+variable "ansible_inventory_ini_filename" {
+  default = "inventory"
+}
+
+# OS CSV Filename
+variable "os_csv_filename" {
+  default = "os.csv"
 }
 
 # Ansible Add Hosts Filename
