@@ -60,11 +60,11 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button
   ![AWS CLI v2 Configuration](03-demos/AWS_CLI_v2_Configuration.gif)
 
-* Type: ```./02-aws-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answer to the prompts
+* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
 
 * **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed, proceed to the next step**
 
-* Type: ```./03-aws-pg-setup.sh``` and execute the bash script by pressing the **Enter** button
+* Type: ```./03-pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
 
 ### Execute SQL Statements on Postgres Cluster
 ##### Dependencies
