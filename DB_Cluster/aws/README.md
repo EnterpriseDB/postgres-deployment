@@ -54,14 +54,13 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
 
-* Type: ```./01-aws.sh``` and execute the bash script by pressing the **Enter** button
+* Type: ```./01-aws.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
   ![AWS CLI v2 Installation](03-demos/AWS_CLI_v2_Installation.gif)
-
-* Follow the instructions to install the AWS CLI
 
 * Configure the AWS CLI by typing: ```AWS config``` and pressing **Enter** button
   ![AWS CLI v2 Configuration](03-demos/AWS_CLI_v2_Configuration.gif)
-* Type: ```./02-aws-pre-setup.sh``` and execute the bash script by pressing the **Enter** button
+
+* Type: ```./02-aws-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answer to the prompts
 
 * **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed, proceed to the next step**
 
