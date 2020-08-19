@@ -17,7 +17,7 @@ Before starting to delve into this repository, it is best to get familiar with t
    * [Installing AWS Command Line Interface] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
    * [Terraform Installation]  (https://learn.hashicorp.com/tutorials/terraform/install-cli)
    * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
-   * Type: ```edb-tf-aws``` and press **Enter**
+   * Navigate towards the current directory location and press **Enter**
 
 ----
 ### Supported Operating Systems
@@ -33,7 +33,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * [Installing AWS Command Line Interface] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 * [Terraform Installation]  (https://learn.hashicorp.com/tutorials/terraform/install-cli)
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
-* Type: ```edb-tf-aws``` and press **Enter**
+* Navigate to the current location in your directory structure and press **Enter**
 
 ----
 ### Prerequisites Setup and configuration
@@ -47,14 +47,13 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Terraform 0.13 Installation
   ![Terraform 0.13 Installation](tutorials/Terraform_0.13_Installation.gif)
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
-* Type: ```edb-tf-aws``` and press **Enter**
+* Navigate to the current directory location and press **Enter**
 
 ----
 ### Changing the Image from the current: CentOS 7 to a different image
-* To change the image: Navigate to the ```environments/ec2/ec2.tf``` file
-* Determine if you should uncomment line 18 or line 20 to match either ```Centos 7``` or ```RHEL 7```
-* Evaluate if there is a need to change the size of the hdd on line 29
-* Determine if there is a need to change the ```volume_type``` on line 30
+* To change the image: Update the ```variables.tf``` file
+* Locate the variable named: ```os``` set to: ```CentOS7``` or ```RHEL7```
+* Evaluate if there is a need to change other configurations within these variables
 
 ----
 ### Changing the tags for the entire Cluster resources
@@ -71,8 +70,6 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
 
-* Type: ```edb-tf-aws``` and press **Enter**
-
 * Update the ```variables.tf``` with the key pair file and other desired settings
 
 * Terraform must be initialized
@@ -81,13 +78,16 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Variables to set:
 
+   * ```os``` - Image Operating System and Version
    * ```aws_region``` - AWS Region for the resources to be created
    * ```instance_count``` - Initially set to 3, update if more are needed. Keep in mind that if there are previous configurations on these instances all those configurations and updates will be lost
-   * ```cluster_name``` - Name for the cluster, examples: ```Dev```, ```QA``` or ```Prod```
+   * Within the ```tags.tf``` file variable -> ```cluster_name``` - Name for the cluster, examples: ```Dev```, ```QA``` or ```Prod```
    * ```ssh_keypair``` - Name of the key pair file only, no need to include the '.pem' file extension
    * ```ssh_key_path``` - Directory and File Location for the key pair file
    
 * Review the naming conventions utilized in the **```variables.tf```** file and update accordingly
+
+* Initialize terraform **terraform init**
 
 * Before applying the changes you can preview those changes with **terraform plan**
 
