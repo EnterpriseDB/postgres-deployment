@@ -24,7 +24,7 @@ EOT
 
 resource "local_file" "host_script" {
   filename = var.add_hosts_filename
-  content = <<-EOT
+  content  = <<-EOT
 echo "Setting SSH Keys"
 ssh-add ${var.ssh_key_path}
 echo "Adding IPs"
