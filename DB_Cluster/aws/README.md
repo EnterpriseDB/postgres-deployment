@@ -25,58 +25,8 @@ Before starting to delve into this repository, it is best to get familiar with t
    * Performed by Ansible scripts in ```02-sqlexec``` folder
 
 ----
-### Software Prerequisites
-1. Terraform installed and configured
-2. Ansible installed and configured
 
-**Require Installation**
+### Contents of this Directory
 
-* [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
-  ![Terraform 0.13 Installation](demos/Terraform_0.13_Installation.gif)
-
-* [Ansible Installation] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-
-### Prerequisites Setup
-##### Dependencies
-1. Vendor Cloud SDK ( AWS, GCP or Azure )
-2. Packages: curl and wget
-1. Terraform >= 0.13
-2. Ansible >= 2.9
-
-### Steps
-
-* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
-
-* Extract the zip file to a desired destination
- 
-* Open the ```Terminal``` command line
-
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster``` finishing with pressing the **Enter** button
-
-* Type: ```./00-prereqs-dependencies.sh``` and execute the bash script by pressing the **Enter** button
-
-* Type: ```./01-aws-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
-  ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
-
-* Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
-  ![AWS CLI v2 Configuration](demos/AWS_CLI_v2_Configuration.gif)
-
-* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
-
-* **Allow for the instances creation within to complete ( will vary depending on instance types ). Once completed, proceed to the next step**
-
-* Type: ```./03-pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
-
-### Execute SQL Statements on Postgres Cluster
-##### Dependencies
-1. Ansible
-2. Cloud Infrastructure Prerequisites
-3. Previously setup and configured Postgres or EnterpriseDB Postgres Advanced Server Instances
-
-**Steps**
-
-* Navigate to the **02-sqlexec** folder
-
-* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
-  ![SQLExec](demos/SQLExec.gif)
-
+* The contents of this directory are:
+  * ```01-terraform-ansible``` - Contains a deployment that utilizes Terraform for Infrastructure and Ansible for Configuration.
