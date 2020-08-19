@@ -51,7 +51,7 @@ Before starting to delve into this repository, it is best to get familiar with t
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/aws/01-terraform-aws``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/aws/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 * Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
 
