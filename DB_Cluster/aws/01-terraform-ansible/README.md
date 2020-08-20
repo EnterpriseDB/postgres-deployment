@@ -53,6 +53,10 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/aws/01-terraform-ansible``` finishing with pressing the **Enter** button
 
+* Items to consider:
+  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following AWS Regions: us-east-1, us-east-2, us-west-1 and us-west-2
+  * A minimum of 3 instances is recommended
+
 * Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
 
 * Type: ```./01-aws-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
