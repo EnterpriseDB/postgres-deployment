@@ -21,9 +21,10 @@ then
   terraform init
   terraform apply -auto-approve -var="os=$OSNAME" -var="aws_region=$REGION" -var="instance_count=$INSTANCE_COUNT" -var="ssh_keypair=$PEMFILENAME" -var="ssh_key_path=$PEMFILEPATHNAMEANDEXTENSION"
   
-  # Wait for instances to be fully available
-  echo ' '
-  echo 'Waiting for Instances to be available...'
-  aws ec2 wait instance-status-ok --region $REGION
-  echo 'Instances are available!'  
+  if [ "$?" = "0" ]; then
+    # Wait for instances to be fully available
+    echo -e '\nWaiting for Instances to be available...'
+    aws ec2 wait instance-status-ok --region $REGION
+    echo 'Instances are available!'  
+  fi
 fi

@@ -42,6 +42,7 @@ then
     exit 0 
   fi
 
+  ANSIBLE_USER = 'centos'
   if [ "$OSNAME" == CentOS7 ]
   then 
     ansible-playbook -u centos --private-key "$PEMFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/C07_EPAS12_EFM_install.yml --extra-vars="OS=$OSNAME PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'

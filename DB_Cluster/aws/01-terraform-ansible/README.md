@@ -61,7 +61,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
   ![AWS CLI v2 Configuration](demos/AWS_CLI_v2_Configuration.gif)
 
-* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
+* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
 
 * **Allow for the instances creation to complete ( times will vary depending on amount of instances and instance types ). Once completed, proceed to the next step**
 
