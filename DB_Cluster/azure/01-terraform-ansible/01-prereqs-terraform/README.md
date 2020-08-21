@@ -32,9 +32,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 **Require Manual Installation**
 * Installing Azure CLI
-  ![Installing Azure CLI](tutorials/Azure_CLI_Installation.gif)
+  ![Installing Azure CLI](demos/Azure_CLI_Installation.gif)
 * Installation of Terraform 0.13 
-  ![Terraform 0.13 Installation](tutorials/Terraform_0.13_Installation.gif)
+  ![Terraform 0.13 Installation](demos/Terraform_0.13_Installation.gif)
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
 * Type: ```edb-tf-azure``` and press **Enter**
 

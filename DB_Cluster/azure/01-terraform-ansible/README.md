@@ -61,7 +61,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
 
 * Type: ```./01-azure-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
-  ![Azure CLI Installation](tutorials/Azure_CLI_Installation.gif)
+  ![Azure CLI Installation](demos/Azure_CLI_Installation.gif)
 
 * Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
 
