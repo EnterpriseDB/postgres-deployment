@@ -8,7 +8,10 @@ variable project_tags {}
 variable publisher {}
 variable offer {}
 variable sku {}
-
+variable admin_username {}
+variable ansible_inventory_yaml_filename {}
+variable os_csv_filename {}
+variable add_hosts_filename {}
 
 
 resource "azurerm_subnet" "subnet" {
@@ -59,7 +62,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   resource_group_name   = var.resourcegroup_name
   location              = var.azure_location
   size                  = "Standard_A1"
-  admin_username        = "centos"
+  admin_username        = var.admin_username
   network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index)}"]
   #network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index < 3 ? count.index : 2)}"]
 
