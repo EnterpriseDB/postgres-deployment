@@ -4,8 +4,8 @@ read -r -e -p "Would you like to: Setup Azure Prerequisites? Enter Yes or No:  "
 if [ "$RESPONSE" == "Yes" ] || [ "$RESPONSE" == "yes" ] || [ "$RESPONSE" == "YES" ] 
 then
   read -r -e -p "Please provide Publisher from 'OpenLogic' or 'RedHat': " PUBLISHER
-  read -r -e -p "Please provide OS name from 'Centos' or 'RHEL': " OFFER
-  read -r -e -p "Please provide OS name from '7.7' or '7.8': " SKU
+  read -r -e -p "Please provide OS name from: 'Centos' or 'RHEL': " OFFER
+  read -r -e -p "Please provide OS version from: Centos - '7.7' or RHEL - '7.8': " SKU
   read -r -e -p "Please provide target Azure Location, examples: 'centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus, southcentralus': " LOCATION 
   read -r -e -p "Please provide how many Azure VMs to create, example '>=3': " INSTANCE_COUNT
   read -r -e -p "Provide: Absolute path of key file, example: '~/.ssh/id_rsa.pub': " KEYFILEPATHNAMEANDEXTENSION

@@ -46,17 +46,21 @@ then
     exit 0 
   fi
 
-
-  PLAYBOOK = "C07_EPAS12_EFM_install.yml"
+  PLAYBOOK="C07_EPAS12_EFM_install.yml"
   
   if [ "$OSNAME" == Centos7.7 ]
   then 
-    PLAYBOOK = "C07_EPAS12_EFM_install.yml"
+    PLAYBOOK="C07_EPAS12_EFM_install.yml"
   fi
 
   if [ "$OSNAME" == RHEL7.8 ]
   then
-    PLAYBOOK = "R07_EPAS12_EFM_install.yml"
+    # Turn off Firewalld
+    PLAYBOOK="R07_firewalld_stop.yml"
+
+    ansible-playbook -u $ANSIBLE_USER --private-key "$KEYFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/$PLAYBOOK --extra-vars="OS=CentOS7 PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'
+ 
+    PLAYBOOK="R07_EPAS12_EFM_install.yml"
   fi
   
   # Run playbook
