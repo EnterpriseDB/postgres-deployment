@@ -22,8 +22,6 @@ Before starting to delve into this repository, it is best to get familiar with t
    * Performed by Terraform scripts in ```01-prereqs-terraform``` folder
 5. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
-6. Execute SQL Scripts
-   * Performed by Ansible scripts in ```02-sqlexec``` folder
 
 ----
 ### Software Prerequisites
@@ -58,6 +56,14 @@ Before starting to delve into this repository, it is best to get familiar with t
   * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Azure Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
   * A minimum of 3 instances is recommended
 
+* Create your Public and Private Keys
+  * Type: ```ssh-keygen``` and press the **Enter** button
+  * Follow the instructions to create the private and public keys
+
+* Set the permissions for private and public key
+  * Type: ```chmod 400 ~/.ssh/id_rsa*.* and press the **Enter** button
+  * This command assumes you have named your keys: ```id_rsa```
+
 * Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
 
 * Type: ```./01-azure-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
@@ -68,9 +74,3 @@ Before starting to delve into this repository, it is best to get familiar with t
 * **Allow for the instances creation to complete ( times will vary depending on amount of instances and instance types ). Once completed, proceed to the next step**
 
 * Type: ```./03-pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
-
-### Execute SQL Statements on Postgres Cluster
-##### Dependencies
-1. Ansible
-2. Cloud Infrastructure Prerequisites
-3. Previously setup and configured Postgres or EnterpriseDB Postgres Advanced Server Instances
