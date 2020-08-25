@@ -20,8 +20,6 @@ if cat /etc/*release | grep ^NAME | grep Red; then
   sudo yum -y install wget
 fi
 
-
-
 # Terraform
 TER_VER=$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep tag_name | cut -d: -f2 | tr -d \"\,\v | awk '{$1=$1};1')
 

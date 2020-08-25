@@ -56,6 +56,12 @@ Before starting to delve into this repository, it is best to get familiar with t
   * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Azure Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
   * A minimum of 3 instances is recommended
 
+* The bash scripts utilized in the scripts have been tested on:
+  * Red Hat 7
+  * CentOS 7
+  * Debian 9
+  * Ubuntu 20.04
+
 * Create your Public and Private Keys
   * Type: ```ssh-keygen``` and press the **Enter** button
   * Follow the instructions to create the private and public keys
