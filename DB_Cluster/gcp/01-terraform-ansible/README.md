@@ -83,7 +83,7 @@ completion? --> **Y** and press **Enter** button
   * Decide if --> Do you want to configure a default Compute Region and Zone? (Y/n) and press **Enter** button
   
 * The results should be similar as the video below:
-  ![GCP SDK Installation](demos/GCP_SDK_Installation.gif)
+  ![GCP SDK Installation](demos/Google_Cloud_SDK_Installation.gif)
   ![GCP Login](demos/Google_Cloud_SDK_Login.gif)
 
 * Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
