@@ -18,7 +18,8 @@ variable "subnetwork_region" {
 }
 
 variable "subnetwork_name" {
-  default = "edb-prereq-network-subnetwork-us-west1"
+  #default = "edb-prereq-network-subnetwork-us-west1"
+  default = "edb-prereq-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {

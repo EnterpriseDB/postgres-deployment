@@ -24,7 +24,7 @@ module "compute" {
   instance_name                   = var.instance_name
   vm_type                         = var.vm_type
   network_name                    = var.network_name
-  subnetwork_name                 = var.subnetwork_name
+  subnetwork_name                 = "${var.subnetwork_name}-${var.subnetwork_region}"
   subnetwork_region               = var.subnetwork_region
   os                              = var.os
   ssh_user                        = var.ssh_user
