@@ -86,6 +86,8 @@ completion? --> **Y** and press **Enter** button
   ![GCP SDK Installation](demos/Google_Cloud_SDK_Installation.gif)
   ![GCP Login](demos/Google_Cloud_SDK_Login.gif)
 
+* Type: ```gcloud init``` and press the **Enter** button and provide the answers to the prompts. This will configure your gcloud credentials.
+
 * Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
 
 * **Allow for the instances creation to complete ( times will vary depending on amount of instances and instance types ). Once completed, proceed to the next step**
