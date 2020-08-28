@@ -50,8 +50,7 @@ Before starting to delve into this repository, it is best to get familiar with t
   
 * Open the ```Terminal``` command line
 
-* Extract the zip file to a desired destination by
-  * Typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
+* Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
 
 * Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/azure/01-terraform-ansible``` finishing with pressing the **Enter** button
 
