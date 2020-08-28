@@ -26,7 +26,7 @@ resource "local_file" "host_script" {
   filename = var.add_hosts_filename
   content  = <<-EOT
 echo "Setting SSH Keys"
-ssh-add ${var.ssh_key_location}
+ssh-add -l ${var.ssh_key_location}
 echo "Adding IPs"
 %{for count in range(var.instance_count)~}
 ssh-keyscan -H ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip} >> ~/.ssh/known_hosts
