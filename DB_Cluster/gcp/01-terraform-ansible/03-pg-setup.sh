@@ -49,19 +49,21 @@ then
   PLAYBOOK="C07_EPAS12_EFM_install.yml"
   
   if grep -q "centos-7" <<< "$OSNAME"; then
+    OS="CentOS7"  
     PLAYBOOK="C07_EPAS12_EFM_install.yml"
   fi
 
   if grep -q "rhel-7" <<< "$OSNAME"; then
     # Turn off Firewalld
+    OS="RHEL7"    
     PLAYBOOK="R07_firewalld_stop.yml"
 
-    ansible-playbook -u $ANSIBLE_USER --private-key "$KEYFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/$PLAYBOOK --extra-vars="OS=CentOS7 PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'
+    ansible-playbook -u $ANSIBLE_USER --private-key "$KEYFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/$PLAYBOOK --extra-vars="OS=$OS PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'
  
     PLAYBOOK="R07_EPAS12_EFM_install.yml"
   fi
   
   # Run playbook
-  ansible-playbook -u $ANSIBLE_USER --private-key "$KEYFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/$PLAYBOOK --extra-vars="OS=RHEL7 PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'
+  ansible-playbook -u $ANSIBLE_USER --private-key "$KEYFILEPATH" ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/$PLAYBOOK --extra-vars="OS=$OS PG_TYPE=$PGTYPE PG_VERSION=$PGVERSION EDB_YUM_USERNAME=$YUMUSER EDB_YUM_PASSWORD=$YUMPASSWORD" --ssh-common-args='-o StrictHostKeyChecking=no'
   
 fi
