@@ -46,9 +46,12 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
-* Extract the zip file to a desired destination
- 
+* Copy the ```postgres-deployment``` downloaded zip file to the desired target directory
+  
 * Open the ```Terminal``` command line
+
+* Extract the zip file to a desired destination by
+  * Typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
 
 * Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/azure/01-terraform-ansible``` finishing with pressing the **Enter** button
 
