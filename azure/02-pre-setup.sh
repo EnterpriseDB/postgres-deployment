@@ -11,7 +11,7 @@ then
   read -r -e -p "Provide: Absolute path of key file, example: '~/.ssh/id_rsa.pub': " KEYFILEPATHNAMEANDEXTENSION
 
   echo "Creating Prerequisite Resources..."
-  cd 01-prereqs-terraform || exit
+  cd 01-terraform || exit
   
   if [ -z "$PUBLISHER" ] || [ -z "$OFFER" ] || [ -z "$SKU" ] || [ -z "$LOCATION" ] || [ -z "$INSTANCE_COUNT" ] || [ -z "$KEYFILEPATHNAMEANDEXTENSION" ]
   then 

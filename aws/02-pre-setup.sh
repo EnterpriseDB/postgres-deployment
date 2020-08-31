@@ -10,7 +10,7 @@ then
   read -r -e -p "Provide: Absolute path of pem file, example: '~/mypemfile.pem': " PEMFILEPATHNAMEANDEXTENSION
 
   echo "Creating Prerequisite Resources..."
-  cd 01-prereqs-terraform || exit
+  cd 01-terraform || exit
   
   if [ -z "$OSNAME" ] || [ -z "$REGION" ] || [ -z "$INSTANCE_COUNT" ] || [ -z "$PEMFILENAME" ] || [ -z "$PEMFILEPATHNAMEANDEXTENSION" ]
   then 

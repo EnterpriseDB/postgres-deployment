@@ -19,7 +19,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 2. Configure Azure CLI with credentials
 3. Create your SSH Private and Public Key with proper permissions
 4. Create Cloud Infrastructure Prerequisites Resources
-   * Performed by Terraform scripts in ```01-prereqs-terraform``` folder
+   * Performed by Terraform scripts in ```01-terraform``` folder
 5. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 

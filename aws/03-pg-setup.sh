@@ -4,10 +4,10 @@ read -r -e -p "Would you like to: Setup Postgres? Enter Yes or No: " RESPONSE
 if [ "$RESPONSE" == "Yes" ] || [ "$RESPONSE" == "yes" ] || [ "$RESPONSE" == "YES" ] 
 then
   # Copy the 'add-host.sh' script file for local execution  
-  cp ./01-prereqs-terraform/add_host.sh . 
+  cp ./01-terraform/add_host.sh . 
 
   # Copy the 'os.csv' csv file for local use
-  cp ./01-prereqs-terraform/os.csv . 
+  cp ./01-terraform/os.csv . 
   
   echo "Adding AWS Infrastructure Keys to local Known Hosts File..."
   ./add_host.sh
@@ -17,7 +17,7 @@ then
   ansible-galaxy collection install edb_devops.edb_postgres --force
 
   # Copy the recently created Ansible Inventory File to Ansible Galaxy Collection
-  cp ./01-prereqs-terraform/inventory.yml ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/hosts.yml
+  cp ./01-terraform/inventory.yml ~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/playbook-examples/hosts.yml
   
   # Read os.csv file
   while IFS=, read -r os_name_and_version

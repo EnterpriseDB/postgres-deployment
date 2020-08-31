@@ -3,17 +3,28 @@
 read -r -e -p "Would you like to: Setup GCP Prerequisites? Enter Yes or No:  " RESPONSE
 if [ "$RESPONSE" == "Yes" ] || [ "$RESPONSE" == "yes" ] || [ "$RESPONSE" == "YES" ] 
 then
+  read -r -e -p "Please provide Project File Name : " PROJECTFILENAME
   read -r -e -p "Please provide OS name and version from: 'CentOS7' 'RHEL7': " OS
-  read -r -e -p "Please provide Project ID: " PROJECTID
+  read -r -e -p "Please provide Google Project ID: " PROJECTID
   read -r -e -p "Please provide target GCP Location, examples: 'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4': " REGION 
   read -r -e -p "Please provide how many GCP VMs to create, example '>=3': " INSTANCE_COUNT
   read -r -e -p "Provide: Absolute path of credentials json file, example: '~/accounts.json': " CREDENTIALSFILELOCATION
   read -r -e -p "Provide: Absolute path of key file, example: '~/.ssh/id_rsa.pub': " KEYFILEPATHNAMEANDEXTENSION
 
-  echo "Creating Prerequisite Resources..."
-  cd 01-prereqs-terraform || exit
+  echo -e "\nStoring Project File Name Settings ..."
+  exec 3<> $PROJECTFILENAME.txt
+    echo "OS=$OS" >&3
+    echo "project_name=$PROJECTID" >&3
+    echo "subnetwork_region=$REGION" >&3
+    echo "instance_count=$INSTANCE_COUNT" >&3
+    echo "credentials=$CREDENTIALSFILELOCATION" >&3
+    echo "ssh_key_location=$KEYFILEPATHNAMEANDEXTENSION" >&3
+  exec 3>&-
+    
+  echo -e "\nCreating Prerequisite Resources..."
+  cd 01-terraform || exit
   
-  if [ -z "$OS" ] || [ -z "$PROJECTID" ] || [ -z "$REGION" ] || [ -z "$INSTANCE_COUNT" ] || [ -z "$CREDENTIALSFILELOCATION" ] || [ -z "$KEYFILEPATHNAMEANDEXTENSION" ]
+  if [ -z "$PROJECTFILENAME" ] || [ -z "$OS" ] || [ -z "$PROJECTID" ] || [ -z "$REGION" ] || [ -z "$INSTANCE_COUNT" ] || [ -z "$CREDENTIALSFILELOCATION" ] || [ -z "$KEYFILEPATHNAMEANDEXTENSION" ]
   then 
     echo 'Entered values cannot be blank please try again!' 
     exit 0 
@@ -29,10 +40,10 @@ then
   then
     OSVERSION="rhel-7-v20200403"
   fi
-
-  terraform init
-  terraform apply -auto-approve -var="os=$OSVERSION" -var="project_name=$PROJECTID" -var="subnetwork_region=$REGION" -var="instance_count=$INSTANCE_COUNT" -var="credentials=$CREDENTIALSFILELOCATION" -var="ssh_key_location=$KEYFILEPATHNAMEANDEXTENSION"
-  
+ 
+   terraform init
+   terraform apply -auto-approve -var="os=$OSVERSION" -var="project_name=$PROJECTID" -var="subnetwork_region=$REGION" -var="instance_count=$INSTANCE_COUNT" -var="credentials=$CREDENTIALSFILELOCATION" -var="ssh_key_location=$KEYFILEPATHNAMEANDEXTENSION"
+ 
   if [ "$?" = "0" ]; then
     # Wait for VMs to be fully available
     echo -e '\nWaiting for VMs to be available...'
