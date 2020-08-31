@@ -48,11 +48,11 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Copy the ```postgres-deployment``` downloaded zip file to the desired target directory
   
-* Open the ```Terminal``` command line
-
 * Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Open the ```Terminal``` command line
+
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp``` finishing with pressing the **Enter** button
 
 * Items to consider:
   * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
@@ -72,26 +72,23 @@ Before starting to delve into this repository, it is best to get familiar with t
   * Type: ```chmod 400 ~/.ssh/id_rsa*.* and press the **Enter** button
   * This command assumes you have named your keys: ```id_rsa```
 
-* Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
+* Download your Google Cloud JSON File Credentials
+  * Navigate to the Google Cloud Platform Console
+  * Click on **IAM & Admin** -> **Service Accounts**
+  * Select the Service Account -> Click the ellipsis menu button -> **Create key**
+  * Select the Key Type: **JSON** --> **Create Button**
+  * Rename the downloaded JSON Credentials File to something relatively easy to type
+  ![GCP JSON File Credentials](demos/Google_Cloud_SDK_Generate_Credentials_JSON_File.gif)
 
-* Type: ```./01-gcp-sdk.sh``` and execute the bash script by pressing the **Enter** button.
-  * Installation directory --> Press **Enter** button
-  * If installation directory already exists --> Remove it before installation --> Enter **y** and press **Enter** button
-  * Do you want to help improve the Google Cloud SDK --> **N** and press **Enter** button
-  * Modify profile to update your $PATH and enable shell command 
-completion? --> **Y** and press **Enter** button
-  * Enter a path to an rc file to update, or leave blank to use --> Press **Enter** button
-  * Select the number matching the project you have been assigned to and press **Enter** button
-  * Decide if --> Do you want to configure a default Compute Region and Zone? (Y/n) and press **Enter** button
-  
-* The results should be similar as the video below:
+* Type: ```./prereqs.sh``` and execute the bash script by pressing the **Enter** button
+
+* Type: ```./gcp-sdk.sh``` and execute the bash script by pressing the **Enter** button.
+  * The results should be similar as the video below:
   ![GCP SDK Installation](demos/Google_Cloud_SDK_Installation.gif)
   ![GCP Login](demos/Google_Cloud_SDK_Login.gif)
 
-* Type: ```gcloud init``` and press the **Enter** button and provide the answers to the prompts. This will configure your gcloud credentials.
-
-* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
+* Type: ```./pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
 
 * **Allow for the instances creation to complete ( times will vary depending on amount of instances and instance types ). Once completed, proceed to the next step**
 
-* Type: ```./03-pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
+* Type: ```./pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
