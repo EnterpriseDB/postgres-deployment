@@ -16,5 +16,8 @@ else
   sudo curl https://sdk.cloud.google.com/ > install.sh
   bash install.sh --disable-prompts
   PATH=~/google-cloud-sdk/bin:$PATH
+  source ~/.bashrc
+  # Force settings
+  source ~/.bashrc
 fi
 gcloud init
