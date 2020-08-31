@@ -33,7 +33,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
 * Open the ```Terminal``` command line
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 ----
 ### Prerequisites Setup and configuration
@@ -50,7 +50,7 @@ Before starting to delve into this repository, it is best to get familiar with t
   ![Terraform 0.13 Installation](demos/Terraform_0.13_Installation.gif)
 * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
 * Open the ```Terminal``` command line
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 ----
 ### Prerequisites Setup
@@ -61,7 +61,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 * Terraform must be initialized
 
