@@ -52,10 +52,10 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/azure/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 * Items to consider:
-  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Azure Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
+  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
   * A minimum of 3 instances is recommended
 
 * The bash scripts utilized in the scripts have been tested on:

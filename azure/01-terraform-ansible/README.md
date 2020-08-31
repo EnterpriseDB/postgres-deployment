@@ -50,7 +50,7 @@ Before starting to delve into this repository, it is best to get familiar with t
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/azure/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/azure/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 * Items to consider:
   * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Azure Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus

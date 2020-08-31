@@ -51,7 +51,7 @@ Before starting to delve into this repository, it is best to get familiar with t
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/aws/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/aws/01-terraform-ansible``` finishing with pressing the **Enter** button
 
 * Items to consider:
   * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following AWS Regions: us-east-1, us-east-2, us-west-1 and us-west-2
