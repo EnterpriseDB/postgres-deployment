@@ -3,7 +3,7 @@
 read -r -e -p "Would you like to: Setup GCP Prerequisites? Enter Yes or No:  " RESPONSE
 if [ "$RESPONSE" == "Yes" ] || [ "$RESPONSE" == "yes" ] || [ "$RESPONSE" == "YES" ] 
 then
-  read -r -e -p "Please provide OS name and version from: 'CentOS7' or 'RHEL7': " OS
+  read -r -e -p "Please provide OS name and version from: 'CentOS7' 'RHEL7': " OS
   read -r -e -p "Please provide Project ID: " PROJECTID
   read -r -e -p "Please provide target GCP Location, examples: 'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4': " REGION 
   read -r -e -p "Please provide how many GCP VMs to create, example '>=3': " INSTANCE_COUNT
@@ -29,7 +29,7 @@ then
   then
     OSVERSION="rhel-7-v20200403"
   fi
-  
+
   terraform init
   terraform apply -auto-approve -var="os=$OSVERSION" -var="project_name=$PROJECTID" -var="subnetwork_region=$REGION" -var="instance_count=$INSTANCE_COUNT" -var="credentials=$CREDENTIALSFILELOCATION" -var="ssh_key_location=$KEYFILEPATHNAMEANDEXTENSION"
   
