@@ -77,7 +77,7 @@ Before starting to delve into this repository, it is best to get familiar with t
   ![GCP Complete Setup](demos/GCP_EDB-Setup.gif)
 
 * Type: ```./edb-delete.sh <projectfilename>.txt``` and execute the bash script by pressing the **Enter** button. A file with ```.txt``` was created with the named indicated in one of the parameters being prompted.
-  ![Removed Created Google Cloud Resources](demos/GCP_EDB-Delete.gif)  
+  ![Removed Created Google Cloud Resources](demos/GCP_EDB-Delete.gif)
 
 ### Manual Setup
 
@@ -95,3 +95,6 @@ Before starting to delve into this repository, it is best to get familiar with t
   ![Install and Configure Postgres or EPAS](demos/GCP_PGSetup_v2.gif)
   * edb-delete.sh - Deletes the Infrastructure
   ![Removed Created Google Cloud Resources](demos/GCP_EDB-Delete.gif)
+* A file named ```project_template.txt``` is provided that can be utilized to provide configuration details and be passed as a file to:
+  * ```pre-setup.sh <projectname>.txt```
+  * ```edb-delete.sh <projectname>.txt```
