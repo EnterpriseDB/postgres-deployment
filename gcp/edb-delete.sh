@@ -13,14 +13,14 @@ then
     exit 0 
   fi
 
+  echo -e "\nDeleting Prerequisite Resources..."
+  cd 01-terraform || exit
+
+  terraform destroy -auto-approve -var="aws_region=$REGION"
+else
   # Create Terraform destroy variable and read file with values
   terraform="terraform destroy -auto-approve "
-  if [ -z "$1" ] ; then
-    echo 'Entered Project File Name cannot be blank please try again!' 
-    exit 0 
-  else
-    file="$1"
-  fi
+  file="$1"
   
   while IFS= read line
   do
