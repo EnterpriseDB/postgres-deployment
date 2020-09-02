@@ -13,13 +13,6 @@ then
     exit 0 
   fi
 
-  echo -e "\nDeleting Prerequisite Resources..."
-  cd 01-terraform || exit
-
-  terraform destroy -auto-approve -var="project_name=$PROJECTID" -var="subnetwork_region=$REGION" -var="credentials=$CREDENTIALSFILELOCATION" -var="ssh_key_location=$KEYFILEPATHNAMEANDEXTENSION"  
-else
-  echo -e "\nDeleting Prerequisite Resources..."
- 
   # Create Terraform destroy variable and read file with values
   terraform="terraform destroy -auto-approve "
   if [ -z "$1" ] ; then
@@ -32,7 +25,8 @@ else
   do
     terraform="${terraform} -var="$line""
   done <"$file"
-  
+
+  echo -e "\nDeleting Prerequisite Resources..."
   cd 01-terraform || exit
     
   echo $terraform
