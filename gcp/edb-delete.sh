@@ -13,7 +13,7 @@ then
     exit 0 
   fi
 
-  # Create Terraform apply variable and read file with values
+  # Create Terraform destroy variable and read file with values
   terraform="terraform destroy -auto-approve "
   if [ -z "$1" ] ; then
     echo 'Entered Project File Name cannot be blank please try again!' 
