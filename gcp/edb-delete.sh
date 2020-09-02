@@ -21,6 +21,7 @@ then
   else
     file="$1"
   fi
+  
   while IFS= read line
   do
     terraform="${terraform} -var="$line""
