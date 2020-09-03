@@ -15,10 +15,25 @@ variable "instance_count" {
   default = 3
 }
 
+# PEM Instance Count
+variable "pem_instance_count" {
+  default = 0
+}
+
+# Synchronicity
+variable "synchronicity" {
+  default = "asynchronous"
+}
+
 # Ansible Inventory Filenames
 # Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
+}
+
+# Ansible Yaml PEM Inventory Filename
+variable "ansible_pem_inventory_yaml_filename" {
+  default = "pem-inventory.yml"
 }
 
 # Ansible Ini Inventory Filename
@@ -45,7 +60,7 @@ variable "instance_type" {
   # instance_type = "t3.large"
   # instance_type = "c4.2xlarge"
   # instance_type = "m5.2xlarge"
-  default = "t2.micro"
+  default = "c5.2xlarge"
   type    = string
 }
 

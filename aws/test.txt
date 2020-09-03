@@ -1,0 +1,5 @@
+os=CentOS7
+aws_region=us-west-2
+instance_count=4
+ssh_keypair=edb-postgres-cluster
+ssh_key_path=~/edb-postgres-cluster.pem

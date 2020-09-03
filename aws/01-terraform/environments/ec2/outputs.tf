@@ -1,3 +1,20 @@
+resource "local_file" "AnsiblePEMYamlInventory" {
+  count    = var.instance_count
+  filename = var.ansible_pem_inventory_yaml_filename
+  content  = <<EOT
+---
+servers:
+  %{for count in range(var.instance_count)~}
+%{if count == 0}pemserver:%{endif}%{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
+    node_type: %{if count == 0}pemserver%{endif}%{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
+    public_ip: ${aws_eip.ip[count].public_dns}
+    private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
+    %{if count > 0}replication_type: var.synchronicity%{endif}
+    %{if count > 0}pem_agent: true%{endif}
+  %{endfor~}
+EOT
+}
+
 resource "local_file" "AnsibleYamlInventory" {
   count    = var.instance_count
   filename = var.ansible_inventory_yaml_filename
@@ -5,12 +22,13 @@ resource "local_file" "AnsibleYamlInventory" {
 ---
 servers:
   %{for count in range(var.instance_count)~}
-server${count}:
-    node_type: %{if count == 0}primary%{else}standby%{endif}
-    public_ip: ${aws_eip.ip[count].public_dns}
-    private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
-    replication_type: synchronous
-  %{endfor~}
+  %{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
+    %{if count > 0}node_type:%{endif} %{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
+    %{if count > 0}public_ip: ${aws_eip.ip[count].public_dns}%{endif}
+    %{if count > 0}private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}%{endif}
+    %{if count > 0}replication_type: var.synchronicity%{endif}
+    %{if count > 0}pem_agent: true%{endif}
+%{endfor~}
 EOT
 }
 

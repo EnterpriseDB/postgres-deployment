@@ -45,32 +45,60 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 ### Steps
 
+* Items to consider:
+  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
+  * A minimum of 3 instances is recommended
+
+* The bash scripts utilized in the scripts have been tested on:
+  * Red Hat 7
+  * CentOS 7
+  * Debian 9
+  * Ubuntu 20.04
+
+* Create your AWS Key Pair File or make it available for its reference
+  ![Create AWS Key Pair File](demos/AWS_Key_Pair_File_Generation.gif)
+    
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
 * Extract the zip file to a desired destination
+
+* Copy the ```postgres-deployment.zip``` file to the desired target directory
+  
+* Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/aws/01-terraform-ansible``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment/aws``` finishing with pressing the **Enter** button
 
-* Items to consider:
-  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following AWS Regions: us-east-1, us-east-2, us-west-1 and us-west-2
-  * A minimum of 3 instances is recommended
+* Type: ```./edb-setup.sh``` and execute the bash script by pressing the **Enter** button
+  * The results should be similar as the video below:
+  ![AWS Complete Setup](demos/AWS_EDB-Setup.gif)
 
-* Type: ```./00-prereqs.sh``` and execute the bash script by pressing the **Enter** button
+* Type: ```./edb-delete.sh <projectfilename>.txt``` and execute the bash script by pressing the **Enter** button. A file with ```.txt``` was created with the named indicated in one of the parameters being prompted.
+  ![Removed Created AWS Resources](demos/AWS_EDB-Delete.gif)
 
-* Type: ```./01-aws-cli.sh``` and execute the bash script by pressing the **Enter** button. The results should be similar as the video below:
+### Manual Setup
+* The scripts below are described in their execution order for a manual setup:
+  * keygen.sh - Removes and creates the SSH Keys
+  ![Generate SSH Keys](demos/KeyGen.gif)
+  * prereqs.sh - Installs dependent packages
+  ![Install Package Dependencies](demos/AWS_PreReqs_Setup_v2.gif)
+  * aws-cli.sh - Installs Google Cloud SDK and initiates the Google Cloud Credentials
+   Configuration
+   The results should be similar as the video below:
   ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
-
-* Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
+  * Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
   ![AWS CLI v2 Configuration](demos/AWS_CLI_v2_Configuration.gif)
-
-* Type: ```./02-pre-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts. The script will await until the instances are available.
-
-* **Allow for the instances creation to complete ( times will vary depending on amount of instances and instance types ). Once completed, proceed to the next step**
-
-* Type: ```./03-pg-setup.sh``` and execute the bash script by pressing the **Enter** button and provide the answers to the prompts
-
+  * pre-setup.sh - Creates the Infrastructure
+  ![Deploy Resources in AWS](demos/AWS_PreReqs_Setup_v2.gif)
+  * pg-setup.sh - Deploys Postgres or EDB Postgres Advanced Server
+  ![Install and Configure Postgres or EPAS](demos/AWS_PGSetup_v2.gif)
+  * edb-delete.sh - Deletes the Infrastructure
+  ![Removed Created AWS Resources](demos/AWS_EDB-Delete.gif)
+* A file named ```project_template.txt``` is provided that can be utilized to provide configuration details and be passed as a file to:
+  * ```pre-setup.sh <projectname>.txt```
+  * ```edb-delete.sh <projectname>.txt```
+  
 ### Execute SQL Statements on Postgres Cluster
 ##### Dependencies
 1. Ansible
@@ -83,4 +111,3 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
   ![SQLExec](demos/SQLExec.gif)
-

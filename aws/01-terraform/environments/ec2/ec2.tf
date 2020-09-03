@@ -1,9 +1,12 @@
 variable "os" {}
 variable "instance_count" {}
+variable "pem_instance_count" {}
+variable "synchronicity" {}
 variable "vpc_id" {}
 variable "instance_type" {}
 variable "ansible_inventory_yaml_filename" {}
 variable "ansible_inventory_ini_filename" {}
+variable "ansible_pem_inventory_yaml_filename" {}
 variable "os_csv_filename" {}
 variable "add_hosts_filename" {}
 variable "ssh_keypair" {}
@@ -80,7 +83,8 @@ resource "aws_instance" "EDB_DB_Cluster" {
   }
 
   tags = {
-    Name       = count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)
+    #Name       = count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)
+    Name       = var.pem_instance_count == 0 ? ( count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index) ) : ( count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : ( count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary") ) )
     Created_By = var.created_by
   }
 
