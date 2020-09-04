@@ -43,7 +43,7 @@ then
     exit 0 
   fi
 
-  if ! [ "$SYNCHRONICITY" == "synchronous" ] || [ "$SYNCHRONICITY" == "asynchronous" ]; then  
+  if [ "$SYNCHRONICITY" != "synchronous" ] && [ "$SYNCHRONICITY" != "asynchronous" ]; then  
     echo 'Invalid synchronicity values, please try again!' 
     exit 0  
   fi
