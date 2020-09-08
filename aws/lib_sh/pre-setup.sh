@@ -32,7 +32,7 @@ then
     INSTANCE_COUNT=$((INSTANCE_COUNT+1))
     PEM_INSTANCE_COUNT=$((1))    
   else
-    INSTANCE_COUNT=$((0))
+    PEM_INSTANCE_COUNT=$((0))
   fi
 
   echo -e "\nStoring Project File Name Settings ..."
