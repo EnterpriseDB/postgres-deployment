@@ -48,6 +48,13 @@ resource "aws_security_group" "edb-prereqs-rules" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+    
+  ingress {
+    from_port   = 8443
+    to_port     = 8443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }    
 
   tags = {
     Name = format("%s_%s", var.project_tag, "SSH_ALLOWED")
