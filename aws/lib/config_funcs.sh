@@ -1,0 +1,149 @@
+#! /bin/bash
+################################################################################
+# Title           : config_funcs script to capture the users argument and
+#                 : for deployment scripts
+# Author          : Doug Ortiz and Co-authored by Vibhor Kumar
+# Date            : Sept 7, 2020
+# Version         : 1.0
+################################################################################
+
+################################################################################
+# quit on any error
+set -e
+# verify any  undefined shell variables
+#set -u
+
+################################################################################
+# source common lib
+################################################################################
+DIRECTORY=$(dirname $0)
+source ${DIRECTORY}/lib/common_funcs.sh
+
+################################################################################
+# function: check the param passed by the user
+################################################################################
+function check_update_param()
+{
+    local CONFIG_FILE="$1"
+    local MESSAGE="$2"
+    local IS_NUMBER="$3"
+    local PARAM="$4"
+
+    local READ_INPUT="read -r -e -p"
+    local MSG_SUFFIX="PID: $$ [$(date +'%m-%d-%y %H:%M:%S')]: "
+    local VALUE
+    local CHECK
+
+    CHECK=$(check_variable "${PARAM}" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        ${READ_INPUT} "${MSG_SUFFIX}${MESSAGE}" VALUE
+        if [[ -z ${VALUE} ]]
+        then
+             exit_on_error "Entered value cannot be empty"
+        fi
+        if [[ "${IS_NUMBER}" = "Yes" ]]
+        then
+            if ! [[ "${VALUE}" =~ ^[+-]?[0-9]+\.?[0-9]*$ ]]
+            then
+                exit_on_error "${PARAM} value cannot be string"
+            fi
+        fi
+        if [[ "${PARAM}" = "INSTANCE_COUNT" ]]
+        then
+            if [[ "${VALUE}" -lt 3 ]]
+            then
+                exit_on_error "Instance count cannot be less than 3"
+            fi
+        fi
+        if [[ "${PARAM}" = "PEMSERVER" ]]
+        then
+            VALUE=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
+            if [[ "${VALUE}" = "yes" ]]
+            then
+                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                                    |cut -d"=" -f2)
+                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                then
+                    INSTANCE_COUNT=1
+                else
+                    INSTANCE_COUNT=$(( INSTANCE_COUNT + 1 ))
+                fi
+                validate_variable "INSTANCE_COUNT" \
+                                  "${CONFIG_FILE}"  \
+                                  "${INSTANCE_COUNT}"
+                PEM_INSTANCE_COUNT=1
+                validate_variable "PEM_INSTANCE_COUNT" \
+                                  "${CONFIG_FILE}"  \
+                                  "${PEM_INSTANCE_COUNT}"
+            fi
+        fi
+        validate_variable "${PARAM}" "${CONFIG_FILE}" "${VALUE}"
+    fi
+}
+
+################################################################################
+# function: Check if we have configurations or not and prompt accordingly
+################################################################################
+function config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local READ_INPUT="read -r -e -p"
+
+    local MESSAGE
+
+    mkdir -p ${LOGDIR}
+    mkdir -p ${CONFIG_DIR}
+
+    if [[ ! -f ${CONFIG_FILE} ]]
+    then
+       touch ${CONFIG_FILE}
+       chmod 600 ${CONFIG_FILE}
+    else
+        source ${CONFIG_FILE}
+    fi
+     
+    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
+
+    MESSAGE="Please provide target AWS Region"
+    MESSAGE="${MESSAGE} examples: 'us-east-1', 'us-west-1'or 'us-west-2': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
+   
+    MESSAGE="Please provide how many AWS EC2 Instances to create"
+    MESSAGE="${MESSAGE} example '>=3': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
+
+    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="${MESSAGE} Yes/No': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    MESSAGE="Provide: Name of pem file with no extension"
+    MESSAGE="${MESSAGE}  example: 'mypemfile : "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEM_FILE_NAME"
+
+    MESSAGE="Provide: Absolute path of pem file, example:"
+    MESSAGE="${MESSAGE}  '~/mypemfile.pem': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEM_FILE_PATH"
+   
+    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
+
+    MESSAGE="Please provide Postgresql DB Version."
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
+ 
+    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
+
+    MESSAGE="Provide EDB Yum Username: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
+
+    MESSAGE="Provide EDB Yum Password: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
+
+    process_log "set all parameters"
+    source ${CONFIG_FILE}
+}
+

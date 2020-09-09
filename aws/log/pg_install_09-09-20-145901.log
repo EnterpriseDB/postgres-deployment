@@ -1,0 +1,23 @@
+PEM SERVER:
+-----------
+  PEM URL:	https://54.165.62.96:8443/pem
+  Username:	enterprisedb
+  Password:	mAHMkVDNQsGljNpKZbQP
+
+PRIMARY SERVER
+--------------
+  Username:	centos
+  Public Ip:	18.234.160.148
+
+STANDBY SERVER
+--------------
+  Username:	centos
+  Public Ip:	3.92.47.17
+
+  Username:	centos
+  Public Ip:	52.55.189.7
+
+ dependency map
+|/-\|/Starting collection install process
+|Installing 'edb_devops.edb_postgres:1.0.5' to '/root/.ansible/collections/ansible_collections/edb_devops/edb_postgres'
+/-\|/

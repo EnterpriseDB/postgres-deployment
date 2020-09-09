@@ -23,8 +23,8 @@ resource "aws_security_group" "edb-prereqs-rules" {
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8443
+    to_port     = 8443
     protocol    = "tcp"
     cidr_blocks = [var.public_cidrblock]
   }

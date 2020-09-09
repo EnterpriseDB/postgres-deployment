@@ -1,0 +1,4 @@
+Process install dependency map
+|/-\|/Starting collection install process
+|Installing 'edb_devops.edb_postgres:1.0.5' to '/root/.ansible/collections/ansible_collections/edb_devops/edb_postgres'
+/-\|/

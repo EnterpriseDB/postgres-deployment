@@ -78,22 +78,21 @@ resource "aws_instance" "EDB_DB_Cluster" {
 
   root_block_device {
     delete_on_termination = "true"
-    volume_size           = "10"
+    volume_size           = "100"
     volume_type           = "gp2"
   }
 
   tags = {
-    #Name       = count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)
     Name       = var.pem_instance_count == 0 ? ( count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index) ) : ( count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : ( count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary") ) )
     Created_By = var.created_by
   }
 
 }
 
-resource "aws_eip" "ip" {
-  count    = var.instance_count
-  instance = aws_instance.EDB_DB_Cluster[count.index].id
-  vpc      = true
-}
+#resource "aws_eip" "ip" {
+#  count    = var.instance_count
+#  instance = aws_instance.EDB_DB_Cluster[count.index].id
+#  vpc      = true
+# }
 
 
