@@ -65,7 +65,7 @@ module "edb-db-cluster" {
   vpc_id                              = module.vpc.vpc_id
   instance_count                      = var.instance_count
   pem_instance_count                  = var.pem_instance_count
-  synchronicity = var.synchronicity
+  synchronicity                       = var.synchronicity
   cluster_name                        = var.cluster_name
   instance_type                       = var.instance_type
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
@@ -74,7 +74,6 @@ module "edb-db-cluster" {
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id
-  ssh_keypair                         = var.ssh_keypair
   ssh_key_path                        = var.ssh_key_path
   created_by                          = var.created_by
 

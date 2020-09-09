@@ -1,0 +1,21 @@
+---
+servers:
+  pemserver:
+    node_type: pemserver
+    public_dns: ec2-34-220-251-195.us-west-2.compute.amazonaws.com
+    public_ip: 34.220.251.195
+    private_ip: 10.0.2.181
+  primary1:
+    node_type: primary
+    public_dns: ec2-52-36-255-75.us-west-2.compute.amazonaws.com
+    public_ip: 52.36.255.75
+    private_ip: 10.0.1.74
+    replication_type: asynchronous
+    pem_agent: true
+  standby2:
+    node_type: standby
+    public_dns: ec2-54-214-222-32.us-west-2.compute.amazonaws.com
+    public_ip: 54.214.222.32
+    private_ip: 10.0.0.116
+    replication_type: asynchronous
+    pem_agent: true

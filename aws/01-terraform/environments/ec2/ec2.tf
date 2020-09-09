@@ -9,7 +9,6 @@ variable "ansible_inventory_ini_filename" {}
 variable "ansible_pem_inventory_yaml_filename" {}
 variable "os_csv_filename" {}
 variable "add_hosts_filename" {}
-variable "ssh_keypair" {}
 variable "ssh_key_path" {}
 variable "custom_security_group_id" {}
 variable "cluster_name" {}
@@ -65,14 +64,20 @@ data "aws_ami" "centos_ami" {
   }
 }
 
+resource "aws_key_pair" "key_pair" {
+  key_name   = var.ssh_key_path
+  public_key = file(var.ssh_key_path)
+}
+
 resource "aws_instance" "EDB_DB_Cluster" {
   count = var.instance_count
 
   #ami = "${var.os == "CentOS7" ? data.aws_ami.centos_ami.id : data.aws_ami.rhel_ami.id}"
   ami = var.os == "CentOS7" ? data.aws_ami.centos_ami.id : data.aws_ami.rhel_ami.id
 
-  instance_type          = var.instance_type
-  key_name               = var.ssh_keypair
+  instance_type = var.instance_type
+  #key_name               = var.ssh_keypair
+  key_name               = aws_key_pair.key_pair.id
   subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
   vpc_security_group_ids = [var.custom_security_group_id]
 
@@ -83,16 +88,13 @@ resource "aws_instance" "EDB_DB_Cluster" {
   }
 
   tags = {
-    Name       = var.pem_instance_count == 0 ? ( count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index) ) : ( count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : ( count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary") ) )
+    Name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary")))
     Created_By = var.created_by
   }
 
+  connection {
+    #user = "ubuntu"
+    private_key = file(var.ssh_key_path)
+  }
+
 }
-
-#resource "aws_eip" "ip" {
-#  count    = var.instance_count
-#  instance = aws_instance.EDB_DB_Cluster[count.index].id
-#  vpc      = true
-# }
-
-

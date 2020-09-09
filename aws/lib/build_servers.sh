@@ -27,10 +27,9 @@ function aws_build_server()
     local F_OSNAME="$1"
     local F_REGION="$2"
     local F_INSTANCES="$3"
-    local F_KEYPAIR="$4"
-    local F_KEYPATH="$5"
-    local F_PEMINSTANCE="$6"
-    local F_PROJECTNAME="$7"
+    local F_KEYPATH="$4"
+    local F_PEMINSTANCE="$5"
+    local F_PROJECTNAME="$6"
 
     process_log "Building AWS Servers"
     cd ${DIRECTORY}/01-terraform || exit 1
@@ -43,7 +42,6 @@ function aws_build_server()
         -var="os=${F_OSNAME}" \
         -var="aws_region=${REGION}" \
         -var="instance_count=${F_INSTANCES}" \
-        -var="ssh_keypair=${F_KEYPAIR}" \
         -var="ssh_key_path=${F_KEYPATH}" \
         -var="pem_instance_count=${F_PEMINSTANCE}"
 

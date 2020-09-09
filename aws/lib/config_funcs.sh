@@ -77,6 +77,27 @@ function check_update_param()
                                   "${CONFIG_FILE}"  \
                                   "${PEM_INSTANCE_COUNT}"
             fi
+
+            if [[ "${VALUE}" = "no" ]]
+            then
+                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                                    |cut -d"=" -f2)
+                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                then
+                    INSTANCE_COUNT=1
+                else
+                    INSTANCE_COUNT=$(( INSTANCE_COUNT ))
+                fi
+                validate_variable "INSTANCE_COUNT" \
+                                  "${CONFIG_FILE}"  \
+                                  "${INSTANCE_COUNT}"
+                PEM_INSTANCE_COUNT=0
+                validate_variable "PEM_INSTANCE_COUNT" \
+                                  "${CONFIG_FILE}"  \
+                                  "${PEM_INSTANCE_COUNT}"
+            fi
+ 
+
         fi
         validate_variable "${PARAM}" "${CONFIG_FILE}" "${VALUE}"
     fi
@@ -108,7 +129,7 @@ function config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
     MESSAGE="Please provide target AWS Region"
-    MESSAGE="${MESSAGE} examples: 'us-east-1', 'us-west-1'or 'us-west-2': "
+    MESSAGE="${MESSAGE} examples: 'us-east-1', 'us-east-2', 'us-west-1'or 'us-west-2': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
    
     MESSAGE="Please provide how many AWS EC2 Instances to create"
@@ -119,12 +140,8 @@ function config_file()
     MESSAGE="${MESSAGE} Yes/No': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
 
-    MESSAGE="Provide: Name of pem file with no extension"
-    MESSAGE="${MESSAGE}  example: 'mypemfile : "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEM_FILE_NAME"
-
     MESSAGE="Provide: Absolute path of pem file, example:"
-    MESSAGE="${MESSAGE}  '~/mypemfile.pem': "
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEM_FILE_PATH"
    
     MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
@@ -146,4 +163,3 @@ function config_file()
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
-

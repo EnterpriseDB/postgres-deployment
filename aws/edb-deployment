@@ -65,7 +65,6 @@ then
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
                      "${INSTANCE_COUNT}" \
-                     "${PEM_FILE_NAME}" \
                      "${PEM_FILE_PATH}" \
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
