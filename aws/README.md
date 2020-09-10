@@ -94,8 +94,8 @@ Other Options:
 * Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
   ![Removed Created AWS Resources](demos/AWS_PEM_destroy.gif)
 
-### Manual Setup
-* The scripts below are described in their execution order for a manual setup and located in the ```lib_sh``` directory:
+### Manual Configurations
+* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and arelocated in the ```lib_sh``` directory:
   * keygen.sh - Removes and creates the SSH Keys
   ![Generate SSH Keys](demos/AWS_SSHKey_Generation.gif)
   * aws-cli.sh - Installs AWS CLI and initiates the AWS Credentials Configuration
