@@ -92,7 +92,7 @@ Other Options:
   ![Removed Created AWS Resources](demos/AWS_PEM_Install.gif)
 
 * Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  ![Removed Created AWS Resources](demos/AWS_Create_demo.gif)
+  ![Removed Created AWS Resources](demos/AWS_PEM_destroy.gif)
 
 ### Manual Setup
 * The scripts below are described in their execution order for a manual setup and located in the ```lib_sh``` directory:
