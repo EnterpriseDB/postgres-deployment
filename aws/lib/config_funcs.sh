@@ -140,9 +140,13 @@ function config_file()
     MESSAGE="${MESSAGE} Yes/No': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
 
-    MESSAGE="Provide: Absolute path of pem file, example:"
+    MESSAGE="Provide: Absolute path of public key file, example:"
     MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEM_FILE_PATH"
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
    
     MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"

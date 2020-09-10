@@ -53,6 +53,7 @@ config_file "${PROJECT_NAME}"
 # Install the required packages
 ################################################################################
 install_wget_curl
+install_gawk
 install_terraform
 install_ansible
 install_aws
@@ -65,7 +66,7 @@ then
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
                      "${INSTANCE_COUNT}" \
-                     "${PEM_FILE_PATH}" \
+                     "${PUB_FILE_PATH}" \
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
                     2>&1 | tee ${TERRAFORM_LOG}
@@ -83,7 +84,7 @@ then
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
-                       "${PEM_FILE_PATH}" | tee ${PG_INSTALL_LOG}
+                       "${PRIV_FILE_PATH}" | tee ${PG_INSTALL_LOG}
 
 fi
 

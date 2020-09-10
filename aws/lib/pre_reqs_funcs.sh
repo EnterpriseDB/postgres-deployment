@@ -77,6 +77,25 @@ function install_wget_curl()
 
 
 ################################################################################
+# function: install gawk if not exists
+################################################################################
+function install_gawk()
+{
+    local F_INSTALL_CMD
+    local F_GAWK_EXISTS
+
+    F_INSTALL_CMD=$(package_command)
+    F_GAWK_EXISTS=$(which gawk >/dev/null 2>&1 && echo $? || echo $?)
+    
+    if [[ ${F_GAWK_EXISTS} -ne 0 ]]
+    then
+        process_log "Installing gawk package"
+        ${F_INSTALL_CMD} gawk >>${INSTALL_LOG} 2>&1 
+    fi
+}
+
+
+################################################################################
 # function: install terraform and ansible
 ################################################################################
 function install_terraform()

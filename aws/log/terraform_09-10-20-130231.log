@@ -1,0 +1,107 @@
+[0m[1mmodule.iam.aws_iam_user.this: Refreshing state... [id=demo-edb-iam-postgres][0m
+[0m[1mmodule.iam.aws_iam_access_key.this: Refreshing state... [id=AKIA2AGFO65HEZ6XITUR][0m
+[0m[1mmodule.vpc.aws_vpc.main: Refreshing state... [id=vpc-04b8a3e8f2fa33ddf][0m
+[0m[1mmodule.network.data.aws_availability_zones.available: Refreshing state... [id=2020-09-10 18:48:57.215149594 +0000 UTC][0m
+[0m[1mmodule.network.aws_subnet.public_subnets[0]: Refreshing state... [id=subnet-08228af0fb557f1b8][0m
+[0m[1mmodule.network.aws_subnet.public_subnets[2]: Refreshing state... [id=subnet-08c43d2ea42b7e8c8][0m
+[0m[1mmodule.network.aws_subnet.public_subnets[3]: Refreshing state... [id=subnet-08f1b86f3ec14a21a][0m
+[0m[1mmodule.network.aws_subnet.public_subnets[1]: Refreshing state... [id=subnet-0c11088a0e1674fcb][0m
+[0m[1mmodule.policies.aws_iam_group.group: Refreshing state... [id=demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_GROUP][0m
+[0m[1mmodule.policies.aws_iam_policy.policy: Refreshing state... [id=arn:aws:iam::687608887118:policy/demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_POLICY][0m
+[0m[1mmodule.policies.aws_iam_policy_attachment.edb-prereq-policy-attach: Refreshing state... [id=demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_POLICY_ATTACH][0m
+[0m[1mmodule.routes.aws_internet_gateway.edb-prereqs-postgres-igw: Refreshing state... [id=igw-0559a0e0a99be2a26][0m
+[0m[1mmodule.routes.data.aws_subnet_ids.ids: Refreshing state... [id=vpc-04b8a3e8f2fa33ddf][0m
+[0m[1mmodule.routes.aws_route_table.edb-prereqs-postgres-customroutetable: Refreshing state... [id=rtb-0e4edaf9c133d974b][0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[3]: Refreshing state... [id=rtbassoc-08f68bb93de873d7b][0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[1]: Refreshing state... [id=rtbassoc-0f5ef15aedcc31c7f][0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[2]: Refreshing state... [id=rtbassoc-07402de95b6529130][0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[0]: Refreshing state... [id=rtbassoc-0d6bff8356cd7d684][0m
+[0m[1mmodule.edb-db-cluster.data.aws_ami.rhel_ami: Refreshing state... [id=ami-08ba09eb40efe35dd][0m
+[0m[1mmodule.edb-db-cluster.data.aws_ami.centos_ami: Refreshing state... [id=ami-0bc06212a56393ee1][0m
+[0m[1mmodule.edb-db-cluster.data.aws_subnet_ids.selected: Refreshing state... [id=vpc-04b8a3e8f2fa33ddf][0m
+[0m[1mmodule.edb-db-cluster.aws_key_pair.key_pair: Refreshing state... [id=/home/doug/.ssh/id_rsa.pub][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleOSCSVFile: Refreshing state... [id=a9ec8c1577e5e3e12157c665b663a9aad9439599][0m
+[0m[1mmodule.security.aws_security_group.edb-prereqs-rules: Refreshing state... [id=sg-06ce36787fc6fdd87][0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Refreshing state... [id=i-036cf7c45d3c71f85][0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Refreshing state... [id=i-00db4ccef2c98e0ee][0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Refreshing state... [id=i-0143e9a39a523e4cf][0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Refreshing state... [id=i-0c2a9e4d69ad779a6][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsiblePEMYamlInventory[0]: Refreshing state... [id=541c761f6a61b19a9fc43a7957a1fab4a81691f0][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsiblePEMYamlInventory[2]: Refreshing state... [id=541c761f6a61b19a9fc43a7957a1fab4a81691f0][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleYamlInventory[2]: Refreshing state... [id=7baaf1a2822b294bebd393a582688274cdbb7a42][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleYamlInventory[1]: Refreshing state... [id=7baaf1a2822b294bebd393a582688274cdbb7a42][0m
+[0m[1mmodule.edb-db-cluster.local_file.host_script: Refreshing state... [id=7ca10ae1795c4c1492ba9c9199cf0c8a1f8089da][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsiblePEMYamlInventory[1]: Refreshing state... [id=541c761f6a61b19a9fc43a7957a1fab4a81691f0][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleYamlInventory[0]: Refreshing state... [id=7baaf1a2822b294bebd393a582688274cdbb7a42][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsiblePEMYamlInventory[3]: Refreshing state... [id=541c761f6a61b19a9fc43a7957a1fab4a81691f0][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleYamlInventory[3]: Refreshing state... [id=7baaf1a2822b294bebd393a582688274cdbb7a42][0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleOSCSVFile: Destroying... [id=a9ec8c1577e5e3e12157c665b663a9aad9439599][0m[0m
+[0m[1mmodule.edb-db-cluster.local_file.host_script: Destroying... [id=7ca10ae1795c4c1492ba9c9199cf0c8a1f8089da][0m[0m
+[0m[1mmodule.edb-db-cluster.local_file.host_script: Destruction complete after 0s[0m[0m
+[0m[1mmodule.edb-db-cluster.local_file.AnsibleOSCSVFile: Destruction complete after 0s[0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Destroying... [id=i-0c2a9e4d69ad779a6][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Destroying... [id=i-0143e9a39a523e4cf][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Destroying... [id=i-00db4ccef2c98e0ee][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Destroying... [id=i-036cf7c45d3c71f85][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Still destroying... [id=i-0c2a9e4d69ad779a6, 10s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Still destroying... [id=i-0143e9a39a523e4cf, 10s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 10s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Still destroying... [id=i-036cf7c45d3c71f85, 10s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Still destroying... [id=i-0c2a9e4d69ad779a6, 20s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Still destroying... [id=i-0143e9a39a523e4cf, 20s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 20s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Still destroying... [id=i-036cf7c45d3c71f85, 20s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Still destroying... [id=i-0c2a9e4d69ad779a6, 30s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Still destroying... [id=i-0143e9a39a523e4cf, 30s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 30s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Still destroying... [id=i-036cf7c45d3c71f85, 30s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[2]: Destruction complete after 31s[0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Still destroying... [id=i-0c2a9e4d69ad779a6, 40s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 40s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Still destroying... [id=i-036cf7c45d3c71f85, 40s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Still destroying... [id=i-0c2a9e4d69ad779a6, 50s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 50s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Still destroying... [id=i-036cf7c45d3c71f85, 50s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[0]: Destruction complete after 52s[0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[1]: Destruction complete after 52s[0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Still destroying... [id=i-00db4ccef2c98e0ee, 1m0s elapsed][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_instance.EDB_DB_Cluster[3]: Destruction complete after 1m3s[0m[0m
+[0m[1mmodule.security.aws_security_group.edb-prereqs-rules: Destroying... [id=sg-06ce36787fc6fdd87][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_key_pair.key_pair: Destroying... [id=/home/doug/.ssh/id_rsa.pub][0m[0m
+[0m[1mmodule.edb-db-cluster.aws_key_pair.key_pair: Destruction complete after 0s[0m[0m
+[0m[1mmodule.security.aws_security_group.edb-prereqs-rules: Destruction complete after 1s[0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[0]: Destroying... [id=rtbassoc-0d6bff8356cd7d684][0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[2]: Destroying... [id=rtbassoc-07402de95b6529130][0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[1]: Destroying... [id=rtbassoc-0f5ef15aedcc31c7f][0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[3]: Destroying... [id=rtbassoc-08f68bb93de873d7b][0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[0]: Destruction complete after 0s[0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[2]: Destruction complete after 0s[0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[1]: Destruction complete after 0s[0m[0m
+[0m[1mmodule.routes.aws_route_table_association.edb-prereqs-postgres-rtassociations[3]: Destruction complete after 1s[0m[0m
+[0m[1mmodule.routes.aws_route_table.edb-prereqs-postgres-customroutetable: Destroying... [id=rtb-0e4edaf9c133d974b][0m[0m
+[0m[1mmodule.routes.aws_route_table.edb-prereqs-postgres-customroutetable: Destruction complete after 1s[0m[0m
+[0m[1mmodule.routes.aws_internet_gateway.edb-prereqs-postgres-igw: Destroying... [id=igw-0559a0e0a99be2a26][0m[0m
+[0m[1mmodule.routes.aws_internet_gateway.edb-prereqs-postgres-igw: Still destroying... [id=igw-0559a0e0a99be2a26, 10s elapsed][0m[0m
+[0m[1mmodule.routes.aws_internet_gateway.edb-prereqs-postgres-igw: Destruction complete after 11s[0m[0m
+[0m[1mmodule.policies.aws_iam_policy_attachment.edb-prereq-policy-attach: Destroying... [id=demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_POLICY_ATTACH][0m[0m
+[0m[1mmodule.policies.aws_iam_policy_attachment.edb-prereq-policy-attach: Destruction complete after 1s[0m[0m
+[0m[1mmodule.policies.aws_iam_policy.policy: Destroying... [id=arn:aws:iam::687608887118:policy/demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_POLICY][0m[0m
+[0m[1mmodule.policies.aws_iam_group.group: Destroying... [id=demo_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT_GROUP][0m[0m
+[0m[1mmodule.policies.aws_iam_group.group: Destruction complete after 0s[0m[0m
+[0m[1mmodule.policies.aws_iam_policy.policy: Destruction complete after 1s[0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[0]: Destroying... [id=subnet-08228af0fb557f1b8][0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[1]: Destroying... [id=subnet-0c11088a0e1674fcb][0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[3]: Destroying... [id=subnet-08f1b86f3ec14a21a][0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[2]: Destroying... [id=subnet-08c43d2ea42b7e8c8][0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[2]: Destruction complete after 1s[0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[0]: Destruction complete after 1s[0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[3]: Destruction complete after 1s[0m[0m
+[0m[1mmodule.network.aws_subnet.public_subnets[1]: Destruction complete after 1s[0m[0m
+[0m[1mmodule.vpc.aws_vpc.main: Destroying... [id=vpc-04b8a3e8f2fa33ddf][0m[0m
+[0m[1mmodule.vpc.aws_vpc.main: Destruction complete after 1s[0m[0m
+[0m[1mmodule.iam.aws_iam_access_key.this: Destroying... [id=AKIA2AGFO65HEZ6XITUR][0m[0m
+[0m[1mmodule.iam.aws_iam_access_key.this: Destruction complete after 0s[0m[0m
+[0m[1mmodule.iam.aws_iam_user.this: Destroying... [id=demo-edb-iam-postgres][0m[0m
+[0m[1mmodule.iam.aws_iam_user.this: Destruction complete after 4s[0m[0m
+[0m[1m[32m
+Destroy complete! Resources: 24 destroyed.[0m

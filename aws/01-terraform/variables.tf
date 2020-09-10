@@ -79,7 +79,7 @@ variable "vpc_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "test"
+  default     = "demo"
   type        = string
 }
 
@@ -87,7 +87,7 @@ variable "cluster_name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "test-edb-iam-postgres"
+  default     = "demo-edb-iam-postgres"
 }
 
 # IAM Force Destroy

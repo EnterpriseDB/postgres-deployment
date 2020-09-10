@@ -73,7 +73,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Type: ```./lib_sh/keygen.sh``` and execute the bash script by pressing the **Enter** button.
   ![SSH Key Generation](demos/AWS_SSHKey_Generation.gif)
 
-* Type: ```./edb-deployment``` and execute the bash script by pressing the **Enter** button. The subcommands below will be listed as options:
+* Type: ```./edb-deployment``` and execute the command by pressing the **Enter** button. The subcommands below will be listed as options:
 ```
 edb-deployment [aws-server|postgres] [OPTION]...
 
@@ -86,15 +86,18 @@ Subcommands:
 Other Options:
     -h, --help Display help and exit
 ```
+  ![Create PEM AWS Resources](demos/AWS_Create_demo.gif)
 
+* Type: ```./edb-deployment postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  ![Removed Created AWS Resources](demos/AWS_PEM_Install.gif)
 
-* Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the bash script by pressing the **Enter** button.
-  ![Removed Created AWS Resources](demos/AWS_EDB-Delete.gif)
+* Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  ![Removed Created AWS Resources](demos/AWS_Create_demo.gif)
 
 ### Manual Setup
 * The scripts below are described in their execution order for a manual setup and located in the ```lib_sh``` directory:
   * keygen.sh - Removes and creates the SSH Keys
-  ![Generate SSH Keys](demos/KeyGen.gif)
+  ![Generate SSH Keys](demos/AWS_SSHKey_Generation.gif)
   * aws-cli.sh - Installs AWS CLI and initiates the AWS Credentials Configuration
    The results should be similar as the video below:
   ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
