@@ -8,13 +8,13 @@
 ################################################################################
 
 ################################################################################
-# quit on any error
+# Quit on any error
 set -e
-# verify any  undefined shell variables
+# Vverify any  undefined shell variables
 set -u
 
 ################################################################################
-# source the common lib and config file
+# Source the common lib and config file
 ################################################################################
 DIRECTORY=$(dirname $0)
 BASENAME=$(basename $0)
@@ -27,7 +27,7 @@ source ${DIRECTORY}/lib/usage_funcs.sh
 source ${DIRECTORY}/lib/build_servers.sh
 
 ################################################################################
-# verify the arguments and call the config file
+# Verify the arguments and call the config file
 ################################################################################
 POSTGRES_INSTALL=""
 AWS_SERVER=""
@@ -50,7 +50,7 @@ fi
 config_file "${PROJECT_NAME}"
 
 ################################################################################
-# install the required packages
+# Install the required packages
 ################################################################################
 install_wget_curl
 install_terraform
@@ -58,7 +58,7 @@ install_ansible
 install_aws
 
 ################################################################################
-# create resources based on the user input
+# Create resources based on the user input
 ################################################################################
 if [[ "${AWS_SERVER}" = "create" ]]
 then
@@ -74,7 +74,7 @@ then
 fi
 
 ################################################################################
-# install the Postgres based on the user input
+# Install the Postgres based on the user input
 ################################################################################
 if [[ "${POSTGRES_INSTALL}" = "install" ]]
 then
@@ -88,7 +88,7 @@ then
 fi
 
 ################################################################################
-# destroy the Postgres based on the user input
+# Destroy the Postgres based on the user input
 ################################################################################
 if [[ "${AWS_SERVER}" = "destroy" ]]
 then

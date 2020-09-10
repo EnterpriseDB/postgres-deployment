@@ -70,7 +70,10 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Navigate to the extracted folder location and type: ```cd postgres-deployment/aws``` finishing with pressing the **Enter** button
 
-* Type: ```./edb-deployment.sh``` and execute the bash script by pressing the **Enter** button. The subcommands below will be listed as options:
+* Type: ```./lib_sh/keygen.sh``` and execute the bash script by pressing the **Enter** button.
+  ![SSH Key Generation](demos/AWS_SSHKey_Generation.gif)
+
+* Type: ```./edb-deployment``` and execute the bash script by pressing the **Enter** button. The subcommands below will be listed as options:
 ```
 edb-deployment [aws-server|postgres] [OPTION]...
 
@@ -92,10 +95,7 @@ Other Options:
 * The scripts below are described in their execution order for a manual setup and located in the ```lib_sh``` directory:
   * keygen.sh - Removes and creates the SSH Keys
   ![Generate SSH Keys](demos/KeyGen.gif)
-  * prereqs.sh - Installs dependent packages
-  ![Install Package Dependencies](demos/AWS_PreReqs_Setup_v2.gif)
-  * aws-cli.sh - Installs Google Cloud SDK and initiates the Google Cloud Credentials
-   Configuration
+  * aws-cli.sh - Installs AWS CLI and initiates the AWS Credentials Configuration
    The results should be similar as the video below:
   ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
   * Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
