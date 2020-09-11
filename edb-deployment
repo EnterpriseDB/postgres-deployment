@@ -1,0 +1,132 @@
+#! /bin/bash
+################################################################################
+# Title           : deployment_main.sh making installs the required packages for
+#                 : for deployment scripts
+# Author          : Doug Ortiz and Co-authored by Vibhor Kumar
+# Date            : Sept 7, 2020
+# Version         : 1.0
+################################################################################
+
+################################################################################
+# Quit on any error
+set -e
+# Verify any  undefined shell variables
+set -u
+
+################################################################################
+# Source the common lib and config file
+################################################################################
+DIRECTORY=$(dirname $0)
+BASENAME=$(basename $0)
+PLAYBOOK=${DIRECTORY}/playbook/playbook.yml
+source ${DIRECTORY}/lib/common_funcs.sh
+source ${DIRECTORY}/lib/config_funcs.sh
+source ${DIRECTORY}/lib/pre_reqs_funcs.sh
+source ${DIRECTORY}/lib/pg_install_funcs.sh
+source ${DIRECTORY}/lib/usage_funcs.sh
+source ${DIRECTORY}/lib/build_servers.sh
+
+################################################################################
+# Verify the arguments and call the config file
+################################################################################
+POSTGRES_INSTALL=""
+AWS_SERVER=""
+AZURE_SERVER=""
+GCP_SERVER=""
+ARGUMENTS="$@"
+ARGUMENTS="$(echo ${ARGUMENTS} | sed -e "s/  */ /g" \
+                                     -e "s/^ *//g" \
+                                     -e "s/ *$//g")"
+
+verify_arguments ${ARGUMENTS}
+
+if [[ "x${PROJECT_NAME}" = "x" ]] 
+then
+   read -r -e -p "Enter the project name: " PROJECT_NAME
+   
+   if [[ -z ${PROJECT_NAME} ]]
+   then
+       exit_on_error "Project name cannot be empty. Try again!"
+   fi
+fi
+
+#aws_config_file "${PROJECT_NAME}"
+
+################################################################################
+# Install the required packages
+################################################################################
+install_gawk
+install_wget_curl
+install_terraform
+install_ansible
+#install_aws
+#install_azure
+
+################################################################################
+# Create resources based on the user input
+################################################################################
+if [[ "${AWS_SERVER}" = "create" ]]
+then
+    install_aws
+    
+    aws_config_file "${PROJECT_NAME}"
+    aws_build_server "${OSNAME}" \
+                     "${REGION}" \
+                     "${INSTANCE_COUNT}" \
+                     "${PUB_FILE_PATH}" \
+                     "${PEM_INSTANCE_COUNT}" \
+                     "${PROJECT_NAME}" \
+                    2>&1 | tee ${TERRAFORM_LOG}    
+
+    cp -f ${DIRECTORY}/aws/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+fi
+
+if [[ "${AZURE_SERVER}" = "create" ]]
+then
+    install_azure
+    azure_config_file "${PROJECT_NAME}"
+   
+    azure_build_server "${PUBLISHER}" \
+                     "${OFFER}" \
+                     "${SKU}" \                     
+                     "${LOCATION}" \
+                     "${INSTANCE_COUNT}" \
+                     #"${PEM_INSTANCE_COUNT}" \
+                     #"${PEM_SERVER}" \
+                     "${PUB_FILE_PATH}" \
+                     #"${PG_TYPE}" \
+                     #"${PG_VERSION}" \
+                     #"${STANDBY_TYPE}" \
+                     #"${YUM_USERNAME}" \
+                     #"${YUM_PASSWORD}" \                                          
+                     "${PROJECT_NAME}" \
+                    2>&1 | tee ${TERRAFORM_LOG}
+
+    cp -f ${DIRECTORY}/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+fi
+
+################################################################################
+# Install the Postgres based on the user input
+################################################################################
+if [[ "${POSTGRES_INSTALL}" = "install" ]]
+then
+    ansible_pg_install "${OSNAME}" \
+                       "${PG_TYPE}" \
+                       "${PG_VERSION}" \
+                       "${YUM_USERNAME}" \
+                       "${YUM_PASSWORD}" \
+                       "${PRIV_FILE_PATH}" | tee ${PG_INSTALL_LOG}
+fi
+
+################################################################################
+# Destroy the Postgres based on the user input
+################################################################################
+if [[ "${AWS_SERVER}" = "destroy" ]]
+then
+    aws_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
+fi
+
+if [[ "${AZURE_SERVER}" = "destroy" ]]
+then
+    azure_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
+fi

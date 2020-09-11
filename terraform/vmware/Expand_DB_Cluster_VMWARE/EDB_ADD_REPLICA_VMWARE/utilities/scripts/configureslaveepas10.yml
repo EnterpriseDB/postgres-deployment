@@ -1,0 +1,79 @@
+---
+   
+   - name: Create pgpass file
+     lineinfile:
+         path: /var/lib/edb/.pgpass
+         line: "*:5444:*:edbrepuser:{{ REPLICATION_USER_PASSWORD }}"
+         create: yes
+         owner: enterprisedb
+         group: enterprisedb
+         mode: '0600'
+     become: yes
+
+   - name: Stop DB service
+     systemd:
+        name: edb-as-10
+        state: stopped
+     become: yes
+
+   - name: Delete data directory
+     file:
+        path: /var/lib/edb/as10/data
+        state: absent
+     become: yes
+ 
+   - name: Take pgbase back-up
+     shell: PGPASSWORD="{{ REPLICATION_USER_PASSWORD }}" /usr/edb/as10/bin/pg_basebackup -R -D /var/lib/edb/as10/data --host={{ ip1 }} --port=5444 --username=edbrepuser
+     become: yes
+
+   - name: Change permission of data directory
+     file:
+       path: /var/lib/edb/as10/data
+       state: directory
+       owner: enterprisedb
+       group: enterprisedb
+       recurse: yes
+     become: yes
+  
+   - name: Create recovery.conf file
+     blockinfile:
+         path: /var/lib/edb/as10/data/recovery.conf
+         owner: enterprisedb
+         group: enterprisedb
+         block: |
+           trigger_file = '/var/lib/edb/as10/data/waltrigger'
+           restore_command = 'cp /backup/%f %p'
+           recovery_target_timeline = 'latest'
+     become: yes
+
+   - name: Modify recovery.conf file if replication type synchronous
+     shell: sed -i -e 's/target_session_attrs=any/& application_name=slave3/' /var/lib/edb/as10/data/recovery.conf
+     become: yes
+     when: REPLICATION_TYPE == 'synchronous' 
+
+   - name: Add entry in pg_hba file
+     lineinfile:
+         path: /var/lib/edb/as10/data/pg_hba.conf
+         line: host replication edbrepuser {{ ip2 }}/32 md5
+     become: yes
+     
+
+   - name: Add entry in pg_hba file
+     lineinfile:
+         path: /var/lib/edb/as10/data/pg_hba.conf
+         line: host replication edbrepuser {{ ip3 }}/32 md5
+     become: yes
+     
+   
+   - name: Remove extra lines in file
+     shell: sed -i '$ d' /var/lib/edb/as10/data/postgresql.conf
+     become: yes
+
+
+   - name: Start DB process
+     systemd:
+        name: edb-as-10
+        state: restarted
+     become: yes
+
+

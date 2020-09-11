@@ -1,0 +1,69 @@
+---
+    
+   - name: Add pg repo
+     yum:
+       name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-2.noarch.rpm
+       state: present
+     become: yes
+
+
+   - name: Disable the SELINUX 
+     become: yes
+     command: setenforce 0
+      
+
+   - name: Install postgres 10 server and dependant package
+     yum:
+       name: "{{ packages }}"
+     vars:
+       packages: 
+        - postgresql10-server
+        - postgresql10
+        - epel-release
+       state: present     
+     become: yes
+
+   - name: Install python pip
+     yum:
+       name: python-pip
+       state: present    
+     become: yes
+      
+   - name: Initialize DB and allow localhost
+     shell: |
+       sudo /sbin/runuser -l postgres -c '/usr/pgsql-10/bin/initdb -U {{PGDBUSER}} -D /var/lib/pgsql/10/data'
+       sed -i 's/local   all             all                                     peer/local   all             all                                     trust/g'  /var/lib/pgsql/10/data/pg_hba.conf
+       sed -i 's@host    all             all             127.0.0.1/32            ident@host    all             all             127.0.0.1/32            trust@g' /var/lib/pgsql/10/data/pg_hba.conf                   
+       pip install awscli
+     become: yes
+     when: PGDBUSER != 'postgres'
+
+   - name: Initialize DB and allow localhost
+     shell: |
+       /usr/pgsql-10/bin/postgresql-10-setup initdb
+       sed -i 's/local   all             all                                     peer/local   all             all                                     trust/g'  /var/lib/pgsql/10/data/pg_hba.conf
+       sed -i 's@host    all             all             127.0.0.1/32            ident@host    all             all             127.0.0.1/32            trust@g' /var/lib/pgsql/10/data/pg_hba.conf
+       pip install awscli
+     become: yes
+     when: PGDBUSER == 'postgres'
+
+   - name: Start DB Service
+     systemd: 
+        name: postgresql-10
+        state: restarted
+     become: yes
+
+   - name: Flush iptables rule
+     iptables:
+       flush: yes
+     become: yes
+ 
+   - name: Create directory for backup
+     file:
+       path: /backup
+       state: directory
+       owner: postgres
+       mode: '0755'
+     become: yes
+
+ 

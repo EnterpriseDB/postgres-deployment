@@ -1,0 +1,6 @@
+os=CentOS7
+project_name=
+subnetwork_region=us-central1
+instance_count=3
+credentials=~/accounts.json
+ssh_key_location=~/.ssh/id_rsa.pub

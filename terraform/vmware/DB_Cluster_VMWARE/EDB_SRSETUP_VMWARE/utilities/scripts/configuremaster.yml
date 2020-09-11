@@ -1,0 +1,30 @@
+---
+ - hosts: all
+
+   tasks:
+     
+     - name: Configure master for DBengine pg10
+       include: configuremasterpg10.yml 
+       when: DB_ENGINE == 'pg10'
+     
+     - name: Configure master for DBengine pg11
+       include: configuremasterpg11.yml 
+       when: DB_ENGINE == 'pg11'
+
+     - name: Configure master for DBengine pg12
+       include: configuremasterpg12.yml 
+       when: DB_ENGINE == 'pg12'
+
+     - name: Configure master for DBengine epas10
+       include: configuremasterepas10.yml 
+       when: DB_ENGINE == 'epas10'
+     
+     - name: Configure master for DBengine epas11
+       include: configuremasterepas11.yml
+       when: DB_ENGINE == 'epas11'
+
+     - name: Configure master for DBengine epas12
+       include: configuremasterepas12.yml
+       when: DB_ENGINE == 'epas12'
+
+  

@@ -1,0 +1,90 @@
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  hplip-data libhpmud0 libimagequant0 libsane-hpaio printer-driver-hpcups
+  printer-driver-postscript-hp python3-olefile python3-pil python3-renderpm
+  python3-reportlab python3-reportlab-accel
+Use 'sudo apt autoremove' to remove them.
+The following additional packages will be installed:
+  libsigsegv2
+Suggested packages:
+  gawk-doc
+The following NEW packages will be installed:
+  gawk libsigsegv2
+0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.
+Need to get 431 kB of archives.
+After this operation, 1,752 kB of additional disk space will be used.
+Get:1 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libsigsegv2 amd64 2.12-2 [13.9 kB]
+Get:2 http://us.archive.ubuntu.com/ubuntu focal/main amd64 gawk amd64 1:5.0.1+dfsg-1 [418 kB]
+Fetched 431 kB in 1s (650 kB/s)
+Selecting previously unselected package libsigsegv2:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 229386 files and directories currently installed.)
+Preparing to unpack .../libsigsegv2_2.12-2_amd64.deb ...
+Unpacking libsigsegv2:amd64 (2.12-2) ...
+Setting up libsigsegv2:amd64 (2.12-2) ...
+Selecting previously unselected package gawk.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 229393 files and directories currently installed.)
+Preparing to unpack .../gawk_1%3a5.0.1+dfsg-1_amd64.deb ...
+Unpacking gawk (1:5.0.1+dfsg-1) ...
+Setting up gawk (1:5.0.1+dfsg-1) ...
+Processing triggers for man-db (2.9.1-1) ...
+Processing triggers for libc-bin (2.31-0ubuntu9) ...
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  hplip-data libhpmud0 libimagequant0 libsane-hpaio printer-driver-hpcups
+  printer-driver-postscript-hp python3-olefile python3-pil python3-renderpm
+  python3-reportlab python3-reportlab-accel
+Use 'sudo apt autoremove' to remove them.
+The following NEW packages will be installed:
+  wget
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 349 kB of archives.
+After this operation, 1,016 kB of additional disk space will be used.
+Get:1 http://us.archive.ubuntu.com/ubuntu focal/main amd64 wget amd64 1.20.3-1ubuntu1 [349 kB]
+Fetched 349 kB in 1s (654 kB/s)
+Selecting previously unselected package wget.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 229547 files and directories currently installed.)
+Preparing to unpack .../wget_1.20.3-1ubuntu1_amd64.deb ...
+Unpacking wget (1.20.3-1ubuntu1) ...
+Setting up wget (1.20.3-1ubuntu1) ...
+Processing triggers for install-info (6.7.0.dfsg.2-5) ...
+Processing triggers for man-db (2.9.1-1) ...
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  hplip-data libhpmud0 libimagequant0 libsane-hpaio printer-driver-hpcups
+  printer-driver-postscript-hp python3-olefile python3-pil python3-renderpm
+  python3-reportlab python3-reportlab-accel
+Use 'sudo apt autoremove' to remove them.
+The following NEW packages will be installed:
+  curl
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 161 kB of archives.
+After this operation, 411 kB of additional disk space will be used.
+Get:1 http://us.archive.ubuntu.com/ubuntu focal-updates/main amd64 curl amd64 7.68.0-1ubuntu2.2 [161 kB]
+Fetched 161 kB in 0s (435 kB/s)
+Selecting previously unselected package curl.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 229557 files and directories currently installed.)
+Preparing to unpack .../curl_7.68.0-1ubuntu2.2_amd64.deb ...
+Unpacking curl (7.68.0-1ubuntu2.2) ...
+Setting up curl (7.68.0-1ubuntu2.2) ...
+Processing triggers for man-db (2.9.1-1) ...
+ansible 2.9.6
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/doug/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 3.8.2 (default, Jul 16 2020, 14:00:26) [GCC 9.3.0]
