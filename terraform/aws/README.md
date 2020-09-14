@@ -18,7 +18,7 @@ Before starting to delve into this repository, it is best to get familiar with t
    * Requires configuration of AWS Command Line Interface v2 for authentication
 2. Configure AWS CLI v2 with credentials
 3. Create Cloud Infrastructure Prerequisites Resources
-   * Performed by Terraform scripts in ```01-terraform``` folder
+   * Performed by Terraform scripts in ```terraform/aws``` folder
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
@@ -68,7 +68,7 @@ Before starting to delve into this repository, it is best to get familiar with t
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/aws``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
 
 * Type: ```./lib_sh/keygen.sh``` and execute the bash script by pressing the **Enter** button.
   ![SSH Key Generation](../../demos/AWS_SSHKey_Generation.gif)
