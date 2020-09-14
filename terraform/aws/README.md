@@ -1,118 +1,142 @@
 # Getting Started
 Postgres Deployment scripts are an easy way to deploy Postgres and EDB Tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section. Feel free to leave comments there. However, these scripts are not officially supported by the EnterpriseDb Team.
 
-EnterpriseDb has the largest base of PostgreSQL experts available.
+EnterpriseDB has the largest base of PostgreSQL experts available.
 
 Learn more about [Professional Support] (https://www.enterprisedb.com/services/ongoing-postgresql-help/postgresql-technical-support)
 
-The intention of this repository is as an introductory self starting guide.
+The intention of this repository is as an introductory self starting guide for setting up the prerequisites needed to install and configure Postgres or EnterpriseDB Postgres Advanced Server in GCP.
 
-Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
+Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards GCP.
 
 ## The overall process consists of the following steps:
 
 1. Set up Software Prerequisites
-   * Linux based Operating System
-   * Package dependencies installation are accomplished via bash script
-   * AWS CLI v2 installed via bash script
-   * Requires configuration of AWS Command Line Interface v2 for authentication
-2. Configure AWS CLI v2 with credentials
-3. Create Cloud Infrastructure Prerequisites Resources
-   * Performed by Terraform scripts in ```01-terraform``` folder
-4. Setup Postgres or EnterpriseDB Postgres Advanced Server
-   * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
-5. Execute SQL Scripts
-   * Performed by Ansible scripts in ```02-sqlexec``` folder
+   * Accomplished manually
+   * Requires configuration of AWS CLI for authentication towards AWS
+   * [Installing AWS Command Line Interface] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+   * [Terraform Installation]  (https://learn.hashicorp.com/tutorials/terraform/install-cli)
+   * Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
+   * Navigate towards the current directory location and press **Enter**
+
+----
+### Supported Operating Systems
+* Centos 7
+* RedHat 7
 
 ----
 ### Software Prerequisites
-1. Terraform installed and configured
-2. Ansible installed and configured
+1. AWS CLI
+2. Terraform >= 0.13
 
-**Require Installation**
+**Require Manual Installation**
+* [Installing AWS Command Line Interface] (https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+* [Terraform Installation]  (https://learn.hashicorp.com/tutorials/terraform/install-cli)
+* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
+* Navigate to the current location in your directory structure and press **Enter**
 
-* [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
-  ![Terraform 0.13 Installation](demos/Terraform_0.13_Installation.gif)
+----
+### Prerequisites Setup and configuration
+##### Dependencies
+* AWS CLI v2 Installation
+  ![AWS CLI v2 Installation](tutorials/AWS_CLI_v2_Installation.gif)
+* AWS CLI Configuration
+  ![AWS CLI v2 Configuration](tutorials/AWS_CLI_v2_Configuration.gif)
+* AWS Key Pair File Generation
+  ![AWS Key Pair File Generation](tutorials/AWS_Key_Pair_File_Generation.gif)
+* Terraform 0.13 Installation
+  ![Terraform 0.13 Installation](tutorials/Terraform_0.13_Installation.gif)
+* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
+* Navigate to the current directory location and press **Enter**
 
-* [Ansible Installation] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+----
+### Changing the Image from the current: CentOS 7 to a different image
+* To change the image: Update the ```variables.tf``` file
+* Locate the variable named: ```os``` set to: ```CentOS7``` or ```RHEL7```
+* Evaluate if there is a need to change other configurations within these variables
 
+----
+### Changing the tags for the entire Cluster resources
+* To change the prefixes and name of the tags: Navigate to the ```tags.tf``` file
+
+----
 ### Prerequisites Setup
-##### Dependencies
-1. Vendor Cloud SDK ( AWS, GCP or Azure )
-2. Packages: curl and wget
-1. Terraform >= 0.13
-2. Ansible >= 2.9
-
-### Steps
-
-* Items to consider:
-  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
-  * A minimum of 3 instances is recommended
-
-* The bash scripts utilized in the scripts have been tested on:
-  * Red Hat 7
-  * CentOS 7
-  * Debian 9
-  * Ubuntu 20.04
-
-* Create your AWS Key Pair File or make it available for its reference
-  ![Create AWS Key Pair File](demos/AWS_Key_Pair_File_Generation.gif)
-    
-* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
-
-* Extract the zip file to a desired destination
-
-* Copy the ```postgres-deployment.zip``` file to the desired target directory
-  
-* Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
- 
-* Open the ```Terminal``` command line
-
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/aws``` finishing with pressing the **Enter** button
-
-* Type: ```./lib_sh/keygen.sh``` and execute the bash script by pressing the **Enter** button.
-  ![SSH Key Generation](demos/AWS_SSHKey_Generation.gif)
-
-* Type: ```./edb-deployment``` and execute the command by pressing the **Enter** button. The subcommands below will be listed as options:
-```
-edb-deployment [aws-server|postgres] [OPTION]...
-
-EDB deployment script for aws
-
-Subcommands:
-    aws-server     [create|destroy]  PROJECT_NAME
-    postgres       install           PROJECT_NAME
-
-Other Options:
-    -h, --help Display help and exit
-```
-  ![Create PEM AWS Resources](demos/AWS_Create_demo.gif)
-
-* Type: ```./edb-deployment postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  ![Removed Created AWS Resources](demos/AWS_PEM_Install.gif)
-
-* Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  ![Removed Created AWS Resources](demos/AWS_PEM_destroy.gif)
-
-### Manual Configurations
-* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and arelocated in the ```lib_sh``` directory:
-  * keygen.sh - Removes and creates the SSH Keys
-  ![Generate SSH Keys](demos/AWS_SSHKey_Generation.gif)
-  * aws-cli.sh - Installs AWS CLI and initiates the AWS Credentials Configuration
-   The results should be similar as the video below:
-  ![AWS CLI v2 Installation](demos/AWS_CLI_v2_Installation.gif)
-  * Configure the AWS CLI by typing: ```AWS configure``` and pressing **Enter** button
-  ![AWS CLI v2 Configuration](demos/AWS_CLI_v2_Configuration.gif)
-  
-### Execute SQL Statements on Postgres Cluster
-##### Dependencies
-1. Ansible
-2. Cloud Infrastructure Prerequisites
-3. Previously setup and configured Postgres or EnterpriseDB Postgres Advanced Server Instances
 
 **Steps**
 
-* Navigate to the **02-sqlexec** folder
+* Create a key pair in the AWS EC2 Console -> Services -> EC2 -> Network & Security -> Key Pairs -> Create key pair
 
-* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
-  ![SQLExec](demos/SQLExec.gif)
+* Copy the recently created key pair file to a location that will be utilized in the steps below 
+
+* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
+
+* Update the ```variables.tf``` with the key pair file and other desired settings
+
+* Terraform must be initialized
+
+* Set variables in the **```variables.tf```** file according to your desired configuration
+
+* Variables to set:
+
+   * ```os``` - Image Operating System and Version
+   * ```aws_region``` - AWS Region for the resources to be created
+   * ```instance_count``` - Initially set to 3, update if more are needed. Keep in mind that if there are previous configurations on these instances all those configurations and updates will be lost
+   * Within the ```tags.tf``` file variable -> ```cluster_name``` - Name for the cluster, examples: ```Dev```, ```QA``` or ```Prod```
+   * ```ssh_keypair``` - Name of the key pair file only, no need to include the '.pem' file extension
+   * ```ssh_key_path``` - Directory and File Location for the key pair file
+   
+* Review the naming conventions utilized in the **```variables.tf```** file and update accordingly
+
+* Initialize terraform **terraform init**
+
+* Before applying the changes you can preview those changes with **terraform plan**
+
+* Create resources in Account with **terraform apply**
+
+* The variables listed above must be provided when the **terraform plan** or **terraform apply** command are executed
+
+Once the terraform apply has completed you should see a list resources within your ```Console``` that resemble the list below:
+* 1 VPC Network
+* 3 Subnets
+* 1 Route Table
+* 1 Internet Gateway
+* 1 Security Group with Rules
+* 3 Virtual Machines
+
+**Terraform Commands**
+
+Initialize terraform.
+
+```
+$ terraform init
+```
+
+Assess what resources will be created with this command.
+
+```
+$ terraform plan
+```
+
+Create the resources.
+
+```
+$ terraform apply
+```
+
+Verify which resources were created.
+
+```
+$ terraform show
+```
+
+To destroy resources recently created.
+
+```
+$ terraform destroy
+```
+
+----
+### Verify which resources were created
+1. Login into the [AWS Console]  (https://console.aws.amazon.com)
+2. Locate and click the following services within the AWS Console: IAM, VPC, EC2
+3. Locate the desired resources to view under their respective section

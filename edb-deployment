@@ -7,11 +7,13 @@
 # Version         : 1.0
 ################################################################################
 
+
 ################################################################################
 # Quit on any error
 set -e
 # Verify any  undefined shell variables
 set -u
+
 
 ################################################################################
 # Source the common lib and config file
@@ -25,6 +27,7 @@ source ${DIRECTORY}/lib/pre_reqs_funcs.sh
 source ${DIRECTORY}/lib/pg_install_funcs.sh
 source ${DIRECTORY}/lib/usage_funcs.sh
 source ${DIRECTORY}/lib/build_servers.sh
+
 
 ################################################################################
 # Verify the arguments and call the config file
@@ -50,7 +53,6 @@ then
    fi
 fi
 
-#aws_config_file "${PROJECT_NAME}"
 
 ################################################################################
 # Install the required packages
@@ -59,8 +61,7 @@ install_gawk
 install_wget_curl
 install_terraform
 install_ansible
-#install_aws
-#install_azure
+
 
 ################################################################################
 # Create resources based on the user input
@@ -70,6 +71,7 @@ then
     install_aws
     
     aws_config_file "${PROJECT_NAME}"
+    
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
                      "${INSTANCE_COUNT}" \
@@ -78,12 +80,13 @@ then
                      "${PROJECT_NAME}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
-    cp -f ${DIRECTORY}/aws/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    cp -f ${DIRECTORY}/terraform/aws/hosts.yml ${DIRECTORY}/playbook/hosts.yml
 fi
 
 if [[ "${AZURE_SERVER}" = "create" ]]
 then
     install_azure
+    
     azure_config_file "${PROJECT_NAME}"
    
     azure_build_server "${PUBLISHER}" \
@@ -105,11 +108,14 @@ then
     cp -f ${DIRECTORY}/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
 fi
 
+
 ################################################################################
-# Install the Postgres based on the user input
+# Install Postgres based on the user input
 ################################################################################
 if [[ "${POSTGRES_INSTALL}" = "install" ]]
 then
+    aws_config_file "${PROJECT_NAME}"
+    
     ansible_pg_install "${OSNAME}" \
                        "${PG_TYPE}" \
                        "${PG_VERSION}" \
@@ -118,15 +124,20 @@ then
                        "${PRIV_FILE_PATH}" | tee ${PG_INSTALL_LOG}
 fi
 
+
 ################################################################################
-# Destroy the Postgres based on the user input
+# Destroy the Postgres deployment based on the user input
 ################################################################################
 if [[ "${AWS_SERVER}" = "destroy" ]]
 then
+    aws_config_file "${PROJECT_NAME}"
+
     aws_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${AZURE_SERVER}" = "destroy" ]]
 then
+    azure_config_file "${PROJECT_NAME}"
+    
     azure_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
 fi

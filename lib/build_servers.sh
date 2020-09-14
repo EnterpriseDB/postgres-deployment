@@ -32,7 +32,7 @@ function aws_build_server()
     local F_PROJECTNAME="$6"
 
     process_log "Building AWS Servers"
-    cd ${DIRECTORY}/aws || exit 1
+    cd ${DIRECTORY}/terraform/aws || exit 1
     process_log "including project names in the variables and tags"
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
@@ -148,7 +148,7 @@ function aws_destroy_server()
     local F_REGION="$1"
 
     process_log "Removing AWS Servers"
-    cd ${DIRECTORY}/aws || exit 1
+    cd ${DIRECTORY}/terraform/aws || exit 1
     
     terraform destroy -auto-approve \
         -var="aws_region=${REGION}"

@@ -177,7 +177,7 @@ function install_aws()
     then
         wget ${AWS_URL} >>${INSTALL_LOG} 2>&1
         unzip ${AWS_ZIP} >>${INSTALL_LOG} 2>&1
-        ./aws/install --update >>${INSTALL_LOG} 2>&1
+        sudo ./aws/install --update >>${INSTALL_LOG} 2>&1
     fi
     # check if we have credential files
     if [[ ! -f ~/.aws/credentials ]]
