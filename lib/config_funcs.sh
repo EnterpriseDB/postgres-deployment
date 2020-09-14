@@ -193,7 +193,7 @@ function azure_config_file()
     MESSAGE="Please provide OS name from 'Centos/RHEL': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OFFER"
 
-    MESSAGE="Please provide OS versionfrom 'Centos - 7.7/RHEL - 7.8': "
+    MESSAGE="Please provide OS version from 'Centos - 7.7/RHEL - 7.8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SKU"
 
     MESSAGE="Please provide target Azure Location"

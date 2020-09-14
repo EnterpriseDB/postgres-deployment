@@ -13,6 +13,7 @@ variable offer {}
 variable sku {}
 variable admin_username {}
 variable ansible_inventory_yaml_filename {}
+variable ansible_pem_inventory_yaml_filename {}
 variable os_csv_filename {}
 variable add_hosts_filename {}
 
@@ -62,7 +63,7 @@ resource "azurerm_network_interface" "Public_Nic" {
 resource "azurerm_linux_virtual_machine" "vm" {
   count                 = var.instance_count
   #name                  = "EDB-VM-${count.index}"
-  name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary")))  
+  name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s%s", var.cluster_name, "primary") : format("%s%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s%s", var.cluster_name, "pemserver") : format("%s%s", var.cluster_name, "primary")))  
   resource_group_name   = var.resourcegroup_name
   location              = var.azure_location
   size                  = "Standard_A1"

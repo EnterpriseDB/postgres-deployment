@@ -16,13 +16,13 @@ variable "project_tag" {
 variable "storageaccount_name" {
   description = "Name of the bucket for storing related data of deployment"
   type        = string
-  default     = "PROJECT_NAME_edbpostgres"
+  default     = "PROJECT_NAMEedbpostgres"
 }
 
 variable "storagecontainer_name" {
   description = "Name of the bucket for storing related data of deployment"
   type        = string
-  default     = "PROJECT_NAME_edbprereqsstoragecontainer"
+  default     = "PROJECT_NAMEedbprereqsstoragecontainer"
 }
 
 # VNet

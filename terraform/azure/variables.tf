@@ -13,7 +13,7 @@ variable "vnet_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "PROJECT_NAME_EDB"
+  default     = "testEDB"
   type        = string
 }
 
