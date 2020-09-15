@@ -55,6 +55,11 @@ variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
 }
 
+# Ansible Yaml PEM Inventory Filename
+variable "ansible_pem_inventory_yaml_filename" {
+  default = "pem-inventory.yml"
+}
+
 # Ansible Ini Inventory Filename
 variable "ansible_inventory_ini_filename" {
   default = "inventory"

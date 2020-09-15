@@ -17,6 +17,10 @@ set -u
 # source common lib
 ################################################################################
 DIRECTORY=$(dirname $0)
+if [[ "${DIRECTORY}" = "." ]]
+then
+   DIRECTORY="${PWD}"
+fi
 #source ${DIRECTORY}/lib/common_funcs.sh
 
 ################################################################################
@@ -24,15 +28,17 @@ DIRECTORY=$(dirname $0)
 ################################################################################
 function usage()
 {
-  echo "${BASENAME} [aws-server|postgres] [OPTION]..."
+  echo "${BASENAME} [<cloud>-server|<cloud>-postgres] [OPTION]..."
   echo ""
   echo "EDB deployment script for aws, azure and gcp"
   echo ""
   echo "Subcommands:"
-  echo "    aws-server     [create|destroy]  PROJECT_NAME"
-  echo "    azure-server   [create|destroy]  PROJECT_NAME"
-  echo "    gcp-server     [create|destroy]  PROJECT_NAME"
-  echo "    postgres       install           PROJECT_NAME"
+  echo "    aws-server      [create|destroy]  PROJECT_NAME"
+  echo "    azure-server    [create|destroy]  PROJECT_NAME"
+  echo "    gcloud-server   [create|destroy]  PROJECT_NAME"
+  echo "    aws-postgres    install           PROJECT_NAME"
+  echo "    azure-postgres  install           PROJECT_NAME"
+  echo "    gcloud-postgres install           PROJECT_NAME"      
   echo ""
   echo "Other Options:"
   echo "    -h, --help Display help and exit"
@@ -81,10 +87,22 @@ function verify_arguments()
                     export AZURE_SERVER PROJECT_NAME
                     break
                 fi
-                ;;                
-            "postgres")
-                shift; POSTGRES_INSTALL="${1}"
-                if [[ "${POSTGRES_INSTALL}" != "install" ]]
+                ;;
+            "gcloud-server")
+                shift; GCLOUD_SERVER="${1}"
+                GCLOUD_SERVER="$(echo ${GCLOUD_SERVER}|tr '[:upper:]' '[:lower:]')"
+                if [[ "${GCLOUD_SERVER}" != "create" ]] && [[ "${GCLOUD_SERVER}" != "destroy" ]]
+                then
+                    usage
+                else
+                    shift; PROJECT_NAME="${1}"
+                    export GCLOUD_SERVER PROJECT_NAME
+                    break
+                fi
+                ;;
+            "aws-postgres")
+                shift; AWS_POSTGRES_INSTALL="${1}"
+                if [[ "${AWS_POSTGRES_INSTALL}" != "install" ]]
                 then
                     usage
                 else
@@ -93,6 +111,28 @@ function verify_arguments()
                     break
                 fi
                 ;;
+            "azure-postgres")
+                shift; AZURE_POSTGRES_INSTALL="${1}"
+                if [[ "${AZURE_POSTGRES_INSTALL}" != "install" ]]
+                then
+                    usage
+                else
+                    shift; PROJECT_NAME="${1}"
+                    export POSTGRES_INSTALL PROJECT_NAME
+                    break
+                fi
+                ;;
+            "gcloud-postgres")
+                shift; GCLOUD_POSTGRES_INSTALL="${1}"
+                if [[ "${GCLOUD_POSTGRES_INSTALL}" != "install" ]]
+                then
+                    usage
+                else
+                    shift; PROJECT_NAME="${1}"
+                    export POSTGRES_INSTALL PROJECT_NAME
+                    break
+                fi
+                ;;                
             *)
                 usage
                 ;;

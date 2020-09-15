@@ -211,6 +211,79 @@ function azure_config_file()
     MESSAGE="Provide: Absolute path of public key file, example:"
     MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
+ 
+    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
+
+    MESSAGE="Please provide Postgresql DB Version."
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
+ 
+    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
+
+    MESSAGE="Provide EDB Yum Username: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
+
+    MESSAGE="Provide EDB Yum Password: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
+
+    process_log "set all parameters"
+    source ${CONFIG_FILE}
+}
+
+function gcloud_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local READ_INPUT="read -r -e -p"
+
+    local MESSAGE
+
+    mkdir -p ${LOGDIR}
+    mkdir -p ${CONFIG_DIR}
+
+    if [[ ! -f ${CONFIG_FILE} ]]
+    then
+       touch ${CONFIG_FILE}
+       chmod 600 ${CONFIG_FILE}
+    else
+        source ${CONFIG_FILE}
+    fi
+
+    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
+
+    MESSAGE="Please Google Project ID:: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
+    
+    MESSAGE="Please provide target Azure Location"
+    MESSAGE="${MESSAGE} examples: 'us-centarl1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
+   
+    MESSAGE="Please provide how many Azure Instances to create"
+    MESSAGE="${MESSAGE} example '>=3': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
+
+    MESSAGE="Please provide absolute path of the credentials json file"
+    MESSAGE="${MESSAGE} example '~/accounts.json': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "CREDENTIALS_FILE_LOCATION"
+
+    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="${MESSAGE} Yes/No': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    MESSAGE="Provide: Absolute path of public key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
  
     MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"

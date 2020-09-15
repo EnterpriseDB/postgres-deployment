@@ -30,6 +30,7 @@ module "compute" {
   ssh_user                        = var.ssh_user
   ssh_key_location                = var.ssh_key_location
   ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
+  ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
   os_csv_filename                 = var.os_csv_filename
   add_hosts_filename              = var.add_hosts_filename
 

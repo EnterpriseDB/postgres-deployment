@@ -46,7 +46,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 ### Steps
 
 * Items to consider:
-  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Locations: centralus, eastus, eastus2, westus, westcentralus, westus2, northcentralus and southcentralus
+  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following AWS Regions: 'us-east-1', 'us-east-2', 'us-west-1'or 'us-west-2'
   * A minimum of 3 instances is recommended
 
 * The bash scripts utilized in the scripts have been tested on:
@@ -112,8 +112,8 @@ Other Options:
 
 **Steps**
 
-* Navigate to the **02-sqlexec** folder
+* Navigate to the **postgres-deployment/sqlexec** folder
 
-* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```02-sqlexec``` directory
+* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```sqlexec``` directory
   ![SQLExec](../../demos/SQLExec.gif)
 

@@ -16,6 +16,10 @@ set -u
 # Common variables
 ################################################################################
 DIRECTORY=$(dirname $0)
+if [[ "${DIRECTORY}" = "." ]]
+then
+   DIRECTORY="${PWD}"
+fi
 LOG_SUFFIX="$(date +'%m-%d-%y-%H%M%S')"
 LOGDIR="${DIRECTORY}/log"
 INSTALL_LOG="${LOGDIR}/install_${LOG_SUFFIX}.log"

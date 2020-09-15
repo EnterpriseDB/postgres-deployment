@@ -75,6 +75,7 @@ function azure_build_server()
     local F_PUB_FILE_PATH="$6"
     local F_PROJECTNAME="$7"
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
+    local F_PEM_INSTANCE_COUNT="$8"
 
     process_log "Building Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
@@ -83,12 +84,6 @@ function azure_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf 
     terraform init
-    #terraform apply -auto-approve \
-    #    -var="publisher=${F_PUBLISHER}" \
-    #    -var="offer=${F_OFFER}" \
-    #    -var="instance_count=${F_INSTANCES}" \
-    #    -var="ssh_key_path=${F_KEYPATH}" \
-    #    -var="pem_instance_count=${F_PEMINSTANCE}"
 
     terraform apply -auto-approve \
          -var="publisher=$F_PUBLISHER" \
@@ -123,13 +118,71 @@ function azure_build_server()
     sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
-    if [[ ${F_PEMINSTANCE} -gt 0 ]]
+    if [[ ${F_PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         cp -f pem-inventory.yml hosts.yml
     else
         cp -f inventory.yml hosts.yml
     fi
 }
+
+function gcloud_build_server()
+{
+    local F_OSVERSION=""
+    local F_OS="$1"
+    local F_REGION="$2"
+    local F_INSTANCE_COUNT="$3"
+    local F_PUB_FILE_PATH="$4"
+    local F_PROJECTID="$6"    
+    local F_PROJECTNAME="$6"
+    local F_PEM_INSTANCE_COUNT="$8"
+
+    process_log "Building Google Cloud Servers"
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    process_log "including project names in the variables and tags"
+    sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
+                                        > variables.tf
+
+    if [ "$OS" == "CentOS7" ]
+    then  
+        #OSVERSION="centos-7-v20170816"
+        OSVERSION="centos-7-v20200403"
+    fi
+
+    if [ "$OS" == "RHEL7" ]
+    then
+        OSVERSION="rhel-7-v20200403"
+    fi
+                                           
+    terraform init
+
+    terraform apply -auto-approve \
+         -var="os=$F_OSVERSION" \
+         -var="project_name=$F_PROJECTID" \
+         -var="subnetwork_region=$F_REGION" \
+         -var="instance_count=$F_INSTANCE_COUNT" \
+         -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
+         -var="ssh_key_location=$F_PUB_FILE_PATH"
+ 
+    if [[ $? -eq 0 ]]
+    then
+        process_log "Waiting for Instances to be available"
+        sleep 20s
+        process_log "instances are ready"
+    else
+        exit_on_error "Failed to build the servers."
+    fi
+    sed -i "/^ */d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml
+    
+    if [[ ${F_PEM_INSTANCE_COUNT} -gt 0 ]]
+    then
+        cp -f pem-inventory.yml hosts.yml
+    else
+        cp -f inventory.yml hosts.yml
+    fi
+}
+
 ################################################################################
 # function destroy server
 ################################################################################
@@ -151,7 +204,17 @@ function azure_destroy_server()
     process_log "Removing Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
     
-#    terraform destroy -auto-approve \
-#        -var="location=${F_LOCATION}"
-    terraform destroy -auto-approve
+    terraform destroy -auto-approve \
+        -var="azure_location=${F_LOCATION}"
+}
+
+function gcloud_destroy_server()
+{
+    local F_REGION="$1"
+
+    process_log "Removing Google Cloud Servers"
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    
+    terraform destroy -auto-approve \
+        -var="subnetwork_region=${F_REGION}"
 }

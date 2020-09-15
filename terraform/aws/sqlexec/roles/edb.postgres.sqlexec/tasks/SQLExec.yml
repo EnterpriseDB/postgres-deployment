@@ -1,0 +1,63 @@
+---
+- name: Display Details of Node to Configure
+  block:
+    - debug:
+        msg: 
+            "Operating System = {{ OS }}:
+             Postgres Version = {{ PG_VERSION }},
+             NODE_TYPE = {{ item.value.node_type }},
+             PRIVATE_IP = {{ item.value.private_ip }},
+             PUBLIC_IP= {{ item.value.public_ip }},
+             DATABASE = {{ item.value.database }},
+             PGDBUSER = {{ item.value.pgdbuser }},
+             PGDBPASSWORD = {{ item.value.pgdbpassword }}"
+
+- name: Drop Table if exists in Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: DROP TABLE IF EXISTS students
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
+- name: Create Table in Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: CREATE TABLE students (name VARCHAR(100))
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
+- name: Insert Record into students table in Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: INSERT INTO students VALUES ('test')
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
+- name: Select query to Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: SELECT * FROM students
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"
+
+- name: Drop Table students in Postgres DB
+  postgresql_query:
+    db: "{{ DATABASE }}"
+    login_user: "{{ PGDBUSER }}"
+    login_password: "{{ PGDBPASSWORD }}"
+    query: DROP TABLE students
+  become_user: "{{ PGDBUSER }}"
+  become: yes
+  delegate_to: "{{ PUBLIC_IP }}"

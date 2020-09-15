@@ -14,11 +14,14 @@ set -e
 # Verify any  undefined shell variables
 set -u
 
-
 ################################################################################
 # Source the common lib and config file
 ################################################################################
 DIRECTORY=$(dirname $0)
+if [[ "${DIRECTORY}" = "." ]]
+then
+   DIRECTORY="${PWD}"
+fi
 BASENAME=$(basename $0)
 PLAYBOOK=${DIRECTORY}/playbook/playbook.yml
 source ${DIRECTORY}/lib/common_funcs.sh
@@ -28,11 +31,12 @@ source ${DIRECTORY}/lib/pg_install_funcs.sh
 source ${DIRECTORY}/lib/usage_funcs.sh
 source ${DIRECTORY}/lib/build_servers.sh
 
-
 ################################################################################
 # Verify the arguments and call the config file
 ################################################################################
-POSTGRES_INSTALL=""
+AWS_POSTGRES_INSTALL=""
+AZURE_POSTGRES_INSTALL=""
+GCLOUD_POSTGRES_INSTALL=""
 AWS_SERVER=""
 AZURE_SERVER=""
 GCLOUD_SERVER=""
@@ -53,7 +57,6 @@ then
    fi
 fi
 
-
 ################################################################################
 # Install the required packages
 ################################################################################
@@ -61,7 +64,6 @@ install_gawk
 install_wget_curl
 install_terraform
 install_ansible
-
 
 ################################################################################
 # Create resources based on the user input
@@ -96,27 +98,69 @@ then
                        "${INSTANCE_COUNT}" \
                        "${PUB_FILE_PATH}" \
                        "${PROJECT_NAME}" \
+                       "${PEM_INSTANCE_COUNT}" \                       
                       2>&1 | tee ${TERRAFORM_LOG}
 
     cp -f ${DIRECTORY}/terraform/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
 fi
 
+if [[ "${GCLOUD_SERVER}" = "create" ]]
+then
+    install_gcloud
+    
+    gcloud_config_file "${PROJECT_NAME}"
+   
+    gcloud_build_server "${OSNAME}" \ 
+                        "${LOCATION}" \
+                        "${INSTANCE_COUNT}" \
+                        "${PUB_FILE_PATH}" \
+                        "${PROJECT_ID}" \                       
+                        "${PROJECT_NAME}" \
+                        "${PEM_INSTANCE_COUNT}" \                       
+                       2>&1 | tee ${TERRAFORM_LOG}
+
+    cp -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+fi
 
 ################################################################################
 # Install Postgres based on the user input
 ################################################################################
-if [[ "${POSTGRES_INSTALL}" = "install" ]]
+if [[ "${AWS_POSTGRES_INSTALL}" = "install" ]]
 then
     aws_config_file "${PROJECT_NAME}"
     
-    ansible_pg_install "${OSNAME}" \
+    aws_ansible_pg_install "${OSNAME}" \
                        "${PG_TYPE}" \
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
-                       "${PRIV_FILE_PATH}" | tee ${PG_INSTALL_LOG}
+                       "${PRIV_FILE_PATH}" \
+                       "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
 fi
 
+if [[ "${AZURE_POSTGRES_INSTALL}" = "install" ]]
+then
+    azure_config_file "${PROJECT_NAME}"
+    
+    azure_ansible_pg_install "${PG_TYPE}" \
+                       "${PG_VERSION}" \
+                       "${YUM_USERNAME}" \
+                       "${YUM_PASSWORD}" \
+                       "${PRIV_FILE_PATH}" \
+                       "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
+fi
+
+if [[ "${GCLOUD_POSTGRES_INSTALL}" = "install" ]]
+then
+    gcloud_config_file "${PROJECT_NAME}"
+    
+    gcloud_ansible_pg_install "${PG_TYPE}" \
+                       "${PG_VERSION}" \
+                       "${YUM_USERNAME}" \
+                       "${YUM_PASSWORD}" \
+                       "${PRIV_FILE_PATH}" \
+                       "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
+fi
 
 ################################################################################
 # Destroy the Postgres deployment based on the user input
@@ -133,4 +177,11 @@ then
     azure_config_file "${PROJECT_NAME}"
     
     azure_destroy_server "${LOCATION}" | tee  ${TERRAFORM_LOG}
+fi
+
+if [[ "${GCLOUD_SERVER}" = "destroy" ]]
+then
+    gcloud_config_file "${PROJECT_NAME}"
+    
+    gcloud_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
 fi
