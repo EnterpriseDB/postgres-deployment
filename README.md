@@ -17,8 +17,6 @@ Before starting to delve into this repository, it is best to get familiar with t
  
 * Open the ```Terminal``` command line
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/DB_Cluster/<cloud>``` finishing with pressing the **Enter** button
-
-* Navigate to the extracted folder location and type: ```cd <cloud>``` finishing with pressing the **Enter** button
+* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
 
 * Follow the instructions to install in the README.md
