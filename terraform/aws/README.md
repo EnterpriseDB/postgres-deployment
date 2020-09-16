@@ -22,7 +22,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in ```02-sqlexec``` folder
+   * Performed by Ansible scripts in ```sqlexec``` folder
 
 ----
 ### Software Prerequisites
@@ -75,17 +75,23 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Type: ```./edb-deployment``` and execute the command by pressing the **Enter** button. The subcommands below will be listed as options:
 ```
-edb-deployment [aws-server|postgres] [OPTION]...
+edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
 
-EDB deployment script for aws
+EDB deployment script for aws, azure and gcp
 
 Subcommands:
-    aws-server     [create|destroy]  PROJECT_NAME
-    postgres       install           PROJECT_NAME
+    aws-server      [create|destroy]  PROJECT_NAME
+    azure-server    [create|destroy]  PROJECT_NAME
+    gcloud-server   [create|destroy]  PROJECT_NAME
+    aws-postgres    install           PROJECT_NAME
+    azure-postgres  install           PROJECT_NAME
+    gcloud-postgres install           PROJECT_NAME
 
 Other Options:
     -h, --help Display help and exit
+
 ```
+
   ![Create PEM AWS Resources](../../demos/AWS_Create_demo.gif)
 
 * Type: ```./edb-deployment postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
