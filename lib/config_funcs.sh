@@ -258,10 +258,10 @@ function gcloud_config_file()
     MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
-    MESSAGE="Please Google Project ID:: "
+    MESSAGE="Please Google Project ID: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
     
-    MESSAGE="Please provide target Azure Location"
+    MESSAGE="Please provide target Google Cloud Region"
     MESSAGE="${MESSAGE} examples: 'us-centarl1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
    
@@ -269,13 +269,13 @@ function gcloud_config_file()
     MESSAGE="${MESSAGE} example '>=3': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
-    MESSAGE="Please provide absolute path of the credentials json file"
-    MESSAGE="${MESSAGE} example '~/accounts.json': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "CREDENTIALS_FILE_LOCATION"
-
     MESSAGE="Please indicate if you would like a PEM Server Instance"
     MESSAGE="${MESSAGE} Yes/No': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    MESSAGE="Please provide absolute path of the credentials json file"
+    MESSAGE="${MESSAGE} example '~/accounts.json': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "CREDENTIALS_FILE_LOCATION"
 
     MESSAGE="Provide: Absolute path of public key file, example:"
     MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "

@@ -12,13 +12,23 @@ variable "instance_count" {
   default = 3
 }
 
+# PEM Instance Count
+variable "pem_instance_count" {
+  default = 0
+}
+
+# Synchronicity
+variable "synchronicity" {
+  default = "asynchronous"
+}
+
 variable "subnetwork_region" {
   # Options: 'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4'
   default = ""
 }
 
 variable "subnetwork_name" {
-  default = "PROJECT_NAME_edb-prereq-network-subnetwork"  
+  default = "test_edb-prereq-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {
@@ -54,6 +64,11 @@ variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
 }
 
+# Ansible Yaml PEM Inventory Filename
+variable "ansible_pem_inventory_yaml_filename" {
+  default = "pem-inventory.yml"
+}
+
 # Ansible Ini Inventory Filename
 variable "ansible_inventory_ini_filename" {
   default = "inventory"
@@ -72,11 +87,11 @@ variable "add_hosts_filename" {
 
 # Tags
 variable "prefix" {
-  default = "PROJECT_NAME_edb-prereq"
+  default = "test_edb-prereq"
 }
 
 variable "instance_name" {
-  default = "PROJECT_NAME_edb-vm"
+  default = "test-edb-vm"
 }
 
 variable "network_name" {

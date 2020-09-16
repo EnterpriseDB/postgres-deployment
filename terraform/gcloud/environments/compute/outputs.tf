@@ -7,9 +7,8 @@ servers:
   %{for count in range(var.instance_count)~}
 %{if count == 0}pemserver:%{endif}%{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
     node_type: %{if count == 0}pemserver%{endif}%{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
-    public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}
-    public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}
-    private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
+    public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
+    private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
     %{if count > 0}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
   %{endfor~}
@@ -27,7 +26,7 @@ server${count}:
     node_type: %{if count == 0}primary%{else}standby%{endif}
     public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
     private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
-    replication_type: synchronous
+    replication_type: ${var.synchronicity}
   %{endfor~}
 EOT
 }

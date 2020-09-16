@@ -1,0 +1,39 @@
+PID: 82687 [09-15-20 16:02:12]: Building Google Cloud Servers
+PID: 82687 [09-15-20 16:02:12]: including project names in the variables and tags
+/home/doug/postgres-deployment/lib/build_servers.sh: line 146: [: =~: binary operator expected
+/home/doug/postgres-deployment/lib/build_servers.sh: line 152: [: =~: binary operator expected
+[0m[1mInitializing modules...[0m
+- compute in environments/compute
+- network in environments/network
+- security in environments/security
+
+[0m[1mInitializing the backend...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- Finding latest version of hashicorp/google...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/google v3.39.0...
+- Installed hashicorp/google v3.39.0 (signed by HashiCorp)
+- Installing hashicorp/local v1.4.0...
+- Installed hashicorp/local v1.4.0 (signed by HashiCorp)
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, we recommend adding version constraints in a required_providers block
+in your configuration, with the constraint strings suggested below.
+
+* hashicorp/google: version = "~> 3.39.0"
+* hashicorp/local: version = "~> 1.4.0"
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+/home/doug/postgres-deployment/lib/build_servers.sh: line 159: F_CREDENTIALS_FILE_LOCATION: unbound variable

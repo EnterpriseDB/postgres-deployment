@@ -21,6 +21,8 @@ module "compute" {
   source = "./environments/compute"
 
   instance_count                  = var.instance_count
+  pem_instance_count                  = var.pem_instance_count  
+  synchronicity                       = var.synchronicity
   instance_name                   = var.instance_name
   vm_type                         = var.vm_type
   network_name                    = var.network_name

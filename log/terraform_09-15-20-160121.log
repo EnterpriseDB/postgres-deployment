@@ -1,0 +1,3 @@
+PID: 73767 [09-15-20 16:01:23]: Building Google Cloud Servers
+PID: 73767 [09-15-20 16:01:23]: including project names in the variables and tags
+/home/doug/postgres-deployment/lib/build_servers.sh: line 146: OS: unbound variable

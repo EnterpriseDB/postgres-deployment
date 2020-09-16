@@ -1,4 +1,6 @@
 variable instance_count {}
+variable "pem_instance_count" {}
+variable "synchronicity" {}
 variable instance_name {}
 variable vm_type {}
 variable network_name {}
@@ -18,8 +20,8 @@ data "google_compute_zones" "available" {
 
 resource "google_compute_instance" "edb-prereq-engine-instance" {
   count        = var.instance_count
-  #name         = "${var.instance_name}-${count.index}"
-  name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.instance_name, "primary") : format("%s-%s%s", var.instance_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : format("%s-%s", var.instance_name, "primary")))  
+  name         = "${var.instance_name}-${count.index}"
+  #name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.instance_name, "primary") : format("%s-%s%s", var.instance_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : format("%s-%s", var.instance_name, "primary")))  
   machine_type = var.vm_type
 
   zone = data.google_compute_zones.available.names[count.index < 3 ? count.index : 2]

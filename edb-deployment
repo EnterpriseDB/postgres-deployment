@@ -70,7 +70,7 @@ install_ansible
 ################################################################################
 if [[ "${AWS_SERVER}" = "create" ]]
 then
-    install_aws
+    #install_aws
     
     aws_config_file "${PROJECT_NAME}"
     
@@ -87,7 +87,7 @@ fi
 
 if [[ "${AZURE_SERVER}" = "create" ]]
 then
-    install_azure
+    #install_azure
     
     azure_config_file "${PROJECT_NAME}"
    
@@ -106,17 +106,18 @@ fi
 
 if [[ "${GCLOUD_SERVER}" = "create" ]]
 then
-    install_gcloud
+    #install_gcloud
     
     gcloud_config_file "${PROJECT_NAME}"
    
-    gcloud_build_server "${OSNAME}" \ 
-                        "${LOCATION}" \
+    gcloud_build_server "${OSNAME}" \
+                        "${SUBNETWORK_REGION}" \
                         "${INSTANCE_COUNT}" \
                         "${PUB_FILE_PATH}" \
-                        "${PROJECT_ID}" \                       
+                        "${PROJECT_ID}" \
                         "${PROJECT_NAME}" \
-                        "${PEM_INSTANCE_COUNT}" \                       
+                        "${PEM_INSTANCE_COUNT}" \
+                        "${CREDENTIALS_FILE_LOCATION}" \                        
                        2>&1 | tee ${TERRAFORM_LOG}
 
     cp -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${DIRECTORY}/playbook/hosts.yml
@@ -182,6 +183,6 @@ fi
 if [[ "${GCLOUD_SERVER}" = "destroy" ]]
 then
     gcloud_config_file "${PROJECT_NAME}"
-    
-    gcloud_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
+
+    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
 fi

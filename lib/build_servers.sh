@@ -130,12 +130,13 @@ function gcloud_build_server()
 {
     local F_OSVERSION=""
     local F_OS="$1"
-    local F_REGION="$2"
+    local F_SUBNETWORK_REGION="$2"
     local F_INSTANCE_COUNT="$3"
     local F_PUB_FILE_PATH="$4"
-    local F_PROJECTID="$6"    
+    local F_PROJECTID="$5"    
     local F_PROJECTNAME="$6"
-    local F_PEM_INSTANCE_COUNT="$8"
+    local F_PEM_INSTANCE_COUNT="$7"
+    local F_CREDENTIALS_FILE_LOCATION="$8"
 
     process_log "Building Google Cloud Servers"
     cd ${DIRECTORY}/terraform/gcloud || exit 1
@@ -143,13 +144,13 @@ function gcloud_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
 
-    if [ "$OS" == "CentOS7" ]
+    if [ "$F_OS" =~ "CentOS7" ]
     then  
         #OSVERSION="centos-7-v20170816"
         OSVERSION="centos-7-v20200403"
     fi
 
-    if [ "$OS" == "RHEL7" ]
+    if [ "$F_OS" =~ "RHEL7" ]
     then
         OSVERSION="rhel-7-v20200403"
     fi
@@ -159,7 +160,7 @@ function gcloud_build_server()
     terraform apply -auto-approve \
          -var="os=$F_OSVERSION" \
          -var="project_name=$F_PROJECTID" \
-         -var="subnetwork_region=$F_REGION" \
+         -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_key_location=$F_PUB_FILE_PATH"
@@ -210,11 +211,15 @@ function azure_destroy_server()
 
 function gcloud_destroy_server()
 {
-    local F_REGION="$1"
+    local F_SUBNETWORK_REGION="$1"
+    local F_PROJECT_ID="$2"
+    local F_PUB_FILE_PATH="$3"
 
     process_log "Removing Google Cloud Servers"
     cd ${DIRECTORY}/terraform/gcloud || exit 1
-    
+
     terraform destroy -auto-approve \
-        -var="subnetwork_region=${F_REGION}"
+        -var="subnetwork_region=${F_SUBNETWORK_REGION}" \
+        -var="subnetwork_region=${F_PROJECT_ID}" \
+        -var="subnetwork_region=${F_PUB_FILE_PATH}"                
 }

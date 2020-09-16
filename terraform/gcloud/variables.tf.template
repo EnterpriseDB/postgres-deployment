@@ -12,14 +12,23 @@ variable "instance_count" {
   default = 3
 }
 
+# PEM Instance Count
+variable "pem_instance_count" {
+  default = 0
+}
+
+# Synchronicity
+variable "synchronicity" {
+  default = "asynchronous"
+}
+
 variable "subnetwork_region" {
   # Options: 'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4'
   default = ""
 }
 
 variable "subnetwork_name" {
-  #default = "edb-prereq-network-subnetwork-us-west1"
-  default = "edb-prereq-network-subnetwork"  
+  default = "PROJECT_NAME_edb-prereq-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {
@@ -78,11 +87,11 @@ variable "add_hosts_filename" {
 
 # Tags
 variable "prefix" {
-  default = "edb-prereq"
+  default = "PROJECT_NAME_edb-prereq"
 }
 
 variable "instance_name" {
-  default = "edb-vm"
+  default = "PROJECT_NAME-edb-vm"
 }
 
 variable "network_name" {
