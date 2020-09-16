@@ -144,15 +144,15 @@ function gcloud_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
 
-    if [ "$F_OS" =~ "CentOS7" ]
+    if [[ "${F_OS}" =~ "CentOS7" ]]
     then  
         #OSVERSION="centos-7-v20170816"
-        OSVERSION="centos-7-v20200403"
+        F_OSVERSION="centos-7-v20200403"
     fi
 
-    if [ "$F_OS" =~ "RHEL7" ]
+    if [[ "${F_OS}" =~ "RHEL7" ]]
     then
-        OSVERSION="rhel-7-v20200403"
+        F_OSVERSION="rhel-7-v20200403"
     fi
                                            
     terraform init
@@ -220,6 +220,6 @@ function gcloud_destroy_server()
 
     terraform destroy -auto-approve \
         -var="subnetwork_region=${F_SUBNETWORK_REGION}" \
-        -var="subnetwork_region=${F_PROJECT_ID}" \
-        -var="subnetwork_region=${F_PUB_FILE_PATH}"                
+        -var="project_name=${F_PROJECT_ID}" \
+        -var="ssh_key_location=${F_PUB_FILE_PATH}"                
 }

@@ -28,7 +28,8 @@ variable "subnetwork_region" {
 }
 
 variable "subnetwork_name" {
-  default = "PROJECT_NAME_edb-prereq-network-subnetwork"  
+  # Must have network_name tag as a prefix
+  default = "edb-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {
@@ -40,7 +41,10 @@ variable "source_ranges" {
 }
 
 variable "vm_type" {
-  default = "f1-micro"
+  # Better suite for Replication and EFM
+  #default = "f1-micro"
+  # Better suited for PEM
+  default = "e2-standard-2"
 }
 
 variable "os" {
@@ -87,13 +91,13 @@ variable "add_hosts_filename" {
 
 # Tags
 variable "prefix" {
-  default = "PROJECT_NAME_edb-prereq"
+  default = "edb"
 }
 
 variable "instance_name" {
-  default = "PROJECT_NAME-edb-vm"
+  default = "edb-vm"
 }
 
 variable "network_name" {
-  default = "edb-prereq-network"
+  default = "edb-network"
 }

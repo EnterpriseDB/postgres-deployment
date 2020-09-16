@@ -1,129 +1,124 @@
 # Getting Started
 Postgres Deployment scripts are an easy way to deploy Postgres and EDB Tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section. Feel free to leave comments there. However, these scripts are not officially supported by the EnterpriseDb Team.
 
-EnterpriseDB has the largest base of PostgreSQL experts available.
+EnterpriseDb has the largest base of PostgreSQL experts available.
 
 Learn more about [Professional Support] (https://www.enterprisedb.com/services/ongoing-postgresql-help/postgresql-technical-support)
 
-The intention of this repository is as an introductory self starting guide for setting up the prerequisites needed to install and configure Postgres or EnterpriseDB Postgres Advanced Server in GCP.
+The intention of this repository is as an introductory self starting guide.
 
-Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards GCP.
+Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
 
 ## The overall process consists of the following steps:
 
 1. Set up Software Prerequisites
-   * Accomplished manually
-   * Requires configuration of GCP Cloud SDK for authentication towards GCP
-   * [Installing GCloud SDK] (https://cloud.google.com/sdk/docs/downloads-interactive)
-   * [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
-
-----
-### Supported Operating Systems
-* Centos 7
-* RedHat 7
+   * Linux based Operating System
+   * Package dependencies installation are accomplished via bash script
+   * Google Cloud SDK installed via bash script
+   * Requires configuration of Google Cloud SDK for authentication
+2. Configure Google Cloud SDK with credentials
+3. Create Cloud Infrastructure Prerequisites Resources
+   * Performed by Terraform scripts in ```terraform/gcloud``` folder
+4. Setup Postgres or EnterpriseDB Postgres Advanced Server
+   * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
+5. Execute SQL Scripts
+   * Performed by Ansible scripts in ```sqlexec``` folder
 
 ----
 ### Software Prerequisites
-1. GCloud SDK
-2. Terraform >= 0.13
+1. Terraform installed and configured
+2. Ansible installed and configured
 
-**Require Manual Installation**
-* [Installing GCloud SDK] (https://cloud.google.com/sdk/docs/downloads-interactive)
-* [Service Account JSON Credentials file] (https://cloud.google.com/iam/docs/creating-managing-service-account-keys)
+**Require Installation**
+
 * [Terraform Installation]  (https://learn.hashicorp.com/terraform/getting-started/install.html)
-* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
-* Open the ```Terminal``` command line
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+  ![Terraform 0.13 Installation](../../demos/Terraform_0.13_Installation.gif)
 
-----
-### Prerequisites Setup and configuration
-##### Dependencies
-* GCloud SDK Installation
-  ![GCloud SDK Installation](demos/Google_Cloud_SDK_Installation.gif)
-* GCP Service Account JSON Credentials File Generation
-  ![GCP Service Account JSON Credentials File Generation](demos/Google_Cloud_SDK_Generate_Credentials_JSON_File.gif)
-* GCloud SDK Login
-  ![GCloud SDK Login](demos/Google_Cloud_SDK_Login.gif)
-* GCloud SDK Reinit 
-  ![GCloud SDK Reinit](demos/Google_Cloud_SDK_Reinit.gif)
-* Terraform 0.13 Installation 
-  ![Terraform 0.13 Installation](demos/Terraform_0.13_Installation.gif)
-* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
-* Open the ```Terminal``` command line
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
+* [Ansible Installation] (https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 
-----
 ### Prerequisites Setup
+##### Dependencies
+1. Vendor Cloud SDK ( AWS, GCP or Azure )
+2. Packages: curl and wget
+1. Terraform >= 0.13
+2. Ansible >= 2.9
+
+### Steps
+
+* Items to consider:
+  * The Operating Systems Images ( CentOS7 and RHEL7 ) are supported across the following Google Cloud Regions: 'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4'
+  * A minimum of 3 instances is recommended
+
+* The bash scripts utilized in the scripts have been tested on:
+  * Red Hat 7
+  * CentOS 7
+  * Debian 9
+  * Ubuntu 20.04
+
+* Create your SSH Key or make it available for its reference
+  ![Create SSH Key](../../demos/KeyGen.gif)
+    
+* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
+
+* Extract the zip file to a desired destination
+
+* Copy the ```postgres-deployment.zip``` file to the desired target directory
+  
+* Extract the zip file to a desired destination by utilizing Archive Manager or by: typing ```unzip postgres-deployment.zip``` and pressing the **Enter** button
+ 
+* Open the ```Terminal``` command line
+
+* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
+
+* Type: ```./lib/keygen.sh``` and execute the bash script by pressing the **Enter** button.
+  ![SSH Key Generation](../../demos/KeyGen.gif)
+
+* Type: ```./edb-deployment``` and execute the command by pressing the **Enter** button. The subcommands below will be listed as options:
+```
+edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
+
+EDB deployment script for aws, azure and gcp
+
+Subcommands:
+    aws-server      [create|destroy]  PROJECT_NAME
+    azure-server    [create|destroy]  PROJECT_NAME
+    gcloud-server   [create|destroy]  PROJECT_NAME
+    aws-postgres    install           PROJECT_NAME
+    azure-postgres  install           PROJECT_NAME
+    gcloud-postgres install           PROJECT_NAME
+
+Other Options:
+    -h, --help Display help and exit
+
+```
+  #![Create PEM Azure Resources](../../demos/AWS_Create_demo.gif)
+
+* Type: ```./edb-deployment gcloud-postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  #![Install PEM in Azure Resources](../../demos/AWS_PEM_Install.gif)
+
+* Type: ```./edb-deployment gcloud-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  #![Removed Created Azure Resources](../../demos/AWS_PEM_destroy.gif)
+
+### Manual Configurations
+* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:
+  * keygen.sh - Removes and creates the SSH Keys
+  ![Generate SSH Keys](../../demos/KeyGen.gif)
+  * gcp-sdk.sh - Installs Google Cloud SDK and initiates the Google Credentials Configuration
+   The results should be similar as the video below:
+  ![Google Cloud SDK Installation](../../demos/Google_Cloud_SDK_Installation.gif)
+  * Configure the Google Cloud SDK by typing: ```gcloud init``` and pressing **Enter** button
+  ![Google Cloud SDK Login](../../demos/Google_Cloud_SDK_Login.gif)
+  
+### Execute SQL Statements on Postgres Cluster
+##### Dependencies
+1. Ansible
+2. Cloud Infrastructure Prerequisites
+3. Previously setup and configured Postgres or EnterpriseDB Postgres Advanced Server Instances
 
 **Steps**
 
-* Download the Code for this repository by navigating to the top of this page and clicking on: **Code** Green Button -> **Download ZIP** Link
+* Navigate to the **sqlexec** folder
 
-* Open the ```Terminal``` command line
+* Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```sqlexec``` directory
+  ![SQLExec](../../demos/SQLExec.gif)
 
-* Navigate to the extracted folder location and type: ```cd postgres-deployment/gcp/01-terraform-ansible``` finishing with pressing the **Enter** button
-
-* Terraform must be initialized
-
-* Set variables in the **```variables.tf```** file according to your desired configuration
-
-* Variables to set:
-
-   * ```credentials``` - Path and location of the ```account.json``` file that holds GCP credentials, example ```~/account.json```
-   * ```project_name``` - Name of the Google Cloud Project in which resources will be created
-   * ```subnetwork_region``` - Location for the resources to be created, options: ```'us-central1','us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' and 'us-west4'```
-   * ```ssh_key_location``` - Location for previously created public key, example: ```~/id_rsa.pub```
-   * ```instance_count``` - Initially set to 3, if more are needed set the ```instance_count``` to the desired instance count and perform a **terraform apply**
-
-* Review the naming conventions utilized in the **```variables.tf```** file and update accordingly
-
-* Before applying the changes you can preview those changes with **terraform plan**
-
-* Create resources in Account with **terraform apply**
-
-* The variables listed above must be provided when the **terraform plan** or **terraform apply** command are executed
-
-Once the terraform apply has completed you should see a list resources under your ```Project``` that resemble the list below:
-* 1 Project for your resources to be deployed into
-* 1 VPC Network
-* 1 Firewall with Rules
-* 3 Virtual Machines
-
-
-**Terraform Commands**
-
-Initialize terraform.
-
-```
-$ terraform init
-```
-
-Assess what resources will be created with this command.
-
-```
-$ terraform plan
-```
-
-Create the resources.
-
-```
-$ terraform apply
-```
-
-Verify which resources were created.
-
-```
-$ terraform show
-```
-
-To destroy resources recently created.
-
-```
-$ terraform destroy
-```
-
-----
-### Verify which resources were created
-1. Login into the [GCP Console]  (https://console.cloud.google.com)
-2. Locate and click the ```Go to project settings``` within your **Home -> Dashboard**
-3. Locate the desired resources to view under their section

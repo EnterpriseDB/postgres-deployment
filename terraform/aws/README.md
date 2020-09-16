@@ -55,8 +55,8 @@ Before starting to delve into this repository, it is best to get familiar with t
   * Debian 9
   * Ubuntu 20.04
 
-* Create your AWS Key Pair File or make it available for its reference
-  ![Create AWS Key Pair File](../../demos/AWS_Key_Pair_File_Generation.gif)
+* Create your SSH Key or make it available for its reference
+  ![Create SSH Key](../../demos/KeyGen.gif)
     
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
@@ -95,7 +95,7 @@ Other Options:
   ![Removed Created AWS Resources](../../demos/AWS_PEM_destroy.gif)
 
 ### Manual Configurations
-* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and arelocated in the ```lib_sh``` directory:
+* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:
   * keygen.sh - Removes and creates the SSH Keys
   ![Generate SSH Keys](../../demos/AWS_SSHKey_Generation.gif)
   * aws-cli.sh - Installs AWS CLI and initiates the AWS Credentials Configuration
@@ -112,7 +112,7 @@ Other Options:
 
 **Steps**
 
-* Navigate to the **postgres-deployment/sqlexec** folder
+* Navigate to the **sqlexec** folder
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```sqlexec``` directory
   ![SQLExec](../../demos/SQLExec.gif)

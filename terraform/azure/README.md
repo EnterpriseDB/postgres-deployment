@@ -100,7 +100,7 @@ Other Options:
   #![Removed Created Azure Resources](../../demos/AWS_PEM_destroy.gif)
 
 ### Manual Configurations
-* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and arelocated in the ```lib_sh``` directory:
+* The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:
   * keygen.sh - Removes and creates the SSH Keys
   ![Generate SSH Keys](../../demos/KeyGen.gif)
   * azure-cli.sh - Installs Azure CLI and initiates the Azure Credentials Configuration
@@ -116,7 +116,7 @@ Other Options:
 
 **Steps**
 
-* Navigate to the **postgres-deployment/sqlexec** folder
+* Navigate to the **sqlexec** folder
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```sqlexec``` directory
   ![SQLExec](../../demos/SQLExec.gif)

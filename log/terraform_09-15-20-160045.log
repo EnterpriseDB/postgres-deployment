@@ -1,2 +1,0 @@
-PID: 66652 [09-15-20 16:00:46]: Building Google Cloud Servers
-/home/doug/postgres-deployment/lib/build_servers.sh: line 141: cd: /home/doug/postgres-deployment/terraform/gcloud: No such file or directory
