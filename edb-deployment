@@ -60,10 +60,10 @@ fi
 ################################################################################
 # Install the required packages
 ################################################################################
-install_gawk
-install_wget_curl
-install_terraform
-install_ansible
+#install_gawk
+#install_wget_curl
+#install_terraform
+#install_ansible
 
 ################################################################################
 # Create resources based on the user input
