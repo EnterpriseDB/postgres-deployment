@@ -70,7 +70,7 @@ fi
 ################################################################################
 if [[ "${AWS_SERVER}" = "create" ]]
 then
-    #install_aws
+    verify_aws
     
     aws_config_file "${PROJECT_NAME}"
     
@@ -87,7 +87,7 @@ fi
 
 if [[ "${AZURE_SERVER}" = "create" ]]
 then
-    #install_azure
+    verify_azure
     
     azure_config_file "${PROJECT_NAME}"
    
@@ -106,7 +106,7 @@ fi
 
 if [[ "${GCLOUD_SERVER}" = "create" ]]
 then
-    #install_gcloud
+    verify_gcloud
     
     gcloud_config_file "${PROJECT_NAME}"
    

@@ -60,12 +60,12 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * The dependent packages are:
   * curl, wget, curl, terraform and ansible
-  * An example script is provided that is located at: ```.lib/prereqs.sh```
+  * An example script is provided that is located at: ```./lib/prereqs.sh```
 
 * A CLI or SDK depending on the Cloud vendor to utilize is required: 
-  * AWS - An example script is provided that is located at: ```.lib/aws-cli.sh```
-  * Azure - An example script is provided that is located at: ```.lib/azure-cli.sh```
-  * Google Cloud - An example script is provided that is located at: ```.lib/gcp-sdk.sh```
+  * AWS - An example script is provided that is located at: ```./lib/aws-cli.sh```
+  * Azure - An example script is provided that is located at: ```./lib/azure-cli.sh```
+  * Google Cloud - An example script is provided that is located at: ```./lib/gcp-sdk.sh```
 
 * Configure the CLI or SDK
   * AWS - ```aws configure``` and pressing **Enter** button

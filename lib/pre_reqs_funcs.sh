@@ -163,9 +163,9 @@ function install_ansible()
 }
 
 ################################################################################
-# function: install aws cli
+# functions: verify aws cli, azure cli or google cloud sdk
 ################################################################################
-function install_aws()
+function verify_aws()
 {
     local AWS_ZIP="awscli-exe-linux-x86_64.zip"
     local AWS_URL="https://awscli.amazonaws.com/${AWS_ZIP}"
@@ -173,12 +173,13 @@ function install_aws()
 
     AWS_EXISTS=$(which aws >/dev/null 2>&1 && echo $? || echo $?)
     
-    if [[ ${AWS_EXISTS} -ne 0 ]]
-    then
-        wget ${AWS_URL} >>${INSTALL_LOG} 2>&1
-        unzip ${AWS_ZIP} >>${INSTALL_LOG} 2>&1
-        sudo ./aws/install --update >>${INSTALL_LOG} 2>&1
-    fi
+    #if [[ ${AWS_EXISTS} -ne 0 ]]
+    #then
+    #    wget ${AWS_URL} >>${INSTALL_LOG} 2>&1
+    #    unzip ${AWS_ZIP} >>${INSTALL_LOG} 2>&1
+    #    sudo ./aws/install --update >>${INSTALL_LOG} 2>&1
+    #fi
+    
     # check if we have credential files
     if [[ ! -f ~/.aws/credentials ]]
     then
@@ -193,7 +194,7 @@ function install_aws()
     fi
 }
 
-function install_azure()
+function verify_azure()
 {
     local INSTALL_CMD=$(package_command)
     local AZURE_SIGNING_KEY=""
@@ -207,40 +208,40 @@ function install_azure()
     IS_YUM=$(echo ${INSTALL_CMD}|grep -q yum)
     set -e
   
-    if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_APT} -eq 0 ]]
-    then
-        set +e
-        process_log "Installing azure cli"
-        ${INSTALL_CMD} ca-certificates apt-transport-https lsb-release gnupg >>${INSTALL_LOG} 2>&1
-        apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
-        AZURE_SIGNING_KEY="$(curl -sL https://packages.microsoft.com/keys/microsoft.asc \
-                              | gpg --dearmor | \
-                              sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null)"
-        AZURE_CLI_REPO="$(echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | sudo tee /etc/apt/sources.list.d/azure-cli.list)"
-        apt update >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
-        set -e    
-    fi
+    #if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_APT} -eq 0 ]]
+    #then
+    #    set +e
+    #    process_log "Installing azure cli"
+    #    ${INSTALL_CMD} ca-certificates apt-transport-https lsb-release gnupg >>${INSTALL_LOG} 2>&1
+    #    apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
+    #    ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+    #    AZURE_SIGNING_KEY="$(curl -sL https://packages.microsoft.com/keys/microsoft.asc \
+    #                          | gpg --dearmor | \
+    #                          sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null)"
+    #    AZURE_CLI_REPO="$(echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | sudo tee /etc/apt/sources.list.d/azure-cli.list)"
+    #    apt update >>${INSTALL_LOG} 2>&1
+    #    ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
+    #    set -e    
+    #fi
 
-    if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_YUM} -eq 0 ]]
-    then
-        set +e
-        process_log "Installing azure cli"
-        ${INSTALL_CMD} ca-certificates apt-transport-https lsb-release gnupg >>${INSTALL_LOG} 2>&1
-        apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
-        AZURE_SIGNING_KEY="$(sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc)"
-        AZURE_CLI_REPO="$(echo -e "[azure-cli]
-name=Azure CLI
-baseurl=https://packages.microsoft.com/yumrepos/azure-cli
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo)"
-        apt update >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
-        set -e    
-    fi
+    #if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_YUM} -eq 0 ]]
+    #then
+    #    set +e
+    #    process_log "Installing azure cli"
+    #    ${INSTALL_CMD} ca-certificates apt-transport-https lsb-release gnupg >>${INSTALL_LOG} 2>&1
+    #    apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
+    #    ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+    #    AZURE_SIGNING_KEY="$(sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc)"
+    #    AZURE_CLI_REPO="$(echo -e "[azure-cli]
+#name=Azure CLI
+#baseurl=https://packages.microsoft.com/yumrepos/azure-cli
+#enabled=1
+#gpgcheck=1
+#gpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo)"
+    #    apt update >>${INSTALL_LOG} 2>&1
+    #    ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
+    #    set -e    
+    #fi
      
     # check if we have credential files
     if [[ ! -f ~/.azure/accessTokens.json ]]
@@ -253,5 +254,27 @@ gpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azu
             process_log "AWS proper configuration not found"
             az configure
         fi
+    fi
+}
+
+function verify_gcloud()
+{
+    local GCLOUD_ZIP="google-cloud-sdk-310.0.0-linux-x86_64.tar.gz"
+    local GCLOUD_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_ZIP}"
+    local GCLOUD_EXISTS
+
+    GCLOUD_EXISTS=$(which gcloud >/dev/null 2>&1 && echo $? || echo $?)
+    
+    #if [[ ${GCLOUD_EXISTS} -ne 0 ]]
+    #then
+    #    wget ${GCLOUD_URL} >>${INSTALL_LOG} 2>&1
+    #    unzip ${GCLOUD_ZIP} >>${INSTALL_LOG} 2>&1
+    #    sudo ./google-cloud-sdk/install.sh >>${INSTALL_LOG} 2>&1
+    #fi
+    
+    # check if we have credential files
+    if [[ ! -f ~/.config/gcloud/configurations/config_default ]]
+    then
+        gcloud init
     fi
 }
