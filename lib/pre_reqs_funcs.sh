@@ -272,9 +272,15 @@ function verify_gcloud()
     #    sudo ./google-cloud-sdk/install.sh >>${INSTALL_LOG} 2>&1
     #fi
     
-    # check if we have credential files
+    # check if we have default credential file
     if [[ ! -f ~/.config/gcloud/configurations/config_default ]]
     then
         gcloud init
     fi
+
+    # check if we have login credential file
+    if [[ ! -f ~/.config/gcloud/application_default_credentials.json ]]
+    then
+        gcloud auth application-default login
+    fi    
 }
