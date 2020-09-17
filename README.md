@@ -26,15 +26,3 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * A CLI or SDK depending on the Cloud vendor to utilize is required: 
   * Refer to the cloud directory seeking to be deployed: ```terraform/aws```, ```terraform/azure``` and ```terraform/gcloud```
- 
-## The overall process consists of the following steps:
-
-* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
-
-* Extract the zip file to a desired destination
- 
-* Open the ```Terminal``` command line
-
-* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
-
-* Follow the instructions to install in the README.md

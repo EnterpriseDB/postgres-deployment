@@ -55,13 +55,18 @@ function install_wget_curl()
     
     if [[ ${F_WGET_EXISTS} -ne 0 ]]
     then
-        process_log "Installing wget package"
-        ${F_INSTALL_CMD} wget >>${INSTALL_LOG} 2>&1 
+        #process_log "Installing wget package"
+        #${F_INSTALL_CMD} wget >>${INSTALL_LOG} 2>&1 
+        process_log "wget is not installed"
+        exit_on_error "wget is not installed"
     fi
+    
     if [[ ${F_CURL_EXISTS} -ne 0 ]]
     then
-        process_log "installing curl"
-        ${F_INSTALL_CMD} curl >>${INSTALL_LOG} 2>&1
+        #process_log "installing curl"
+        #${F_INSTALL_CMD} curl >>${INSTALL_LOG} 2>&1
+        process_log "curl is not installed"
+        exit_on_error "curl is not installed"       
     fi
 }
 
@@ -79,8 +84,10 @@ function install_gawk()
     
     if [[ ${F_GAWK_EXISTS} -ne 0 ]]
     then
-        process_log "Installing gawk package"
-        ${F_INSTALL_CMD} gawk >>${INSTALL_LOG} 2>&1 
+        #process_log "Installing gawk package"
+        #${F_INSTALL_CMD} gawk >>${INSTALL_LOG} 2>&1
+        process_log "gawk is not installed"
+        exit_on_error "gawk is not installed"
     fi
 }
 
@@ -101,20 +108,22 @@ function install_terraform()
 
     if [[ ${F_TERRAFORM_EXISTS} -ne 0 ]]
     then
-        process_log "Installing terraform"
-        F_URL="https://api.github.com/repos/hashicorp/terraform/releases/latest"
-        F_TERRAFORM_VERSION="$(curl -s ${F_URL} \
-                              | grep tag_name \
-                              | cut -d: -f2 \
-                              | tr -d \"\,v \
-                              | awk '{$1=$1};1')"
-        F_TERRAFORM_ZIP="terraform_${F_TERRAFORM_VERSION}_linux_amd64.zip"
-        F_RELEASE_URL="${F_BASEURL}/${F_TERRAFORM_VERSION}/${F_TERRAFORM_ZIP}"
-        wget ${F_RELEASE_URL} >>${INSTALL_LOG} 2>&1
-        unzip ${F_TERRAFORM_ZIP} >>${INSTALL_LOG} 2>&1
-        mv terraform /usr/local/bin >>${INSTALL_LOG} 2>&1
-        rm -f ${F_TERRAFORM_ZIP}
-        terraform --version >>${INSTALL_LOG} 2>&1
+        #process_log "Installing terraform"
+        #F_URL="https://api.github.com/repos/hashicorp/terraform/releases/latest"
+        #F_TERRAFORM_VERSION="$(curl -s ${F_URL} \
+        #                      | grep tag_name \
+        #                      | cut -d: -f2 \
+        #                      | tr -d \"\,v \
+        #                      | awk '{$1=$1};1')"
+        #F_TERRAFORM_ZIP="terraform_${F_TERRAFORM_VERSION}_linux_amd64.zip"
+        #F_RELEASE_URL="${F_BASEURL}/${F_TERRAFORM_VERSION}/${F_TERRAFORM_ZIP}"
+        #wget ${F_RELEASE_URL} >>${INSTALL_LOG} 2>&1
+        #unzip ${F_TERRAFORM_ZIP} >>${INSTALL_LOG} 2>&1
+        #mv terraform /usr/local/bin >>${INSTALL_LOG} 2>&1
+        #rm -f ${F_TERRAFORM_ZIP}
+        #terraform --version >>${INSTALL_LOG} 2>&1
+        process_log "Terraform is not installed"
+        exit_on_error "Terraform is not installed"
     fi
 }
 
@@ -139,27 +148,31 @@ function install_ansible()
     if [[ ${ANSIBLE_EXISTS} -ne 0 ]] && [[ ${IS_APT} -eq 0 ]]
     then
         set +e
-        process_log "Installing ansible"
-        ${INSTALL_CMD} software-properties-common >>${INSTALL_LOG} 2>&1
-        apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
-        apt-key adv  --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367 >>${INSTALL_LOG} 2>&1
-        apt update >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+        #process_log "Installing ansible"
+        #${INSTALL_CMD} software-properties-common >>${INSTALL_LOG} 2>&1
+        #apt-add-repository --yes --update ppas:ansible/ansible >>${INSTALL_LOG} 2>&1
+        #${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+        #apt-key adv  --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367 >>${INSTALL_LOG} 2>&1
+        #apt update >>${INSTALL_LOG} 2>&1
+        #${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+        process_log "Ansible is not installed"
+        exit_on_error "Ansible is not installed"        
         set -e
     fi
 
     if [[ ${ANSIBLE_EXISTS} -ne 0 ]] && [[ ${IS_YUM} -eq 0 ]]
     then
         set +e
-        process_log "Installing ansible"
-        ${INSTALL_CMD} epel-release >>${INSTALL_LOG} 2>&1
-        subscription-manager repos --enable rhel-7-server-ansible-2.9-rpms \
-            >>${INSTALL_LOG} 2>&1
-        ${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+        #process_log "Installing ansible"
+        #${INSTALL_CMD} epel-release >>${INSTALL_LOG} 2>&1
+        #subscription-manager repos --enable rhel-7-server-ansible-2.9-rpms \
+        #    >>${INSTALL_LOG} 2>&1
+        #${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
+        process_log "Ansible is not installed"
+        exit_on_error "Ansible is not installed"        
         set -e
     fi
-    ansible --version >>${INSTALL_LOG} 2>&1
+    #ansible --version >>${INSTALL_LOG} 2>&1
 }
 
 ################################################################################
@@ -246,12 +259,13 @@ function verify_azure()
     # check if we have credential files
     if [[ ! -f ~/.azure/accessTokens.json ]]
     then
+        process_log "Azure not configured"
         az configure
     else
         az ad signed-in-user show >/dev/null
         if [[ $? -ne 0 ]]
         then
-            process_log "AWS proper configuration not found"
+            process_log "Azure proper configuration not found"
             az configure
         fi
     fi
@@ -275,12 +289,14 @@ function verify_gcloud()
     # check if we have default credential file
     if [[ ! -f ~/.config/gcloud/configurations/config_default ]]
     then
+        process_log "Google Cloud not initialized"
         gcloud init
     fi
 
     # check if we have login credential file
     if [[ ! -f ~/.config/gcloud/application_default_credentials.json ]]
     then
+        process_log "Google Cloud proper configuration not found"
         gcloud auth application-default login
     fi    
 }
