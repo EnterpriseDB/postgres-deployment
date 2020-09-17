@@ -18,7 +18,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 ### Steps
 * Create your SSH Key or make it available for its reference
-  ![Create SSH Key](../../demos/KeyGen.gif)
+  ![Create SSH Key](./demos/KeyGen.gif)
   
 * The dependent packages are:
   * curl, wget, curl, terraform and ansible
