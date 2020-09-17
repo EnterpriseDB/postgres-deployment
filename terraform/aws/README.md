@@ -22,7 +22,7 @@ Before starting to delve into this repository, it is best to get familiar with t
 4. Setup Postgres or EnterpriseDB Postgres Advanced Server
    * Performed by Ansible scripts in Ansible Galaxy downloaded collection: ```edb_devops.edb_postgres```
 5. Execute SQL Scripts
-   * Performed by Ansible scripts in ```sqlexec``` folder
+   * Performed by Ansible scripts in ```02-sqlexec``` folder
 
 ----
 ### Software Prerequisites
@@ -57,7 +57,21 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * Create your SSH Key or make it available for its reference
   ![Create SSH Key](../../demos/KeyGen.gif)
-    
+
+* The dependent packages are:
+  * curl, wget, curl, terraform and ansible
+  * An example script is provided that is located at: ```.lib/prereqs.sh```
+
+* A CLI or SDK depending on the Cloud vendor to utilize is required: 
+  * AWS - An example script is provided that is located at: ```.lib/aws-cli.sh```
+  * Azure - An example script is provided that is located at: ```.lib/azure-cli.sh```
+  * Google Cloud - An example script is provided that is located at: ```.lib/gcp-sdk.sh```
+
+* Configure the CLI or SDK
+  * AWS - ```aws configure``` and pressing **Enter** button
+  * Azure - ```az login``` and pressing **Enter** button
+  * Google Cloud - ```gcloud init``` and pressing **Enter** button
+  
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
 * Extract the zip file to a desired destination
@@ -74,6 +88,7 @@ Before starting to delve into this repository, it is best to get familiar with t
   ![SSH Key Generation](../../demos/AWS_SSHKey_Generation.gif)
 
 * Type: ```./edb-deployment``` and execute the command by pressing the **Enter** button. The subcommands below will be listed as options:
+
 ```
 edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
 
@@ -89,7 +104,6 @@ Subcommands:
 
 Other Options:
     -h, --help Display help and exit
-
 ```
 
   ![Create PEM AWS Resources](../../demos/AWS_Create_demo.gif)
@@ -122,4 +136,3 @@ Other Options:
 
 * Refer to the example files: ```hosts.yml``` and ```playbook.yml``` located in the ```sqlexec``` directory
   ![SQLExec](../../demos/SQLExec.gif)
-
