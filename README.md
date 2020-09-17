@@ -9,6 +9,24 @@ The intention of this repository is as an introductory self starting guide.
 
 Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
 
+## Pre-requisites:
+### Dependencies
+1. Vendor Cloud SDK ( AWS, GCP or Azure )
+2. Packages: curl and wget
+1. Terraform >= 0.13
+2. Ansible >= 2.9
+
+### Steps
+* Create your SSH Key or make it available for its reference
+  ![Create SSH Key](../../demos/KeyGen.gif)
+  
+* The dependent packages are:
+  * curl, wget, curl, terraform and ansible
+  * An example script is provided that is located at: ```./lib/prereqs.sh```
+
+* A CLI or SDK depending on the Cloud vendor to utilize is required: 
+  * Refer to the cloud directory seeking to be deployed: ```terraform/aws```, ```terraform/azure``` and ```terraform/gcloud```
+ 
 ## The overall process consists of the following steps:
 
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
