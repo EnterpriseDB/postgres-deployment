@@ -22,48 +22,48 @@ variable "ssh_user" {
 
 variable "ssh_password" {
   description = "The SSH password"
-  type = string
+  type        = string
 }
 
 variable "dcname" {
   description = "vmware vsphere dcname"
-  type = string
+  type        = string
 }
 
 variable "db_password" {
-   description = "Enter DB password of your choice"
-   type = string
+  description = "Enter DB password of your choice"
+  type        = string
 }
 
 variable "cpucore" {
-    description = "Enter number of cpu core for your vm"
-    type = string
-    default = "2"
+  description = "Enter number of cpu core for your vm"
+  type        = string
+  default     = "2"
 }
 
 variable "ramsize" {
-    description = "Enter RAM size for your new VM"
-    type = string
-    default = "1024"
+  description = "Enter RAM size for your new VM"
+  type        = string
+  default     = "1024"
 }
 
 variable "template_name" {
-    description = "Enter template name of centos 7"
-    type = string
+  description = "Enter template name of centos 7"
+  type        = string
 }
 
 variable "datastore" {
-     description = "Provide Datastore name"
-     type = string
+  description = "Provide Datastore name"
+  type        = string
 }
 
 variable "compute_cluster" {
-     description = "Provide Compute cluster name"
-     type = string
+  description = "Provide Compute cluster name"
+  type        = string
 }
 
 variable "network" {
-     description = "Provide Network name"
-     type = string
+  description = "Provide Network name"
+  type        = string
 }
 

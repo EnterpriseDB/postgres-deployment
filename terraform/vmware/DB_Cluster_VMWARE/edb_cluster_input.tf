@@ -42,7 +42,7 @@ provider "vsphere" {
 
 
   # Enter vmware vsphere login username
- 
+
   user = ""
 
   # Enter vmware vsphere login password
@@ -53,15 +53,15 @@ provider "vsphere" {
 
   vsphere_server = ""
 
-  allow_unverified_ssl =  true
+  allow_unverified_ssl = true
 }
 
 
 module "edb-db-cluster" {
   # The source module used for creating clusters.
-  
+
   source = "./EDB_SRSETUP_VMWARE"
-  
+
   # Enter EDB yum repository credentials for usage of any EDB tools.
 
   EDB_yumrepo_username = ""
@@ -75,13 +75,13 @@ module "edb-db-cluster" {
   cluster_name = ""
 
   # Enter vmware vsphere data center name.
- 
+
   dcname = ""
 
   # Enter datastore name.
 
   datastore = ""
- 
+
   # Enter Compute Cluster name.
 
   compute_cluster = ""
@@ -101,20 +101,20 @@ module "edb-db-cluster" {
   # Enter template name of base centos 7.
 
   template_name = ""
-  
+
   # Enter user name for ssh.
 
   ssh_user = ""
 
   # Enter password for ssh.
- 
+
   ssh_password = ""
 
   # Select database engine(DB) version like pg10-postgresql version10, epas12-Enterprise Postgresql Advanced server etc..
   # DB version support V10-V12
 
   dbengine = ""
-  
+
   # Enter optional database (DB) User, leave it blank to use default user else enter desired user.
 
   db_user = ""
@@ -124,14 +124,14 @@ module "edb-db-cluster" {
   db_password = ""
 
   # Select replication type(synchronous or asynchronous). Leave it blank to use default replication type "asynchronous".
- 
+
   replication_type = ""
-  
+
   # Enter replication user password
 
   replication_password = ""
-  
-}  
+
+}
 
 output "Master-IP" {
   value = "${module.edb-db-cluster.Master-IP}"
@@ -152,7 +152,7 @@ output "DBENGINE" {
 output "SSH-USER" {
   value = "${module.edb-db-cluster.SSH-USER}"
 }
- 
+
 output "CLUSTER_NAME" {
   value = "${module.edb-db-cluster.CLUSTER_NAME}"
 }

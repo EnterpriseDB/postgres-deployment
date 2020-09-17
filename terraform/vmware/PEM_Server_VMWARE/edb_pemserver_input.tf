@@ -32,30 +32,30 @@ provider "vsphere" {
 
   vsphere_server = ""
 
-  allow_unverified_ssl =  true
+  allow_unverified_ssl = true
 }
 
 module "edb-pem-server" {
   # The source module to be used.
 
-   source = "./EDB_PEM_SERVER_VMWARE"
-  
-  # Enter EDB yum repository credentials for any EDB tools.
-
-   EDB_yumrepo_username = ""
+  source = "./EDB_PEM_SERVER_VMWARE"
 
   # Enter EDB yum repository credentials for any EDB tools.
 
-   EDB_yumrepo_password = ""
+  EDB_yumrepo_username = ""
+
+  # Enter EDB yum repository credentials for any EDB tools.
+
+  EDB_yumrepo_password = ""
 
   # Provide vmware vsphere data center name
-  
-   dcname = ""
+
+  dcname = ""
 
   # Enter datastore name
 
   datastore = ""
- 
+
   # Enter Compute Cluster name
 
   compute_cluster = ""
@@ -65,29 +65,29 @@ module "edb-pem-server" {
   network = ""
 
   # Enter cpu core for new VM. By default it is 2
- 
-   cpucore = ""
- 
+
+  cpucore = ""
+
   # Enter RAM size for new VM. By default it is 1024
- 
-   ramsize = ""
-    
+
+  ramsize = ""
+
   # Enter template name of base centos 7
- 
-   template_name = ""
+
+  template_name = ""
 
   # Provide ssh user to login
- 
+
   ssh_user = ""
 
   # Provide ssh password to login
 
   ssh_password = ""
-   
+
   # Enter DB password. This is local DB password of PEM monitoring server.
 
   db_password = ""
-}  
+}
 
 output "PEM_SERVER_IP" {
   value = "${module.edb-pem-server.Pem-IP}"

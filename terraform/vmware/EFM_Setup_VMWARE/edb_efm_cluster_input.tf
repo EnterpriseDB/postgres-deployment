@@ -12,9 +12,9 @@
 
 module "efm-db-cluster" {
   # The source module used for creating clusters.
-  
+
   source = "./EDB_EFM_VMWARE"
-  
+
   # Enter EDB yum repository credentials for usage of any EDB tools.
 
   EDB_Yum_Repo_Username = ""
@@ -32,11 +32,11 @@ module "efm-db-cluster" {
   db_user = ""
 
   # Enter EFM notification email.
- 
+
   notification_email_address = ""
 
   # Enter EFM role password.
 
   efm_role_password = ""
 
-}  
+}
