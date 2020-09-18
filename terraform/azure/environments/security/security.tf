@@ -21,8 +21,8 @@ resource "azurerm_network_security_group" "main" {
   }
 
   security_rule {
-    name                       = "SSH"
-    priority                   = 100
+    name                       = "Port80"
+    priority                   = 200
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -34,7 +34,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "Postgres"
-    priority                   = 200
+    priority                   = 300
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -46,7 +46,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "EDB-EPAS"
-    priority                   = 300
+    priority                   = 400
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -58,7 +58,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "EDB-EFM"
-    priority                   = 400
+    priority                   = 500
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
