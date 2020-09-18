@@ -54,26 +54,24 @@ Other Options:
 * Utilizing the EDB CLI for a Postgres Installation
   * Create the Infrastructure in your Cloud Vendor:
 ```
-    aws-server      create  PROJECT_NAME
-    azure-server    create  PROJECT_NAME 
-    gcloud-server   create  PROJECT_NAME
+    ./edb-deployment aws-server      create  PROJECT_NAME
+    ./edb-deployment azure-server    create  PROJECT_NAME 
+    ./edb-deployment gcloud-server   create  PROJECT_NAME
 ```
 
   * Install and configure EDB Postgres  in your Cloud Vendor:
 ```
-    aws-postgres      install  PROJECT_NAME
-    azure-postgres    install  PROJECT_NAME 
-    gcloud-postgres   create  PROJECT_NAME
+    ./edb-deployment aws-postgres      install  PROJECT_NAME
+    ./edb-deployment azure-postgres    install  PROJECT_NAME 
+    ./edb-deployment gcloud-postgres   create  PROJECT_NAME
 ```
 
   * Create the Infrastructure in your Cloud Vendor:
 ```
-    aws-server      destroy  PROJECT_NAME
-    azure-server    destroy  PROJECT_NAME 
-    gcloud-server   destroy  PROJECT_NAME
+    ./edb-deployment aws-server      destroy  PROJECT_NAME
+    ./edb-deployment azure-server    destroy  PROJECT_NAME 
+    ./edb-deployment gcloud-server   destroy  PROJECT_NAME
 ```
-    
-
 
 # Demos:
 * AWS
