@@ -39,8 +39,8 @@ edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
 EDB deployment script for aws, azure and gcp
 
 Subcommands:
+    aws-server      [create|destroy]  PROJECT_NAME
     azure-server    [create|destroy]  PROJECT_NAME
-
     gcloud-server   [create|destroy]  PROJECT_NAME
     aws-postgres    install           PROJECT_NAME
     azure-postgres  install           PROJECT_NAME
