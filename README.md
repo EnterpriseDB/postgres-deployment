@@ -19,6 +19,8 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 * The dependent packages are:
   * curl, wget, curl, terraform and ansible
+  * To install Terraform: **[Installing Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)**
+  * To install Ansible: **[Installing Terraform](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
   * An example script is provided that is located at: ```./lib/prereqs.sh```
 
 * A CLI or SDK depending on the Cloud vendor to utilize is required: 
