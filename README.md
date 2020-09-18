@@ -17,19 +17,28 @@ Before starting to delve into this repository, it is best to get familiar with t
 
 # INSTALLATION
 
+* The dependent packages are:
+  * curl, wget, curl, terraform and ansible
+  * An example script is provided that is located at: ```./lib/prereqs.sh```
+
+* A CLI or SDK depending on the Cloud vendor to utilize is required: 
+  * To install the AWS CLI please refer to: **[Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)**
+  * To install the AZURE CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
+  * To install the Google Cloud SDK please refer to: **[Installing the Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-interactive)**
 
 ## USAGE:
 * The EDB Deployment CLI is available by typing: ```./edb-deployment``` and pressing the **Enter** button.
   * Below are the available subcommands displayed when executed.
 
 ```
+    aws-server      [create|destroy]  PROJECT_NAME
 edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
 
 EDB deployment script for aws, azure and gcp
 
 Subcommands:
-    aws-server      [create|destroy]  PROJECT_NAME
     azure-server    [create|destroy]  PROJECT_NAME
+
     gcloud-server   [create|destroy]  PROJECT_NAME
     aws-postgres    install           PROJECT_NAME
     azure-postgres  install           PROJECT_NAME
@@ -42,12 +51,29 @@ Other Options:
 * Create your SSH Key or make it available for its reference
   ![Create SSH Key](./demos/KeyGen.gif)
   
-* The dependent packages are:
-  * curl, wget, curl, terraform and ansible
-  * An example script is provided that is located at: ```./lib/prereqs.sh```
+* Utilizing the EDB CLI for a Postgres Installation
+  * Create the Infrastructure in your Cloud Vendor:
+```
+    aws-server      create  PROJECT_NAME
+    azure-server    create  PROJECT_NAME 
+    gcloud-server   create  PROJECT_NAME
+```
 
-* A CLI or SDK depending on the Cloud vendor to utilize is required: 
-  * Refer to the cloud directory seeking to be deployed: ```terraform/aws```, ```terraform/azure``` and ```terraform/gcloud```
+  * Install and configure EDB Postgres  in your Cloud Vendor:
+```
+    aws-postgres      install  PROJECT_NAME
+    azure-postgres    install  PROJECT_NAME 
+    gcloud-postgres   create  PROJECT_NAME
+```
+
+  * Create the Infrastructure in your Cloud Vendor:
+```
+    aws-server      destroy  PROJECT_NAME
+    azure-server    destroy  PROJECT_NAME 
+    gcloud-server   destroy  PROJECT_NAME
+```
+    
+
 
 # Demos:
 * AWS
