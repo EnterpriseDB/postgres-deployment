@@ -65,7 +65,7 @@ Other Options:
 ```
     ./edb-deployment aws-postgres      install  PROJECT_NAME
     ./edb-deployment azure-postgres    install  PROJECT_NAME 
-    ./edb-deployment gcloud-postgres   create  PROJECT_NAME
+    ./edb-deployment gcloud-postgres   install  PROJECT_NAME
 ```
 
   * Create the Infrastructure in your Cloud Vendor:
