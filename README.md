@@ -115,8 +115,8 @@ Support
 =======
 Postgres Deployment scripts are an easy way to deploy Postgres and EDB tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section so feel free to leave comments there; however, these scripts are not officially supported by the EnterpriseDB team.
 
-EnterpriseDB has the largest base of PostgreSQL experts available. Learn more about Professional Support.
-=======
+**EnterpriseDB has the largest base of PostgreSQL experts available. Learn more about Professional Support.**
+
 ## The overall process consists of the following steps:
 
 * Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
