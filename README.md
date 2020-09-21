@@ -111,8 +111,10 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEV
 ER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 
-# SUPPORT
+Support
+=======
 Postgres Deployment scripts are an easy way to deploy Postgres and EDB tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section so feel free to leave comments there; however, these scripts are not officially supported by the EnterpriseDB team.
+
 EnterpriseDB has the largest base of PostgreSQL experts available. Learn more about Professional Support.
 =======
 ## The overall process consists of the following steps:
