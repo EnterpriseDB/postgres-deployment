@@ -1,3 +1,0 @@
-172.22.14.234 ansible_user=root ansible_ssh_pass=adminedb
-172.22.14.244 ansible_user=root ansible_ssh_pass=adminedb
-172.22.15.9 ansible_user=root ansible_ssh_pass=adminedb
