@@ -78,6 +78,12 @@ Other Options:
 
 # Demos:
 * AWS
+  * Create Postgres infrastructure in AWS
+    ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
+  * Install Postgres against infrastructure in AWS
+    ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
+  * Destroy Postgres infrastructure in AWS
+    ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
 * AZURE
 * GCLOUD
 
