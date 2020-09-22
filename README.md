@@ -80,18 +80,24 @@ Other Options:
 * AWS
   * Create Postgres infrastructure in AWS
     ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
-  * Install Postgres against infrastructure in AWS
+  * Install Postgres on infrastructure in AWS
     ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
   * Destroy Postgres infrastructure in AWS
     ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
 * AZURE
   * Create Postgres infrastructure in AZURE
     ![Create Postgres infrastructure in AZURE](./demos/AZURE_Create_test.gif)
-  * Install Postgres against infrastructure in AZURE
-    ![AZURE Install Postgres against infrastructure in](./demos/AZURE_PEM_Install.gif)
+  * Install Postgres on infrastructure in AZURE
+    ![AZURE Install Postgres on infrastructure in AZURE](./demos/AZURE_PEM_Install.gif)
   * Destroy Postgres infrastructure in AZURE
     ![Destroy Postgres infrastructure in AZURE](./demos/AZURE_Destroy_test.gif)
 * GCLOUD
+  * Create Postgres infrastructure in GCLOUD
+    ![Create Postgres infrastructure in GCLOUD](./demos/GCLOUD_Create_test.gif)
+  * Install Postgres on infrastructure in GCLOUD
+    ![AZURE Install Postgres on infrastructure in GCLOUD](./demos/GCLOUD_PEM_Install.gif)
+  * Destroy Postgres infrastructure in GCLOUD
+    ![Destroy Postgres infrastructure in GCLOUD](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
