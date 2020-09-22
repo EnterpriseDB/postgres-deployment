@@ -88,7 +88,7 @@ Other Options:
   * Create Postgres infrastructure in AZURE
     ![Create Postgres infrastructure in AZURE](./demos/AZURE_Create_test.gif)
   * Install Postgres against infrastructure in AZURE
-    ![AZURE Install Postgres against infrastructure in](./demos/AZURE_Postgres.Install)
+    ![AZURE Install Postgres against infrastructure in](./demos/AZURE_Postgres_Install.gif)
   * Destroy Postgres infrastructure in AZURE
     ![Destroy Postgres infrastructure in AZURE](./demos/AZURE_Destroy_test.gif)
 * GCLOUD
