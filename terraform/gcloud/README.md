@@ -106,13 +106,14 @@ Other Options:
     -h, --help Display help and exit
 ```
 
-  #![Create PEM Azure Resources](../../demos/AWS_Create_demo.gif)
+* Type: ```./edb-deployment gcloud-server create PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  #![Create PEM GCLOUD Resources](../../demos/GCLOUD_Create_test.gif)
 
 * Type: ```./edb-deployment gcloud-postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  #![Install PEM in Azure Resources](../../demos/AWS_PEM_Install.gif)
+  #![Install PEM in GCLOUD Resources](../../demos/GCLOUD_PEM_Install.gif)
 
 * Type: ```./edb-deployment gcloud-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  #![Removed Created Azure Resources](../../demos/AWS_PEM_destroy.gif)
+  #![Removed Created GCLOUD Resources](../../demos/GCLOUD_Destroy_test.gif)
 
 ### Manual Configurations
 * The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:
