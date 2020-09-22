@@ -105,6 +105,7 @@ Subcommands:
 Other Options:
     -h, --help Display help and exit
 ```
+
 * Type: ```./edb-deployment aws-server create PROJECT_NAME``` and execute the command by pressing the **Enter** button.
   ![Create PEM AWS Resources](../../demos/AWS_Create_test.gif)
 

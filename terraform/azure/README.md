@@ -106,13 +106,14 @@ Other Options:
     -h, --help Display help and exit
 ```
 
-  #![Create PEM Azure Resources](../../demos/AWS_Create_demo.gif)
+* Type: ```./edb-deployment azure-server create PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  #![Create PEM Azure Resources](../../demos/AZURE_Create_test.gif)
 
 * Type: ```./edb-deployment azure-postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  #![Install PEM in Azure Resources](../../demos/AWS_PEM_Install.gif)
+  #![Install PEM on Azure Resources](../../demos/AZURE_PEM_Install.gif)
 
 * Type: ```./edb-deployment azure-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  #![Removed Created Azure Resources](../../demos/AWS_PEM_destroy.gif)
+  #![Removed Created Azure Resources](../../demos/AZURE_Destroy_test.gif)
 
 ### Manual Configurations
 * The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:
