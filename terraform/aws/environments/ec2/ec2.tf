@@ -1,4 +1,5 @@
 variable "os" {}
+variable "ami_id" {}
 variable "instance_count" {}
 variable "pem_instance_count" {}
 variable "synchronicity" {}
@@ -72,8 +73,9 @@ resource "aws_key_pair" "key_pair" {
 resource "aws_instance" "EDB_DB_Cluster" {
   count = var.instance_count
 
-  #ami = "${var.os == "CentOS7" ? data.aws_ami.centos_ami.id : data.aws_ami.rhel_ami.id}"
-  ami = var.os == "CentOS7" ? data.aws_ami.centos_ami.id : data.aws_ami.rhel_ami.id
+  #ami = "${var.os == "CentOS7" ? data.aws_ami.centos7_ami.id : data.aws_ami.rhel_ami.id}"
+  #ami = var.os == "CentOS8" ? data.aws_ami.centos8_ami.id : data.aws_ami.centos7_ami.id
+  ami = var.ami_id
 
   instance_type = var.instance_type
   #key_name               = var.ssh_keypair

@@ -30,6 +30,7 @@ function aws_build_server()
     local F_KEYPATH="$4"
     local F_PEMINSTANCE="$5"
     local F_PROJECTNAME="$6"
+    local F_AMI_ID=""
 
     process_log "Building AWS Servers"
     cd ${DIRECTORY}/terraform/aws || exit 1
@@ -37,9 +38,38 @@ function aws_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf 
+   
+    case $F_OSNAME in
+        "CentOS7")
+            shift; 
+            F_AMI_ID="ami-0bc06212a56393ee1"
+            export F_AMI_ID
+            break
+            ;;
+        "CentOS8")
+            shift; 
+            F_AMI_ID="ami-0157b1e4eefd91fd7"
+            export F_AMI_ID
+            break
+            ;;
+        "RHEL7")
+            shift; 
+            F_AMI_ID="ami-0039be094106a495e"
+            export F_AMI_ID
+            break
+            ;;            
+        "RHEL8")
+            shift; 
+            F_AMI_ID="ami-0a5eb017b84430da9"
+            export F_AMI_ID
+            break
+            ;;                       
+    esac    
+    
     terraform init
     terraform apply -auto-approve \
         -var="os=${F_OSNAME}" \
+        -var="ami_id=${F_AMI_ID}" \
         -var="aws_region=${REGION}" \
         -var="instance_count=${F_INSTANCES}" \
         -var="ssh_key_path=${F_KEYPATH}" \

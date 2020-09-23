@@ -125,7 +125,7 @@ function aws_config_file()
         source ${CONFIG_FILE}
     fi
      
-    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    MESSAGE="Please provide OS name from 'CentOS7/CentOS8/RHEL7/RHEL8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
     MESSAGE="Please provide target AWS Region"

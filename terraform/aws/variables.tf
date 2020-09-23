@@ -5,6 +5,11 @@ variable "os" {
   default = "CentOS7"
 }
 
+variable "ami_id" {
+  # CentOS7 AMI ID
+  default = "ami-0bc06212a56393ee1"
+}
+
 # Region
 variable "aws_region" {
   default = "us-west-2"

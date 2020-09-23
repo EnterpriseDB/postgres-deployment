@@ -46,18 +46,18 @@ function aws_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
 
-    if [[ "${OSNAME}" =~ "CentOS7" ]]
+    if [[ "${OSNAME}" =~ "CentOS" ]]
     then
         ANSIBLE_USER="centos"
-    elif [[ "${OSNAME}" =~ "RHEL7" ]]
+    elif [[ "${OSNAME}" =~ "RHEL" ]]
     then
         ANSIBLE_USER="ec2-user"
     else
         exit_on_error "Unknown Operating system"
     fi
     
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+    #ansible-galaxy collection install edb_devops.edb_postgres \
+    #            --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${DIRECTORY}/playbook || exit 1
 
