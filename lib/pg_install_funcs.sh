@@ -67,12 +67,22 @@ function aws_ansible_pg_install()
     else
         cp -f ${DIRECTORY}/terraform/aws/inventory.yml hosts.yml
     fi
-        
-    ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+
+#    if [[ "${OSNAME}" =~ "CentOS8" ]] || [[ "${OSNAME}" =~ "RHEL8" ]]
+#    then
+ #       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+ #                    --user="${ANSIBLE_USER}" \
+ #                    --extra-vars="${ANSIBLE_EXTRA_VARS}" \
+ #                    --private-key="${SSH_KEY}" \
+ #                    -e 'ansible_python_interpreter=/usr/bin/python3' \
+ #                   playbook.yml
+ #   else
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="${SSH_KEY}" \
-                    playbook.yml
+                    playbook.yml   
+ #   fi
                     
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)

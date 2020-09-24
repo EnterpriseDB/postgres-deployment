@@ -31,7 +31,8 @@ function aws_build_server()
     local F_PEMINSTANCE="$5"
     local F_PROJECTNAME="$6"
     local F_AMI_ID=""
-
+    local F_INSTANCE_TYPE="c5.2xlarge"
+       
     process_log "Building AWS Servers"
     cd ${DIRECTORY}/terraform/aws || exit 1
     process_log "including project names in the variables and tags"
@@ -44,27 +45,41 @@ function aws_build_server()
             shift; 
             F_AMI_ID="ami-0bc06212a56393ee1"
             export F_AMI_ID
-            break
             ;;
         "CentOS8")
             shift; 
             F_AMI_ID="ami-0157b1e4eefd91fd7"
             export F_AMI_ID
-            break
             ;;
         "RHEL7")
             shift; 
             F_AMI_ID="ami-0039be094106a495e"
             export F_AMI_ID
-            break
             ;;            
         "RHEL8")
             shift; 
             F_AMI_ID="ami-0a5eb017b84430da9"
             export F_AMI_ID
-            break
             ;;                       
     esac    
+
+    process_log "Checking availability of Instance Type in target region"
+    output=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
+    if [ -n "$output" ]
+    then
+        process_log "Instance Type: '${F_INSTANCE_TYPE}' is available in region: '${REGION}'"
+    else
+        exit_on_error "Instance Type: '${F_INSTANCE_TYPE}' is not available in region: '${REGION}'"
+    fi
+       
+    process_log "Checking availability of Instance Image in target region"
+    output=$(aws ec2 describe-images --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --image-ids ${F_AMI_ID} --region ${REGION} --output text)
+    if [ -n "$output" ]
+    then
+        process_log "Instance Image: '${F_AMI_ID}' is available in region: '${REGION}'"
+    else
+        exit_on_error "Instance Image: '${F_AMI_ID}' is not available in region: '${REGION}'"
+    fi
     
     terraform init
     terraform apply -auto-approve \
