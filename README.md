@@ -46,8 +46,7 @@ Postgres Deployment Scripts are dependent on following components. Install the f
 
 
 ## USAGE:
-* The EDB Deployment CLI is available by typing: ```./edb-deployment``` and pressing the **Enter** button.
-  * Below are the available subcommands displayed when executed.
+* The EDB Deployment CLI is part of the code. Following is an example of viewing the options available through the CLI:
 
 ```
     aws-server      [create|destroy]  PROJECT_NAME
@@ -67,6 +66,7 @@ Other Options:
     -h, --help Display help and exit
 ```
 
+## How to Use:
 * Create your SSH Key or make it available for its reference
   ![Create SSH Key](./demos/KeyGen.gif)
   
@@ -85,14 +85,14 @@ Other Options:
     ./edb-deployment gcloud-postgres   install  PROJECT_NAME
 ```
 
-  * Create the Infrastructure in your Cloud Vendor:
+  * Destroy the Infrastructure in your Cloud Vendor:
 ```
     ./edb-deployment aws-server      destroy  PROJECT_NAME
     ./edb-deployment azure-server    destroy  PROJECT_NAME 
     ./edb-deployment gcloud-server   destroy  PROJECT_NAME
 ```
 
-# Demos:
+# Demos/Examples:
 * AWS
   * Create Postgres infrastructure in AWS
     ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
@@ -100,20 +100,20 @@ Other Options:
     ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
   * Destroy Postgres infrastructure in AWS
     ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
-* AZURE
-  * Create Postgres infrastructure in AZURE
-    ![Create Postgres infrastructure in AZURE](./demos/AZURE_Create_test.gif)
-  * Install Postgres on infrastructure in AZURE
-    ![AZURE Install Postgres on infrastructure in AZURE](./demos/AZURE_PEM_Install.gif)
-  * Destroy Postgres infrastructure in AZURE
-    ![Destroy Postgres infrastructure in AZURE](./demos/AZURE_Destroy_test.gif)
-* GCLOUD
-  * Create Postgres infrastructure in GCLOUD
-    ![Create Postgres infrastructure in GCLOUD](./demos/GCLOUD_Create_test.gif)
-  * Install Postgres on infrastructure in GCLOUD
-    ![AZURE Install Postgres on infrastructure in GCLOUD](./demos/GCLOUD_PEM_Install.gif)
-  * Destroy Postgres infrastructure in GCLOUD
-    ![Destroy Postgres infrastructure in GCLOUD](./demos/GCLOUD_Destroy_test.gif)
+* Azure
+  * Create Postgres infrastructure in Azure
+    ![Create Postgres infrastructure in Azure](./demos/AZURE_Create_test.gif)
+  * Install Postgres on infrastructure in Azure
+    ![AZURE Install Postgres on infrastructure in Azure](./demos/AZURE_PEM_Install.gif)
+  * Destroy Postgres infrastructure in Azure
+    ![Destroy Postgres infrastructure in Azure](./demos/AZURE_Destroy_test.gif)
+* Google Cloud
+  * Create Postgres infrastructure in Google Cloud
+    ![Create Postgres infrastructure in Google Cloud](./demos/GCLOUD_Create_test.gif)
+  * Install Postgres on infrastructure in Google Cloud
+    ![AZURE Install Postgres on infrastructure in Google Cloud](./demos/GCLOUD_PEM_Install.gif)
+  * Destroy Postgres infrastructure in Google Cloud
+    ![Destroy Postgres infrastructure in Google Cloud](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
@@ -144,7 +144,4 @@ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEV
 ER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-
-## The overall process consists of the following steps:
-
 
