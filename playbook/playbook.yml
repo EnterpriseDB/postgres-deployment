@@ -52,34 +52,9 @@
         with_dict: "{{ servers }}"
 
   roles:
-    - install_dbserver
-    
-#  tasks:
-#    - name: Iterate through repo role with items from hosts file
-#      include_role:
-#        name: setup_repo
-#      with_dict: "{{ servers }}"
-
-# Working
-#    - name: Iterate through install role with items from hosts file
-#      include_role:
-#        name: install_dbserver
-
-
-#      with_dict: "{{ servers }}"
-#    - name: Iterate through initialize role with items from hosts file
-#      include_role:
-#        name: init_dbserver
-#      with_dict: "{{ servers }}"
-#    - name: Iterate through replication role with items from hosts file
-#      include_role:
-#        name: setup_replication
-#      with_dict: "{{ servers }}"
-#    - name: Iterate through efm install role with items from hosts file
-#      include_role:
-#        name: setup_efm
-#      with_dict: "{{ servers }}"
-#    - name: Iterate through pem install role with items from hosts file
-#      include_role:
-#        name: setup_pem
-#      with_dict: "{{ servers }}"
+#    - setup_repo
+#    - install_dbserver
+#    - init_dbserver
+#    - setup_replication
+    - setup_efm
+    - setup_pem

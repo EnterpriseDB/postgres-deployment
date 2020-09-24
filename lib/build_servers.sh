@@ -14,7 +14,7 @@ set -e
 #set -u
 
 ################################################################################
-# source common_fucs
+# source common_funcs
 ################################################################################
 DIRECTORY=$(dirname $0)
 source ${DIRECTORY}/lib/common_funcs.sh
@@ -38,7 +38,7 @@ function aws_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf 
-   
+
     case $F_OSNAME in
         "CentOS7")
             shift; 
