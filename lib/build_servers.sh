@@ -64,8 +64,8 @@ function aws_build_server()
     esac    
 
     process_log "Checking availability of Instance Type in target region"
-    output=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
-    if [ -n "$output" ]
+    instancetypeExists=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
+    if [ ! -z "$instancetypeExists" ]
     then
         process_log "Instance Type: '${F_INSTANCE_TYPE}' is available in region: '${REGION}'"
     else
@@ -73,8 +73,8 @@ function aws_build_server()
     fi
        
     process_log "Checking availability of Instance Image in target region"
-    output=$(aws ec2 describe-images --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --image-ids ${F_AMI_ID} --region ${REGION} --output text)
-    if [ -n "$output" ]
+    amiExists=$(aws ec2 describe-images --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --image-ids ${F_AMI_ID} --region ${REGION} --output text)
+    if [ ! -z "$amiExists" ]
     then
         process_log "Instance Image: '${F_AMI_ID}' is available in region: '${REGION}'"
     else
