@@ -80,6 +80,7 @@ then
                      "${PUB_FILE_PATH}" \
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
+                     "${PRIV_FILE_PATH}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
     cp -f ${DIRECTORY}/terraform/aws/hosts.yml ${DIRECTORY}/playbook/hosts.yml
@@ -98,7 +99,8 @@ then
                        "${INSTANCE_COUNT}" \
                        "${PUB_FILE_PATH}" \
                        "${PROJECT_NAME}" \
-                       "${PEM_INSTANCE_COUNT}" \                       
+                       "${PEM_INSTANCE_COUNT}" \
+                       "${PRIV_FILE_PATH}" \
                       2>&1 | tee ${TERRAFORM_LOG}
 
     cp -f ${DIRECTORY}/terraform/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
@@ -117,7 +119,8 @@ then
                         "${PROJECT_ID}" \
                         "${PROJECT_NAME}" \
                         "${PEM_INSTANCE_COUNT}" \
-                        "${CREDENTIALS_FILE_LOCATION}" \                        
+                        "${CREDENTIALS_FILE_LOCATION}" \
+                        "${PRIV_FILE_PATH}" \
                        2>&1 | tee ${TERRAFORM_LOG}
 
     cp -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${DIRECTORY}/playbook/hosts.yml

@@ -32,7 +32,10 @@ function aws_build_server()
     local F_PROJECTNAME="$6"
     local F_AMI_ID=""
     local F_INSTANCE_TYPE="c5.2xlarge"
-       
+    local F_PRIV_FILE_KEYPATH="$7"
+    local F_PUB_KEYNAMEANDEXTENSION=""
+    local F_PRIV_KEYNAMEANDEXTENSION=""
+    
     process_log "Building AWS Servers"
     cd ${DIRECTORY}/terraform/aws || exit 1
     process_log "including project names in the variables and tags"
@@ -80,6 +83,13 @@ function aws_build_server()
     else
         exit_on_error "Instance Image: '${F_AMI_ID}' is not available in region: '${REGION}'"
     fi
+
+    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_KEYPATH##*/}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
+    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
+    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
+    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
     
     terraform init
     terraform apply -auto-approve \
@@ -87,7 +97,7 @@ function aws_build_server()
         -var="ami_id=${F_AMI_ID}" \
         -var="aws_region=${REGION}" \
         -var="instance_count=${F_INSTANCES}" \
-        -var="ssh_key_path=${F_KEYPATH}" \
+        -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
         -var="pem_instance_count=${F_PEMINSTANCE}"
 
     if [[ $? -eq 0 ]]
@@ -121,13 +131,22 @@ function azure_build_server()
     local F_PROJECTNAME="$7"
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
-
+    local F_PRIV_FILE_KEYPATH="$9"
+    
     process_log "Building Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
     process_log "including project names in the variables and tags"
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
-                                        > variables.tf 
+                                        > variables.tf
+
+    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_KEYPATH##*/}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
+    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
+    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
+    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+                                            
     terraform init
 
     terraform apply -auto-approve \
@@ -136,7 +155,7 @@ function azure_build_server()
          -var="sku=$F_SKU" \
          -var="azure_location=$F_LOCATION" \
          -var="instance_count=1" \
-         -var="ssh_key_path=$F_PUB_FILE_PATH"
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
  
     if [ "$?" = "0" ]; then
       # Wait for VMs to be fully available
@@ -150,7 +169,7 @@ function azure_build_server()
          -var="sku=$F_SKU" \
          -var="azure_location=$F_LOCATION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
-         -var="ssh_key_path=$F_PUB_FILE_PATH"
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"         
 
     if [[ $? -eq 0 ]]
     then
@@ -182,6 +201,7 @@ function gcloud_build_server()
     local F_PROJECTNAME="$6"
     local F_PEM_INSTANCE_COUNT="$7"
     local F_CREDENTIALS_FILE_LOCATION="$8"
+    local F_PRIV_FILE_KEYPATH="$9"
 
     process_log "Building Google Cloud Servers"
     cd ${DIRECTORY}/terraform/gcloud || exit 1
@@ -208,7 +228,7 @@ function gcloud_build_server()
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
-         -var="ssh_key_location=$F_PUB_FILE_PATH"
+        -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"         
  
     if [[ $? -eq 0 ]]
     then
