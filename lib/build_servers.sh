@@ -219,7 +219,14 @@ function gcloud_build_server()
     then
         F_OSVERSION="rhel-7-v20200403"
     fi
-                                           
+
+    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_PUB_FILE_PATH##*/}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
+    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
+    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
+    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+                                               
     terraform init
 
     terraform apply -auto-approve \
@@ -228,7 +235,7 @@ function gcloud_build_server()
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
-        -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"         
+        -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"         
  
     if [[ $? -eq 0 ]]
     then
