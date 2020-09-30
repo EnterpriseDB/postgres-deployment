@@ -146,7 +146,9 @@ function azure_ansible_pg_install()
     local EDB_YUM_USERNAME="$3"
     local EDB_YUM_PASSWORD="$4"
     local SSH_KEY="$5"
-    local PEM_INSTANCE_COUNT="$6"
+    local F_PRIV_FILE_KEYPATH="$6"
+    local F_PROJECTNAME="$7"    
+    local PEM_INSTANCE_COUNT="$8"
     local PEM_EXISTS=0
     local PRIMARY_EXISTS=0
     local STANDBY_EXISTS=0
@@ -185,7 +187,14 @@ function azure_ansible_pg_install()
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${DIRECTORY}/playbook || exit 1
-    
+
+    F_PUB_KEYNAMEANDEXTENSION=$(echo "${SSH_KEY##*/}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
+    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
+    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
+    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+        
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         cp -f ${DIRECTORY}/terraform/azure/pem-inventory.yml hosts.yml
@@ -196,7 +205,7 @@ function azure_ansible_pg_install()
     ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
-                     --private-key="${SSH_KEY}" \
+                     --private-key="./${F_NEW_PRIV_KEYNAME}" \
                     playbook.yml
                     
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
