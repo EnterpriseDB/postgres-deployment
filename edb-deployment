@@ -139,6 +139,8 @@ then
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
                        "${PRIV_FILE_PATH}" \
+                       "${PUB_FILE_PATH}" \
+                       "${PROJECT_NAME}" \
                        "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
 fi
 

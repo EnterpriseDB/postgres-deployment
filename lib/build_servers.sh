@@ -84,10 +84,10 @@ function aws_build_server()
         exit_on_error "Instance Image: '${F_AMI_ID}' is not available in region: '${REGION}'"
     fi
 
-    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_KEYPATH##*/}")
-    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
-    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
-    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_KEYPATH}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")    
     cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
     
@@ -140,10 +140,10 @@ function azure_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
 
-    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_PUB_FILE_PATH##*/}")
-    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
-    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
-    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
                                             
@@ -220,10 +220,10 @@ function gcloud_build_server()
         F_OSVERSION="rhel-7-v20200403"
     fi
 
-    F_PUB_KEYNAMEANDEXTENSION=$(echo "${F_PUB_FILE_PATH##*/}")
-    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
-    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
-    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
                                                

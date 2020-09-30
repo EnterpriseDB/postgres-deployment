@@ -125,3 +125,31 @@ function parse_yaml {
    set -u
 }
 
+################################################################################
+# function for getting filename after last slash
+################################################################################
+function get_string_after_lastslash {
+   set +u
+   local filenameandpath=$1
+   local F_Result=""
+   
+   F_Result=$(echo "${filenameandpath##*/}")
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
+# function for joining two strings separated by underscore
+################################################################################
+function join_strings_with_underscore {
+   set +u
+   local string1=$1
+   local string2=$2
+   local F_Result=""
+   
+   F_Result="${string1}_${string2}"
+
+   echo "$F_Result"
+   set -u
+}

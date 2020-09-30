@@ -34,7 +34,9 @@ function aws_ansible_pg_install()
     local EDB_YUM_USERNAME="$4"
     local EDB_YUM_PASSWORD="$5"
     local SSH_KEY="$6"
-    local PEM_INSTANCE_COUNT="$7"
+    local F_PUB_FILE_KEYPATH="$7"
+    local F_PROJECTNAME="$8"
+    local PEM_INSTANCE_COUNT="$9"
     local PEM_EXISTS=0
     local PRIMARY_EXISTS=0
     local STANDBY_EXISTS=0
@@ -56,11 +58,18 @@ function aws_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
     
-    #ansible-galaxy collection install edb_devops.edb_postgres \
-    #            --force >> ${PG_INSTALL_LOG} 2>&1
+    ansible-galaxy collection install edb_devops.edb_postgres \
+                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${DIRECTORY}/playbook || exit 1
 
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_KEYPATH}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
+    cp -f "${F_PUB_FILE_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
+    cp -f "${SSH_KEY}" "${F_NEW_PRIV_KEYNAME}"
+    
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         cp -f ${DIRECTORY}/terraform/aws/pem-inventory.yml hosts.yml
@@ -80,7 +89,7 @@ function aws_ansible_pg_install()
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
-                     --private-key="${SSH_KEY}" \
+                     --private-key="./${F_NEW_PRIV_KEYNAME}" \
                     playbook.yml   
  #   fi
                     
@@ -188,10 +197,10 @@ function azure_ansible_pg_install()
                 
     cd ${DIRECTORY}/playbook || exit 1
 
-    F_PUB_KEYNAMEANDEXTENSION=$(echo "${SSH_KEY##*/}")
-    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
-    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
-    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
         
@@ -312,10 +321,10 @@ function gcloud_ansible_pg_install()
                 
     cd ${DIRECTORY}/playbook || exit 1
 
-    F_PUB_KEYNAMEANDEXTENSION=$(echo "${SSH_KEY##*/}")
-    F_PRIV_KEYNAMEANDEXTENSION=$(echo "${F_PRIV_FILE_KEYPATH##*/}")
-    F_NEW_PUB_KEYNAME="${F_PROJECTNAME}_${F_PUB_KEYNAMEANDEXTENSION}"
-    F_NEW_PRIV_KEYNAME="${F_PROJECTNAME}_${F_PRIV_KEYNAMEANDEXTENSION}"
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
+    F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
     
