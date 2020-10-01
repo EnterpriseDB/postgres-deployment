@@ -176,14 +176,22 @@ function azure_ansible_pg_install()
     if [[ "${OS}" =~ "Cent" ]]        
     then
         ANSIBLE_USER="centos"
-        OSNAME="CentOS7"
     elif [[ "${OS}" =~ "RHEL" ]]
     then
         ANSIBLE_USER="ec2-user"
-        OSNAME="RHEL7"        
     else
         exit_on_error "Unknown Operating system"
     fi
+
+   if [[ "${OS}" =~ "Centos8_1" ]]
+    then
+        OSNAME="CentOS8"
+    elif [[ "${OS}" =~ "RHEL8.2" ]]
+    then
+        OSNAME="RHEL8"
+    else
+        exit_on_error "Unknown Operating system"
+    fi    
 
     cd ${DIRECTORY} || exit 1
         
@@ -192,8 +200,8 @@ function azure_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
   
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+    #ansible-galaxy collection install edb_devops.edb_postgres \
+    #            --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${DIRECTORY}/playbook || exit 1
 

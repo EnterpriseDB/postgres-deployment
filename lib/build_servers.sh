@@ -132,6 +132,8 @@ function azure_build_server()
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
     local F_PRIV_FILE_KEYPATH="$9"
+    #local F_AZURE_INSTANCE_SIZE="Standard_A1"
+    local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
     
     process_log "Building Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
@@ -139,6 +141,26 @@ function azure_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
+
+    process_log "Checking availability of Instance Size in target region"
+#az vm list-sizes --location westus2 --output table| grep "Standard_A1"    
+    instancesizeExists=$(az vm list-sizes --location westus2 --output table| grep "${F_AZURE_INSTANCE_SIZE}")
+    if [ ! -z "$instancesizeExists" ]
+    then
+        process_log "Instance Size: '${F_AZURE_INSTANCE_SIZE}' is available in region: '${F_LOCATION}'"
+    else
+        exit_on_error "Instance Size: '${F_AZURE_INSTANCE_SIZE}' is not available in region: '${F_LOCATION}'"
+    fi
+       
+    process_log "Checking availability of Instance Image in target region"
+#az vm image list --all -p OpenLogic -f Centos -s 7.7 -l westus2    
+    amiExists=$(az vm image list --all -p ${F_PUBLISHER} -f ${F_OFFER} -s ${F_SKU} -l ${F_LOCATION} --output table)
+    if [ ! -z "$amiExists" ]
+    then
+        process_log "Instance Image for: Publisher: '${F_PUBLISHER}' Offer: '${F_OFFER}' SKU: '${F_SKU}' is available in location: '${F_LOCATION}'"
+    else
+        exit_on_error "Instance Image for: Publisher: '${F_PUBLISHER}' Offer: '${F_OFFER}' SKU: '${F_SKU}' is not available in location: '${F_LOCATION}'"
+    fi
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
