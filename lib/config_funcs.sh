@@ -173,13 +173,15 @@ function aws_config_file()
 function azure_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${CONFIG_DIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/${PROJECT_NAME}        
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then

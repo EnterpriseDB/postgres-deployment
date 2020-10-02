@@ -188,7 +188,7 @@ if [[ "${AZURE_SERVER}" = "destroy" ]]
 then
     azure_config_file "${PROJECT_NAME}"
     
-    azure_destroy_server "${LOCATION}" | tee  ${TERRAFORM_LOG}
+    azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${GCLOUD_SERVER}" = "destroy" ]]
