@@ -1,37 +1,52 @@
 # Getting Started
-Postgres Deployment scripts are an easy way to deploy Postgres and EDB Tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section. Feel free to leave comments there. However, these scripts are not officially supported by the EnterpriseDb Team.
+Postgres Deployment Scripts are an easy way to deploy (PostgreSQL or EDB Postgres Advanced Server) and EDB Tools. It is a contribution by the EDB Team members, which can help people explore Postgres and EDB Tools. Users can interact via the GitHub repository's issues and may add comments in the issues. These deployment scripts are not officially supported by the EDB Support. It is maintained and supported by the GitHub members of this repository.
 
-EnterpriseDb has the largest base of PostgreSQL experts available.
-
-Learn more about [Professional Support] (https://www.enterprisedb.com/services/ongoing-postgresql-help/postgresql-technical-support)
-
-The intention of this repository is as an introductory self starting guide.
-
-Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process towards Amazon Web Services.
+Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process of a specific cloud (AWS, Azure and Google Cloud).
 
 
 # Pre-Requisites:
-1. Vendor Cloud SDK ( AWS, GCP or Azure )
+Postgres Deployment Scripts are dependent on following components. Install the following components before using the Postgres Deployment Scripts.
+
+1. Vendor Cloud SDK ( AWS, Azure or Google Cloud )
+
+   Depending on the cloud provider, install AWS CLI, Azure CLI or Google Cloud SDK on the system.
+   
 2. Packages: curl and wget
 1. Terraform >= 0.13
 2. Ansible >= 2.9
 
 # INSTALLATION
 
-* The dependent packages are:
+* Install the dependent packages are:
   * curl, wget, curl, terraform and ansible
   * To install Terraform: **[Installing Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)**
   * To install Ansible: **[Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
   * An example script is provided that is located at: ```./lib/prereqs.sh```
 
 * A CLI or SDK depending on the Cloud vendor to utilize is required: 
-  * To install the AWS CLI please refer to: **[Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)**
-  * To install the AZURE CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
+  * To install the Amazon Web Services CLI please refer to: **[Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)**
+  * To install the Microsoft Azure CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
   * To install the Google Cloud SDK please refer to: **[Installing the Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-interactive)**
 
+* Download/Clone the repository as indicated below:
+  
+  For cloning the repository use the following command:
+  
+  ```git clone https://github.com/EnterpriseDB/postres-deployment.git```
+  
+  Download ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
+
+* Extract the zip file to a desired destination
+ 
+* Open the ```Terminal``` command line
+
+* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
+
+* Follow the demos/examples to deploy Postgres in a specific cloud.
+
+
 ## USAGE:
-* The EDB Deployment CLI is available by typing: ```./edb-deployment``` and pressing the **Enter** button.
-  * Below are the available subcommands displayed when executed.
+* The EDB Deployment CLI is part of the code. Following is an example of viewing the options available through the CLI:
 
 ```
     aws-server      [create|destroy]  PROJECT_NAME
@@ -51,6 +66,7 @@ Other Options:
     -h, --help Display help and exit
 ```
 
+## How to Use:
 * Create your SSH Key or make it available for its reference
   ![Create SSH Key](./demos/KeyGen.gif)
   
@@ -69,17 +85,35 @@ Other Options:
     ./edb-deployment gcloud-postgres   install  PROJECT_NAME
 ```
 
-  * Create the Infrastructure in your Cloud Vendor:
+  * Destroy the Infrastructure in your Cloud Vendor:
 ```
     ./edb-deployment aws-server      destroy  PROJECT_NAME
     ./edb-deployment azure-server    destroy  PROJECT_NAME 
     ./edb-deployment gcloud-server   destroy  PROJECT_NAME
 ```
 
-# Demos:
+# Demos/Examples:
 * AWS
-* AZURE
-* GCLOUD
+  * Create Postgres infrastructure in AWS
+    ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
+  * Install Postgres on infrastructure in AWS
+    ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
+  * Destroy Postgres infrastructure in AWS
+    ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
+* Azure
+  * Create Postgres infrastructure in Azure
+    ![Create Postgres infrastructure in Azure](./demos/AZURE_Create_test.gif)
+  * Install Postgres on infrastructure in Azure
+    ![AZURE Install Postgres on infrastructure in Azure](./demos/AZURE_PEM_Install.gif)
+  * Destroy Postgres infrastructure in Azure
+    ![Destroy Postgres infrastructure in Azure](./demos/AZURE_Destroy_test.gif)
+* Google Cloud
+  * Create Postgres infrastructure in Google Cloud
+    ![Create Postgres infrastructure in Google Cloud](./demos/GCLOUD_Create_test.gif)
+  * Install Postgres on infrastructure in Google Cloud
+    ![AZURE Install Postgres on infrastructure in Google Cloud](./demos/GCLOUD_PEM_Install.gif)
+  * Destroy Postgres infrastructure in Google Cloud
+    ![Destroy Postgres infrastructure in Google Cloud](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
@@ -110,22 +144,3 @@ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEV
 ER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-
-Support
-=======
-Postgres Deployment scripts are an easy way to deploy Postgres and EDB tools at no charge. It is a contribution by the EDB team members which can help people explore both Postgres and EDB tools. Users can interact via the git repository comments section so feel free to leave comments there; however, these scripts are not officially supported by the EnterpriseDB team.
-
-**EnterpriseDB has the largest base of PostgreSQL experts available. Learn more about Professional Support.**
-
-## The overall process consists of the following steps:
-
-* Download ```postgres-deployment``` github repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
-
-* Extract the zip file to a desired destination
- 
-* Open the ```Terminal``` command line
-
-* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
-
-* Follow the instructions to install in the README.md
-
