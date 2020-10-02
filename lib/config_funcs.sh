@@ -239,13 +239,15 @@ function azure_config_file()
 function gcloud_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${CONFIG_DIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -265,7 +267,7 @@ function gcloud_config_file()
     MESSAGE="${MESSAGE} examples: 'us-centarl1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
    
-    MESSAGE="Please provide how many Azure Instances to create"
+    MESSAGE="Please provide how many VM Instances to create"
     MESSAGE="${MESSAGE} example '>=3': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 

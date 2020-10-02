@@ -23,7 +23,7 @@ fi
 LOG_SUFFIX="$(date +'%m-%d-%y-%H%M%S')"
 LOGDIR="${DIRECTORY}/log"
 INSTALL_LOG="${LOGDIR}/install_${LOG_SUFFIX}.log"
-CONFIG_DIR=~/.edb
+#CONFIG_DIR=~/.edb
 TERRAFORM_LOG="${LOGDIR}/terraform_${LOG_SUFFIX}.log"
 PG_INSTALL_LOG="${LOGDIR}/pg_install_${LOG_SUFFIX}.log"
 

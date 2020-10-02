@@ -24,6 +24,8 @@ then
 fi
 BASENAME=$(basename $0)
 PLAYBOOK=${DIRECTORY}/playbook/playbook.yml
+TERRAFORM_DIRECTORY=${DIRECTORY}/terraform/
+PROJECTS_DIRECTORY=${DIRECTORY}/projects/
 source ${DIRECTORY}/lib/common_funcs.sh
 source ${DIRECTORY}/lib/config_funcs.sh
 source ${DIRECTORY}/lib/pre_reqs_funcs.sh
@@ -193,5 +195,5 @@ if [[ "${GCLOUD_SERVER}" = "destroy" ]]
 then
     gcloud_config_file "${PROJECT_NAME}"
 
-    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
+    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
 fi

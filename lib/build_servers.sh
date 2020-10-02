@@ -248,7 +248,14 @@ function gcloud_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
-                                               
+
+    if output=$(terraform workspace show | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
+    then
+        terraform workspace select "${F_PROJECTNAME}"
+    else
+        terraform workspace new "${F_PROJECTNAME}"
+    fi
+ 
     terraform init
 
     terraform apply -auto-approve \
@@ -308,12 +315,18 @@ function gcloud_destroy_server()
     local F_SUBNETWORK_REGION="$1"
     local F_PROJECT_ID="$2"
     local F_PUB_FILE_PATH="$3"
+    local F_PROJECTNAME="$4"
 
     process_log "Removing Google Cloud Servers"
-    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    cd ${DIRECTORY}/terraform/gcloud || exit 1    
 
+    terraform workspace select "${F_PROJECTNAME}"
+    
     terraform destroy -auto-approve \
         -var="subnetwork_region=${F_SUBNETWORK_REGION}" \
         -var="project_name=${F_PROJECT_ID}" \
-        -var="ssh_key_location=${F_PUB_FILE_PATH}"                
+        -var="ssh_key_location=${F_PUB_FILE_PATH}"
+
+    terraform workspace select default
+    terraform workspace delete "${F_PROJECTNAME}"
 }
