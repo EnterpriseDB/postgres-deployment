@@ -181,7 +181,7 @@ if [[ "${AWS_SERVER}" = "destroy" ]]
 then
     aws_config_file "${PROJECT_NAME}"
 
-    aws_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
+    aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${AZURE_SERVER}" = "destroy" ]]

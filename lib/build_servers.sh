@@ -90,8 +90,16 @@ function aws_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")    
     cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
-    
+
+    if output=$(terraform workspace show | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
+    then
+        terraform workspace select "${F_PROJECTNAME}"
+    else
+        terraform workspace new "${F_PROJECTNAME}"
+    fi
+        
     terraform init
+    
     terraform apply -auto-approve \
         -var="os=${F_OSNAME}" \
         -var="ami_id=${F_AMI_ID}" \
@@ -291,12 +299,18 @@ function gcloud_build_server()
 function aws_destroy_server()
 {
     local F_REGION="$1"
+    local F_PROJECTNAME="$2"
 
     process_log "Removing AWS Servers"
     cd ${DIRECTORY}/terraform/aws || exit 1
-    
+
+    terraform workspace select "${F_PROJECTNAME}"
+        
     terraform destroy -auto-approve \
         -var="aws_region=${REGION}"
+
+    terraform workspace select default
+    terraform workspace delete "${F_PROJECTNAME}"        
 }
 
 function azure_destroy_server()
