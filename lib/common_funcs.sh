@@ -140,6 +140,20 @@ function get_string_after_lastslash {
 }
 
 ################################################################################
+# function for getting before after last hyphen
+################################################################################
+function get_string_before_last_hyphen {
+   set +u
+   local content=$1
+   local F_Result=""
+   
+   F_Result=$(echo "${content%-*}")
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
 # function for joining two strings separated by underscore
 ################################################################################
 function join_strings_with_underscore {

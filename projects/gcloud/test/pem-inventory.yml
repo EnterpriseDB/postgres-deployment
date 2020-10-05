@@ -1,0 +1,24 @@
+---
+servers:
+  pemserver:
+    node_type: pemserver
+    public_ip: 34.94.138.50
+    private_ip: 10.0.0.2
+  primary1:
+    node_type: primary
+    public_ip: 34.94.234.169
+    private_ip: 10.0.0.3
+    replication_type: asynchronous
+    pem_agent: true
+  standby2:
+    node_type: standby
+    public_ip: 34.94.179.162
+    private_ip: 10.0.0.4
+    replication_type: asynchronous
+    pem_agent: true
+  standby3:
+    node_type: standby
+    public_ip: 34.94.199.231
+    private_ip: 10.0.0.5
+    replication_type: asynchronous
+    pem_agent: true

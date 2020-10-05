@@ -183,7 +183,7 @@ function azure_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
 
-   if [[ "${OS}" =~ "Centos8_1" ]]
+    if [[ "${OS}" =~ "Centos8_1" ]]
     then
         OSNAME="CentOS8"
     elif [[ "${OS}" =~ "RHEL8.2" ]]
@@ -296,7 +296,8 @@ function gcloud_ansible_pg_install()
 
     local ANSIBLE_EXTRA_VARS
 
-    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    #cd ${DIRECTORY}/terraform/gcloud || exit 1
+    cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
     
     while IFS=, read -r os_name_and_version
     do
@@ -304,19 +305,39 @@ function gcloud_ansible_pg_install()
     done < os.csv
 
     OS="$(echo -e "$OS_NAME_AND_VERSION" | tr -d '[:space:]')"
+    FORMATTED_OS=$(get_string_before_last_hyphen "$OS")
 
-    if [[ "${OS}" =~ "centos-7" ]]        
-    then
-        ANSIBLE_USER="centos"
-        OSNAME="CentOS7"
-    elif [[ "${OS}" =~ "rhel-7" ]]
-    then
-        ANSIBLE_USER="ec2-user"
-        OSNAME="RHEL7"        
-    else
-        exit_on_error "Unknown Operating system"
-    fi
-
+    case $FORMATTED_OS in
+        "centos-7")
+            shift; 
+            ANSIBLE_USER="centos"
+            OSNAME="CentOS7"
+            export ANSIBLE_USER
+            export OSNAME
+            ;;
+        "centos-8")
+            shift; 
+            ANSIBLE_USER="centos"
+            OSNAME="CentOS8"
+            export ANSIBLE_USER
+            export OSNAME
+            ;;
+        "rhel-7")
+            shift; 
+            ANSIBLE_USER="ec2-user"
+            OSNAME="RHEL7"
+            export ANSIBLE_USER
+            export OSNAME
+            ;;            
+        "rhel-8")
+            shift; 
+            ANSIBLE_USER="ec2-user"
+            OSNAME="RHEL8"
+            export ANSIBLE_USER
+            export OSNAME
+            ;;                       
+    esac 
+    
     cd ${DIRECTORY} || exit 1
         
     ANSIBLE_EXTRA_VARS="OS=${OSNAME} PG_TYPE=${PG_TYPE}"
@@ -327,21 +348,22 @@ function gcloud_ansible_pg_install()
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    cd ${DIRECTORY}/playbook || exit 1
+    #cd ${DIRECTORY}/playbook || exit 1
+    cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
-    cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
-    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+#    cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
+#    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
     
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
-        cp -f ${DIRECTORY}/terraform/gcloud/pem-inventory.yml hosts.yml
-    else
-        cp -f ${DIRECTORY}/terraform/gcloud/inventory.yml hosts.yml
-    fi
+#    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
+#    then
+#        cp -f ${DIRECTORY}/terraform/gcloud/pem-inventory.yml hosts.yml
+#    else
+#        cp -f ${DIRECTORY}/terraform/gcloud/inventory.yml hosts.yml
+#    fi
         
     ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \

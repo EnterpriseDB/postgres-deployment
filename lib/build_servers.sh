@@ -239,6 +239,7 @@ function gcloud_build_server()
     local F_PEM_INSTANCE_COUNT="$7"
     local F_CREDENTIALS_FILE_LOCATION="$8"
     local F_PRIV_FILE_KEYPATH="$9"
+    local F_IMAGE_FAMILY=""
 
     process_log "Building Google Cloud Servers"
     cd ${DIRECTORY}/terraform/gcloud || exit 1
@@ -246,17 +247,47 @@ function gcloud_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
 
-    if [[ "${F_OS}" =~ "CentOS7" ]]
-    then  
-        #OSVERSION="centos-7-v20170816"
-        F_OSVERSION="centos-7-v20200403"
-    fi
+    case $F_OS in
+        "CentOS7")
+            shift; 
+            #OSVERSION="centos-7-v20170816"
+            F_OSVERSION="centos-7-v20200403"
+            F_IMAGE_FAMILY="centos-7"
+            export F_OSVERSION
+            export F_IMAGE_FAMILY
+            ;;
+        "CentOS8")
+            shift; 
+            F_OSVERSION="centos-8-v20200910"
+            F_IMAGE_FAMILY="centos-8"
+            export F_OSVERSION
+            export F_IMAGE_FAMILY
+            ;;
+        "RHEL7")
+            shift; 
+            F_OSVERSION="rhel-7-v20200403"
+            F_IMAGE_FAMILY="rhel-7"
+            export F_OSVERSION
+            export F_IMAGE_FAMILY
+            ;;            
+        "RHEL8")
+            shift; 
+            F_OSVERSION="rhel-8-v20200910"
+            F_IMAGE_FAMILY="rhel-7"
+            export F_OSVERSION
+            export F_IMAGE_FAMILY
+            ;;                       
+    esac 
 
-    if [[ "${F_OS}" =~ "RHEL7" ]]
+    process_log "Checking availability of Image in target region"
+    imageExists=$(gcloud compute images list --filter="family=${F_IMAGE_FAMILY}")
+    if [ ! -z "$imageExists" ]
     then
-        F_OSVERSION="rhel-7-v20200403"
+        process_log "Instance Image for: Family: '${F_IMAGE_FAMILY}' is available in region: '${F_SUBNETWORK_REGION}'"
+    else
+        exit_on_error "Instance Image for: Family: '${F_IMAGE_FAMILY}' is not available in location: '${F_SUBNETWORK_REGION}'"
     fi
-
+        
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
@@ -279,7 +310,7 @@ function gcloud_build_server()
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
-        -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"         
+         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"         
  
     if [[ $? -eq 0 ]]
     then
@@ -298,6 +329,8 @@ function gcloud_build_server()
     else
         cp -f inventory.yml hosts.yml
     fi
+    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 }
 
 ################################################################################

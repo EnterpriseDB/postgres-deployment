@@ -125,7 +125,13 @@ then
                         "${PRIV_FILE_PATH}" \
                        2>&1 | tee ${TERRAFORM_LOG}
 
-    cp -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/ansible.cfg
+    cp -f ${DIRECTORY}/playbook/playbook.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/playbook.yml
+    mv -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/hosts.yml
+    mv -f ${DIRECTORY}/terraform/gcloud/inventory.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/inventory.yml
+    mv -f ${DIRECTORY}/terraform/gcloud/pem-inventory.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/pem-inventory.yml
+    mv -f ${DIRECTORY}/terraform/gcloud/os.csv ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/os.csv
+    mv -f ${DIRECTORY}/terraform/gcloud/add_host.sh ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/add_host.sh
 fi
 
 ################################################################################
