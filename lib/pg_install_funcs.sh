@@ -345,8 +345,8 @@ function gcloud_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
   
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+#    ansible-galaxy collection install edb_devops.edb_postgres \
+#                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
@@ -355,15 +355,6 @@ function gcloud_ansible_pg_install()
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
-#    cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
-#    cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
-    
-#    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-#    then
-#        cp -f ${DIRECTORY}/terraform/gcloud/pem-inventory.yml hosts.yml
-#    else
-#        cp -f ${DIRECTORY}/terraform/gcloud/inventory.yml hosts.yml
-#    fi
         
     ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \

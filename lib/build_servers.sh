@@ -249,34 +249,42 @@ function gcloud_build_server()
 
     case $F_OS in
         "CentOS7")
-            shift; 
+            shift;
             #OSVERSION="centos-7-v20170816"
             F_OSVERSION="centos-7-v20200403"
             F_IMAGE_FAMILY="centos-7"
+            ANSIBLE_USER="centos"
             export F_OSVERSION
             export F_IMAGE_FAMILY
+            export ANSIBLE_USER
             ;;
         "CentOS8")
-            shift; 
+            shift;
             F_OSVERSION="centos-8-v20200910"
             F_IMAGE_FAMILY="centos-8"
+            ANSIBLE_USER="centos"
             export F_OSVERSION
             export F_IMAGE_FAMILY
+            export ANSIBLE_USER            
             ;;
         "RHEL7")
-            shift; 
+            shift;
             F_OSVERSION="rhel-7-v20200403"
             F_IMAGE_FAMILY="rhel-7"
+            ANSIBLE_USER="ec2-user"
             export F_OSVERSION
             export F_IMAGE_FAMILY
-            ;;            
+            export ANSIBLE_USER            
+            ;;
         "RHEL8")
             shift; 
             F_OSVERSION="rhel-8-v20200910"
             F_IMAGE_FAMILY="rhel-7"
+            ANSIBLE_USER="ec2-user"
             export F_OSVERSION
             export F_IMAGE_FAMILY
-            ;;                       
+            export ANSIBLE_USER            
+            ;;
     esac 
 
     process_log "Checking availability of Image in target region"
@@ -310,7 +318,8 @@ function gcloud_build_server()
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
-         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"         
+         -var="ssh_user=$ANSIBLE_USER" \
+         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
  
     if [[ $? -eq 0 ]]
     then

@@ -117,7 +117,7 @@ function aws_config_file()
 
     mkdir -p ${LOGDIR}
     #mkdir -p ${CONFIG_DIR}
-    mkdir -p ${PROJECTS_DIRECTORY}/${PROJECT_NAME}    
+    mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -181,7 +181,7 @@ function azure_config_file()
 
     mkdir -p ${LOGDIR}
     #mkdir -p ${CONFIG_DIR}
-    mkdir -p ${PROJECTS_DIRECTORY}/${PROJECT_NAME}        
+    mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -251,7 +251,7 @@ function gcloud_config_file()
 
     mkdir -p ${LOGDIR}
     #mkdir -p ${CONFIG_DIR}
-    mkdir -p ${PROJECTS_DIRECTORY}/${PROJECT_NAME}
+    mkdir -p ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
