@@ -167,3 +167,17 @@ function join_strings_with_underscore {
    echo "$F_Result"
    set -u
 }
+
+################################################################################
+# function for getting the first word from an command line output
+################################################################################
+function get_first_word_from_output {
+   set +u
+   local text=$1
+   local F_Result=""
+   
+   F_Result=$(echo $text | grep -o "^\S*")
+
+   echo "$F_Result"
+   set -u
+}

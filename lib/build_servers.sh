@@ -239,7 +239,9 @@ function gcloud_build_server()
     local F_PEM_INSTANCE_COUNT="$7"
     local F_CREDENTIALS_FILE_LOCATION="$8"
     local F_PRIV_FILE_KEYPATH="$9"
-    local F_IMAGE_FAMILY=""
+    local F_ANSIBLE_USER=""
+    local F_IMAGE_LIST=""
+    local F_IMAGE_NAME=""
 
     process_log "Building Google Cloud Servers"
     cd ${DIRECTORY}/terraform/gcloud || exit 1
@@ -247,53 +249,24 @@ function gcloud_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf
 
-    case $F_OS in
-        "CentOS7")
-            shift;
-            #OSVERSION="centos-7-v20170816"
-            F_OSVERSION="centos-7-v20200403"
-            F_IMAGE_FAMILY="centos-7"
-            ANSIBLE_USER="centos"
-            export F_OSVERSION
-            export F_IMAGE_FAMILY
-            export ANSIBLE_USER
-            ;;
-        "CentOS8")
-            shift;
-            F_OSVERSION="centos-8-v20200910"
-            F_IMAGE_FAMILY="centos-8"
-            ANSIBLE_USER="centos"
-            export F_OSVERSION
-            export F_IMAGE_FAMILY
-            export ANSIBLE_USER            
-            ;;
-        "RHEL7")
-            shift;
-            F_OSVERSION="rhel-7-v20200403"
-            F_IMAGE_FAMILY="rhel-7"
-            ANSIBLE_USER="ec2-user"
-            export F_OSVERSION
-            export F_IMAGE_FAMILY
-            export ANSIBLE_USER            
-            ;;
-        "RHEL8")
-            shift; 
-            F_OSVERSION="rhel-8-v20200910"
-            F_IMAGE_FAMILY="rhel-7"
-            ANSIBLE_USER="ec2-user"
-            export F_OSVERSION
-            export F_IMAGE_FAMILY
-            export ANSIBLE_USER            
-            ;;
-    esac 
+    if [[ "${F_OS}" =~ "centos" ]]
+    then  
+        F_ANSIBLE_USER="centos"
+    fi
 
+    if [[ "${F_OS}" =~ "rhel" ]]
+    then  
+        F_ANSIBLE_USER="ec2-user"
+    fi
+        
     process_log "Checking availability of Image in target region"
-    imageExists=$(gcloud compute images list --filter="family=${F_IMAGE_FAMILY}")
-    if [ ! -z "$imageExists" ]
+    F_IMAGE_LIST=$(gcloud compute images list --filter="family=${F_OS}" --format="[list,no-heading]")
+    F_IMAGE_NAME=$(get_first_word_from_output "${F_IMAGE_LIST}")    
+    if [ ! -z "$F_IMAGE_NAME" ]
     then
-        process_log "Instance Image for: Family: '${F_IMAGE_FAMILY}' is available in region: '${F_SUBNETWORK_REGION}'"
+        process_log "Instance Image for: Family: '${F_OS}' is available in region: '${F_SUBNETWORK_REGION}'"
     else
-        exit_on_error "Instance Image for: Family: '${F_IMAGE_FAMILY}' is not available in location: '${F_SUBNETWORK_REGION}'"
+        exit_on_error "Instance Image for: Family: '${F_OS}' is not available in location: '${F_SUBNETWORK_REGION}'"
     fi
         
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
@@ -313,12 +286,12 @@ function gcloud_build_server()
     terraform init
 
     terraform apply -auto-approve \
-         -var="os=$F_OSVERSION" \
+         -var="os=$F_IMAGE_NAME" \
          -var="project_name=$F_PROJECTID" \
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
-         -var="ssh_user=$ANSIBLE_USER" \
+         -var="ssh_user=$F_ANSIBLE_USER" \
          -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
  
     if [[ $? -eq 0 ]]

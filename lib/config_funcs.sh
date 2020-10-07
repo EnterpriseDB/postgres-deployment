@@ -261,14 +261,15 @@ function gcloud_config_file()
         source ${CONFIG_FILE}
     fi
 
-    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+#    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    MESSAGE="Please provide OS name from 'centos-7, centos-8, rhel-7 and rhel-8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
     MESSAGE="Please Google Project ID: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
     
     MESSAGE="Please provide target Google Cloud Region"
-    MESSAGE="${MESSAGE} examples: 'us-centarl1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
+    MESSAGE="${MESSAGE} examples: 'us-central1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
    
     MESSAGE="Please provide how many VM Instances to create"
