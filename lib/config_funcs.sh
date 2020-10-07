@@ -261,7 +261,6 @@ function gcloud_config_file()
         source ${CONFIG_FILE}
     fi
 
-#    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
     MESSAGE="Please provide OS name from 'centos-7, centos-8, rhel-7 and rhel-8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 

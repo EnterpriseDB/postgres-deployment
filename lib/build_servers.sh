@@ -31,6 +31,7 @@ function aws_build_server()
     local F_PEMINSTANCE="$5"
     local F_PROJECTNAME="$6"
     local F_AMI_ID=""
+    local F_IMAGE_NAME=""
     local F_INSTANCE_TYPE="c5.2xlarge"
     local F_PRIV_FILE_KEYPATH="$7"
     local F_PUB_KEYNAMEANDEXTENSION=""
@@ -46,23 +47,23 @@ function aws_build_server()
     case $F_OSNAME in
         "CentOS7")
             shift; 
-            F_AMI_ID="ami-0bc06212a56393ee1"
-            export F_AMI_ID
+            F_IMAGE_NAME="CentOS Linux 7 x86_64 HVM EBS*"
+            export F_IMAGE_NAME
             ;;
         "CentOS8")
             shift; 
-            F_AMI_ID="ami-0157b1e4eefd91fd7"
-            export F_AMI_ID
+            F_IMAGE_NAME="CentOS 8*"
+            export F_IMAGE_NAME
             ;;
         "RHEL7")
             shift; 
-            F_AMI_ID="ami-0039be094106a495e"
-            export F_AMI_ID
+            F_IMAGE_NAME="RHEL-7.8-x86_64*"
+            export F_IMAGE_NAME
             ;;            
         "RHEL8")
             shift; 
-            F_AMI_ID="ami-0a5eb017b84430da9"
-            export F_AMI_ID
+            F_IMAGE_NAME="RHEL-8.2-x86_64*"
+            export F_IMAGE_NAME
             ;;                       
     esac    
 
@@ -76,8 +77,9 @@ function aws_build_server()
     fi
        
     process_log "Checking availability of Instance Image in target region"
-    amiExists=$(aws ec2 describe-images --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --image-ids ${F_AMI_ID} --region ${REGION} --output text)
-    if [ ! -z "$amiExists" ]
+    F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region us-west-2 --output text)
+    
+    if [ ! -z "$F_AMI_ID" ]
     then
         process_log "Instance Image: '${F_AMI_ID}' is available in region: '${REGION}'"
     else
@@ -125,6 +127,8 @@ function aws_build_server()
     else
         cp -f inventory.yml hosts.yml
     fi
+    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
 }
 
 
