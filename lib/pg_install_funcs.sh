@@ -61,7 +61,8 @@ function aws_ansible_pg_install()
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    cd ${DIRECTORY}/playbook || exit 1
+    #cd ${DIRECTORY}/playbook || exit 1
+    cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_KEYPATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
@@ -69,13 +70,13 @@ function aws_ansible_pg_install()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${SSH_KEY}" "${F_NEW_PRIV_KEYNAME}"
-    
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
-        cp -f ${DIRECTORY}/terraform/aws/pem-inventory.yml hosts.yml
-    else
-        cp -f ${DIRECTORY}/terraform/aws/inventory.yml hosts.yml
-    fi
+       
+    #if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
+    #then
+    #    cp -f ${DIRECTORY}/terraform/aws/pem-inventory.yml hosts.yml
+    #else
+    #    cp -f ${DIRECTORY}/terraform/aws/inventory.yml hosts.yml
+    #fi
 
 #    if [[ "${OSNAME}" =~ "CentOS8" ]] || [[ "${OSNAME}" =~ "RHEL8" ]]
 #    then
@@ -164,7 +165,8 @@ function azure_ansible_pg_install()
 
     local ANSIBLE_EXTRA_VARS
 
-    cd ${DIRECTORY}/terraform/azure || exit 1
+    #cd ${DIRECTORY}/terraform/azure || exit 1
+    cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1    
     
     while IFS=, read -r os_name_and_version
     do
@@ -200,10 +202,11 @@ function azure_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
   
-    #ansible-galaxy collection install edb_devops.edb_postgres \
-    #            --force >> ${PG_INSTALL_LOG} 2>&1
+    ansible-galaxy collection install edb_devops.edb_postgres \
+                --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    cd ${DIRECTORY}/playbook || exit 1
+    #cd ${DIRECTORY}/playbook || exit 1
+    cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1    
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")

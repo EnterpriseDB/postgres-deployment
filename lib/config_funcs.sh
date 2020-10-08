@@ -51,9 +51,9 @@ function check_update_param()
         fi
         if [[ "${PARAM}" = "INSTANCE_COUNT" ]]
         then
-            if [[ "${VALUE}" -lt 3 ]]
+            if [[ "${VALUE}" -lt 1 ]]
             then
-                exit_on_error "Instance count cannot be less than 3"
+                exit_on_error "Instance count cannot be less than 1"
             fi
         fi
         if [[ "${PARAM}" = "PEMSERVER" ]]
