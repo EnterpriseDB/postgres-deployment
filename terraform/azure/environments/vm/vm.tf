@@ -1,7 +1,8 @@
-variable "instance_count" {}
-variable "pem_instance_count" {}
-variable "synchronicity" {}
-variable "cluster_name" {}
+variable instance_size {}
+variable instance_count {}
+variable pem_instance_count {}
+variable synchronicity {}
+variable cluster_name {}
 variable vnet_name {}
 variable resourcegroup_name {}
 variable securitygroup_name {}
@@ -63,17 +64,16 @@ resource "azurerm_network_interface" "Public_Nic" {
 resource "azurerm_linux_virtual_machine" "vm" {
   count = var.instance_count
   #name                  = "EDB-VM-${count.index}"
-  name                = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s%s", var.cluster_name, "primary") : format("%s%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s%s", var.cluster_name, "pemserver") : format("%s%s", var.cluster_name, "primary")))
-  resource_group_name = var.resourcegroup_name
-  location            = var.azure_location
-  size                = "Standard_A1"
-  #size                  = "Standard_A8_v2"
+  name                  = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s%s", var.cluster_name, "primary") : format("%s%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s%s", var.cluster_name, "pemserver") : format("%s%s", var.cluster_name, "primary")))
+  resource_group_name   = var.resourcegroup_name
+  location              = var.azure_location
+  size                  = var.instance_size
   admin_username        = var.admin_username
   network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index)}"]
   #network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index < 3 ? count.index : 2)}"]
 
   admin_ssh_key {
-    username   = "centos"
+    username   = var.admin_username
     public_key = file(var.ssh_key_path)
   }
 
@@ -82,7 +82,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   source_image_reference {
-    # CentOS7
     publisher = var.publisher
     offer     = var.offer
     sku       = var.sku

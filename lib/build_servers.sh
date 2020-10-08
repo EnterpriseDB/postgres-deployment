@@ -146,6 +146,7 @@ function azure_build_server()
     local F_PRIV_FILE_KEYPATH="$9"
     #local F_AZURE_INSTANCE_SIZE="Standard_A1"
     local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
+    local ANSIBLE_USER=""
     
     process_log "Building Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
@@ -155,7 +156,6 @@ function azure_build_server()
                                         > variables.tf
 
     process_log "Checking availability of Instance Size in target region"
-#az vm list-sizes --location westus2 --output table| grep "Standard_A1"    
     instancesizeExists=$(az vm list-sizes --location westus2 --output table| grep "${F_AZURE_INSTANCE_SIZE}")
     if [ ! -z "$instancesizeExists" ]
     then
@@ -187,14 +187,26 @@ function azure_build_server()
     else
         terraform workspace new "${F_PROJECTNAME}"
     fi
-                                                
+
+    if [[ "${OFFER}" =~ "Cent" ]]        
+    then
+        ANSIBLE_USER="centos"
+    elif [[ "${OFFER}" =~ "RHEL" ]]
+    then
+        ANSIBLE_USER="ec2-user"
+    else
+        exit_on_error "Unknown Operating system"
+    fi
+                                                    
     terraform init
 
     terraform apply -auto-approve \
          -var="publisher=$F_PUBLISHER" \
          -var="offer=$F_OFFER" \
          -var="sku=$F_SKU" \
-         -var="azure_location=$F_LOCATION" \
+         -var="azure_location=${F_LOCATION}" \
+         -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
+         -var="admin_username=${ANSIBLE_USER}" \
          -var="instance_count=1" \
          -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
  
@@ -208,9 +220,11 @@ function azure_build_server()
          -var="publisher=$F_PUBLISHER" \
          -var="offer=$F_OFFER" \
          -var="sku=$F_SKU" \
-         -var="azure_location=$F_LOCATION" \
-         -var="instance_count=$F_INSTANCE_COUNT" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"         
+         -var="azure_location=${F_LOCATION}" \
+         -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
+         -var="admin_username=${ANSIBLE_USER}" \
+         -var="instance_count=${F_INSTANCE_COUNT}" \
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
 
     if [[ $? -eq 0 ]]
     then
@@ -342,15 +356,22 @@ function aws_destroy_server()
 function azure_destroy_server()
 {
     local F_LOCATION="$1"
-    local F_PROJECTNAME="$2"    
+    local F_PROJECTNAME="$2"
+    local F_PUB_FILE_PATH="$3"
+    local F_NEW_PUB_KEYNAME=""
+    local F_PUB_KEYNAMEANDEXTENSION=""
 
     process_log "Removing Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
 
+    F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
+    F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
+    
     terraform workspace select "${F_PROJECTNAME}"
         
     terraform destroy -auto-approve \
-        -var="azure_location=${F_LOCATION}"
+        -var="azure_location=${F_LOCATION}" \
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"        
         
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"

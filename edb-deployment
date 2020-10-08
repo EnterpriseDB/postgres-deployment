@@ -85,14 +85,7 @@ then
                      "${PRIV_FILE_PATH}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
-    cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/ansible.cfg
-    cp -f ${DIRECTORY}/playbook/playbook.yml ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/playbook.yml
-    cp -f ${DIRECTORY}/playbook/R07_firewalld_stop.yml ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/R07_firewalld_stop.yml    
-    mv -f ${DIRECTORY}/terraform/aws/hosts.yml ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/hosts.yml
-    mv -f ${DIRECTORY}/terraform/aws/inventory.yml ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/inventory.yml
-    mv -f ${DIRECTORY}/terraform/aws/pem-inventory.yml ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/pem-inventory.yml
-    mv -f ${DIRECTORY}/terraform/aws/os.csv ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/os.csv
-    mv -f ${DIRECTORY}/terraform/aws/add_host.sh ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/add_host.sh    
+    copy_files_to_project_folder "aws"
 fi
 
 if [[ "${AZURE_SERVER}" = "create" ]]
@@ -112,7 +105,7 @@ then
                        "${PRIV_FILE_PATH}" \
                       2>&1 | tee ${TERRAFORM_LOG}
 
-    cp -f ${DIRECTORY}/terraform/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    copy_files_to_project_folder "azure"
 fi
 
 if [[ "${GCLOUD_SERVER}" = "create" ]]
@@ -132,14 +125,7 @@ then
                         "${PRIV_FILE_PATH}" \
                        2>&1 | tee ${TERRAFORM_LOG}
 
-    cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/ansible.cfg
-    cp -f ${DIRECTORY}/playbook/playbook.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/playbook.yml
-    cp -f ${DIRECTORY}/playbook/R07_firewalld_stop.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/R07_firewalld_stop.yml        
-    mv -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/hosts.yml
-    mv -f ${DIRECTORY}/terraform/gcloud/inventory.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/inventory.yml
-    mv -f ${DIRECTORY}/terraform/gcloud/pem-inventory.yml ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/pem-inventory.yml
-    mv -f ${DIRECTORY}/terraform/gcloud/os.csv ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/os.csv
-    mv -f ${DIRECTORY}/terraform/gcloud/add_host.sh ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/add_host.sh
+    copy_files_to_project_folder "gcloud"
 fi
 
 ################################################################################
@@ -202,7 +188,7 @@ if [[ "${AZURE_SERVER}" = "destroy" ]]
 then
     azure_config_file "${PROJECT_NAME}"
     
-    azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${GCLOUD_SERVER}" = "destroy" ]]

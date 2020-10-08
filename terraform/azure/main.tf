@@ -53,6 +53,7 @@ module "storagecontainer" {
 module "vm" {
   source = "./environments/vm"
 
+  instance_size                       = var.instance_size
   instance_count                      = var.instance_count
   pem_instance_count                  = var.pem_instance_count
   synchronicity                       = var.synchronicity
