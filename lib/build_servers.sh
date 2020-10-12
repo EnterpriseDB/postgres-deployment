@@ -77,7 +77,7 @@ function aws_build_server()
     fi
        
     process_log "Checking availability of Instance Image in target region"
-    F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region us-west-2 --output text)
+    F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region ${REGION} --output text)
     
     if [ ! -z "$F_AMI_ID" ]
     then
