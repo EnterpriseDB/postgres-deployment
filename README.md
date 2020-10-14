@@ -12,8 +12,8 @@ Postgres Deployment Scripts are dependent on following components. Install the f
    Depending on the cloud provider, install AWS CLI, Azure CLI or Google Cloud SDK on the system.
    
 2. Packages: curl and wget
-1. Terraform >= 0.13
-2. Ansible >= 2.9
+3. Terraform >= 0.13
+4. Ansible >= 2.9
 
 # INSTALLATION
 
