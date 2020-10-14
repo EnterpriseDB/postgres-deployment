@@ -58,8 +58,8 @@ function aws_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
     
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+ #   ansible-galaxy collection install edb_devops.edb_postgres \
+ #               --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
@@ -71,28 +71,20 @@ function aws_ansible_pg_install()
     cp -f "${F_PUB_FILE_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${SSH_KEY}" "${F_NEW_PRIV_KEYNAME}"
        
-    #if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-    #then
-    #    cp -f ${DIRECTORY}/terraform/aws/pem-inventory.yml hosts.yml
-    #else
-    #    cp -f ${DIRECTORY}/terraform/aws/inventory.yml hosts.yml
-    #fi
-
-#    if [[ "${OSNAME}" =~ "CentOS8" ]] || [[ "${OSNAME}" =~ "RHEL8" ]]
-#    then
- #       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
- #                    --user="${ANSIBLE_USER}" \
- #                    --extra-vars="${ANSIBLE_EXTRA_VARS}" \
- #                    --private-key="${SSH_KEY}" \
- #                    -e 'ansible_python_interpreter=/usr/bin/python3' \
- #                   playbook.yml
- #   else
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
+    then
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
-                    playbook.yml   
- #   fi
+                    playbook.yml
+    else
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+                     --user="${ANSIBLE_USER}" \
+                     --extra-vars="${ANSIBLE_EXTRA_VARS}" \
+                     --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                    playbook-single-instance.yml   
+    fi
                     
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)

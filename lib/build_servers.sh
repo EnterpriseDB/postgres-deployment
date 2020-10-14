@@ -121,12 +121,8 @@ function aws_build_server()
     sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
-    if [[ ${F_PEMINSTANCE} -gt 0 ]]
-    then
-        cp -f pem-inventory.yml hosts.yml
-    else
-        cp -f inventory.yml hosts.yml
-    fi
+    cp -f pem-inventory.yml hosts.yml
+        
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
 }

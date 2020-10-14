@@ -190,7 +190,7 @@ function copy_files_to_project_folder {
    local cloud=$1
    
    cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/ansible.cfg
-   cp -f ${DIRECTORY}/playbook/playbook.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/playbook.yml
+   cp -f ${DIRECTORY}/playbook/playbook*.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    cp -f ${DIRECTORY}/playbook/R07_firewalld_stop.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/R07_firewalld_stop.yml        
    mv -f ${DIRECTORY}/terraform/${cloud}/hosts.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/hosts.yml
    mv -f ${DIRECTORY}/terraform/${cloud}/inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/inventory.yml

@@ -27,7 +27,4 @@
     - setup_repo
     - install_dbserver
     - init_dbserver
-    - setup_replication
-    - setup_efm
-    - setup_pem
     - manage_dbserver

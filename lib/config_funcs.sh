@@ -154,7 +154,7 @@ function aws_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
@@ -224,7 +224,7 @@ function azure_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
@@ -295,7 +295,7 @@ function gcloud_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
