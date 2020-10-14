@@ -30,7 +30,7 @@ resource "aws_instance" "EDB_DB_Cluster" {
 
   ami = var.ami_id
 
-  instance_type = var.instance_type
+  instance_type          = var.instance_type
   key_name               = aws_key_pair.key_pair.id
   subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
   vpc_security_group_ids = [var.custom_security_group_id]
@@ -42,7 +42,7 @@ resource "aws_instance" "EDB_DB_Cluster" {
   }
 
   tags = {
-    Name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : format("%s-%s", var.cluster_name, "primary")))
+    Name       = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemerver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s", var.cluster_name, "primary"))))
     Created_By = var.created_by
   }
 

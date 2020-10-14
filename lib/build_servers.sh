@@ -347,6 +347,8 @@ function aws_destroy_server()
 
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"
+    
+    rm -Rf ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}
 }
 
 function azure_destroy_server()
@@ -371,6 +373,8 @@ function azure_destroy_server()
         
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"
+
+    rm -Rf ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}
 }
 
 function gcloud_destroy_server()
@@ -392,4 +396,6 @@ function gcloud_destroy_server()
 
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"
+
+    rm -Rf ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}
 }
