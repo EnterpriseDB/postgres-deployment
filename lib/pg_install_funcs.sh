@@ -158,7 +158,7 @@ function azure_ansible_pg_install()
     local ANSIBLE_EXTRA_VARS
 
     #cd ${DIRECTORY}/terraform/azure || exit 1
-    cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1    
+    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
     
     while IFS=, read -r os_name_and_version
     do
@@ -167,7 +167,7 @@ function azure_ansible_pg_install()
 
     OS="$(echo -e "$OS_NAME_AND_VERSION" | tr -d '[:space:]')"
 
-    if [[ "${OS}" =~ "Cent" ]]        
+    if [[ "${OS}" =~ "Centos" ]]        
     then
         ANSIBLE_USER="centos"
     elif [[ "${OS}" =~ "RHEL" ]]
@@ -177,28 +177,28 @@ function azure_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
 
-    if [[ "${OS}" =~ "Centos8_1" ]]
-    then
-        OSNAME="CentOS8"
-    elif [[ "${OS}" =~ "RHEL8.2" ]]
-    then
-        OSNAME="RHEL8"
-    else
-        exit_on_error "Unknown Operating system"
-    fi    
+    #if [[ "${OS}" =~ "Centos8_1" ]]
+    #then
+    #    OSNAME="CentOS8"
+    #elif [[ "${OS}" =~ "RHEL8.2" ]]
+    #then
+    #    OSNAME="RHEL8"
+    #else
+    #    exit_on_error "Unknown Operating system"
+    #fi    
 
     cd ${DIRECTORY} || exit 1
         
     ANSIBLE_EXTRA_VARS="OS=${OSNAME} PG_TYPE=${PG_TYPE}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} PG_VERSION=${PG_VERSION}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
   
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+#    ansible-galaxy collection install edb_devops.edb_postgres \
+#                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
-    cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1    
+    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
@@ -206,14 +206,7 @@ function azure_ansible_pg_install()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
-        
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
-        cp -f ${DIRECTORY}/terraform/azure/pem-inventory.yml hosts.yml
-    else
-        cp -f ${DIRECTORY}/terraform/azure/inventory.yml hosts.yml
-    fi
-        
+               
     ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
@@ -337,8 +330,8 @@ function gcloud_ansible_pg_install()
         
     ANSIBLE_EXTRA_VARS="OS=${OSNAME} PG_TYPE=${PG_TYPE}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} PG_VERSION=${PG_VERSION}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_USERNAME=${EDB_YUM_USERNAME}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} EDB_YUM_PASSWORD=${EDB_YUM_PASSWORD}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
   
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1

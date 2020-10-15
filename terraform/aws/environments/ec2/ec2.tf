@@ -42,7 +42,7 @@ resource "aws_instance" "EDB_DB_Cluster" {
   }
 
   tags = {
-    Name       = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemerver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s", var.cluster_name, "primary"))))
+    Name       = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s", var.cluster_name, "primary"))))
     Created_By = var.created_by
   }
 

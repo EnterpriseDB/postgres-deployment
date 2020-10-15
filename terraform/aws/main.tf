@@ -13,7 +13,7 @@ module "vpc" {
   vpc_cidr_block = var.vpc_cidr_block
   vpc_tag        = var.vpc_tag
 
-#  depends_on = [module.iam]
+  #  depends_on = [module.iam]
 }
 
 module "network" {

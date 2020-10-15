@@ -140,8 +140,12 @@ function azure_build_server()
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
     local F_PRIV_FILE_KEYPATH="$9"
+    #Minimal size
     #local F_AZURE_INSTANCE_SIZE="Standard_A1"
-    local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
+    #Small size
+    local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
+    #Larger size
+    #local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
     local ANSIBLE_USER=""
     
     process_log "Building Azure Servers"
@@ -161,7 +165,6 @@ function azure_build_server()
     fi
        
     process_log "Checking availability of Instance Image in target region"
-#az vm image list --all -p OpenLogic -f Centos -s 7.7 -l westus2    
     amiExists=$(az vm image list --all -p ${F_PUBLISHER} -f ${F_OFFER} -s ${F_SKU} -l ${F_LOCATION} --output table)
     if [ ! -z "$amiExists" ]
     then
@@ -196,20 +199,20 @@ function azure_build_server()
                                                     
     terraform init
 
-    terraform apply -auto-approve \
-         -var="publisher=$F_PUBLISHER" \
-         -var="offer=$F_OFFER" \
-         -var="sku=$F_SKU" \
-         -var="azure_location=${F_LOCATION}" \
-         -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
-         -var="admin_username=${ANSIBLE_USER}" \
-         -var="instance_count=1" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
+#    terraform apply -auto-approve \
+#         -var="publisher=$F_PUBLISHER" \
+#         -var="offer=$F_OFFER" \
+#         -var="sku=$F_SKU" \
+#         -var="azure_location=${F_LOCATION}" \
+#         -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
+#         -var="admin_username=${ANSIBLE_USER}" \
+#         -var="instance_count=1" \
+#         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
  
-    if [ "$?" = "0" ]; then
-      # Wait for VMs to be fully available
-      az vm wait --ids $(az vm list -g "$F_EDB_PREREQ_GROUP" --query "[].id" -o tsv) --created
-    fi
+#    if [ "$?" = "0" ]; then
+#      # Wait for VMs to be fully available
+#      az vm wait --ids $(az vm list -g "$F_EDB_PREREQ_GROUP" --query "[].id" -o tsv) --created
+#    fi
 
     # Execute with the correct instance count
     terraform apply -auto-approve \
@@ -220,6 +223,7 @@ function azure_build_server()
          -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
          -var="admin_username=${ANSIBLE_USER}" \
          -var="instance_count=${F_INSTANCE_COUNT}" \
+         -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
 
     if [[ $? -eq 0 ]]
@@ -233,12 +237,10 @@ function azure_build_server()
     sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
-    if [[ ${F_PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
-        cp -f pem-inventory.yml hosts.yml
-    else
-        cp -f inventory.yml hosts.yml
-    fi
+    cp -f pem-inventory.yml hosts.yml
+        
+    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
 }
 
 function gcloud_build_server()
@@ -304,6 +306,7 @@ function gcloud_build_server()
          -var="project_name=$F_PROJECTID" \
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
          -var="instance_count=$F_INSTANCE_COUNT" \
+         -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \
          -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
@@ -318,13 +321,9 @@ function gcloud_build_server()
     fi
     sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
-    
-    if [[ ${F_PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
-        cp -f pem-inventory.yml hosts.yml
-    else
-        cp -f inventory.yml hosts.yml
-    fi
+       
+    cp -f pem-inventory.yml hosts.yml
+        
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 }
