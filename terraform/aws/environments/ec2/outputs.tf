@@ -10,7 +10,7 @@ servers:
     public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}
     public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}
     private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
-    %{if count > 0}replication_type: ${var.synchronicity}%{endif}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
   %{endfor~}
 EOT
@@ -28,7 +28,7 @@ servers:
     %{if count > 0}public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}%{endif}
     %{if count > 0}public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}%{endif}
     %{if count > 0}private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}%{endif}
-    %{if count > 0}replication_type: ${var.synchronicity}%{endif}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
 %{endfor~}
 EOT

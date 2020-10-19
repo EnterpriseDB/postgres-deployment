@@ -20,8 +20,9 @@ data "google_compute_zones" "available" {
 
 resource "google_compute_instance" "edb-prereq-engine-instance" {
   count = var.instance_count
-  name  = "${var.instance_name}-${count.index}"
-  #name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.instance_name, "primary") : format("%s-%s%s", var.instance_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : format("%s-%s", var.instance_name, "primary")))  
+  #name  = "${var.instance_name}-${count.index}"
+  #name       = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s-%s", var.instance_name, "primary") : format("%s-%s%s", var.instance_name, "standby", count.index)) : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : (count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : format("%s-%s", var.instance_name, "primary")))
+  name         = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.instance_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : format("%s-%s%s", var.instance_name, "primary", count.index))))
   machine_type = var.vm_type
 
   zone = data.google_compute_zones.available.names[count.index < 3 ? count.index : 2]
@@ -51,7 +52,8 @@ resource "google_compute_instance" "edb-prereq-engine-instance" {
 
   network_interface {
     #subnetwork = google_compute_subnetwork.edb_prereq_network_subnetwork.name
-    subnetwork = var.subnetwork_name
+    #subnetwork = var.subnetwork_name
+    subnetwork = var.network_name
 
     access_config {
       // Ephemeral IP

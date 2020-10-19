@@ -44,7 +44,7 @@ function aws_ansible_pg_install()
     local ANSIBLE_EXTRA_VARS
 
     ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} PG_VERSION=${PG_VERSION}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
 
@@ -189,13 +189,13 @@ function azure_ansible_pg_install()
 
     cd ${DIRECTORY} || exit 1
         
-    ANSIBLE_EXTRA_VARS="OS=${OSNAME} PG_TYPE=${PG_TYPE}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} PG_VERSION=${PG_VERSION}"
+    ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
   
-#    ansible-galaxy collection install edb_devops.edb_postgres \
-#                --force >> ${PG_INSTALL_LOG} 2>&1
+    ansible-galaxy collection install edb_devops.edb_postgres \
+                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
@@ -206,12 +206,21 @@ function azure_ansible_pg_install()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${SSH_KEY}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
-               
-    ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
+    then
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
                     playbook.yml
+    else
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+                     --user="${ANSIBLE_USER}" \
+                     --extra-vars="${ANSIBLE_EXTRA_VARS}" \
+                     --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                    playbook-single-instance.yml   
+    fi
                     
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
@@ -328,13 +337,13 @@ function gcloud_ansible_pg_install()
     
     cd ${DIRECTORY} || exit 1
         
-    ANSIBLE_EXTRA_VARS="OS=${OSNAME} PG_TYPE=${PG_TYPE}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} PG_VERSION=${PG_VERSION}"
+    ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
   
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+#    ansible-galaxy collection install edb_devops.edb_postgres \
+#                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
@@ -344,11 +353,20 @@ function gcloud_ansible_pg_install()
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
         
-    ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
+    then
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
                     playbook.yml
+    else
+       ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
+                     --user="${ANSIBLE_USER}" \
+                     --extra-vars="${ANSIBLE_EXTRA_VARS}" \
+                     --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                    playbook-single-instance.yml   
+    fi
                     
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)

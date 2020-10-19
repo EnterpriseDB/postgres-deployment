@@ -65,7 +65,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   count = var.instance_count
   #name                  = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s%s", var.cluster_name, "primary") : format("%s%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s%s%s", var.cluster_name, "standby", count.index) : (var.pem_instance_count == "1" && count.index == 0 ? format("%s%s", var.cluster_name, "pemserver") : format("%s%s", var.cluster_name, "primary")))
   #name       = (var.pem_instance_count == 1 && count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : format("%s-%s%s", var.cluster_name, "standby", count.index)))
-  name       = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s%s", var.cluster_name, "primary", count.index))))
+  name                  = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s%s", var.cluster_name, "primary", count.index))))
   resource_group_name   = var.resourcegroup_name
   location              = var.azure_location
   size                  = var.instance_size

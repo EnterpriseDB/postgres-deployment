@@ -96,9 +96,18 @@ function check_update_param()
                                   "${CONFIG_FILE}"  \
                                   "${PEM_INSTANCE_COUNT}"
             fi
- 
-
         fi
+        if [[ "${PARAM}" = "PG_VERSION" ]]
+        then
+            if [[ "${VALUE}" -lt 10 ]]
+            then
+                exit_on_error "Instance count cannot be less than 10"
+            fi
+            if [[ "${VALUE}" -gt 12 ]]
+            then
+                exit_on_error "Instance count cannot be less than 10"
+            fi            
+        fi        
         validate_variable "${PARAM}" "${CONFIG_FILE}" "${VALUE}"
     fi
 }
@@ -154,7 +163,7 @@ function aws_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
@@ -224,7 +233,7 @@ function azure_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
@@ -295,7 +304,7 @@ function gcloud_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
     MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11, 12 or 13: "
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
  
     MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "

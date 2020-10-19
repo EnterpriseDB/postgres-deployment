@@ -108,6 +108,7 @@ function aws_build_server()
         -var="aws_region=${REGION}" \
         -var="instance_count=${F_INSTANCES}" \
         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
+        -var="cluster_name=$F_PROJECTNAME" \
         -var="pem_instance_count=${F_PEMINSTANCE}"
 
     if [[ $? -eq 0 ]]
@@ -224,6 +225,7 @@ function azure_build_server()
          -var="admin_username=${ANSIBLE_USER}" \
          -var="instance_count=${F_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
+         -var="cluster_name=$F_PROJECTNAME" \
          -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
 
     if [[ $? -eq 0 ]]
@@ -309,6 +311,7 @@ function gcloud_build_server()
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \
+         -var="instance_name=$F_PROJECTNAME" \
          -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
  
     if [[ $? -eq 0 ]]
