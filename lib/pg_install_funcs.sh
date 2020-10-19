@@ -90,7 +90,8 @@ function aws_ansible_pg_install()
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
     
-    if [[ ${PEM_EXISTS} -gt 0 ]]
+    #if [[ ${PEM_EXISTS} -gt 0 ]]
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
         echo -e "PEM SERVER:"
         echo -e "-----------"
@@ -226,7 +227,8 @@ function azure_ansible_pg_install()
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
     
-    if [[ ${PEM_EXISTS} -gt 0 ]]
+    #if [[ ${PEM_EXISTS} -gt 0 ]]
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
         echo -e "PEM SERVER:"
         echo -e "-----------"
@@ -342,8 +344,8 @@ function gcloud_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
   
-#    ansible-galaxy collection install edb_devops.edb_postgres \
-#                --force >> ${PG_INSTALL_LOG} 2>&1
+    ansible-galaxy collection install edb_devops.edb_postgres \
+                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
@@ -372,7 +374,8 @@ function gcloud_ansible_pg_install()
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
     
-    if [[ ${PEM_EXISTS} -gt 0 ]]
+    #if [[ ${PEM_EXISTS} -gt 0 ]]
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
         echo -e "PEM SERVER:"
         echo -e "-----------"
