@@ -154,7 +154,7 @@ function verify_arguments()
                 ;;
             "azure-config")
                 shift; AZURE_CONFIG="${1}"
-                AZURE_CONFIG="$(echo ${AWS_CONFIG}|tr '[:upper:]' '[:lower:]')"
+                AZURE_CONFIG="$(echo ${AZURE_CONFIG}|tr '[:upper:]' '[:lower:]')"
                 if [[ "${AZURE_CONFIG}" != "show" ]] && [[ "${AZURE_CONFIG}" != "update" ]]
                 then
                     usage
@@ -166,7 +166,7 @@ function verify_arguments()
                 ;;
             "gcloud-config")
                 shift; GCLOUD_CONFIG="${1}"
-                GCLOUD_CONFIG="$(echo ${AWS_CONFIG}|tr '[:upper:]' '[:lower:]')"
+                GCLOUD_CONFIG="$(echo ${GCLOUD_CONFIG}|tr '[:upper:]' '[:lower:]')"
                 if [[ "${GCLOUD_CONFIG}" != "show" ]] && [[ "${GCLOUD_CONFIG}" != "update" ]]
                 then
                     usage

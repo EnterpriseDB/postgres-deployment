@@ -59,8 +59,8 @@ function aws_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
     
-#    ansible-galaxy collection install edb_devops.edb_postgres \
-#                --force >> ${PG_INSTALL_LOG} 2>&1
+    ansible-galaxy collection install edb_devops.edb_postgres \
+                --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
 

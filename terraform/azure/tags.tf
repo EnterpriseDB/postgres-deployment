@@ -3,53 +3,53 @@ variable "project_tags" {
   description = "A map of tags to add to all resources."
   type        = map(string)
   default = {
-    key = "one_EDB_PREREQS_AZURE"
+    key = "tcluster_EDB_PREREQS_AZURE"
   }
 }
 
 variable "project_tag" {
   type    = string
-  default = "one_EDB_PREREQS_AZURE_DEPLOYMENT"
+  default = "tcluster_EDB_PREREQS_AZURE_DEPLOYMENT"
 }
 
 # Storage
 variable "storageaccount_name" {
   description = "Name of the bucket for storing related data of deployment"
   type        = string
-  default     = "oneedbpostgres"
+  default     = "tclusteredbpostgres"
 }
 
 variable "storagecontainer_name" {
   description = "Name of the bucket for storing related data of deployment"
   type        = string
-  default     = "oneedbprereqsstoragecontainer"
+  default     = "tclusteredbprereqsstoragecontainer"
 }
 
 # VNet
 variable "vnet_name" {
   type    = string
-  default = "one_EDB-PREREQS-VNet"
+  default = "tcluster_EDB-PREREQS-VNet"
 }
 
 # Resource Group
 variable "resourcegroup_tag" {
-  default = "one_EDB-PREREQS-RESOURCEGROUP"
+  default = "tcluster_EDB-PREREQS-RESOURCEGROUP"
 }
 
 variable "resourcegroup_name" {
-  default = "one_EDB-PREREQS-RESOURCEGROUP"
+  default = "tcluster_EDB-PREREQS-RESOURCEGROUP"
 }
 
 # Subnets
 variable "subnet_name" {
-  default = "one_EDB-PREREQS-PUBLIC-SUBNET"
+  default = "tcluster_EDB-PREREQS-PUBLIC-SUBNET"
 }
 
 variable "subnet_tag" {
-  default = "one_EDB-PREREQS-PUBLIC-SUBNET"
+  default = "tcluster_EDB-PREREQS-PUBLIC-SUBNET"
 }
 
 # Security Group
 variable "securitygroup_name" {
-  default = "one_EDB-PREREQS-SECURITYGROUP"
+  default = "tcluster_EDB-PREREQS-SECURITYGROUP"
 }
