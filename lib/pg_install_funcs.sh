@@ -47,6 +47,7 @@ function aws_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass"
 
     if [[ "${OSNAME}" =~ "CentOS" ]]
     then
@@ -58,10 +59,9 @@ function aws_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
     
-    ansible-galaxy collection install edb_devops.edb_postgres \
-                --force >> ${PG_INSTALL_LOG} 2>&1
+#    ansible-galaxy collection install edb_devops.edb_postgres \
+#                --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_KEYPATH}")
@@ -102,11 +102,11 @@ function aws_ansible_pg_install()
            if [[ "${PG_TYPE}" = "PG" ]]
            then
              echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ~/.edb/postgres_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/postgres_pass)"
              echo ""
            else
              echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ~/.edb/enterprisedb_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
              echo ""
            fi
         done
@@ -196,6 +196,7 @@ function azure_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass"    
   
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
@@ -241,11 +242,11 @@ function azure_ansible_pg_install()
            if [[ "${PG_TYPE}" = "PG" ]]
            then
              echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ~/.edb/postgres_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/postgres_pass)"
              echo ""
            else
              echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ~/.edb/enterprisedb_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
              echo ""
            fi
         done
@@ -297,7 +298,6 @@ function gcloud_ansible_pg_install()
 
     local ANSIBLE_EXTRA_VARS
 
-    #cd ${DIRECTORY}/terraform/gcloud || exit 1
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
     
     while IFS=, read -r os_name_and_version
@@ -345,6 +345,7 @@ function gcloud_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass"    
   
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
@@ -388,11 +389,11 @@ function gcloud_ansible_pg_install()
            if [[ "${PG_TYPE}" = "PG" ]]
            then
              echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ~/.edb/postgres_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/postgres_pass)"
              echo ""
            else
              echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ~/.edb/enterprisedb_pass)"
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
              echo ""
            fi
         done

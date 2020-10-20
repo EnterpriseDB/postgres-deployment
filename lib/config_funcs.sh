@@ -144,7 +144,7 @@ function aws_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
    
     MESSAGE="Please provide how many AWS EC2 Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -214,7 +214,7 @@ function azure_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "LOCATION"
    
     MESSAGE="Please provide how many Azure Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -281,7 +281,7 @@ function gcloud_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
    
     MESSAGE="Please provide how many VM Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -318,4 +318,133 @@ function gcloud_config_file()
 
     process_log "set all parameters"
     source ${CONFIG_FILE}
+}
+
+function aws_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed aws project config details"
+}
+
+function azure_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed azure project config details"
+}
+
+function gcloud_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed gcloud project config details"
+}
+
+function aws_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited aws project config details"
+}
+
+function azure_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited azure project config details"
+}
+
+function gcloud_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited gcloud project config details"
+}
+
+function aws_list_projects()
+{
+    echo "AWS Terraform Projects:"
+    cd ${DIRECTORY}/terraform/aws || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all aws projects"
+}
+
+function azure_list_projects()
+{
+    echo "Azure Terraform Projects:"
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all azure projects"
+}
+
+function gcloud_list_projects()
+{
+    echo "GCloud Terraform Projects:"
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all GCloud projects"
+}
+
+function aws_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/aws || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to aws project: ${PROJECT_NAME}"
+}
+
+function azure_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to azure project: ${PROJECT_NAME}"
+}
+
+function gcloud_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to gcloud project: ${PROJECT_NAME}"
 }
