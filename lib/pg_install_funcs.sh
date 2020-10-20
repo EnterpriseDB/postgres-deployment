@@ -171,9 +171,11 @@ function azure_ansible_pg_install()
     if [[ "${OS}" =~ "Centos" ]]        
     then
         ANSIBLE_USER="centos"
+        OSNAME="CentOS8"        
     elif [[ "${OS}" =~ "RHEL" ]]
     then
         ANSIBLE_USER="ec2-user"
+        OSNAME="RHEL8"        
     else
         exit_on_error "Unknown Operating system"
     fi
