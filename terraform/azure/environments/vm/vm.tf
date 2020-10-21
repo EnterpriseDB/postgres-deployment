@@ -1,7 +1,8 @@
-variable "instance_count" {}
-variable "pem_instance_count" {}
-variable "synchronicity" {}
-variable "cluster_name" {}
+variable instance_size {}
+variable instance_count {}
+variable pem_instance_count {}
+variable synchronicity {}
+variable cluster_name {}
 variable vnet_name {}
 variable resourcegroup_name {}
 variable securitygroup_name {}
@@ -20,7 +21,7 @@ variable add_hosts_filename {}
 
 resource "azurerm_subnet" "subnet" {
   count = var.instance_count
-  name  = "EDB-PREREQS-SUBNET-${count.index}"
+  name  = "${var.cluster_name}-EDB-PREREQS-SUBNET-${count.index}"
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name  = var.resourcegroup_name
   virtual_network_name = var.vnet_name
@@ -29,7 +30,7 @@ resource "azurerm_subnet" "subnet" {
 
 resource "azurerm_public_ip" "publicip" {
   count    = var.instance_count
-  name     = "EDB-PREREQS-PUBLIC-IP-${count.index}"
+  name     = "${var.cluster_name}-EDB-PREREQS-PUBLIC-IP-${count.index}"
   location = var.azure_location
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name = var.resourcegroup_name
@@ -42,7 +43,7 @@ resource "azurerm_public_ip" "publicip" {
 
 resource "azurerm_network_interface" "Public_Nic" {
   count = var.instance_count
-  name  = "EDB-PREREQS-PUBLIC-NIC-${count.index}"
+  name  = "${var.cluster_name}-EDB-PREREQS-PUBLIC-NIC-${count.index}"
   #resource_group_name = data.azurerm_resource_group.main.name
   resource_group_name = var.resourcegroup_name
   location            = var.azure_location
@@ -61,19 +62,17 @@ resource "azurerm_network_interface" "Public_Nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  count = var.instance_count
-  #name                  = "EDB-VM-${count.index}"
-  name                = var.pem_instance_count == 0 ? (count.index == 0 ? format("%s%s", var.cluster_name, "primary") : format("%s%s%s", var.cluster_name, "standby", count.index)) : (count.index > 1 ? format("%s%s%s", var.cluster_name, "standby", count.index) : (count.index == 0 ? format("%s%s", var.cluster_name, "pemserver") : format("%s%s", var.cluster_name, "primary")))
-  resource_group_name = var.resourcegroup_name
-  location            = var.azure_location
-  size                = "Standard_A1"
-  #size                  = "Standard_A8_v2"
+  count                 = var.instance_count
+  name                  = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.cluster_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.cluster_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.cluster_name, "standby", count.index) : format("%s-%s%s", var.cluster_name, "primary", count.index))))
+  resource_group_name   = var.resourcegroup_name
+  location              = var.azure_location
+  size                  = var.instance_size
   admin_username        = var.admin_username
   network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index)}"]
   #network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index < 3 ? count.index : 2)}"]
 
   admin_ssh_key {
-    username   = "centos"
+    username   = var.admin_username
     public_key = file(var.ssh_key_path)
   }
 
@@ -82,7 +81,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   source_image_reference {
-    # CentOS7
     publisher = var.publisher
     offer     = var.offer
     sku       = var.sku
@@ -91,7 +89,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   os_disk {
-    name                 = "EDB-VM-OS-Disk-${count.index}"
+    name                 = "${var.cluster_name}-EDB-VM-OS-Disk-${count.index}"
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }

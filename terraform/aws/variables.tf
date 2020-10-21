@@ -5,6 +5,11 @@ variable "os" {
   default = "CentOS7"
 }
 
+variable "ami_id" {
+  # CentOS7 AMI ID
+  default = "ami-0bc06212a56393ee1"
+}
+
 # Region
 variable "aws_region" {
   default = "us-west-2"
@@ -79,7 +84,7 @@ variable "vpc_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "test"
+  default     = "tcluster"
   type        = string
 }
 
@@ -87,7 +92,7 @@ variable "cluster_name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "test-edb-iam-postgres"
+  default     = "tcluster-edb-iam-postgres"
 }
 
 # IAM Force Destroy

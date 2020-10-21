@@ -24,6 +24,8 @@ then
 fi
 BASENAME=$(basename $0)
 PLAYBOOK=${DIRECTORY}/playbook/playbook.yml
+TERRAFORM_DIRECTORY=${DIRECTORY}/terraform/
+PROJECTS_DIRECTORY=${DIRECTORY}/projects/
 source ${DIRECTORY}/lib/common_funcs.sh
 source ${DIRECTORY}/lib/config_funcs.sh
 source ${DIRECTORY}/lib/pre_reqs_funcs.sh
@@ -40,6 +42,12 @@ GCLOUD_POSTGRES_INSTALL=""
 AWS_SERVER=""
 AZURE_SERVER=""
 GCLOUD_SERVER=""
+AWS_CONFIG=""
+AZURE_CONFIG=""
+GCLOUD_CONFIG=""
+AWS_PROJECT=""
+AZURE_PROJECT=""
+GCLOUD_PROJECT=""
 ARGUMENTS="$@"
 ARGUMENTS="$(echo ${ARGUMENTS} | sed -e "s/  */ /g" \
                                      -e "s/^ *//g" \
@@ -80,9 +88,10 @@ then
                      "${PUB_FILE_PATH}" \
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
+                     "${PRIV_FILE_PATH}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
-    cp -f ${DIRECTORY}/terraform/aws/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    copy_files_to_project_folder "aws"
 fi
 
 if [[ "${AZURE_SERVER}" = "create" ]]
@@ -98,10 +107,11 @@ then
                        "${INSTANCE_COUNT}" \
                        "${PUB_FILE_PATH}" \
                        "${PROJECT_NAME}" \
-                       "${PEM_INSTANCE_COUNT}" \                       
+                       "${PEM_INSTANCE_COUNT}" \
+                       "${PRIV_FILE_PATH}" \
                       2>&1 | tee ${TERRAFORM_LOG}
 
-    cp -f ${DIRECTORY}/terraform/azure/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    copy_files_to_project_folder "azure"
 fi
 
 if [[ "${GCLOUD_SERVER}" = "create" ]]
@@ -117,10 +127,11 @@ then
                         "${PROJECT_ID}" \
                         "${PROJECT_NAME}" \
                         "${PEM_INSTANCE_COUNT}" \
-                        "${CREDENTIALS_FILE_LOCATION}" \                        
+                        "${CREDENTIALS_FILE_LOCATION}" \
+                        "${PRIV_FILE_PATH}" \
                        2>&1 | tee ${TERRAFORM_LOG}
 
-    cp -f ${DIRECTORY}/terraform/gcloud/hosts.yml ${DIRECTORY}/playbook/hosts.yml
+    copy_files_to_project_folder "gcloud"
 fi
 
 ################################################################################
@@ -136,6 +147,8 @@ then
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
                        "${PRIV_FILE_PATH}" \
+                       "${PUB_FILE_PATH}" \
+                       "${PROJECT_NAME}" \
                        "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
 fi
 
@@ -147,7 +160,9 @@ then
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
+                       "${PUB_FILE_PATH}" \
                        "${PRIV_FILE_PATH}" \
+                       "${PROJECT_NAME}" \
                        "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
 fi
 
@@ -159,8 +174,73 @@ then
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
                        "${YUM_PASSWORD}" \
+                       "${PUB_FILE_PATH}" \
                        "${PRIV_FILE_PATH}" \
+                       "${PROJECT_NAME}" \
                        "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
+fi
+
+################################################################################
+# Project Management
+################################################################################
+if [[ "${AWS_CONFIG}" = "show" ]]
+then
+    aws_show_config_file "${PROJECT_NAME}"    
+fi
+
+if [[ "${AWS_CONFIG}" = "update" ]]
+then
+    aws_update_config_file "${PROJECT_NAME}"
+fi
+
+if [[ "${AZURE_CONFIG}" = "show" ]]
+then
+    azure_show_config_file "${PROJECT_NAME}"    
+fi
+
+if [[ "${AZURE_CONFIG}" = "update" ]]
+then
+    azure_update_config_file "${PROJECT_NAME}"
+fi
+
+if [[ "${GCLOUD_CONFIG}" = "show" ]]
+then
+    gcloud_show_config_file "${PROJECT_NAME}"    
+fi
+
+if [[ "${GCLOUD_CONFIG}" = "update" ]]
+then
+    gcloud_update_config_file "${PROJECT_NAME}"
+fi
+
+if [[ "${AWS_PROJECT}" = "list" ]]
+then
+    aws_list_projects
+fi
+
+if [[ "${AWS_PROJECT}" = "switch" ]]
+then 
+    aws_switch_projects "${PROJECT_NAME}"
+fi
+
+if [[ "${AZURE_PROJECT}" = "list" ]]
+then 
+    azure_list_projects
+fi
+
+if [[ "${AZURE_PROJECT}" = "switch" ]]
+then 
+    azure_switch_projects "${PROJECT_NAME}"
+fi
+
+if [[ "${GCLOUD_PROJECT}" = "list" ]]
+then 
+    gcloud_list_projects
+fi
+
+if [[ "${GCLOUD_PROJECT}" = "switch" ]]
+then 
+    gcloud_switch_projects "${PROJECT_NAME}"
 fi
 
 ################################################################################
@@ -170,19 +250,19 @@ if [[ "${AWS_SERVER}" = "destroy" ]]
 then
     aws_config_file "${PROJECT_NAME}"
 
-    aws_destroy_server "${REGION}" | tee  ${TERRAFORM_LOG}
+    aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${AZURE_SERVER}" = "destroy" ]]
 then
     azure_config_file "${PROJECT_NAME}"
     
-    azure_destroy_server "${LOCATION}" | tee  ${TERRAFORM_LOG}
+    azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
 fi
 
 if [[ "${GCLOUD_SERVER}" = "destroy" ]]
 then
     gcloud_config_file "${PROJECT_NAME}"
 
-    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
+    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
 fi

@@ -13,7 +13,7 @@ module "vpc" {
   vpc_cidr_block = var.vpc_cidr_block
   vpc_tag        = var.vpc_tag
 
-  depends_on = [module.iam]
+  #  depends_on = [module.iam]
 }
 
 module "network" {
@@ -62,6 +62,7 @@ module "edb-db-cluster" {
   source = "./environments/ec2"
 
   os                                  = var.os
+  ami_id                              = var.ami_id
   vpc_id                              = module.vpc.vpc_id
   instance_count                      = var.instance_count
   pem_instance_count                  = var.pem_instance_count

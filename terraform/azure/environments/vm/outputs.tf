@@ -9,7 +9,7 @@ servers:
     node_type: %{if count == 0}pemserver%{endif}%{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
     public_ip: ${azurerm_public_ip.publicip[count].ip_address}
     private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
-    %{if count > 0}replication_type: ${var.synchronicity}%{endif}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
   %{endfor~}
 EOT
@@ -26,7 +26,7 @@ server${count}:
     node_type: %{if count == 0}primary%{else}standby%{endif}
     public_ip: ${azurerm_public_ip.publicip[count].ip_address}
     private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
-    %{if count > 0}replication_type: ${var.synchronicity}%{endif}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
   %{endfor~}
 EOT
 }

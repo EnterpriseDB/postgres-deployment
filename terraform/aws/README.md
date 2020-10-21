@@ -106,13 +106,14 @@ Other Options:
     -h, --help Display help and exit
 ```
 
-  ![Create PEM AWS Resources](../../demos/AWS_Create_demo.gif)
+* Type: ```./edb-deployment aws-server create PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  ![Create PEM AWS Resources](../../demos/AWS_Create_test.gif)
 
-* Type: ```./edb-deployment postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  ![Removed Created AWS Resources](../../demos/AWS_PEM_Install.gif)
+* Type: ```./edb-deployment aws-postgres install PROJECT_NAME``` and execute the command by pressing the **Enter** button.
+  ![Install Postgres on AWS Resources](../../demos/AWS_Postgres_Install.gif)
 
 * Type: ```./edb-deployment aws-server destroy PROJECT_NAME``` and execute the command by pressing the **Enter** button.
-  ![Removed Created AWS Resources](../../demos/AWS_PEM_destroy.gif)
+  ![Removed Created AWS Resources](../../demos/AWS_Destroy_test.gif)
 
 ### Manual Configurations
 * The steps below are for reference in case there is a desire to perform configurations manually. The steps are in listed and described in their execution order and are located in the ```lib_sh``` directory:

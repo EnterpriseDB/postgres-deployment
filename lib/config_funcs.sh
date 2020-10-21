@@ -51,9 +51,9 @@ function check_update_param()
         fi
         if [[ "${PARAM}" = "INSTANCE_COUNT" ]]
         then
-            if [[ "${VALUE}" -lt 3 ]]
+            if [[ "${VALUE}" -lt 1 ]]
             then
-                exit_on_error "Instance count cannot be less than 3"
+                exit_on_error "Instance count cannot be less than 1"
             fi
         fi
         if [[ "${PARAM}" = "PEMSERVER" ]]
@@ -96,9 +96,18 @@ function check_update_param()
                                   "${CONFIG_FILE}"  \
                                   "${PEM_INSTANCE_COUNT}"
             fi
- 
-
         fi
+        if [[ "${PARAM}" = "PG_VERSION" ]]
+        then
+            if [[ "${VALUE}" -lt 10 ]]
+            then
+                exit_on_error "Instance count cannot be less than 10"
+            fi
+            if [[ "${VALUE}" -gt 12 ]]
+            then
+                exit_on_error "Instance count cannot be less than 10"
+            fi            
+        fi        
         validate_variable "${PARAM}" "${CONFIG_FILE}" "${VALUE}"
     fi
 }
@@ -109,13 +118,15 @@ function check_update_param()
 function aws_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${CONFIG_DIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -125,7 +136,7 @@ function aws_config_file()
         source ${CONFIG_FILE}
     fi
      
-    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    MESSAGE="Please provide OS name from 'CentOS7/CentOS8/RHEL7/RHEL8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
     MESSAGE="Please provide target AWS Region"
@@ -133,7 +144,7 @@ function aws_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
    
     MESSAGE="Please provide how many AWS EC2 Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -171,13 +182,15 @@ function aws_config_file()
 function azure_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${CONFIG_DIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -193,7 +206,7 @@ function azure_config_file()
     MESSAGE="Please provide OS name from 'Centos/RHEL': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OFFER"
 
-    MESSAGE="Please provide OS version from 'Centos - 7.7/RHEL - 7.8': "
+    MESSAGE="Please provide OS version from 'Centos - 7.7 or 8_1/RHEL - 7.8 or 8.2': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SKU"
 
     MESSAGE="Please provide target Azure Location"
@@ -201,7 +214,7 @@ function azure_config_file()
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "LOCATION"
    
     MESSAGE="Please provide how many Azure Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -239,13 +252,15 @@ function azure_config_file()
 function gcloud_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${CONFIG_DIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -255,18 +270,18 @@ function gcloud_config_file()
         source ${CONFIG_FILE}
     fi
 
-    MESSAGE="Please provide OS name from 'CentOS7/RHEL7': "
+    MESSAGE="Please provide OS name from 'centos-7, centos-8, rhel-7 and rhel-8': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
     MESSAGE="Please Google Project ID: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
     
     MESSAGE="Please provide target Google Cloud Region"
-    MESSAGE="${MESSAGE} examples: 'us-centarl1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
+    MESSAGE="${MESSAGE} examples: 'us-central1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
    
-    MESSAGE="Please provide how many Azure Instances to create"
-    MESSAGE="${MESSAGE} example '>=3': "
+    MESSAGE="Please provide how many VM Instances to create"
+    MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
     MESSAGE="Please indicate if you would like a PEM Server Instance"
@@ -303,4 +318,133 @@ function gcloud_config_file()
 
     process_log "set all parameters"
     source ${CONFIG_FILE}
+}
+
+function aws_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed aws project config details"
+}
+
+function azure_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed azure project config details"
+}
+
+function gcloud_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed gcloud project config details"
+}
+
+function aws_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited aws project config details"
+}
+
+function azure_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited azure project config details"
+}
+
+function gcloud_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited gcloud project config details"
+}
+
+function aws_list_projects()
+{
+    echo "AWS Terraform Projects:"
+    cd ${DIRECTORY}/terraform/aws || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all aws projects"
+}
+
+function azure_list_projects()
+{
+    echo "Azure Terraform Projects:"
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all azure projects"
+}
+
+function gcloud_list_projects()
+{
+    echo "GCloud Terraform Projects:"
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all GCloud projects"
+}
+
+function aws_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/aws || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to aws project: ${PROJECT_NAME}"
+}
+
+function azure_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to azure project: ${PROJECT_NAME}"
+}
+
+function gcloud_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to gcloud project: ${PROJECT_NAME}"
 }

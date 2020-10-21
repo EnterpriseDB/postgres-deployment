@@ -13,7 +13,7 @@ variable "vnet_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "testEDB"
+  default     = "tclusterEDB"
   type        = string
 }
 
@@ -24,10 +24,16 @@ variable "ssh_key_path" {
   default = ""
 }
 
+# Instance Size
+variable "instance_size" {
+  default = "Standard_A1" 
+}
+
 # Count
 variable "instance_count" {
   default = 1
 }
+
 
 # PEM Instance Count
 variable "pem_instance_count" {

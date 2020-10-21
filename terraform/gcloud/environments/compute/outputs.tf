@@ -9,7 +9,7 @@ servers:
     node_type: %{if count == 0}pemserver%{endif}%{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
     public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
     private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
-    %{if count > 0}replication_type: ${var.synchronicity}%{endif}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
   %{endfor~}
 EOT
@@ -26,7 +26,7 @@ server${count}:
     node_type: %{if count == 0}primary%{else}standby%{endif}
     public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
     private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
-    replication_type: ${var.synchronicity}
+    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
   %{endfor~}
 EOT
 }

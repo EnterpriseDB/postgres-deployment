@@ -23,7 +23,7 @@ fi
 LOG_SUFFIX="$(date +'%m-%d-%y-%H%M%S')"
 LOGDIR="${DIRECTORY}/log"
 INSTALL_LOG="${LOGDIR}/install_${LOG_SUFFIX}.log"
-CONFIG_DIR=~/.edb
+#CONFIG_DIR=~/.edb
 TERRAFORM_LOG="${LOGDIR}/terraform_${LOG_SUFFIX}.log"
 PG_INSTALL_LOG="${LOGDIR}/pg_install_${LOG_SUFFIX}.log"
 
@@ -125,3 +125,78 @@ function parse_yaml {
    set -u
 }
 
+################################################################################
+# function for getting filename after last slash
+################################################################################
+function get_string_after_lastslash {
+   set +u
+   local filenameandpath=$1
+   local F_Result=""
+   
+   F_Result=$(echo "${filenameandpath##*/}")
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
+# function for getting before after last hyphen
+################################################################################
+function get_string_before_last_hyphen {
+   set +u
+   local content=$1
+   local F_Result=""
+   
+   F_Result=$(echo "${content%-*}")
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
+# function for joining two strings separated by underscore
+################################################################################
+function join_strings_with_underscore {
+   set +u
+   local string1=$1
+   local string2=$2
+   local F_Result=""
+   
+   F_Result="${string1}_${string2}"
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
+# function for getting the first word from an command line output
+################################################################################
+function get_first_word_from_output {
+   set +u
+   local text=$1
+   local F_Result=""
+   
+   F_Result=$(echo $text | grep -o "^\S*")
+
+   echo "$F_Result"
+   set -u
+}
+
+################################################################################
+# function for copying files to project directory
+################################################################################
+function copy_files_to_project_folder {
+   set +u
+   local cloud=$1
+   
+   cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/ansible.cfg
+   cp -f ${DIRECTORY}/playbook/playbook*.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
+   cp -f ${DIRECTORY}/playbook/R07_firewalld_stop.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/R07_firewalld_stop.yml        
+   mv -f ${DIRECTORY}/terraform/${cloud}/hosts.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/hosts.yml
+   mv -f ${DIRECTORY}/terraform/${cloud}/inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/inventory.yml
+   mv -f ${DIRECTORY}/terraform/${cloud}/pem-inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/pem-inventory.yml
+   mv -f ${DIRECTORY}/terraform/${cloud}/os.csv ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/os.csv
+   mv -f ${DIRECTORY}/terraform/${cloud}/add_host.sh ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/add_host.sh      
+
+   set -u
+}
