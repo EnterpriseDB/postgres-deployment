@@ -61,6 +61,12 @@ Subcommands:
     aws-postgres    install           PROJECT_NAME
     azure-postgres  install           PROJECT_NAME
     gcloud-postgres install           PROJECT_NAME
+    aws-config      [show|update]     PROJECT_NAME
+    azure-config    [show|update]     PROJECT_NAME
+    gcloud-config   [show|update]     PROJECT_NAME
+    aws-project     [list|switch]     PROJECT_NAME
+    azure-project   [list|switch]     PROJECT_NAME
+    gcloud-project  [list|switch]     PROJECT_NAME 
 
 Other Options:
     -h, --help Display help and exit
@@ -90,6 +96,30 @@ Other Options:
     ./edb-deployment aws-server      destroy  PROJECT_NAME
     ./edb-deployment azure-server    destroy  PROJECT_NAME 
     ./edb-deployment gcloud-server   destroy  PROJECT_NAME
+```
+  * Display the config file details of Cloud Project:
+```
+    ./edb-deployment aws-config      show  PROJECT_NAME
+    ./edb-deployment azure-config    show  PROJECT_NAME 
+    ./edb-deployment gcloud-config   show  PROJECT_NAME
+```
+  * Edit in vi the config file details of Cloud Project:
+```
+    ./edb-deployment aws-config      update  PROJECT_NAME
+    ./edb-deployment azure-config    update  PROJECT_NAME 
+    ./edb-deployment gcloud-config   update  PROJECT_NAME
+```
+  * List the available Terraform Cloud Projects:
+```
+    ./edb-deployment aws-project      list  PROJECT_NAME
+    ./edb-deployment azure-project    list  PROJECT_NAME 
+    ./edb-deployment gcloud-project   list  PROJECT_NAME
+```
+  * Switch to another available Terraform Cloud Project:
+```
+    ./edb-deployment aws-project      switch  PROJECT_NAME
+    ./edb-deployment azure-project    switch  PROJECT_NAME 
+    ./edb-deployment gcloud-project   switch  PROJECT_NAME
 ```
 
 # Demos/Examples:

@@ -158,7 +158,6 @@ function azure_ansible_pg_install()
 
     local ANSIBLE_EXTRA_VARS
 
-    #cd ${DIRECTORY}/terraform/azure || exit 1
     cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
     
     while IFS=, read -r os_name_and_version
@@ -180,16 +179,6 @@ function azure_ansible_pg_install()
         exit_on_error "Unknown Operating system"
     fi
 
-    #if [[ "${OS}" =~ "Centos8_1" ]]
-    #then
-    #    OSNAME="CentOS8"
-    #elif [[ "${OS}" =~ "RHEL8.2" ]]
-    #then
-    #    OSNAME="RHEL8"
-    #else
-    #    exit_on_error "Unknown Operating system"
-    #fi    
-
     cd ${DIRECTORY} || exit 1
         
     ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
@@ -201,7 +190,6 @@ function azure_ansible_pg_install()
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
@@ -230,7 +218,6 @@ function azure_ansible_pg_install()
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
     
-    #if [[ ${PEM_EXISTS} -gt 0 ]]
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
         echo -e "PEM SERVER:"
@@ -350,7 +337,6 @@ function gcloud_ansible_pg_install()
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
-    #cd ${DIRECTORY}/playbook || exit 1
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
@@ -377,7 +363,6 @@ function gcloud_ansible_pg_install()
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
     
-    #if [[ ${PEM_EXISTS} -gt 0 ]]
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
         echo -e "PEM SERVER:"
