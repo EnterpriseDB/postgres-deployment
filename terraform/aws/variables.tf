@@ -30,20 +30,9 @@ variable "synchronicity" {
   default = "asynchronous"
 }
 
-# Ansible Inventory Filenames
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
-}
-
 # Ansible Yaml PEM Inventory Filename
 variable "ansible_pem_inventory_yaml_filename" {
   default = "pem-inventory.yml"
-}
-
-# Ansible Ini Inventory Filename
-variable "ansible_inventory_ini_filename" {
-  default = "inventory"
 }
 
 # OS CSV Filename
@@ -84,7 +73,7 @@ variable "vpc_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "single"
+  default     = "rone"
   type        = string
 }
 
@@ -92,7 +81,7 @@ variable "cluster_name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "single-edb-iam-postgres"
+  default     = "rone-edb-iam-postgres"
 }
 
 # IAM Force Destroy

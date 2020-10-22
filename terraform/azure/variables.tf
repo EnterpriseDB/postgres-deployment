@@ -26,7 +26,7 @@ variable "ssh_key_path" {
 
 # Instance Size
 variable "instance_size" {
-  default = "Standard_A1" 
+  default = "Standard_A1"
 }
 
 # Count

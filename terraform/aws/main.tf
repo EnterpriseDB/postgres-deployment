@@ -1,11 +1,11 @@
-module "iam" {
-  source = "./global/iam"
-
-  user_name          = var.user_name
-  user_path          = var.user_path
-  user_force_destroy = var.user_force_destroy
-  project_tags       = var.project_tags
-}
+#module "iam" {
+#  source = "./global/iam"
+#
+#  user_name          = var.user_name
+#  user_path          = var.user_path
+#  user_force_destroy = var.user_force_destroy
+#  project_tags       = var.project_tags
+#}
 
 module "vpc" {
   source = "./environments/vpc"
@@ -27,14 +27,14 @@ module "network" {
   depends_on = [module.vpc]
 }
 
-module "policies" {
-  source = "./environments/policies/"
-
-  aws_iam_user_name = module.iam.aws_iam_user_name
-  project_tag       = var.project_tag
-
-  depends_on = [module.network]
-}
+#module "policies" {
+#  source = "./environments/policies/"
+#
+#  aws_iam_user_name = module.iam.aws_iam_user_name
+#  project_tag       = var.project_tag
+#
+#  depends_on = [module.network]
+#}
 
 module "routes" {
   source = "./environments/routes"
@@ -44,7 +44,8 @@ module "routes" {
   project_tag      = var.project_tag
   public_cidrblock = var.public_cidrblock
 
-  depends_on = [module.policies]
+  #  depends_on = [module.policies]
+  depends_on = [module.network]
 }
 
 module "security" {
@@ -69,9 +70,7 @@ module "edb-db-cluster" {
   synchronicity                       = var.synchronicity
   cluster_name                        = var.cluster_name
   instance_type                       = var.instance_type
-  ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
   ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
-  ansible_inventory_ini_filename      = var.ansible_inventory_ini_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id

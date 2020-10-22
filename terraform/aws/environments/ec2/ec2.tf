@@ -5,8 +5,6 @@ variable "pem_instance_count" {}
 variable "synchronicity" {}
 variable "vpc_id" {}
 variable "instance_type" {}
-variable "ansible_inventory_yaml_filename" {}
-variable "ansible_inventory_ini_filename" {}
 variable "ansible_pem_inventory_yaml_filename" {}
 variable "os_csv_filename" {}
 variable "add_hosts_filename" {}

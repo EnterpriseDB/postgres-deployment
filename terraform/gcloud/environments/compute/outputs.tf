@@ -15,22 +15,6 @@ servers:
 EOT
 }
 
-resource "local_file" "AnsibleYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_inventory_yaml_filename
-  content  = <<EOT
----
-servers:
-  %{for count in range(var.instance_count)~}
-server${count}:
-    node_type: %{if count == 0}primary%{else}standby%{endif}
-    public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
-    private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
-  %{endfor~}
-EOT
-}
-
 resource "local_file" "AnsibleOSCSVFile" {
   filename = var.os_csv_filename
   content  = <<EOT
