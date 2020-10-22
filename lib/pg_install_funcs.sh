@@ -72,7 +72,7 @@ function aws_ansible_pg_install()
     cp -f "${SSH_KEY}" "${F_NEW_PRIV_KEYNAME}"
        
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
-    then
+    then  
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \

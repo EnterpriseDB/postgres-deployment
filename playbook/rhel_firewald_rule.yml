@@ -3,9 +3,10 @@
 - hosts: localhost
 #  vars:
 #    ansible_python_interpreter: /usr/bin/python2
+#    ansible_python_interpreter: /usr/bin/python3
   name: Stop Firewalld service on Remote Hosts
   #connection: local
-  connection: ssh
+  #connection: ssh
   become: true
   gather_facts: no
 

@@ -93,7 +93,7 @@ function aws_build_server()
     cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
 
-    if output=$(terraform workspace show | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
+    if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
         terraform workspace select "${F_PROJECTNAME}"
     else
@@ -119,7 +119,7 @@ function aws_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    sed -i "/^ */d" inventory.yml
+    #sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
     cp -f pem-inventory.yml hosts.yml
@@ -181,7 +181,7 @@ function azure_build_server()
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
 
-    if output=$(terraform workspace show | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
+    if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
         terraform workspace select "${F_PROJECTNAME}"
     else
@@ -236,7 +236,7 @@ function azure_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    sed -i "/^ */d" inventory.yml
+    #sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
     cp -f pem-inventory.yml hosts.yml
@@ -294,7 +294,7 @@ function gcloud_build_server()
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
 
-    if output=$(terraform workspace show | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
+    if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
         terraform workspace select "${F_PROJECTNAME}"
     else
@@ -322,7 +322,7 @@ function gcloud_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    sed -i "/^ */d" inventory.yml
+    #sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
        
     cp -f pem-inventory.yml hosts.yml
