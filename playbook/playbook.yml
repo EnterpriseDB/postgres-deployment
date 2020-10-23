@@ -16,7 +16,9 @@
         set_fact:
             os: "CentOS8"
             pg_version: 12
-            pg_type: "PG"
+            pg_data: "/data/pgdata"
+            pg_wal: "/data/pgwal"
+            pg_type: "EPAS"
             yum_username: ""
             yum_password: ""
             use_hostname: yes
