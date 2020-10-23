@@ -125,7 +125,6 @@ function aws_config_file()
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    #mkdir -p ${CONFIG_DIR}
     mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
 
     if [[ ! -f ${CONFIG_FILE} ]]
@@ -135,44 +134,384 @@ function aws_config_file()
     else
         source ${CONFIG_FILE}
     fi
-     
-    MESSAGE="Please provide OS name from 'CentOS7/CentOS8/RHEL7/RHEL8': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
+    
+    set +u
 
-    MESSAGE="Please provide target AWS Region"
-    MESSAGE="${MESSAGE} examples: 'us-east-1', 'us-east-2', 'us-west-1'or 'us-west-2': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
-   
-    MESSAGE="Please provide how many AWS EC2 Instances to create"
+    # Prompt for OSNAME
+    CHECK=$(check_variable "OSNAME" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    if [[ ${loop_var} -eq 0 ]]
+    then
+      echo "Which Operating System would you like to Install?"
+      echo " 1. CentOS 7"
+      echo " 2. CentOS 8"
+      echo " 3. RHEL 7"
+      echo " 4. RHEL 8"
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      if [[  "x${OSNAME}" = "x" ]]
+      then
+        read -r -e -p "Please enter your numeric choice: " OPTION
+      else
+        read -r -e -p "Please enter your numeric choice [${OSNAME}]: " OPTION
+      fi
+
+      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+
+      case "${OPTION}" in
+        1)
+          OSNAME="CentOS7"
+          break
+          ;;
+        2)
+          OSNAME="CentOS8"
+          break
+          ;;
+        3)
+          OSNAME="RHEL7"
+          break
+          ;;
+        4)
+          OSNAME="RHEL8"
+          break
+          ;;
+        "exit")
+          exit 0
+          ;;
+        *)
+          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
+          ;;
+      esac
+    done
+    export OSNAME
+    validate_variable "OSNAME" "${CONFIG_FILE}" "${OSNAME}"
+    
+    # Prompt for REGION
+    CHECK=$(check_variable "REGION" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    if [[ ${loop_var} -eq 0 ]]
+    then
+      echo "Which Region would you like to use?"
+      echo " 1. us-east-1"
+      echo " 2. us-east-2"
+      echo " 3. us-west-1"
+      echo " 4. us-west-2"
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      if [[  "x${REGION}" = "x" ]]
+      then
+        read -r -e -p "Please enter your numeric choice: " OPTION
+      else
+        read -r -e -p "Please enter your numeric choice [${REGION}]: " OPTION
+      fi
+
+      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+
+      case "${OPTION}" in
+        1)
+          REGION="us-east-1"
+          break
+          ;;
+        2)
+          REGION="us-east-2"
+          break
+          ;;
+        3)
+          REGION="us-west-1"
+          break
+          ;;
+        4)
+          REGION="us-west-2"
+          break
+          ;;
+        "exit")
+          exit 0
+          ;;
+        *)
+          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
+          ;;
+      esac
+    done
+    export REGION
+    validate_variable "REGION" "${CONFIG_FILE}" "${REGION}"
+     
+    MESSAGE="How many AWS EC2 Instances would you like to create?"
     MESSAGE="${MESSAGE} example '>=1': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
-    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="Would you like a PEM Server Instance?"
     MESSAGE="${MESSAGE} Yes/No': "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+    
+    # Public Key File
+    CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      echo "What will the absolute path of the public key file be?"
+      read -r -e -p "[${HOME}/.ssh/id_rsa.pub]: " OPTION
+      if [[ "${OPTION}" = "" ]]
+      then
+        PUB_FILE_PATH="${HOME}/.ssh/id_rsa.pub"
+      else
+        PUB_FILE_PATH="${OPTION}"
+      fi
 
-    MESSAGE="Provide: Absolute path of public key file, example:"
-    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+      if [[ ! -f ${PUB_FILE_PATH} ]]
+      then
+        echo "${PUB_FILE_PATH} does not exists."
+        read -r -e  -p "Do you want to create another public key file? Enter: Yes/No or 'exit' to quit: " OPTION
+        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+        if [[ "${OPTION}" = "no" ]]
+        then
+          ssh-keygen -q -t rsa -f ${PUB_FILE_PATH}  -C "" -N ""
+          break
+        elif [[ "${OPTION}" = "exit" ]]
+        then
+          exit 0
+        fi
+      else
+        break
+      fi
+    done
+    validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
 
-    MESSAGE="Provide: Absolute path of private key file, example:"
-    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
-   
-    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
+    # Private Key File
+    CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      echo "What will the absolute path of the private key file be?"
+      read -r -e -p "[${HOME}/.ssh/id_rsa]: " OPTION
+      if [[ "${OPTION}" = "" ]]
+      then
+        PRIV_FILE_PATH="${HOME}/.ssh/id_rsa"
+      else
+        PRIV_FILE_PATH="${OPTION}"
+      fi
 
-    MESSAGE="Please provide Postgresql DB Version."
-    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
- 
-    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
+      if [[ ! -f "${PRIV_FILE_PATH}" ]]
+      then
+        echo "${PRIV_FILE_PATH} does not exists."
+        read -r -e  -p "Do you want to create another private key file? Enter: Yes/No or 'exit' to quit: " OPTION
+        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+        if [[ "${OPTION}" = "no" ]]
+        then
+          ssh-keygen -q -t rsa -f ${PRIV_FILE_PATH}  -C "" -N ""
+          break
+        elif [[ "${OPTION}" = "exit" ]]
+        then
+          exit 0
+        fi
+      else
+        break
+      fi
+    done
+    validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+      
+    # Prompt for Database Engine
+    CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    if [[ ${loop_var} -eq 0 ]]
+    then
+      echo "Which Database Engine would you like to install?"
+      echo " 1. Postgres"
+      echo " 2. EDB Postgres Advanced Server"
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      if [[ "x${PG_TYPE}" = "x" ]]
+      then
+        read -r -e -p "Please enter your numeric choice: " OPTION
+      else
+        read -r -e -p "Please enter your numeric choice [${PG_TYPE}]: " OPTION
+      fi
 
-    MESSAGE="Provide EDB Yum Username: "
+      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+
+      case "${OPTION}" in
+        1)
+          PG_TYPE="PG"
+          break
+          ;;
+        2)
+          PG_TYPE="EPAS"
+          break
+          ;;
+        "exit")
+          exit 0
+          ;;
+        *)
+          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
+          ;;
+      esac
+    done
+    export PG_TYPE
+    validate_variable "PG_TYPE" "${CONFIG_FILE}" "${PG_TYPE}"
+
+    # Prompt for Database Engine Version
+    CHECK=$(check_variable "PG_VERSION" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    if [[ ${loop_var} -eq 0 ]]
+    then
+      echo "Which Database Version do you wish to install?"
+      echo " 1. 10"
+      echo " 2. 11"
+      echo " 3. 12"      
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      if [[  "x${PG_VERSION}" = "x" ]]
+      then
+        read -r -e -p "Please enter your numeric choice: " OPTION
+      else
+        read -r -e -p "Please enter your numeric choice [${PG_VERSION}]: " OPTION
+      fi
+      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+
+      case "${OPTION}" in
+        1)
+          PG_VERSION="10"
+          break
+          ;;
+        2)
+          PG_VERSION="11"
+          break
+          ;;
+        3)
+          PG_VERSION="12"
+          break
+          ;;          
+        "exit")
+          exit 0
+          ;;
+        *)
+          echo "Unknown option. enter a number 1-3 or type 'exit' to quit: "
+          ;;
+      esac
+    done
+    export PG_VERSION
+    validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"  
+  
+    # Prompt for Standby Replication Type
+    CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+      loop_var=0
+    else
+      loop_var=1
+    fi
+    if [[ ${loop_var} -eq 0 ]]
+    then
+      echo "Which type of replication would you like for standby nodes?"
+      echo " 1. Synchronous"
+      echo " 2. Asynchronous"
+    fi
+    while [[ ${loop_var} -eq 0 ]]
+    do
+      if [[  "x${STANDBY_TYPE}" = "x" ]]
+      then
+        read -r -e -p "Please enter your numeric choice: " OPTION
+      else
+        read -r -e -p "Please enter your numeric choice [${STANDBY_TYPE}]: " OPTION
+      fi
+
+      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+
+      case "${OPTION}" in
+        1)
+          STANDBY_TYPE="synchronous"
+          break
+          ;;
+        2)
+          STANDBY_TYPE="asynchronous"
+          break
+          ;;
+        "exit")
+          exit 0
+          ;;
+        *)
+          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
+          ;;
+      esac
+    done
+    export STANDBY_TYPE
+    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+
+    # AMI ID
+    CHECK=$(check_variable "AMI_ID" "${CONFIG_FILE}")    
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then    
+        read -r -e  -p "Do you want to utilize an AMI ID for the Instances? Enter: Yes/No " OPTION
+        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+        if [[ "${OPTION}" = "no" ]]
+        then
+            AMI_ID="no"
+        else
+            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+            then
+              loop_var=0
+            else
+              loop_var=1
+            fi    
+            while [[ ${loop_var} -eq 0 ]]
+            do
+              read -r -e  -p "Please enter AMI ID: " AMI_ID
+              if [[ "${AMI_ID}" = "" ]]
+              then
+                AMI_ID="no"
+              fi
+
+              if [[ -f "${AMI_ID}" ]]
+              then
+                echo "${AMI_ID} cannot be empty."
+                read -r -e  -p "Please enter AMI ID: " AMI_ID
+              else
+                break
+              fi
+            done
+        fi            
+    fi
+    validate_variable "AMI_ID" "${CONFIG_FILE}" "${AMI_ID}"
+
+    set -u
+        
+    MESSAGE="Please provide EDB Yum Username: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
 
-    MESSAGE="Provide EDB Yum Password: "
+    MESSAGE="Please provide EDB Yum Password: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
 
     process_log "set all parameters"

@@ -34,6 +34,7 @@ function aws_build_server()
     local F_IMAGE_NAME=""
     local F_INSTANCE_TYPE="c5.2xlarge"
     local F_PRIV_FILE_KEYPATH="$7"
+    local F_AMI_ID="$8"
     local F_PUB_KEYNAMEANDEXTENSION=""
     local F_PRIV_KEYNAMEANDEXTENSION=""
     
@@ -43,42 +44,45 @@ function aws_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf 
-   
-    case $F_OSNAME in
-        "CentOS7")
-            shift; 
-            F_IMAGE_NAME="CentOS Linux 7 x86_64 HVM EBS*"
-            export F_IMAGE_NAME
-            ;;
-        "CentOS8")
-            shift; 
-            F_IMAGE_NAME="CentOS 8*"
-            export F_IMAGE_NAME
-            ;;
-        "RHEL7")
-            shift; 
-            F_IMAGE_NAME="RHEL-7.8-x86_64*"
-            export F_IMAGE_NAME
-            ;;            
-        "RHEL8")
-            shift; 
-            F_IMAGE_NAME="RHEL-8.2-x86_64*"
-            export F_IMAGE_NAME
-            ;;                       
-    esac    
 
-    process_log "Checking availability of Instance Type in target region"
-    instancetypeExists=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
-    if [ ! -z "$instancetypeExists" ]
-    then
-        process_log "Instance Type: '${F_INSTANCE_TYPE}' is available in region: '${REGION}'"
-    else
-        exit_on_error "Instance Type: '${F_INSTANCE_TYPE}' is not available in region: '${REGION}'"
-    fi
+    if [ "$F_AMI_ID" = "no" ]
+    then   
+        case $F_OSNAME in
+            "CentOS7")
+                shift; 
+                F_IMAGE_NAME="CentOS Linux 7 x86_64 HVM EBS*"
+                export F_IMAGE_NAME
+                ;;
+            "CentOS8")
+                shift; 
+                F_IMAGE_NAME="CentOS 8*"
+                export F_IMAGE_NAME
+                ;;
+            "RHEL7")
+                shift; 
+                F_IMAGE_NAME="RHEL-7.8-x86_64*"
+                export F_IMAGE_NAME
+                ;;            
+           "RHEL8")
+                shift; 
+                F_IMAGE_NAME="RHEL-8.2-x86_64*"
+                export F_IMAGE_NAME
+                ;;                       
+        esac
+
+        process_log "Checking availability of Instance Type in target region"
+        instancetypeExists=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
+        if [ ! -z "$instancetypeExists" ]
+        then
+            process_log "Instance Type: '${F_INSTANCE_TYPE}' is available in region: '${REGION}'"
+        else
+            exit_on_error "Instance Type: '${F_INSTANCE_TYPE}' is not available in region: '${REGION}'"
+        fi
        
-    process_log "Checking availability of Instance Image in target region"
-    F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region ${REGION} --output text)
-    
+        process_log "Checking availability of Instance Image in target region"
+        F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region ${REGION} --output text)
+    fi
+
     if [ ! -z "$F_AMI_ID" ]
     then
         process_log "Instance Image: '${F_AMI_ID}' is available in region: '${REGION}'"
