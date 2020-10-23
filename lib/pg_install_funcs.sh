@@ -68,7 +68,10 @@ function aws_ansible_pg_install()
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
     cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
-    ssh-keygen -q -t rsa -f ${PROJECT_NAME}_user_rsa -C "" -N ""
+    if [[ ! -f ${PROJECT_NAME}_user_rsa ]]
+    then
+       ssh-keygen -q -t rsa -f ${PROJECT_NAME}_user_rsa -C "" -N ""
+    fi
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_KEYPATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
