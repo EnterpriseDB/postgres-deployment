@@ -222,7 +222,7 @@ function aws_config_file()
       then
         echo "${PRIV_FILE_PATH} does not exists."
         read -r -e  -p "Do you want to create a one enter Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
+        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
         if [[ "${OPTION}" = "yes" ]]
         then
           ssh-keygen -q -t rsa -f ${PRIV_FILE_PATH}  -C "" -N ""
@@ -262,7 +262,7 @@ function aws_config_file()
       then
         echo "${PUB_FILE_PATH} does not exists."
         read -r -e  -p "Do you want to create a one enter Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
+        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
         if [[ "${OPTION}" = "yes" ]]
         then
           ssh-keygen -q -t rsa -f ${PUB_FILE_PATH}  -C "" -N ""
