@@ -37,7 +37,7 @@ function check_update_param()
     CHECK=$(check_variable "${PARAM}" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        ${READ_INPUT} "${MESSAGE}" VALUE
+        ${READ_INPUT} "${MSG_SUFFIX}${MESSAGE}" VALUE
         if [[ -z ${VALUE} ]]
         then
              exit_on_error "Entered value cannot be empty"
@@ -118,13 +118,14 @@ function check_update_param()
 function aws_config_file()
 {
     local PROJECT_NAME="$1"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
-    local loop_var
 
     mkdir -p ${LOGDIR}
+    #mkdir -p ${CONFIG_DIR}
     mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
 
     if [[ ! -f ${CONFIG_FILE} ]]
@@ -135,168 +136,189 @@ function aws_config_file()
         source ${CONFIG_FILE}
     fi
      
-    validate_variable "OSNAME" "${CONFIG_FILE}" "CentOS8"
-    validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "4"
-    validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
-    validate_variable "PEMSERVER" "${CONFIG_FILE}" "yes"
-    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "asynchronous"
-    validate_variable "PG_TYPE" "${CONFIG_FILE}" "EPAS"
-    validate_variable "PG_VERSION" "${CONFIG_FILE}" "12"
-    set +u 
-    CHECK=$(check_variable "REGION" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then
-      loop_var=0
-    else
-      loop_var=1
-    fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Please provie the target AWS region from the list"
-      echo " 1. us-east-1"
-      echo " 2. us-east-2"
-      echo " 3. us-west-1"
-      echo " 4. us-west-2"
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[  "x${REGION}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${REGION}]: " OPTION
-      fi
+    MESSAGE="Please provide OS name from 'CentOS7/CentOS8/RHEL7/RHEL8': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
 
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
+    MESSAGE="Please provide target AWS Region"
+    MESSAGE="${MESSAGE} examples: 'us-east-1', 'us-east-2', 'us-west-1'or 'us-west-2': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "REGION"
+   
+    MESSAGE="Please provide how many AWS EC2 Instances to create"
+    MESSAGE="${MESSAGE} example '>=1': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
-      case "${OPTION}" in
-        1)
-          REGION="us-east-1"
-          break
-          ;;
-        2)
-          REGION="us-east-2"
-          break
-          ;;
-        3)
-          REGION="us-west-1"
-          break
-          ;;
-        4)
-          REGION="us-west-2"
-          break
-          ;;
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
-          ;;
-      esac
-    done
-    export REGION
-    validate_variable "REGION" "${CONFIG_FILE}" "${REGION}"
+    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="${MESSAGE} Yes/No': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
 
-    ################################################################################
-    # Prompt for ssh private key options
-    ################################################################################
-    CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then
-      loop_var=0
-    else
-      loop_var=1
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      echo "Provide the absolute path of private key file"
-      read -r -e -p "[${HOME}/.ssh/id_rsa]: " OPTION
-      if [[ "${OPTION}" = "" ]]
-      then
-        PRIV_FILE_PATH="${HOME}/.ssh/id_rsa"
-      else
-        PRIV_FILE_PATH="${OPTION}"
-      fi
+    MESSAGE="Provide: Absolute path of public key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
 
-      if [[ ! -f "${PRIV_FILE_PATH}" ]]
-      then
-        echo "${PRIV_FILE_PATH} does not exists."
-        read -r -e  -p "Do you want to create a one enter Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
-        if [[ "${OPTION}" = "yes" ]]
-        then
-          ssh-keygen -q -t rsa -f ${PRIV_FILE_PATH}  -C "" -N ""
-          break
-        elif [[ "${OPTION}" = "exit" ]]
-        then
-          exit 0
-        fi
-      else
-        break
-      fi
-    done
-    validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
+   
+    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
 
-    ################################################################################
-    # Prompt for ssh public key options
-    ################################################################################
-    CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then
-      loop_var=0
-    else
-      loop_var=1
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      echo "Provide the absolute path of public key file"
-      read -r -e -p "[${HOME}/.ssh/id_rsa.pub]: " OPTION
-      if [[ "${OPTION}" = "" ]]
-      then
-        PUB_FILE_PATH="${HOME}/.ssh/id_rsa.pub"
-      else
-        PUB_FILE_PATH="${OPTION}"
-      fi
+    MESSAGE="Please provide Postgresql DB Version."
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
+ 
+    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
 
-      if [[ ! -f ${PUB_FILE_PATH} ]]
-      then
-        echo "${PUB_FILE_PATH} does not exists."
-        read -r -e  -p "Do you want to create a one enter Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
-        if [[ "${OPTION}" = "yes" ]]
-        then
-          ssh-keygen -q -t rsa -f ${PUB_FILE_PATH}  -C "" -N ""
-          break
-        elif [[ "${OPTION}" = "exit" ]]
-        then
-          exit 0
-        fi
-      else
-        break
-      fi
-    done
-    validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
-
-    MESSAGE="Provide EDB yum username: "
+    MESSAGE="Provide EDB Yum Username: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
 
-    MESSAGE="Provide EDB yum password: "
+    MESSAGE="Provide EDB Yum Password: "
     check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
-
-    MESSAGE="Provide your email id: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "EmailId"
-
-    MESSAGE="Provide route53 access key: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "ROUTE53_ACCESS_KEY"
-
-    MESSAGE="Provide route53 secret: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "ROUTE53_SECRET"
-    set -u
 
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
 
+function azure_config_file()
+{
+    local PROJECT_NAME="$1"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
+    local READ_INPUT="read -r -e -p"
+
+    local MESSAGE
+
+    mkdir -p ${LOGDIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
+
+    if [[ ! -f ${CONFIG_FILE} ]]
+    then
+       touch ${CONFIG_FILE}
+       chmod 600 ${CONFIG_FILE}
+    else
+        source ${CONFIG_FILE}
+    fi
+
+    MESSAGE="Please provide Publisher from 'OpenLogic/RedHat': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUBLISHER"
+     
+    MESSAGE="Please provide OS name from 'Centos/RHEL': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OFFER"
+
+    MESSAGE="Please provide OS version from 'Centos - 7.7 or 8_1/RHEL - 7.8 or 8.2': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SKU"
+
+    MESSAGE="Please provide target Azure Location"
+    MESSAGE="${MESSAGE} examples: 'centralus', 'eastus', 'eastus2', 'westus', 'westcentralus', 'westus2', 'northcentralus' or 'southcentralus': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "LOCATION"
+   
+    MESSAGE="Please provide how many Azure Instances to create"
+    MESSAGE="${MESSAGE} example '>=1': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
+
+    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="${MESSAGE} Yes/No': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    MESSAGE="Provide: Absolute path of public key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
+ 
+    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
+
+    MESSAGE="Please provide Postgresql DB Version."
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
+ 
+    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
+
+    MESSAGE="Provide EDB Yum Username: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
+
+    MESSAGE="Provide EDB Yum Password: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
+
+    process_log "set all parameters"
+    source ${CONFIG_FILE}
+}
+
+function gcloud_config_file()
+{
+    local PROJECT_NAME="$1"
+    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
+    local READ_INPUT="read -r -e -p"
+
+    local MESSAGE
+
+    mkdir -p ${LOGDIR}
+    #mkdir -p ${CONFIG_DIR}
+    mkdir -p ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}
+
+    if [[ ! -f ${CONFIG_FILE} ]]
+    then
+       touch ${CONFIG_FILE}
+       chmod 600 ${CONFIG_FILE}
+    else
+        source ${CONFIG_FILE}
+    fi
+
+    MESSAGE="Please provide OS name from 'centos-7, centos-8, rhel-7 and rhel-8': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
+
+    MESSAGE="Please Google Project ID: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
+    
+    MESSAGE="Please provide target Google Cloud Region"
+    MESSAGE="${MESSAGE} examples: 'us-central1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
+   
+    MESSAGE="Please provide how many VM Instances to create"
+    MESSAGE="${MESSAGE} example '>=1': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
+
+    MESSAGE="Please indicate if you would like a PEM Server Instance"
+    MESSAGE="${MESSAGE} Yes/No': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    MESSAGE="Please provide absolute path of the credentials json file"
+    MESSAGE="${MESSAGE} example '~/accounts.json': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "CREDENTIALS_FILE_LOCATION"
+
+    MESSAGE="Provide: Absolute path of public key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
+
+    MESSAGE="Provide: Absolute path of private key file, example:"
+    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
+ 
+    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
+
+    MESSAGE="Please provide Postgresql DB Version."
+    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
+ 
+    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
+
+    MESSAGE="Provide EDB Yum Username: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
+
+    MESSAGE="Provide EDB Yum Password: "
+    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
+
+    process_log "set all parameters"
+    source ${CONFIG_FILE}
+}
 
 function aws_show_config_file()
 {
@@ -309,6 +331,27 @@ function aws_show_config_file()
     process_log "showed aws project config details"
 }
 
+function azure_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed azure project config details"
+}
+
+function gcloud_show_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    SHOW="$(echo cat ${CONFIG_FILE})"    
+    eval "$SHOW"
+
+    process_log "showed gcloud project config details"
+}
 
 function aws_update_config_file()
 {
@@ -321,6 +364,27 @@ function aws_update_config_file()
     process_log "edited aws project config details"
 }
 
+function azure_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited azure project config details"
+}
+
+function gcloud_update_config_file()
+{
+    local PROJECT_NAME="$1"
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
+
+    EDIT="$(echo vi ${CONFIG_FILE})"    
+    eval "$EDIT"
+
+    process_log "edited gcloud project config details"
+}
 
 function aws_list_projects()
 {
@@ -332,6 +396,25 @@ function aws_list_projects()
     process_log "listed all aws projects"
 }
 
+function azure_list_projects()
+{
+    echo "Azure Terraform Projects:"
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all azure projects"
+}
+
+function gcloud_list_projects()
+{
+    echo "GCloud Terraform Projects:"
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    LIST_PROJECTS="$(echo terraform workspace list)"
+    eval "$LIST_PROJECTS"
+
+    process_log "listed all GCloud projects"
+}
 
 function aws_switch_projects()
 {
@@ -342,4 +425,26 @@ function aws_switch_projects()
     eval "$SWITCH_PROJECT"
 
     process_log "switched to aws project: ${PROJECT_NAME}"
+}
+
+function azure_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/azure || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to azure project: ${PROJECT_NAME}"
+}
+
+function gcloud_switch_projects()
+{
+    local PROJECT_NAME="$1"
+
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
+    SWITCH_PROJECT="$(echo terraform workspace select ${PROJECT_NAME})"
+    eval "$SWITCH_PROJECT"
+
+    process_log "switched to gcloud project: ${PROJECT_NAME}"
 }

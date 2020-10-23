@@ -5,9 +5,8 @@ resource "local_file" "AnsiblePEMYamlInventory" {
 ---
 servers:
   %{for count in range(var.instance_count)~}
-%{if count == 0}pemserver:%{endif}%{if count == 1}epas${count}:%{endif}%{if count > 1}epas${count}:%{endif}
+%{if count == 0}pemserver:%{endif}%{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
     node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}
-    %{if count > 0}hostname: epas${count}%{endif}
     public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}
     public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}
     private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
@@ -24,9 +23,8 @@ resource "local_file" "AnsibleYamlInventory" {
 ---
 servers:
   %{for count in range(var.instance_count)~}
-  %{if count == 1}epas${count}:%{endif}%{if count > 1}epas${count}:%{endif}
+  %{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
     %{if count > 0}node_type:%{endif} %{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
-    %{if count > 0}hostname: epas${count}%{endif}
     %{if count > 0}public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}%{endif}
     %{if count > 0}public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}%{endif}
     %{if count > 0}private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}%{endif}
