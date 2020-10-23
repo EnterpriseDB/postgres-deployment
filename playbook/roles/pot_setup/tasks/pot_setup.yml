@@ -1,0 +1,17 @@
+---
+- name: Update EFM
+  block:
+    - import_tasks: efm_scripts_rules.yml
+  when: item.value.node_type in ['primary','standby']
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Update OS user and prepare hba
+  block:
+    - import_tasks: os_configure_user.yml
+    - import_tasks: pg_user_pgpass.yml
+  delegate_to: "{{ item.value.public_ip }}"
+
+- name: Update the hba of database nodes for pg_project_user
+  import_tasks: pg_pot_hba.yml
+  when: item.value.node_type in ['primary','standby','pemserver']
+  delegate_to: "{{ item.value.public_ip }}"

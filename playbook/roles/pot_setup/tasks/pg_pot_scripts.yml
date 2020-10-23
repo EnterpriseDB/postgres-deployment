@@ -1,0 +1,11 @@
+---
+
+- name: update pem server for unnecessary alerts/probes
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: execute_sql_scripts
+  vars:
+    pg_sql_scripts: "{{ pg_pot_sql_scripts }}"
+  no_log: yes
+  register: avoid_output
+
