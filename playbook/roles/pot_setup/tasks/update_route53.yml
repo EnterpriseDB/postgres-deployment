@@ -1,0 +1,55 @@
+---
+
+# router update
+- name: get the route3 information
+  route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: get
+    zone: "{{ route53_zone }}"
+    record: "{{ route53_record }}"
+    type: A
+  register: rec
+  become: no
+
+- name: store the value of existsing ip address in a variable
+  set_fact:
+    route_ip_addressess: "{{ rec.set.value }}"
+
+- name: add the pem server ips in rec values
+  set_fact:
+        route_ip_addressess: "{{ route_ip_addressess + ',' + ip_value }}"
+  when: ip_value not in route_ip_addressess
+  with_items:
+      - "{{ pem_server_private_ip }}"
+      - "{{ pem_server_public_ip }}"
+  loop_control:
+      loop_var: ip_value
+  become: no
+
+- name: update a route53 for customer dns
+  route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: present
+    zone: "{{ route53_zone }}"
+    record: "{{ route53_record }}"
+    type: A
+    value: "{{ route_ip_addressess }}"
+    overwrite: yes
+    wait: yes
+  become: no
+
+- name: create a url entry in route53
+  route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: present
+    zone: "{{ route53_zone }}"
+    record: "{{ project }}pem.{{ domain }}"
+    type: A
+    value: "{{ pem_server_public_ip }}"
+    overwrite: yes
+    wait: yes
+  become: no
+

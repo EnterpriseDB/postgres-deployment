@@ -1,0 +1,36 @@
+---
+
+- name: Generate the pg_project_user_password
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: generate_password
+  vars:
+    input_user: "{{ pg_project_user }}"
+    input_password: "{{ pg_project_user_password }}"
+  no_log: True
+  when: pg_project_user_password|length < 1
+
+- name: Set pg_project_user_password
+  set_fact:
+     pg_project_user_password: "{{ input_password }}"
+  when: pg_project_user_password|length < 1
+
+- name: create the pg_project_user
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: manage_users
+  vars:
+    pg_users:
+      - name: "{{ pg_project_user }}"
+        pass: "{{ pg_project_user_password }}"
+
+- name: Assign role to pg_project_user
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: manage_privileges
+  vars:
+    pg_grant_roles:
+       - role: pg_monitor
+         user: "{{ pg_project_user }}"
+
+

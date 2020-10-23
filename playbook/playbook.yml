@@ -19,6 +19,7 @@
             pg_type: "PG"
             yum_username: ""
             yum_password: ""
+            use_hostname: yes
 
   roles:
     - setup_repo
@@ -28,3 +29,4 @@
     - setup_efm
     - setup_pem
     - manage_dbserver
+    - pot_setup 
