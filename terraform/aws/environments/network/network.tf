@@ -23,6 +23,6 @@ resource "aws_subnet" "public_subnets" {
   availability_zone = data.aws_availability_zones.available.names[count.index < local.az_count ? count.index : (local.az_count - 1)]
 
   tags = {
-    Name = format("%s_%s", var.public_subnet_tag, "${count.index}")
+    Name = format("%s_%s", var.public_subnet_tag, count.index)
   }
 }
