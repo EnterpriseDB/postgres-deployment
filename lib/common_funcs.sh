@@ -198,13 +198,9 @@ function copy_files_to_project_folder {
    mv -f ${DIRECTORY}/terraform/${cloud}/hosts.yml \
      ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/hosts.yml
    rm -f ${DIRECTORY}/terraform/${cloud}/inventory.yml \
-   #  ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/inventory.yml
    rm -f ${DIRECTORY}/terraform/${cloud}/pem-inventory.yml \
-   #  ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/pem-inventory.yml
    rm -f ${DIRECTORY}/terraform/${cloud}/os.csv 
-   #  ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/os.csv
    rm -f ${DIRECTORY}/terraform/${cloud}/add_host.sh 
-    # ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/add_host.sh      
 
    set -u
 }

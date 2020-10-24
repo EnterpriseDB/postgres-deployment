@@ -72,7 +72,8 @@ if [[ "${AWS_SERVER}" = "create" ]]
 then
     verify_aws
     
-    aws_config_file "${PROJECT_NAME}"
+    aws_config_file "${PROJECT_NAME}" \
+                    "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
     
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
@@ -81,6 +82,7 @@ then
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
                      "${PRIV_FILE_PATH}" \
+                     "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
     copy_files_to_project_folder "aws"
@@ -92,7 +94,9 @@ fi
 ################################################################################
 if [[ "${AWS_POSTGRES_INSTALL}" = "install" ]]
 then
-    aws_config_file "${PROJECT_NAME}"
+
+    aws_config_file "${PROJECT_NAME}" \
+                    "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
     
     aws_ansible_pg_install "${OSNAME}" \
                        "${PG_TYPE}" \
@@ -102,7 +106,11 @@ then
                        "${PRIV_FILE_PATH}" \
                        "${PUB_FILE_PATH}" \
                        "${PROJECT_NAME}" \
-                       "${PEM_INSTANCE_COUNT}" | tee ${PG_INSTALL_LOG}
+                       "${EMAIL_ID}" \
+                       "${ROUTE53_ACCESS_KEY}" \
+                       "${ROUTE53_SECRET}" \
+                       "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}" \
+                       2>&1 | tee ${PG_INSTALL_LOG}
 fi
 
 ################################################################################
@@ -110,12 +118,14 @@ fi
 ################################################################################
 if [[ "${AWS_CONFIG}" = "show" ]]
 then
-    aws_show_config_file "${PROJECT_NAME}"    
+    aws_show_config_file "${PROJECT_NAME}" \
+                         "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
 fi
 
 if [[ "${AWS_CONFIG}" = "update" ]]
 then
-    aws_update_config_file "${PROJECT_NAME}"
+    aws_update_config_file "${PROJECT_NAME}" \
+                           "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
 fi
 
 if [[ "${AWS_PROJECT}" = "list" ]]
@@ -133,8 +143,12 @@ fi
 ################################################################################
 if [[ "${AWS_SERVER}" = "destroy" ]]
 then
-    aws_config_file "${PROJECT_NAME}"
+    aws_config_file "${PROJECT_NAME}" \
+                    "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
 
-    aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    aws_destroy_server "${REGION}" \
+                       "${PROJECT_NAME}" \
+                       "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}" \
+                       2>&1 | tee  ${TERRAFORM_LOG}
 fi
 

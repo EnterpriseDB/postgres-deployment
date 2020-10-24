@@ -22,13 +22,26 @@
             yum_username: ""
             yum_password: ""
             use_hostname: yes
+            pg_postgres_conf_params:
+              - name: shared_buffers
+                value: 4096MB
+              - name: work_mem
+                value: 32MB
+              - name: maintenance_work_mem
+                value: 420MB
+              - name: huge_pages
+                value: "off"
+              - name: effective_cache_size
+                value: 11GB
+              - name: effective_io_concurrency
+                value: 200
 
   roles:
     - setup_repo
     - install_dbserver
     - init_dbserver
     - setup_replication
+    - manage_dbserver
     - setup_efm
     - setup_pem
-    - manage_dbserver
     - pot_setup 

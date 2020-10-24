@@ -30,7 +30,7 @@ function usage()
 {
   echo "${BASENAME} [<cloud>-server|<cloud>-postgres] [OPTION]..."
   echo ""
-  echo "EDB deployment script for aws, azure and gcp"
+  echo "EDB deployment script for aws"
   echo ""
   echo "Subcommands:"
   echo "    aws-server      [create|destroy]  PROJECT_NAME"
