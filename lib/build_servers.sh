@@ -54,29 +54,29 @@ function aws_build_server()
         "CentOS7")
             shift; 
             F_IMAGE_NAME="CentOS Linux 7 x86_64 HVM EBS*"
-            F_NEW_PUB_KEY="centos_key.pub"
-            F_NEW_SSH_KEY="centos_key.pem"
+            F_NEW_PUB_KEY="centos_${F_PROJECTNAME}_key.pub"
+            F_NEW_SSH_KEY="centos_${F_PROJECTNAME}_key.pem"
             export F_IMAGE_NAME
             ;;
         "CentOS8")
             shift; 
             F_IMAGE_NAME="CentOS 8*"
-            F_NEW_PUB_KEY="centos_key.pub"
-            F_NEW_SSH_KEY="centos_key.pem"
+            F_NEW_PUB_KEY="centos_${F_PROJECTNAME}_key.pub"
+            F_NEW_SSH_KEY="centos_${F_PROJECTNAME}_key.pem"
             export F_IMAGE_NAME
             ;;
         "RHEL7")
             shift; 
             F_IMAGE_NAME="RHEL-7.8-x86_64*"
-            F_NEW_PUB_KEY="ec2-user_key.pub"
-            F_NEW_SSH_KEY="ec2-user_key.pem"
+            F_NEW_PUB_KEY="ec2-user_${F_PROJECTNAME}_key.pub"
+            F_NEW_SSH_KEY="ec2-user_${F_PROJECTNAME}_key.pem"
             export F_IMAGE_NAME
             ;;            
         "RHEL8")
             shift; 
             F_IMAGE_NAME="RHEL-8.2-x86_64*"
-            F_NEW_PUB_KEY="ec2-user_key.pub"
-            F_NEW_SSH_KEY="ec2-user_key.pem"
+            F_NEW_PUB_KEY="ec2-user_${F_PROJECTNAME}_key.pub"
+            F_NEW_SSH_KEY="ec2-user_${F_PROJECTNAME}_key.pem"
             export F_IMAGE_NAME
             ;;                       
     esac    

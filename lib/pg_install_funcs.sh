@@ -66,13 +66,13 @@ function aws_ansible_pg_install()
     if [[ "${F_OSNAME}" =~ "CentOS" ]]
     then
         F_ANSIBLE_USER="centos"
-        F_NEW_PUB_KEY="centos_key.pub"
-        F_NEW_SSH_KEY="centos_key.pem"
+        F_NEW_PUB_KEY="centos_${F_PROJECTNAME}_key.pub"
+        F_NEW_SSH_KEY="centos_${F_PROJECTNAME}_key.pem"
     elif [[ "${F_OSNAME}" =~ "RHEL" ]]
     then
         F_ANSIBLE_USER="ec2-user"
-        F_NEW_PUB_KEY="ec2-user_key.pub"
-        F_NEW_SSH_KEY="ec2-user_key.pem"
+        F_NEW_PUB_KEY="ec2-user_${F_PROJECTNAME}_key.pub"
+        F_NEW_SSH_KEY="ec2-user_${F_PROJECTNAME}_key.pem"
     else
         exit_on_error "Unknown Operating system"
     fi
