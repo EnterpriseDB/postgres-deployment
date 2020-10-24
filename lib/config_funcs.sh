@@ -39,9 +39,11 @@ function check_update_param()
     then
         if [[ "${F_PARAM}" = "YUM_PASSWORD" ]] || [[ "${F_PARAM}" = "ROUTE53_SECRET" ]]
         then
+          echo ""
           ${F_READ_SILENT_INPUT} "${F_MESSAGE}" F_VALUE
           echo ""
         else
+          echo ""
           ${F_READ_INPUT} "${F_MESSAGE}" F_VALUE
           echo ""
         fi
