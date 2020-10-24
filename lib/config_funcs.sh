@@ -289,6 +289,10 @@ function aws_config_file()
       fi
     done
     validate_variable "PUB_FILE_PATH" "${F_CONFIG_FILE}" "${F_PUB_FILE_PATH}"
+
+    ################################################################################
+    # Prompt for ssh public yum username/password, email id and route53 access
+    ################################################################################
     F_MESSAGE="Provide EDB yum username: "
     check_update_param "${F_CONFIG_FILE}" "${F_MESSAGE}" "No" "YUM_USERNAME"
     F_MESSAGE="Provide EDB yum password: "
@@ -306,6 +310,9 @@ function aws_config_file()
 }
 
 
+################################################################################
+# Function to show the config file information
+################################################################################
 function aws_show_config_file()
 {
     local F_PROJECTNAME="$1"
@@ -321,6 +328,9 @@ function aws_show_config_file()
 }
 
 
+################################################################################
+# Function to  allow the updating config file
+################################################################################
 function aws_update_config_file()
 {
     local F_PROJECTNAME="$1"
@@ -335,6 +345,9 @@ function aws_update_config_file()
 }
 
 
+################################################################################
+# Function to list the projects
+################################################################################
 function aws_list_projects()
 {
     local F_LIST_PROJECTS
@@ -347,6 +360,9 @@ function aws_list_projects()
 }
 
 
+################################################################################
+# Function to switch between the projects
+################################################################################
 function aws_switch_projects()
 {
     local F_PROJECTNAME="$1"

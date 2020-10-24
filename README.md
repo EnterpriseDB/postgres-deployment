@@ -7,9 +7,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 # Pre-Requisites:
 Postgres Deployment Scripts are dependent on following components. Install the following components before using the Postgres Deployment Scripts.
 
-1. Vendor Cloud SDK ( AWS, Azure or Google Cloud )
+1. Vendor Cloud SDK ( AWS )
 
-   Depending on the cloud provider, install AWS CLI, Azure CLI or Google Cloud SDK on the system.
+   Install AWS CLI on the system.
    
 2. Packages: curl and wget
 3. Terraform >= 0.13
@@ -25,14 +25,12 @@ Postgres Deployment Scripts are dependent on following components. Install the f
 
 * A CLI or SDK depending on the Cloud vendor to utilize is required: 
   * To install the Amazon Web Services CLI please refer to: **[Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)**
-  * To install the Microsoft Azure CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
-  * To install the Google Cloud SDK please refer to: **[Installing the Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-interactive)**
 
 * Download/Clone the repository as indicated below:
   
   For cloning the repository use the following command:
   
-  ```git clone https://github.com/EnterpriseDB/postres-deployment.git```
+  ```git clone -b REL-edb-pot https://github.com/EnterpriseDB/postres-deployment.git```
   
   Download ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
@@ -55,70 +53,47 @@ EDB deployment script for aws, azure and gcp
 
 Subcommands:
     aws-server      [create|destroy]  PROJECT_NAME
-    azure-server    [create|destroy]  PROJECT_NAME
-    gcloud-server   [create|destroy]  PROJECT_NAME
     aws-postgres    install           PROJECT_NAME
-    azure-postgres  install           PROJECT_NAME
-    gcloud-postgres install           PROJECT_NAME
     aws-config      [show|update]     PROJECT_NAME
-    azure-config    [show|update]     PROJECT_NAME
-    gcloud-config   [show|update]     PROJECT_NAME
     aws-project     [list|switch]     PROJECT_NAME
-    azure-project   [list|switch]     PROJECT_NAME
-    gcloud-project  [list|switch]     PROJECT_NAME 
 
 Other Options:
     -h, --help Display help and exit
 ```
 
 ## How to Use:
-* Create your SSH Key or make it available for its reference
-  ![Create SSH Key](./demos/KeyGen.gif)
   
 * Utilizing the EDB CLI for a Postgres Installation
+
   * Create the Infrastructure in your Cloud Vendor:
 ```
     ./edb-deployment aws-server      create  PROJECT_NAME
-    ./edb-deployment azure-server    create  PROJECT_NAME 
-    ./edb-deployment gcloud-server   create  PROJECT_NAME
 ```
 
   * Install and configure EDB Postgres  in your Cloud Vendor:
 ```
     ./edb-deployment aws-postgres      install  PROJECT_NAME
-    ./edb-deployment azure-postgres    install  PROJECT_NAME 
-    ./edb-deployment gcloud-postgres   install  PROJECT_NAME
 ```
 
   * Destroy the Infrastructure in your Cloud Vendor:
 ```
     ./edb-deployment aws-server      destroy  PROJECT_NAME
-    ./edb-deployment azure-server    destroy  PROJECT_NAME 
-    ./edb-deployment gcloud-server   destroy  PROJECT_NAME
 ```
   * Display the config file details of Cloud Project:
 ```
     ./edb-deployment aws-config      show  PROJECT_NAME
-    ./edb-deployment azure-config    show  PROJECT_NAME 
-    ./edb-deployment gcloud-config   show  PROJECT_NAME
 ```
   * Edit in vi the config file details of Cloud Project:
 ```
     ./edb-deployment aws-config      update  PROJECT_NAME
-    ./edb-deployment azure-config    update  PROJECT_NAME 
-    ./edb-deployment gcloud-config   update  PROJECT_NAME
 ```
   * List the available Terraform Cloud Projects:
 ```
     ./edb-deployment aws-project      list  PROJECT_NAME
-    ./edb-deployment azure-project    list  PROJECT_NAME 
-    ./edb-deployment gcloud-project   list  PROJECT_NAME
 ```
   * Switch to another available Terraform Cloud Project:
 ```
     ./edb-deployment aws-project      switch  PROJECT_NAME
-    ./edb-deployment azure-project    switch  PROJECT_NAME 
-    ./edb-deployment gcloud-project   switch  PROJECT_NAME
 ```
 
 # Demos/Examples:
@@ -129,20 +104,6 @@ Other Options:
     ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
   * Destroy Postgres infrastructure in AWS
     ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
-* Azure
-  * Create Postgres infrastructure in Azure
-    ![Create Postgres infrastructure in Azure](./demos/AZURE_Create_test.gif)
-  * Install Postgres on infrastructure in Azure
-    ![AZURE Install Postgres on infrastructure in Azure](./demos/AZURE_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Azure
-    ![Destroy Postgres infrastructure in Azure](./demos/AZURE_Destroy_test.gif)
-* Google Cloud
-  * Create Postgres infrastructure in Google Cloud
-    ![Create Postgres infrastructure in Google Cloud](./demos/GCLOUD_Create_test.gif)
-  * Install Postgres on infrastructure in Google Cloud
-    ![AZURE Install Postgres on infrastructure in Google Cloud](./demos/GCLOUD_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Google Cloud
-    ![Destroy Postgres infrastructure in Google Cloud](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
