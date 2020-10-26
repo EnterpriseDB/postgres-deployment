@@ -1,0 +1,5 @@
+.terraform
+variables.tf
+tags.tf
+log/
+projects/aws/
