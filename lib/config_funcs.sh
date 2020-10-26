@@ -118,11 +118,8 @@ function check_update_param()
 function aws_config_file()
 {
     local PROJECT_NAME="$1"
-    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
-    local READ_INPUT="read -r -e -p"
-
-    local MESSAGE
+    #local RESULT=""
 
     mkdir -p ${LOGDIR}
     mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
@@ -141,54 +138,26 @@ function aws_config_file()
     CHECK=$(check_variable "OSNAME" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
-    fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Which Operating System would you like to Install?"
-      echo " 1. CentOS 7"
-      echo " 2. CentOS 8"
-      echo " 3. RHEL 7"
-      echo " 4. RHEL 8"
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[  "x${OSNAME}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${OSNAME}]: " OPTION
-      fi
-
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-
-      case "${OPTION}" in
-        1)
-          OSNAME="CentOS7"
-          break
-          ;;
-        2)
-          OSNAME="CentOS8"
-          break
-          ;;
-        3)
-          OSNAME="RHEL7"
-          break
-          ;;
-        4)
-          OSNAME="RHEL8"
-          break
-          ;;
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
-          ;;
+        declare -a OPTIONS=('1. CentOS 7' '2. CentOS 8' '3. RHEL 7' '4. RHEL 8')
+        declare -a CHOICES=('1' '2' '3' '4')
+        
+        RESULT=""
+        custom_options_prompt "Which Operating System would you like to Install?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            OSNAME="CentOS7"
+            ;;
+          2)
+            OSNAME="CentOS8"
+            ;;
+          3)
+            OSNAME="RHEL7"
+            ;;
+          4)
+            OSNAME="RHEL8"
+            ;;
       esac
-    done
+    fi
     export OSNAME
     validate_variable "OSNAME" "${CONFIG_FILE}" "${OSNAME}"
     
@@ -196,183 +165,96 @@ function aws_config_file()
     CHECK=$(check_variable "REGION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        declare -a OPTIONS=('1. us-east-1' '2. us-east-2' '3. us-west-1' '4. us-west-2')
+        declare -a CHOICES=('1' '2' '3' '4')
+        
+        RESULT=""
+        custom_options_prompt "Which Region would you like to use?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            REGION="us-east-1"
+            ;;
+          2)
+            REGION="us-east-2"
+            ;;
+          3)
+            REGION="us-west-1"
+            ;;
+          4)
+            REGION="us-west-2"
+            ;;
+        esac   
     fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Which Region would you like to use?"
-      echo " 1. us-east-1"
-      echo " 2. us-east-2"
-      echo " 3. us-west-1"
-      echo " 4. us-west-2"
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[  "x${REGION}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${REGION}]: " OPTION
-      fi
-
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-
-      case "${OPTION}" in
-        1)
-          REGION="us-east-1"
-          break
-          ;;
-        2)
-          REGION="us-east-2"
-          break
-          ;;
-        3)
-          REGION="us-west-1"
-          break
-          ;;
-        4)
-          REGION="us-west-2"
-          break
-          ;;
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
-          ;;
-      esac
-    done
     export REGION
     validate_variable "REGION" "${CONFIG_FILE}" "${REGION}"
-     
-    MESSAGE="How many AWS EC2 Instances would you like to create?"
-    MESSAGE="${MESSAGE} example '>=1': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
 
-    MESSAGE="Would you like a PEM Server Instance?"
-    MESSAGE="${MESSAGE} Yes/No': "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
+
+    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
+        declare -a CHOICES=('1' '2')
+        
+        RESULT=""
+        custom_options_prompt "How many AWS EC2 Instances would you like to create?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
+            ;;
+          2)
+            # Ask about how many instances for multi-node cluster
+            RESULT=""
+            validate_string_not_empty "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " "" RESULT
+            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
+            ;;
+        esac
+    fi
+    export STANDBY_TYPE
+    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
     
     # Public Key File
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        RESULT=""
+        validate_string_not_empty "What will the absolute path of the public key file be?" "[${HOME}/.ssh/id_rsa.pub]: " RESULT
+        PUB_FILE_PATH="${RESULT}"
     fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      echo "What will the absolute path of the public key file be?"
-      read -r -e -p "[${HOME}/.ssh/id_rsa.pub]: " OPTION
-      if [[ "${OPTION}" = "" ]]
-      then
-        PUB_FILE_PATH="${HOME}/.ssh/id_rsa.pub"
-      else
-        PUB_FILE_PATH="${OPTION}"
-      fi
-
-      if [[ ! -f ${PUB_FILE_PATH} ]]
-      then
-        echo "${PUB_FILE_PATH} does not exists."
-        read -r -e  -p "Do you want to create another public key file? Enter: Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-        if [[ "${OPTION}" = "no" ]]
-        then
-          ssh-keygen -q -t rsa -f ${PUB_FILE_PATH}  -C "" -N ""
-          break
-        elif [[ "${OPTION}" = "exit" ]]
-        then
-          exit 0
-        fi
-      else
-        break
-      fi
-    done
     validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
 
     # Private Key File
     CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        RESULT=""
+        validate_string_not_empty "What will the absolute path of the private key file be?" "[${HOME}/.ssh/id_rsa]: " RESULT
+        PRIV_FILE_PATH="${RESULT}"
     fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      echo "What will the absolute path of the private key file be?"
-      read -r -e -p "[${HOME}/.ssh/id_rsa]: " OPTION
-      if [[ "${OPTION}" = "" ]]
-      then
-        PRIV_FILE_PATH="${HOME}/.ssh/id_rsa"
-      else
-        PRIV_FILE_PATH="${OPTION}"
-      fi
-
-      if [[ ! -f "${PRIV_FILE_PATH}" ]]
-      then
-        echo "${PRIV_FILE_PATH} does not exists."
-        read -r -e  -p "Do you want to create another private key file? Enter: Yes/No or 'exit' to quit: " OPTION
-        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-        if [[ "${OPTION}" = "no" ]]
-        then
-          ssh-keygen -q -t rsa -f ${PRIV_FILE_PATH}  -C "" -N ""
-          break
-        elif [[ "${OPTION}" = "exit" ]]
-        then
-          exit 0
-        fi
-      else
-        break
-      fi
-    done
     validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
       
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        declare -a OPTIONS=('1. Postgres' '2. EDB Postgres Advanced Server')
+        declare -a CHOICES=('1' '2')
+        
+        RESULT=""
+        echo "${options[@]}"
+        custom_options_prompt "Which Database Engine would you like to install?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            PG_TYPE="PG"
+            ;;
+          2)
+            PG_TYPE="EPAS"
+            ;;
+        esac
     fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Which Database Engine would you like to install?"
-      echo " 1. Postgres"
-      echo " 2. EDB Postgres Advanced Server"
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[ "x${PG_TYPE}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${PG_TYPE}]: " OPTION
-      fi
-
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-
-      case "${OPTION}" in
-        1)
-          PG_TYPE="PG"
-          break
-          ;;
-        2)
-          PG_TYPE="EPAS"
-          break
-          ;;
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
-          ;;
-      esac
-    done
     export PG_TYPE
     validate_variable "PG_TYPE" "${CONFIG_FILE}" "${PG_TYPE}"
 
@@ -380,48 +262,24 @@ function aws_config_file()
     CHECK=$(check_variable "PG_VERSION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        declare -a OPTIONS=('1. 10' '2. 11' '3. 12')
+        declare -a CHOICES=('1' '2' '3')
+        
+        RESULT=""
+        custom_options_prompt "Which Database Version do you wish to install?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            PG_VERSION="10"
+            break
+            ;;
+          2)
+            PG_VERSION="11"
+            ;;
+          3)
+            PG_VERSION="12"
+            ;;          
+        esac
     fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Which Database Version do you wish to install?"
-      echo " 1. 10"
-      echo " 2. 11"
-      echo " 3. 12"      
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[  "x${PG_VERSION}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${PG_VERSION}]: " OPTION
-      fi
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-
-      case "${OPTION}" in
-        1)
-          PG_VERSION="10"
-          break
-          ;;
-        2)
-          PG_VERSION="11"
-          break
-          ;;
-        3)
-          PG_VERSION="12"
-          break
-          ;;          
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-3 or type 'exit' to quit: "
-          ;;
-      esac
-    done
     export PG_VERSION
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"  
   
@@ -429,91 +287,62 @@ function aws_config_file()
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-      loop_var=0
-    else
-      loop_var=1
+        declare -a OPTIONS=('1. synchronous' '2. asynchronous')
+        declare -a CHOICES=('1' '2')
+        
+        RESULT=""
+        custom_options_prompt "Which type of replication would you like for standby nodes?" OPTIONS CHOICES RESULT
+        case "${RESULT}" in
+          1)
+            STANDBY_TYPE="synchronous"
+            ;;
+          2)
+            STANDBY_TYPE="asynchronous"
+            ;;
+        esac
     fi
-    if [[ ${loop_var} -eq 0 ]]
-    then
-      echo "Which type of replication would you like for standby nodes?"
-      echo " 1. Synchronous"
-      echo " 2. Asynchronous"
-    fi
-    while [[ ${loop_var} -eq 0 ]]
-    do
-      if [[  "x${STANDBY_TYPE}" = "x" ]]
-      then
-        read -r -e -p "Please enter your numeric choice: " OPTION
-      else
-        read -r -e -p "Please enter your numeric choice [${STANDBY_TYPE}]: " OPTION
-      fi
-
-      OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-
-      case "${OPTION}" in
-        1)
-          STANDBY_TYPE="synchronous"
-          break
-          ;;
-        2)
-          STANDBY_TYPE="asynchronous"
-          break
-          ;;
-        "exit")
-          exit 0
-          ;;
-        *)
-          echo "Unknown option. enter a number 1-4 or type 'exit' to quit: "
-          ;;
-      esac
-    done
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
 
     # AMI ID
     CHECK=$(check_variable "AMI_ID" "${CONFIG_FILE}")    
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then    
-        read -r -e  -p "Do you want to utilize an AMI ID for the Instances? Enter: Yes/No " OPTION
-        OPTION=$(echo ${OPTION}|tr '[:upper:]' '[:lower:]')
-        if [[ "${OPTION}" = "no" ]]
+    then
+        RESULT=""
+        custom_yesno_prompt "Do you want to utilize an AMI ID for the Instances?" "Enter: (Y)es/(N)o" RESULT
+        if [[ "${RESULT}" = "Yes" ]]
         then
-            AMI_ID="no"
+            RESULT=""
+            validate_string_not_empty "Please enter the AMI ID: " "" RESULT
+            AMI_ID="${RESULT}"
         else
-            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-            then
-              loop_var=0
-            else
-              loop_var=1
-            fi    
-            while [[ ${loop_var} -eq 0 ]]
-            do
-              read -r -e  -p "Please enter AMI ID: " AMI_ID
-              if [[ "${AMI_ID}" = "" ]]
-              then
-                AMI_ID="no"
-              fi
-
-              if [[ -f "${AMI_ID}" ]]
-              then
-                echo "${AMI_ID} cannot be empty."
-                read -r -e  -p "Please enter AMI ID: " AMI_ID
-              else
-                break
-              fi
-            done
-        fi            
+            AMI_ID="${RESULT}"
+        fi
     fi
     validate_variable "AMI_ID" "${CONFIG_FILE}" "${AMI_ID}"
 
+    # EDB YUM UserName
+    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        validate_string_not_empty "Please provide EDB Yum Username: " "" RESULT
+        YUM_USERNAME="${RESULT}"
+    fi
+    validate_variable "YUM_USERNAME" "${CONFIG_FILE}" "${YUM_USERNAME}"
+    
+    # EDB YUM Password
+    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        validate_password_not_empty "Please provide EDB Yum Password: " "" RESULT
+        YUM_PASSWORD="${RESULT}"
+    fi
+    validate_variable "YUM_PASSWORD" "${CONFIG_FILE}" "${YUM_PASSWORD}"
+    
     set -u
         
-    MESSAGE="Please provide EDB Yum Username: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
-
-    MESSAGE="Please provide EDB Yum Password: "
-    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
-
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
@@ -521,14 +350,12 @@ function aws_config_file()
 function azure_config_file()
 {
     local PROJECT_NAME="$1"
-    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    #mkdir -p ${CONFIG_DIR}
     mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
 
     if [[ ! -f ${CONFIG_FILE} ]]
@@ -591,14 +418,12 @@ function azure_config_file()
 function gcloud_config_file()
 {
     local PROJECT_NAME="$1"
-    #local CONFIG_FILE="${CONFIG_DIR}/${PROJECT_NAME}.cfg"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
 
     mkdir -p ${LOGDIR}
-    #mkdir -p ${CONFIG_DIR}
     mkdir -p ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]

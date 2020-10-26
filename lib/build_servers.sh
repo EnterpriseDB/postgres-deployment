@@ -45,7 +45,7 @@ function aws_build_server()
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
                                         > variables.tf 
 
-    if [ "$F_AMI_ID" = "no" ]
+    if [ "$F_AMI_ID" = "No" ]
     then   
         case $F_OSNAME in
             "CentOS7")

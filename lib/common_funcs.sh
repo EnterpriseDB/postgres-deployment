@@ -200,3 +200,137 @@ function copy_files_to_project_folder {
 
    set -u
 }
+
+################################################################################
+# function for validation of an entry with Yes/No Prompts
+################################################################################
+function custom_yesno_prompt()
+{
+    local QUESTION="$1"
+    local MESSAGE="$2"
+    local VALUETORETURN="$3"
+    local YES="Yes"
+    local NO="No"
+ 
+    while true
+    do
+       echo $QUESTION
+       echo -e "$MESSAGE: \c"
+       read ANSWER
+
+       OPTION=$(echo ${ANSWER}|tr '[:upper:]' '[:lower:]')
+
+       case "${OPTION}" in
+          [yY])
+                #echo "You responded: ${OPTION}"
+                VALUETORETURN=${YES}
+                break
+                ;;
+          [nN]) 
+                #echo "You responded: ${OPTION}"
+                VALUETORETURN=${NO}
+                break
+                ;;
+          *)
+                echo "Invalid option '${OPTION}'. Please enter a correct value."
+                ;;
+        esac
+    done
+
+    #echo "${VALUETORETURN}"
+    RESULT="${VALUETORETURN}"
+}
+
+################################################################################
+# function for validation of an entry with arrays and choices
+################################################################################
+function custom_options_prompt()
+{
+    local QUESTION="$1"
+    local SEEKANSWER=0
+
+    #echo "${VALUETORETURN}"
+    while true
+    do
+       echo $QUESTION
+       for opt in "${OPTIONS[@]}"
+       do
+           echo "$opt"
+       done
+       read ANSWER
+
+       #echo "You responded: ${ANSWER}"
+       SEEKANSWER=$(echo "${CHOICES[@]}" | grep -i "${ANSWER}" | wc -w)
+       #echo "seekanswer: ${SEEKANSWER}"
+
+       if [[ "${SEEKANSWER}" -lt 1 ]]
+       then
+           echo "Invalid option '${ANSWER}'. Please enter a correct value."
+       else
+           break
+       fi
+    done
+
+    #echo "${ANSWER}"
+    RESULT="${ANSWER}"    
+}
+
+################################################################################
+# function for validation of an string entry not being empty
+################################################################################
+function validate_string_not_empty()
+{
+    local QUESTION="$1"
+    local MESSAGE="$2"
+
+    #echo "${VALUETORETURN}"
+    while true
+    do
+       if [[ -z "${MESSAGE}" ]]
+       then
+           echo -e "$QUESTION \c"
+       else
+           echo "$QUESTION"
+           echo -e "$MESSAGE \c"           
+       fi
+       read ANSWER
+
+       #echo "You responded: ${ANSWER}"
+       if [[ -z "${ANSWER}" ]]
+       then
+           echo "Entered value cannot be empty. Please enter a correct value."
+       else
+           break
+       fi
+    done
+
+    #echo "${ANSWER}"
+    RESULT="${ANSWER}"
+}
+
+################################################################################
+# function for validation of an password string entry not being empty
+################################################################################
+function validate_password_not_empty()
+{
+    local QUESTION="$1"
+
+    echo "${VALUETORETURN}"
+    while true
+    do
+       echo -e "$QUESTION \c"
+       read -s ANSWER
+
+       echo "You responded: ${ANSWER}"
+       if [[ -z "${ANSWER}" ]]
+       then
+           echo "Entered value cannot be empty. Please enter a correct value."
+       else
+           break
+       fi
+    done
+
+    echo "${ANSWER}"
+    RESULT="${ANSWER}"
+}
+
