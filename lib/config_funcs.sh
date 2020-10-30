@@ -690,9 +690,6 @@ function gcloud_config_file()
 
     set +u    
 
-#    MESSAGE="Please provide OS name from 'centos-7, centos-8, rhel-7 and rhel-8': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OSNAME"
-
     # Prompt for OSNAME
     CHECK=$(check_variable "OSNAME" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -723,9 +720,6 @@ function gcloud_config_file()
     export OSNAME
     validate_variable "OSNAME" "${CONFIG_FILE}" "${OSNAME}"
 
-#    MESSAGE="Please Google Project ID: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PROJECT_ID"
-
     # Prompt for Google Project ID
     CHECK=$(check_variable "PROJECT_ID" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -739,10 +733,6 @@ function gcloud_config_file()
     validate_variable "PROJECT_ID" "${CONFIG_FILE}" "${PROJECT_ID}"
     export PROJECT_ID
         
-#    MESSAGE="Please provide target Google Cloud Region"
-#    MESSAGE="${MESSAGE} examples: 'us-central1', 'us-east1', 'us-east4', 'us-west1', 'us-west2', 'us-west3' or 'us-west4': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SUBNETWORK_REGION"
-
     # Prompt for SUBNETWORK_REGION
     CHECK=$(check_variable "SUBNETWORK_REGION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -783,14 +773,6 @@ function gcloud_config_file()
     export SUBNETWORK_REGION
     validate_variable "SUBNETWORK_REGION" "${CONFIG_FILE}" "${SUBNETWORK_REGION}"
    
-#    MESSAGE="Please provide how many VM Instances to create"
-#    MESSAGE="${MESSAGE} example '>=1': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
-
-#    MESSAGE="Please indicate if you would like a PEM Server Instance"
-#    MESSAGE="${MESSAGE} Yes/No': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
-
     CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
@@ -828,26 +810,18 @@ function gcloud_config_file()
         esac
     fi
 
-#    MESSAGE="Please provide absolute path of the credentials json file"
-#    MESSAGE="${MESSAGE} example '~/accounts.json': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "CREDENTIALS_FILE_LOCATION"
-
     # Credentials File
     CHECK=$(check_variable "CREDENTIALS_FILE_LOCATION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
         validate_string_not_empty "Where is the location of your Credentials file?" \
-          "[${HOME}/.accounts.json]: " \
+          "[${HOME}/accounts.json]: " \
           RESULT
         CREDENTIALS_FILE_LOCATION="${RESULT}"
     fi
     validate_variable "CREDENTIALS_FILE_LOCATION" "${CONFIG_FILE}" "${CREDENTIALS_FILE_LOCATION}"
     export CREDENTIALS_FILE_LOCATION
-
-#    MESSAGE="Provide: Absolute path of public key file, example:"
-#    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
 
     # Public Key File
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
@@ -862,10 +836,6 @@ function gcloud_config_file()
     validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
     export PUB_FILE_PATH
 
-#    MESSAGE="Provide: Absolute path of private key file, example:"
-#    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
-
     # Private Key File
     CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -879,9 +849,6 @@ function gcloud_config_file()
     validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
     export PRIV_FILE_PATH
  
-#    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
-
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -905,10 +872,6 @@ function gcloud_config_file()
     fi
     validate_variable "PG_TYPE" "${CONFIG_FILE}" "${PG_TYPE}"
     export PG_TYPE
-
-#    MESSAGE="Please provide Postgresql DB Version."
-#    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
 
     # Prompt for Database Engine Version
     CHECK=$(check_variable "PG_VERSION" "${CONFIG_FILE}")
@@ -938,9 +901,6 @@ function gcloud_config_file()
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"
     export PG_VERSION
  
-#    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
-
     # Prompt for Standby Replication Type
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -965,9 +925,6 @@ function gcloud_config_file()
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
 
-#    MESSAGE="Provide EDB Yum Username: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
-
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -978,9 +935,6 @@ function gcloud_config_file()
     fi
     validate_variable "YUM_USERNAME" "${CONFIG_FILE}" "${YUM_USERNAME}"
     export YUM_USERNAME
-
-#    MESSAGE="Provide EDB Yum Password: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
 
     # EDB YUM Password
     CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    

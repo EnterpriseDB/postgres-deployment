@@ -121,18 +121,18 @@ then
     
     gcloud_config_file "${PROJECT_NAME}"
    
-#    gcloud_build_server "${OSNAME}" \
-#                        "${SUBNETWORK_REGION}" \
-#                        "${INSTANCE_COUNT}" \
-#                        "${PUB_FILE_PATH}" \
-#                        "${PROJECT_ID}" \
-#                        "${PROJECT_NAME}" \
-#                        "${PEM_INSTANCE_COUNT}" \
-#                        "${CREDENTIALS_FILE_LOCATION}" \
-#                        "${PRIV_FILE_PATH}" \
-#                       2>&1 | tee ${TERRAFORM_LOG}
+    gcloud_build_server "${OSNAME}" \
+                        "${SUBNETWORK_REGION}" \
+                        "${INSTANCE_COUNT}" \
+                        "${PUB_FILE_PATH}" \
+                        "${PROJECT_ID}" \
+                        "${PROJECT_NAME}" \
+                        "${PEM_INSTANCE_COUNT}" \
+                        "${CREDENTIALS_FILE_LOCATION}" \
+                        "${PRIV_FILE_PATH}" \
+                       2>&1 | tee ${TERRAFORM_LOG}
 
-#    copy_files_to_project_folder "gcloud"
+    copy_files_to_project_folder "gcloud"
 fi
 
 ################################################################################
