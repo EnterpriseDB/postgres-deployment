@@ -321,7 +321,7 @@ function validate_password_not_empty()
        echo -e "$QUESTION \c"
        read -s ANSWER
 
-       echo "You responded: ${ANSWER}"
+       #echo "You responded: ${ANSWER}"
        if [[ -z "${ANSWER}" ]]
        then
            echo "Entered value cannot be empty. Please enter a correct value."
