@@ -209,6 +209,9 @@ function aws_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER              
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -220,16 +223,13 @@ function aws_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER              
             ;;
         esac
     fi
-    validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${INSTANCE_COUNT}"
-    validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "${PEM_INSTANCE_COUNT}"
-    validate_variable "PEMSERVER" "${CONFIG_FILE}" "${PEMSERVER}"
-    export INSTANCE_COUNT
-    export PEM_INSTANCE_COUNT
-    export PEMSERVER
-    
+
     # Public Key File
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -264,7 +264,6 @@ function aws_config_file()
         declare -a CHOICES=('1' '2')
         
         RESULT=""
-        echo "${options[@]}"
         custom_options_prompt "Which Database Engine would you like to install?" \
           OPTIONS \
           CHOICES \
@@ -385,9 +384,6 @@ function azure_config_file()
 {
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
-    local READ_INPUT="read -r -e -p"
-
-    local MESSAGE
 
     mkdir -p ${LOGDIR}
     mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
@@ -402,9 +398,6 @@ function azure_config_file()
     
     set +u    
 
-#    MESSAGE="Please provide Publisher from 'OpenLogic/RedHat': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUBLISHER"
-
     # Prompt for Publisher
     CHECK=$(check_variable "PUBLISHER" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -413,36 +406,29 @@ function azure_config_file()
         declare -a CHOICES=('1' '2')
         
         RESULT=""
-        echo "${options[@]}"
         custom_options_prompt "Which Publisher would you like to choose?" \
           OPTIONS \
           CHOICES \
           RESULT
         case "${RESULT}" in
           1)
-            PG_TYPE="OpenLogic"
+            PUBLISHER="OpenLogic"
             ;;
           2)
-            PG_TYPE="Redhat"
+            PUBLISHER="Redhat"
             ;;
         esac
     fi
     validate_variable "PUBLISHER" "${CONFIG_FILE}" "${PUBLISHER}"
-    export PUBLISHER    
+    export PUBLISHER
     
-#    MESSAGE="Please provide OS name from 'Centos/RHEL': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "OFFER"
-
-#    MESSAGE="Please provide OS version from 'Centos - 7.7 or 8_1/RHEL - 7.8 or 8.2': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "SKU"
-
     # Prompt for Offer
     CHECK=$(check_variable "OFFER" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Centos 7.7' '2. Centos 8.1' '3. RHEL 7.8' '4. RHEL 8.2')
         declare -a CHOICES=('1' '2' '3' '4')
-        
+
         RESULT=""
         custom_options_prompt "Which Operating System would you like to use?" \
           OPTIONS \
@@ -465,16 +451,12 @@ function azure_config_file()
             OFFER="RHEL"
             SKU="8.2"
             ;;
-        esac   
+        esac
     fi
     validate_variable "OFFER" "${CONFIG_FILE}" "${OFFER}"
-    validate_variable "SKU" "${CONFIG_FILE}" "${SKU}"    
+    validate_variable "SKU" "${CONFIG_FILE}" "${SKU}"
     export OFFER
     export SKU
-    
-#    MESSAGE="Please provide target Azure Location"
-#    MESSAGE="${MESSAGE} examples: 'centralus', 'eastus', 'eastus2', 'westus', 'westcentralus', 'westus2', 'northcentralus' or 'southcentralus': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "LOCATION"
 
     # Prompt for LOCATION
     CHECK=$(check_variable "LOCATION" "${CONFIG_FILE}")
@@ -483,7 +465,7 @@ function azure_config_file()
         declare -a OPTIONS=('1. centralus' '2. eastus' '3. eastus2' '4. westus' \
           '5. westcentralus' '6. westus2' '7. northcentralus' '8. southcentralus')
         declare -a CHOICES=('1' '2' '3' '4' '5' '6' '7' '8')
-        
+
         RESULT=""
         custom_options_prompt "Which Azure Location will you deploy towards?" \
           OPTIONS \
@@ -491,48 +473,40 @@ function azure_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            REGION="centralus"
+            LOCATION="centralus"
             ;;
           2)
-            REGION="eastus"
+            LOCATION="eastus"
             ;;
           3)
-            REGION="eastus2"
+            LOCATION="eastus2"
             ;;
           4)
-            REGION="westus"
+            LOCATION="westus"
             ;;
           5)
-            REGION="westcentralus"
+            LOCATION="westcentralus"
             ;;
           6)
-            REGION="westus2"
+            LOCATION="westus2"
             ;;
           7)
-            REGION="northcentralus"
+            LOCATION="northcentralus"
             ;;
           8)
-            REGION="southcentralus"
+            LOCATION="southcentralus"
             ;;
-        esac   
+        esac
     fi
     export LOCATION
     validate_variable "LOCATION" "${CONFIG_FILE}" "${LOCATION}"
-   
-#    MESSAGE="Please provide how many Azure Instances to create"
-#    MESSAGE="${MESSAGE} example '>=1': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "Yes" "INSTANCE_COUNT"
-
-#    MESSAGE="Please indicate if you would like a PEM Server Instance"
-#    MESSAGE="${MESSAGE} Yes/No': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PEMSERVER"
 
     CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
           OPTIONS \
@@ -543,6 +517,9 @@ function azure_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER            
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -554,19 +531,12 @@ function azure_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER            
             ;;
         esac
     fi
-    validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${INSTANCE_COUNT}"
-    validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "${PEM_INSTANCE_COUNT}"
-    validate_variable "PEMSERVER" "${CONFIG_FILE}" "${PEMSERVER}"
-    export INSTANCE_COUNT
-    export PEM_INSTANCE_COUNT
-    export PEMSERVER
-
-#    MESSAGE="Provide: Absolute path of public key file, example:"
-#    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa.pub': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PUB_FILE_PATH"
 
     # Public Key File
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
@@ -581,10 +551,6 @@ function azure_config_file()
     validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
     export PUB_FILE_PATH
 
-#    MESSAGE="Provide: Absolute path of private key file, example:"
-#    MESSAGE="${MESSAGE}  '~/.ssh/id_rsa': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PRIV_FILE_PATH"
-
     # Private Key File
     CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -598,9 +564,6 @@ function azure_config_file()
     validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
     export PRIV_FILE_PATH
  
-#    MESSAGE="Please provide Postgresql DB Engine. PG/EPAS: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_TYPE"
-
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -625,10 +588,6 @@ function azure_config_file()
     fi
     validate_variable "PG_TYPE" "${CONFIG_FILE}" "${PG_TYPE}"
     export PG_TYPE
-
-#    MESSAGE="Please provide Postgresql DB Version."
-#    MESSAGE="${MESSAGE} Options are 10, 11 or 12: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "PG_VERSION"
 
     # Prompt for Database Engine Version
     CHECK=$(check_variable "PG_VERSION" "${CONFIG_FILE}")
@@ -658,9 +617,6 @@ function azure_config_file()
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"
     export PG_VERSION    
  
-#    MESSAGE="Provide: Type of Replication: 'synchronous' or 'asynchronous': "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "STANDBY_TYPE"
-
     # Prompt for Standby Replication Type
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -685,9 +641,6 @@ function azure_config_file()
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
 
-#    MESSAGE="Provide EDB Yum Username: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_USERNAME"
-
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -698,9 +651,6 @@ function azure_config_file()
     fi
     validate_variable "YUM_USERNAME" "${CONFIG_FILE}" "${YUM_USERNAME}"
     export YUM_USERNAME
-
-#    MESSAGE="Provide EDB Yum Password: "
-#    check_update_param "${CONFIG_FILE}" "${MESSAGE}" "No" "YUM_PASSWORD"
 
     # EDB YUM Password
     CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    
@@ -757,16 +707,16 @@ function gcloud_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            REGION="centos-7"
+            OSNAME="centos-7"
             ;;
           2)
-            REGION="centos-8"
+            OSNAME="centos-8"
             ;;
           3)
-            REGION="rhel-7"
+            OSNAME="rhel-7"
             ;;
           4)
-            REGION="rhel-8"
+            OSNAME="rhel-8"
             ;;
         esac   
     fi
@@ -808,25 +758,25 @@ function gcloud_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            REGION="us-central1"
+            SUBNETWORK_REGION="us-central1"
             ;;
           2)
-            REGION="us-east1"
+            SUBNETWORK_REGION="us-east1"
             ;;
           3)
-            REGION="us-east4"
+            SUBNETWORK_REGION="us-east4"
             ;;
           4)
-            REGION="us-west1"
+            SUBNETWORK_REGION="us-west1"
             ;;
           5)
-            REGION="us-west2"
+            SUBNETWORK_REGION="us-west2"
             ;;
           6)
-            REGION="us-west3"
+            SUBNETWORK_REGION="us-west3"
             ;;
           7)
-            REGION="us-west4"
+            SUBNETWORK_REGION="us-west4"
             ;;
         esac   
     fi
@@ -857,6 +807,9 @@ function gcloud_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER              
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -868,15 +821,12 @@ function gcloud_config_file()
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
+            export INSTANCE_COUNT
+            export PEM_INSTANCE_COUNT
+            export PEMSERVER              
             ;;
         esac
     fi
-    validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${INSTANCE_COUNT}"
-    validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "${PEM_INSTANCE_COUNT}"
-    validate_variable "PEMSERVER" "${CONFIG_FILE}" "${PEMSERVER}"
-    export INSTANCE_COUNT
-    export PEM_INSTANCE_COUNT
-    export PEMSERVER
 
 #    MESSAGE="Please provide absolute path of the credentials json file"
 #    MESSAGE="${MESSAGE} example '~/accounts.json': "
@@ -940,7 +890,6 @@ function gcloud_config_file()
         declare -a CHOICES=('1' '2')
         
         RESULT=""
-        echo "${options[@]}"
         custom_options_prompt "Which Database Engine would you like to install?" \
           OPTIONS \
           CHOICES \
