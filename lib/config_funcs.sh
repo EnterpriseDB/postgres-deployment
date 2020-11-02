@@ -142,6 +142,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "Which Operating System would you like to Install?" \
+           "Please enter your choice:" \
            OPTIONS \
            CHOICES \
            RESULT
@@ -172,6 +173,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "Which Region would you like to use?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -201,6 +203,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -220,6 +223,7 @@ function aws_config_file()
               "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
+            RESULT=$(( RESULT + 1 ))
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
@@ -265,6 +269,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "Which Database Engine would you like to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -289,6 +294,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -317,6 +323,7 @@ function aws_config_file()
         
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -407,6 +414,7 @@ function azure_config_file()
         
         RESULT=""
         custom_options_prompt "Which Publisher would you like to choose?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -431,6 +439,7 @@ function azure_config_file()
 
         RESULT=""
         custom_options_prompt "Which Operating System would you like to use?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -468,6 +477,7 @@ function azure_config_file()
 
         RESULT=""
         custom_options_prompt "Which Azure Location will you deploy towards?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -509,6 +519,7 @@ function azure_config_file()
 
         RESULT=""
         custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -528,6 +539,7 @@ function azure_config_file()
               "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
+            RESULT=$(( RESULT + 1 ))
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
@@ -574,6 +586,7 @@ function azure_config_file()
         RESULT=""
         echo "${options[@]}"
         custom_options_prompt "Which Database Engine would you like to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -598,6 +611,7 @@ function azure_config_file()
         
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -626,6 +640,7 @@ function azure_config_file()
         
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -699,6 +714,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "Which Operating System and Version would you like to use?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -743,6 +759,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "Which Azure Location will you deploy towards?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -781,6 +798,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "How many Virtual Machines would you like to create?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -800,6 +818,7 @@ function gcloud_config_file()
               "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
+            RESULT=$(( RESULT + 1 ))
             validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
@@ -858,6 +877,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "Which Database Engine would you like to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -882,6 +902,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT
@@ -910,6 +931,7 @@ function gcloud_config_file()
         
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
+          "Please enter your choice:" \
           OPTIONS \
           CHOICES \
           RESULT

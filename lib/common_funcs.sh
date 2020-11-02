@@ -247,6 +247,7 @@ function custom_yesno_prompt()
 function custom_options_prompt()
 {
     local QUESTION="$1"
+    local MESSAGE="$2"
     local SEEKANSWER=0
 
     #echo "${VALUETORETURN}"
@@ -257,6 +258,7 @@ function custom_options_prompt()
        do
            echo "$opt"
        done
+       echo -e "${MESSAGE} \c"       
        read ANSWER
 
        #echo "You responded: ${ANSWER}"
