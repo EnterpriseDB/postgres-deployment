@@ -204,3 +204,43 @@ function copy_files_to_project_folder {
 
    set -u
 }
+
+################################################################################
+# function for validation of an entry with Yes/No Prompts
+################################################################################
+function custom_yesno_prompt()
+{
+    local QUESTION="$1"
+    local MESSAGE="$2"
+    local VALUETORETURN="$3"
+    local YES="Yes"
+    local NO="No"
+ 
+    while true
+    do
+       echo $QUESTION
+       echo -e "$MESSAGE: \c"
+       read ANSWER
+
+       OPTION=$(echo ${ANSWER}|tr '[:upper:]' '[:lower:]')
+
+       case "${OPTION}" in
+          [yY])
+                #echo "You responded: ${OPTION}"
+                VALUETORETURN=${YES}
+                break
+                ;;
+          [nN]) 
+                #echo "You responded: ${OPTION}"
+                VALUETORETURN=${NO}
+                break
+                ;;
+          *)
+                echo "Invalid option '${OPTION}'. Please enter a correct value."
+                ;;
+        esac
+    done
+
+    #echo "${VALUETORETURN}"
+    RESULT="${VALUETORETURN}"
+}

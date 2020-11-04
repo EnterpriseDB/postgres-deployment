@@ -62,6 +62,8 @@ function aws_ansible_pg_install()
     F_ANSIBLE_VARS="${F_ANSIBLE_VARS} route53_secret=${F_ROUTE53_SECRET}"
     F_ANSIBLE_VARS="${F_ANSIBLE_VARS} public_key=${F_PROJECT_PUB_KEY}"
 
+    local F_LOG_FILE="${F_PROJECT_DIR}/projectdetails.txt"    
+
     # Check the F_OSNAME and and accordingly set the ansible user
     if [[ "${F_OSNAME}" =~ "CentOS" ]]
     then
@@ -106,58 +108,62 @@ function aws_ansible_pg_install()
                      --extra-vars="${F_ANSIBLE_VARS}" \
                      --private-key="./${F_NEW_SSH_KEY}" \
                      playbook.yml
+
+    exec 3>&1 1>>"${F_LOG_FILE}" 2>&1
                     
     # Print the POT environment details below after successful execution
     # of the ansible
-    echo -e "PEM SERVER:"
-    echo -e "-----------"
-    echo -e "  PEM URL:\thttps://${F_PROJECTNAME}pem.edbpov.io:8443/pem"
+    echo -e "PEM SERVER:" | tee /dev/fd/3
+    echo -e "-----------" | tee /dev/fd/3
+    echo -e "  PEM URL:\thttps://${F_PROJECTNAME}pem.edbpov.io:8443/pem" | tee /dev/fd/3
     if [[ "${F_PG_TYPE}" = "PG" ]]
     then
-       echo -e "  Username:\tpostgres"
-       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/postgres_pass)"
-       echo ""
+       echo -e "  Username:\tpostgres" | tee /dev/fd/3
+       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/postgres_pass)" | tee /dev/fd/3
+       echo "" | tee /dev/fd/3
     else
-       echo -e "  Username:\tenterprisedb"
-       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/enterprisedb_pass)"
-       echo ""
+       echo -e "  Username:\tenterprisedb" | tee /dev/fd/3
+       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/enterprisedb_pass)" | tee /dev/fd/3
+       echo "" | tee /dev/fd/3
     fi
    
-    echo -e "EPAS1 - Primary database server"
-    echo -e "-------------------------------"
+    echo -e "EPAS1 - Primary database server" | tee /dev/fd/3
+    echo -e "-------------------------------" | tee /dev/fd/3
     F_PUBLIC_IP=$(parse_yaml hosts.yml|grep epas1 \
                   | grep public_ip|cut -d"=" -f2|xargs echo)
     F_PRIVATE_IP=$(parse_yaml hosts.yml|grep epas1 \
                   | grep private_ip|cut -d"=" -f2|xargs echo)
-    echo -e "  Login IP address:\t${F_PUBLIC_IP}"
-    echo -e "  Login user:\t${F_PROJECTNAME}"
-    echo -e "  Internal IP address:\t${F_PRIVATE_IP}"
-    echo ""
-    echo -e "EPAS2 - Streaming Replica 1 (asynchronous)"
-    echo -e "------------------------------------------"
+    echo -e "  Login IP address:\t${F_PUBLIC_IP}" | tee /dev/fd/3
+    echo -e "  Login user:\t${F_PROJECTNAME}" | tee /dev/fd/3
+    echo -e "  Internal IP address:\t${F_PRIVATE_IP}" | tee /dev/fd/3
+    echo "" | tee /dev/fd/3
+    echo -e "EPAS2 - Streaming Replica 1 (asynchronous)" | tee /dev/fd/3
+    echo -e "------------------------------------------" | tee /dev/fd/3
     F_PUBLIC_IP=$(parse_yaml hosts.yml|grep epas2 \
                   | grep public_ip|cut -d"=" -f2|xargs echo)
     F_PRIVATE_IP=$(parse_yaml hosts.yml|grep epas2 \
                   | grep private_ip|cut -d"=" -f2|xargs echo)
-    echo -e "  Login IP address:\t${F_PUBLIC_IP}"
-    echo -e "  Login user:\t${F_PROJECTNAME}"
-    echo -e "  Internal IP address:\t${F_PRIVATE_IP}"
-    echo ""
-    echo -e "EPAS3 - Streaming Replica 2 (asynchronous)"
-    echo -e "------------------------------------------"
+    echo -e "  Login IP address:\t${F_PUBLIC_IP}" | tee /dev/fd/3
+    echo -e "  Login user:\t${F_PROJECTNAME}" | tee /dev/fd/3
+    echo -e "  Internal IP address:\t${F_PRIVATE_IP}" | tee /dev/fd/3
+    echo "" | tee /dev/fd/3
+    echo -e "EPAS3 - Streaming Replica 2 (asynchronous)" | tee /dev/fd/3
+    echo -e "------------------------------------------" | tee /dev/fd/3
     F_PUBLIC_IP=$(parse_yaml hosts.yml|grep epas2 \
                   | grep public_ip|cut -d"=" -f2|xargs echo)
     F_PRIVATE_IP=$(parse_yaml hosts.yml|grep epas2 \
                   | grep private_ip|cut -d"=" -f2|xargs echo)
-    echo -e "  Login IP address:\t${F_PUBLIC_IP}"
-    echo -e "  Login user:\t${F_PROJECTNAME}"
-    echo -e "  Internal IP address:\t${F_PRIVATE_IP}"
-    echo ""
-    echo -e "CLIENT - host to run psql to access the cluster"
-    echo -e "-----------------------------------------------"
+    echo -e "  Login IP address:\t${F_PUBLIC_IP}" | tee /dev/fd/3
+    echo -e "  Login user:\t${F_PROJECTNAME}" | tee /dev/fd/3
+    echo -e "  Internal IP address:\t${F_PRIVATE_IP}" | tee /dev/fd/3
+    echo "" | tee /dev/fd/3
+    echo -e "CLIENT - host to run psql to access the cluster" | tee /dev/fd/3
+    echo -e "-----------------------------------------------" | tee /dev/fd/3
     F_PUBLIC_IP=$(parse_yaml hosts.yml|grep pemserver \
                   | grep public_ip|cut -d"=" -f2|xargs echo)
-    echo -e "  Login IP address:\t${F_PUBLIC_IP}"
-    echo -e "  Login user:\t${F_PROJECTNAME}"
-    echo ""
+    echo -e "  Login IP address:\t${F_PUBLIC_IP}" | tee /dev/fd/3
+    echo -e "  Login user:\t${F_PROJECTNAME}" | tee /dev/fd/3
+    echo "" | tee /dev/fd/3
+
+    exec > /dev/tty 2>&1    
 }

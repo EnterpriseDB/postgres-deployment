@@ -166,7 +166,7 @@ function aws_config_file()
     fi
     if [[ ${F_LOOP_VAR} -eq 0 ]]
     then
-      echo "Please provie the target AWS region from the list"
+      echo "Please provide the target AWS region from the list"
       echo " 1. us-east-1"
       echo " 2. us-east-2"
       echo " 3. us-west-1"
