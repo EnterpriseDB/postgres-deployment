@@ -1,0 +1,115 @@
+{
+	"create-credential" : {
+		"name": "create-credential",
+		"short": "Create credentials for AWS project",
+		"long": "",
+		"arguments": {
+			"0": {
+				"name": "user_name",
+				"type": "string",
+				"flag_name": "user-name",
+				"flag_short": "n",
+				"flag_description": "EDB Yum Username"
+			},
+			"1": {
+				"name": "user_password",
+				"type": "string",
+				"flag_name": "user-password",
+				"flag_short": "w",
+				"flag_description": "EDB Yum Password"
+			},
+			"2": {
+				"name": "public_key",
+				"type": "string",
+				"flag_name": "public-key",
+				"flag_short": "u",
+				"flag_description": "Location of public key file",
+				"default": "~/.ssh/id_rsa.pub"
+			},
+			"3": {
+				"name": "private_key",
+				"type": "string",
+				"flag_name": "private-key",
+				"flag_short": "k",
+				"flag_description": "Location of private key file",
+				"default": "~/.ssh/id_rsa"
+			}
+		}
+	},
+	"create-configuration" : {
+		"name": "create-configuration",
+		"short": "Create configuration for AWS project",
+		"long": "",
+		"arguments": {
+			"0": {
+				"name": "operating-system",
+				"type": "string",
+				"flag_name": "operating-system",
+				"flag_short": "o",
+				"flag_description": "Operating system for the EC2 instances",
+				"options": ["CentOS7", "RHEL7"]
+			},
+			"1": {
+				"name": "region",
+				"type": "string",
+				"flag_name": "region",
+				"flag_short": "r",
+				"flag_description": "AWS region for the EC2 instances",
+				"options": ["us-east-2", "us-east-1", "us-west-1"]
+			},
+			"2": {
+				"name": "ec2-count",
+				"type": "int",
+				"flag_name": "ec2-count",
+				"flag_short": "c",
+				"flag_description": "The amount of EC2 instances",
+				"validate": {
+					"minimum": 1
+				}
+			},
+			"3": {
+				"name": "use-pem",
+				"type": "bool",
+				"flag_name": "use-pem",
+				"flag_short": "u",
+				"flag_description": "Use a PEM server [y|n]"
+			},
+			"4": {
+				"name": "db-engine",
+				"type": "string",
+				"flag_name": "db-engine",
+				"flag_short": "d",
+				"flag_description": "PostgreSQL DB Engine. [PG|EPAS]",
+				"options": ["PG", "EPAS"]
+			},
+			"5": {
+				"name": "db-version",
+				"type": "string",
+				"flag_name": "db-version",
+				"flag_short": "v",
+				"flag_description": "PostgreSQL DB Version",
+				"options": ["11", "12", "13"]
+			},
+			"6": {
+				"name": "replication",
+				"type": "string",
+				"flag_name": "replication",
+				"flag_short": "e",
+				"flag_description": "PostgreSQL DB Version",
+				"options": ["synchronous", "asynchronous"]
+			}
+		}
+	},
+	"get-project" : {
+		"name": "get-project",
+		"short": "Get AWS project details",
+		"long": "",
+		"arguments": {}
+	},
+	"get-project-names" : {
+		"name": "get-project-names",
+		"short": "Get list of AWS projects",
+		"long": "",
+		"arguments": {}
+	}
+}
