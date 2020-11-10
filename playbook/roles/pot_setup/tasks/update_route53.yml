@@ -21,7 +21,6 @@
         route_ip_addressess: "{{ route_ip_addressess + ',' + ip_value }}"
   when: ip_value not in route_ip_addressess
   with_items:
-      - "{{ pem_server_private_ip }}"
       - "{{ pem_server_public_ip }}"
   loop_control:
       loop_var: ip_value
