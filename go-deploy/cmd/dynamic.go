@@ -20,43 +20,84 @@ var projectName = ""
 
 var projects = map[string]interface{}{}
 
-func validate(argMap map[string]interface{}, defaultValue string) func(string) error {
+func validateNumber(argMap map[string]interface{}, value float64) error {
+	if argMap["validate"] != nil {
+		validation := argMap["validate"].(map[string]interface{})
+		if validation["minimum"] != nil {
+			if value < validation["minimum"].(float64) {
+				return errors.New("Must be greater than minumum")
+			}
+		}
+		if validation["maximum"] != nil {
+			if value > validation["maximum"].(float64) {
+				return errors.New("Must be smaller than maximum")
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateBool(input string, inputName string) error {
+	if input != "y" &&
+		input != "n" &&
+		input != "yes" &&
+		input != "no" &&
+		input != "false" &&
+		input != "true" &&
+		input != "t" &&
+		input != "f" {
+		return errors.New(fmt.Sprintf("%s must be y or n", inputName))
+	}
+
+	return nil
+}
+
+func validate(argMap map[string]interface{}, currentValue string) func(string) error {
 	valid := func(input string) error {
 		if argMap["type"] != nil && argMap["type"].(string) == "int" {
-			inputFloat, err := strconv.ParseFloat(input, 64)
-			if err != nil {
-				return errors.New("Invalid number")
-			}
+			if len(input) != 0 {
+				inputFloat, err := strconv.ParseFloat(input, 64)
+				if err != nil {
+					return errors.New("Invalid number")
+				}
 
-			if argMap["validate"] != nil {
-				validation := argMap["validate"].(map[string]interface{})
-				if validation["minimum"] != nil {
-					if inputFloat < validation["minimum"].(float64) {
-						return errors.New("Must be greater than minumum")
-					}
+				err = validateNumber(argMap, inputFloat)
+				if err != nil {
+					return err
 				}
-				if validation["maximum"] != nil {
-					if inputFloat > validation["maximum"].(float64) {
-						return errors.New("Must be smaller than maximum")
-					}
+			} else if currentValue != "" {
+				currentValueFloat, err := strconv.ParseFloat(currentValue, 64)
+				if err != nil {
+					return errors.New("Invalid number")
 				}
+
+				err = validateNumber(argMap, currentValueFloat)
+				if err != nil {
+					return err
+				}
+			} else {
+				return errors.New("Invalid number")
 			}
 
 			return nil
 		} else if argMap["type"] != nil && argMap["type"].(string) == "bool" {
-			inputLower := strings.ToLower(input)
-			if inputLower != "y" &&
-				inputLower != "n" &&
-				inputLower != "yes" &&
-				inputLower != "no" &&
-				inputLower != "false" &&
-				inputLower != "true" &&
-				inputLower != "t" &&
-				inputLower != "f" {
+			if len(input) != 0 {
+				inputLower := strings.ToLower(input)
+				err := validateBool(inputLower, argMap["name"].(string))
+				if err != nil {
+					return err
+				}
+			} else if currentValue != "" {
+				err := validateBool(currentValue, argMap["name"].(string))
+				if err != nil {
+					return err
+				}
+			} else {
 				return errors.New(fmt.Sprintf("%s must be y or n", argMap["name"].(string)))
 			}
 		} else {
-			if len(input) == 0 && defaultValue == "" {
+			if len(input) == 0 && currentValue == "" {
 				return errors.New(fmt.Sprintf("%s cannot be empty", argMap["name"].(string)))
 			}
 		}
@@ -122,13 +163,14 @@ func getProjectNames() map[string]interface{} {
 func handleProjectNameInput(isProjectAware bool) error {
 	var err error
 	if projectName == "" {
+		projectNamesMap := getProjectNames()
+
 		if isProjectAware {
 			templates := &promptui.SelectTemplates{
 				Label:    "{{ . }}",
 				Selected: "Project Name: {{ . }}",
 			}
 
-			projectNamesMap := getProjectNames()
 			var projectNames []string
 
 			for pName := range projectNamesMap {
@@ -147,19 +189,30 @@ func handleProjectNameInput(isProjectAware bool) error {
 				return err
 			}
 		} else {
-			validate := func(input string) error {
+			var projectNames []string
+
+			for pName := range projectNamesMap {
+				projectNames = append(projectNames, pName)
+			}
+
+			valid := func(input string) error {
 				if len(input) == 0 {
 					return errors.New("Project Name cannot be empty")
+				}
+				if projectNamesMap[input] != nil {
+					return errors.New(fmt.Sprintf("Project '%s' already exists, please choose another Name or update existing project", input))
 				}
 				return nil
 			}
 
-			prompt := promptui.Prompt{
+			prompt := promptui.SelectWithAdd{
 				Label:    "Project Name",
-				Validate: validate,
+				Items:    projectNames,
+				AddLabel: "New Project Name",
+				Validate: valid,
 			}
 
-			projectName, err = prompt.Run()
+			_, projectName, err = prompt.Run()
 
 			if err != nil {
 				return err
@@ -170,12 +223,20 @@ func handleProjectNameInput(isProjectAware bool) error {
 	return nil
 }
 
-func handleInputValues(command map[string]interface{}, isProjectAware bool) error {
+func handleInputValues(command map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
 	var err error
 
 	err = handleProjectNameInput(isProjectAware)
 	if err != nil {
 		return err
+	}
+
+	existingValues := map[string]interface{}{}
+	if projects != nil {
+		projectInterface := projects[projectName]
+		if projectInterface != nil {
+			existingValues = projectInterface.(map[string]interface{})
+		}
 	}
 
 	for element, value := range command {
@@ -198,16 +259,30 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool) erro
 
 				argMap := valueMap[keyString].(map[string]interface{})
 				if *flowVariables[argMap["name"].(string)] == "" {
-					defaultValue := ""
+					currentValue := ""
 					newValue := ""
 					flagDescription := argMap["flag_description"].(string)
 
 					if argMap["default"] != nil {
-						defaultValue = argMap["default"].(string)
+						currentValue = argMap["default"].(string)
+					}
+
+					if existingValues != nil && existingValues[argMap["name"].(string)] != nil {
+						currentValue = existingValues[argMap["name"].(string)].(string)
+					}
+
+					if currentValue != "" {
 						if argMap["encrypted"] != nil && argMap["encrypted"].(bool) {
 							flagDescription = fmt.Sprintf("%s (******)", flagDescription)
+						} else if argMap["type"] != nil && argMap["type"].(string) == "bool" {
+							displayBool := "n"
+							if currentValue == "true" {
+								displayBool = "y"
+							}
+
+							flagDescription = fmt.Sprintf("%s (%s)", flagDescription, displayBool)
 						} else {
-							flagDescription = fmt.Sprintf("%s (%s)", flagDescription, defaultValue)
+							flagDescription = fmt.Sprintf("%s (%s)", flagDescription, currentValue)
 						}
 					}
 
@@ -217,10 +292,18 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool) erro
 							Selected: fmt.Sprintf("%s: {{ . }}", flagDescription),
 						}
 
+						currentValueIndex := 0
+						for i, option := range argMap["options"].([]interface{}) {
+							if option == currentValue {
+								currentValueIndex = i
+							}
+						}
+
 						prompt := promptui.Select{
 							Label:     flagDescription,
 							Templates: templates,
 							Items:     argMap["options"].([]interface{}),
+							CursorPos: currentValueIndex,
 						}
 
 						_, newValue, err = prompt.Run()
@@ -231,7 +314,7 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool) erro
 					} else {
 						prompt := promptui.Prompt{
 							Label:    flagDescription,
-							Validate: validate(argMap, defaultValue),
+							Validate: validate(argMap, currentValue),
 						}
 
 						if argMap["encrypted"] != nil && argMap["encrypted"].(bool) {
@@ -257,11 +340,7 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool) erro
 					if newValue != "" {
 						flowVariables[argMap["name"].(string)] = &newValue
 					} else {
-						flowVariables[argMap["name"].(string)] = &defaultValue
-					}
-
-					if len(*flowVariables[argMap["name"].(string)]) == 0 {
-						return fmt.Errorf("Yum Password cannot be empty")
+						flowVariables[argMap["name"].(string)] = &currentValue
 					}
 				}
 
@@ -274,6 +353,8 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool) erro
 }
 
 func createFlags(cmd *cobra.Command, command map[string]interface{}) {
+	instVaribles(command)
+
 	for element, value := range command {
 		if element == "arguments" {
 			for _, argValue := range value.(map[string]interface{}) {
@@ -282,6 +363,7 @@ func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 				if argMap["flag_short"] != nil {
 					flagShort = argMap["flag_short"].(string)
 				}
+
 				cmd.PersistentFlags().StringVarP(flowVariables[argMap["name"].(string)], argMap["flag_name"].(string), flagShort, "", argMap["flag_description"].(string))
 			}
 		}
@@ -291,14 +373,12 @@ func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 }
 
 func createCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	instVaribles(command)
-
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues(command, false)
+			err := handleInputValues(command, false, nil)
 			if err != nil {
 				return err
 			}
@@ -320,14 +400,12 @@ func createCredCommand(commandName string, command map[string]interface{}) *cobr
 }
 
 func createConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	instVaribles(command)
-
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues(command, false)
+			err := handleInputValues(command, false, nil)
 			if err != nil {
 				return err
 			}
@@ -348,15 +426,67 @@ func createConfCommand(commandName string, command map[string]interface{}) *cobr
 	return cmd
 }
 
-func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
-	instVaribles(command)
+func updateCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projects := getProjectCredentials()
+			err := handleInputValues(command, true, projects)
+			if err != nil {
+				return err
+			}
 
+			projects[strings.ToLower(projectName)] = values
+
+			fileData, _ := json.MarshalIndent(projects, "", "  ")
+
+			ioutil.WriteFile(credFile, fileData, 0600)
+
+			return nil
+		},
+	}
+
+	createFlags(cmd, command)
+
+	return cmd
+}
+
+func updateConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projects := getProjectConfigurations()
+			err := handleInputValues(command, true, projects)
+			if err != nil {
+				return err
+			}
+
+			projects[strings.ToLower(projectName)] = values
+
+			fileData, _ := json.MarshalIndent(projects, "", "  ")
+
+			ioutil.WriteFile(confFile, fileData, 0600)
+
+			return nil
+		},
+	}
+
+	createFlags(cmd, command)
+
+	return cmd
+}
+
+func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		Run: func(cmd *cobra.Command, args []string) {
-			handleInputValues(command, true)
+			handleInputValues(command, true, nil)
 
 			projectFound := false
 
@@ -442,6 +572,14 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 			command.AddCommand(c)
 		case "get-project-names":
 			c := getProjectNamesCmd(a, b.(map[string]interface{}))
+
+			command.AddCommand(c)
+		case "update-credential":
+			c := updateCredCommand(a, b.(map[string]interface{}))
+
+			command.AddCommand(c)
+		case "update-configuration":
+			c := updateConfCommand(a, b.(map[string]interface{}))
 
 			command.AddCommand(c)
 		default:
