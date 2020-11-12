@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"postgres-deployment/go-deploy/terraform"
+
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -480,6 +482,68 @@ func updateConfCommand(commandName string, command map[string]interface{}) *cobr
 	return cmd
 }
 
+func deleteCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projects := getProjectCredentials()
+			err := handleInputValues(command, true, projects)
+			if err != nil {
+				return err
+			}
+
+			if projects[strings.ToLower(projectName)] == nil {
+				return fmt.Errorf("Project not found")
+			}
+
+			delete(projects, strings.ToLower(projectName))
+
+			fileData, _ := json.MarshalIndent(projects, "", "  ")
+
+			ioutil.WriteFile(credFile, fileData, 0600)
+
+			return nil
+		},
+	}
+
+	createFlags(cmd, command)
+
+	return cmd
+}
+
+func deleteConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			projects := getProjectConfigurations()
+			err := handleInputValues(command, true, projects)
+			if err != nil {
+				return err
+			}
+
+			if projects[strings.ToLower(projectName)] == nil {
+				return fmt.Errorf("Project not found")
+			}
+
+			delete(projects, strings.ToLower(projectName))
+
+			fileData, _ := json.MarshalIndent(projects, "", "  ")
+
+			ioutil.WriteFile(confFile, fileData, 0600)
+
+			return nil
+		},
+	}
+
+	createFlags(cmd, command)
+
+	return cmd
+}
+
 func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -543,6 +607,53 @@ func getProjectNamesCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
+func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		Run: func(cmd *cobra.Command, args []string) {
+			handleInputValues(command, true, nil)
+
+			projectFound := false
+
+			project := map[string]interface{}{
+				"credentials":   map[string]interface{}{},
+				"configuration": map[string]interface{}{},
+			}
+
+			projectCredentials := getProjectCredentials()
+			projectConfigurations := getProjectConfigurations()
+
+			for pName, proj := range projectConfigurations {
+				if pName == strings.ToLower(projectName) {
+					project["configuration"] = proj
+					projectFound = true
+				}
+			}
+
+			for pName, proj := range projectCredentials {
+				if pName == strings.ToLower(projectName) {
+					project["credentials"] = proj
+					projectFound = true
+				}
+			}
+
+			if !projectFound {
+				fmt.Println("Project not found")
+				return
+			}
+
+			err := terraform.RunTerraform(project)
+			if err != nil {
+				fmt.Println(err)
+			}
+		},
+	}
+
+	return cmd
+}
+
 func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,
@@ -555,31 +666,44 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 	_ = json.Unmarshal(commandConfiguration, &cmds)
 
 	for a, b := range cmds {
-		d := b.(map[string]interface{})
+		bMap := b.(map[string]interface{})
+		d := bMap
 
 		switch d["name"].(string) {
 		case "create-credential":
-			c := createCredCommand(a, b.(map[string]interface{}))
+			c := createCredCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "create-configuration":
-			c := createConfCommand(a, b.(map[string]interface{}))
+			c := createConfCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "get-project":
-			c := getProjectCmd(a, b.(map[string]interface{}))
+			c := getProjectCmd(a, bMap)
 
 			command.AddCommand(c)
 		case "get-project-names":
-			c := getProjectNamesCmd(a, b.(map[string]interface{}))
+			c := getProjectNamesCmd(a, bMap)
 
 			command.AddCommand(c)
 		case "update-credential":
-			c := updateCredCommand(a, b.(map[string]interface{}))
+			c := updateCredCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "update-configuration":
-			c := updateConfCommand(a, b.(map[string]interface{}))
+			c := updateConfCommand(a, bMap)
+
+			command.AddCommand(c)
+		case "delete-credential":
+			c := deleteCredCommand(a, bMap)
+
+			command.AddCommand(c)
+		case "delete-configuration":
+			c := deleteConfCommand(a, bMap)
+
+			command.AddCommand(c)
+		case "run-project":
+			c := runProjectCmd(a, bMap)
 
 			command.AddCommand(c)
 		default:
