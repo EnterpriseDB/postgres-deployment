@@ -59,24 +59,33 @@ func RunTerraform(project map[string]interface{}) error {
 		log.Fatal(err)
 	}
 
-	// checkType("c5.2xlarge", "us-east-2")
-	// checkImage("CentOS Linux 7 x86_64 HVM EBS*", "us-east-2")
-	terraformWorkspace("test1", joinedPath)
+	os := "CentOS Linux 7 x86_64 HVM EBS*"
+	region := "us-east-2"
+	instanceCount := "1"
+	ssh := "~/.ssh/id_rsa.pub"
+	projectName := "test1"
+	pem := "0"
+
+	// checkType("c5.2xlarge", region)
+	ami, err := checkImage("CentOS Linux 7 x86_64 HVM EBS*", region)
+	terraformWorkspace(projectName, joinedPath)
 
 	cmd := exec.Command("terraform", "init")
 	fmt.Println(joinedPath)
 	cmd.Dir = joinedPath
-
-	log.Printf("Running command and waiting for it to finish...")
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("%s\n", stdoutStderr)
 		log.Fatal(err)
 	}
+
+	terraformApply(os, ami, region, instanceCount, ssh, projectName, pem, joinedPath)
+	checkInstanceStatus(region)
+
 	fmt.Printf("%s\n", stdoutStderr)
-	err = cmd.Run()
-	log.Printf("Command finished with error: %v", err)
+	// err = cmd.Run()
+	// log.Printf("Command finished with error: %v", err)
 
 	return nil
 }
@@ -106,7 +115,7 @@ func checkType(instanceType string, region string) error {
 	return nil
 }
 
-func checkImage(imageName string, region string) error {
+func checkImage(imageName string, region string) (string, error) {
 	filterOption := fmt.Sprintf(`Name=name,Values="%s"`, imageName)
 	query := fmt.Sprintf(`sort_by(Images, &Name)[-1].ImageId`)
 
@@ -128,8 +137,10 @@ func checkImage(imageName string, region string) error {
 	}
 
 	fmt.Printf("%s\n", stdoutStderr)
+	strippedT := strings.ReplaceAll(string(stdoutStderr), "\n", "")
+	fmt.Println(strippedT)
 
-	return nil
+	return string(strippedT), nil
 }
 
 func terraformWorkspace(projectName string, joinedPath string) error {
@@ -141,8 +152,6 @@ func terraformWorkspace(projectName string, joinedPath string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("%s\n", stdoutStderr)
 
 	workspaceFound := false
 	test := strings.Split(string(stdoutStderr), "\n")
@@ -161,7 +170,6 @@ func terraformWorkspace(projectName string, joinedPath string) error {
 
 		stdoutStderr, err := comm.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%s\n", stdoutStderr)
 			log.Fatal(err)
 		}
 
@@ -172,7 +180,6 @@ func terraformWorkspace(projectName string, joinedPath string) error {
 
 		stdoutStderr, err := comm.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%s\n", stdoutStderr)
 			log.Fatal(err)
 		}
 
@@ -182,18 +189,44 @@ func terraformWorkspace(projectName string, joinedPath string) error {
 	return nil
 }
 
-// func terraformApply(os string, ami string, region string, instanceCount int, ssh string, projectName string, pem int) error {
-// 	arguments := []string{}
+func terraformApply(os string, ami string, region string, instanceCount string, ssh string, projectName string, pem string, joinedPath string) error {
+	arguments := []string{}
 
-// 	arguments = append(arguments, fmt.Sprintf(`-var="os=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="ami_id=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="aws_region=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="os=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="os=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="os=%s`, os))
-// 	arguments = append(arguments, fmt.Sprintf(`-var="os=%s`, os))
+	arguments = append(arguments, "apply")
+	arguments = append(arguments, "-auto-approve")
+	arguments = append(arguments, fmt.Sprintf(`-var=os=%s`, os))
+	arguments = append(arguments, fmt.Sprintf(`-var=ami_id=%s`, ami))
+	arguments = append(arguments, fmt.Sprintf(`-var=aws_region=%s`, region))
+	arguments = append(arguments, fmt.Sprintf(`-var=instance_count=%s`, instanceCount))
+	arguments = append(arguments, fmt.Sprintf(`-var=ssh_key_path=%s`, ssh))
+	arguments = append(arguments, fmt.Sprintf(`-var=cluster_name=%s`, projectName))
+	arguments = append(arguments, fmt.Sprintf(`-var=pem_instance_count=%s`, pem))
 
-// 	comm := exec.Command("terraform", "apply")
+	comm := exec.Command("terraform", arguments...)
+	comm.Dir = joinedPath
 
-// 	return nil
-// }
+	fmt.Println(comm.Args)
+
+	stdoutStderr, err := comm.CombinedOutput()
+	if err != nil {
+		fmt.Printf("%s\n", stdoutStderr)
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s\n", stdoutStderr)
+
+	return nil
+}
+
+func checkInstanceStatus(region string) error {
+	cmd := exec.Command("aws", "ec2", "wait", "instance-status-ok", "--region", region)
+
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s\n", stdoutStderr)
+
+	return nil
+}

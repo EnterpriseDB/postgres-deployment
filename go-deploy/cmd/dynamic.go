@@ -654,6 +654,53 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 	return cmd
 }
 
+func destroyProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   command["name"].(string),
+		Short: command["short"].(string),
+		Long:  command["long"].(string),
+		Run: func(cmd *cobra.Command, args []string) {
+			handleInputValues(command, true, nil)
+
+			projectFound := false
+
+			project := map[string]interface{}{
+				"credentials":   map[string]interface{}{},
+				"configuration": map[string]interface{}{},
+			}
+
+			projectCredentials := getProjectCredentials()
+			projectConfigurations := getProjectConfigurations()
+
+			for pName, proj := range projectConfigurations {
+				if pName == strings.ToLower(projectName) {
+					project["configuration"] = proj
+					projectFound = true
+				}
+			}
+
+			for pName, proj := range projectCredentials {
+				if pName == strings.ToLower(projectName) {
+					project["credentials"] = proj
+					projectFound = true
+				}
+			}
+
+			if !projectFound {
+				fmt.Println("Project not found")
+				return
+			}
+
+			err := terraform.DestroyTerraform(project)
+			if err != nil {
+				fmt.Println(err)
+			}
+		},
+	}
+
+	return cmd
+}
+
 func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,
@@ -706,7 +753,12 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 			c := runProjectCmd(a, bMap)
 
 			command.AddCommand(c)
+		case "destroy-project":
+			c := destroyProjectCmd(a, bMap)
+
+			command.AddCommand(c)
 		default:
+			fmt.Println(d["name"].(string))
 			return nil, fmt.Errorf("There was an error with the metadata")
 		}
 	}
