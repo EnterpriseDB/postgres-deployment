@@ -73,6 +73,12 @@
 			}
 		}
 	},
+	"delete-credential" : {
+		"name": "delete-credential",
+		"short": "Delete credentials for AWS project",
+		"long": "",
+		"arguments": {}
+	},
 	"create-configuration" : {
 		"name": "create-configuration",
 		"short": "Create configuration for AWS project",
@@ -201,6 +207,12 @@
 			}
 		}
 	},
+	"delete-configuration" : {
+		"name": "delete-configuration",
+		"short": "Delete configuration for AWS project",
+		"long": "",
+		"arguments": {}
+	},
 	"get-project" : {
 		"name": "get-project",
 		"short": "Get AWS project details",
@@ -209,6 +221,12 @@
 	},
 	"get-project-names" : {
 		"name": "get-project-names",
+		"short": "Get list of AWS projects",
+		"long": "",
+		"arguments": {}
+	},
+	"run-project" : {
+		"name": "run-project",
 		"short": "Get list of AWS projects",
 		"long": "",
 		"arguments": {}
