@@ -227,7 +227,13 @@
 	},
 	"run-project" : {
 		"name": "run-project",
-		"short": "Get list of AWS projects",
+		"short": "Runs Terraform for AWS project creation",
+		"long": "",
+		"arguments": {}
+	},
+	"destroy-project" : {
+		"name": "destroy-project",
+		"short": "Runs Terraform for AWS project destruction",
 		"long": "",
 		"arguments": {}
 	}
