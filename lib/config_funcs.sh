@@ -214,7 +214,7 @@ function aws_config_file()
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
             export INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER              
+            export PEMSERVER
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -229,7 +229,7 @@ function aws_config_file()
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
             export INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER              
+            export PEMSERVER
             ;;
         esac
     fi
@@ -359,6 +359,175 @@ function aws_config_file()
     validate_variable "AMI_ID" "${CONFIG_FILE}" "${AMI_ID}"
     export AMI_ID
 
+    # Instance Volumes
+    # Volume Type
+    CHECK=$(check_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then   
+        declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
+        declare -a CHOICES=('1' '2' '3')
+        
+        RESULT=""
+        custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
+           "Please enter your choice:" \
+           OPTIONS \
+           CHOICES \
+           RESULT
+        case "${RESULT}" in
+          1)
+            VIOPSTYPE="gp2"
+            ;;
+          2)
+            VIOPSTYPE="io1"
+            ;;
+          3)
+            VIOPSTYPE="io2"
+            ;;
+        esac
+        validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "${VIOPSTYPE}"
+        export INSTANCE_VOLUME_TYPE
+    fi
+
+    # Volume Size
+    CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then     
+        RESULT=""
+        validate_string_not_empty "Please enter the instances main volume size: " "" RESULT
+        VS="${RESULT}"
+        validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "${VS}"
+        export INSTANCE_VOLUME_SIZE
+    fi
+
+    # Volume IOPS
+    CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+        then
+            declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
+            declare -a CHOICES=('1' '2' '3' '4')
+        
+            RESULT=""
+            custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                VIOPS=250
+                ;;
+              2)
+                VIOPS=350
+                ;;
+              3)
+                VIOPS=3000
+                ;;
+              4)
+                RESULT=""
+                validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
+                VIOPS="${RESULT}"
+                ;;
+            esac
+            validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
+            export INSTANCE_VOLUME_IOPS            
+        fi
+    fi
+
+    # Additional Volumes
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+          "Enter: (Y)es/(N)o" \
+          RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
+            declare -a CHOICES=('1' '2' '3')
+        
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                AIOPSTYPE="gp2"
+                ;;
+              2)
+                AIOPSTYPE="io1"
+                ;;
+              3)
+                AIOPSTYPE="io2"
+                ;;
+            esac
+            
+            declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
+            declare -a CHOICES=('1' '2' '3' '4')
+        
+            RESULT=""
+            custom_options_prompt "Which provisioned size for iops would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                AIOPS=250
+                ;;
+              2)
+                AIOPS=350
+                ;;
+              3)
+                AIOPS=3000
+                ;;
+              4)
+                RESULT=""
+                validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
+                AIOPS="${RESULT}"
+                ;;
+            esac
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"         
+            RESULT=""
+            custom_yesno_prompt "Do you wish to encrypt the volumes ?" \
+              "Enter: (Y)es/(N)o" \
+              RESULT
+            if [[ "${RESULT}" = "Yes" ]]
+            then
+                AVS_ENCRYPTION="true"
+            else
+                AVS_ENCRYPTION="false"
+            fi                                
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_TYPE" "${CONFIG_FILE}" "${AIOPSTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            validate_variable "ADDITIONAL_VOLUMES_IOPS" "${CONFIG_FILE}" "${AIOPS}"
+            validate_variable "ADDITIONAL_VOLUMES_ENCRYPTION" "${CONFIG_FILE}" "${AVS_ENCRYPTION}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_TYPE
+            export ADDITIONAL_VOLUMES_SIZE
+            export ADDITIONAL_VOLUMES_IOPS
+            export ADDITIONAL_VOLUMES_ENCRYPTION                
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_TYPE" "${CONFIG_FILE}" "No"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_IOPS" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_ENCRYPTION" "${CONFIG_FILE}" "false"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_TYPE
+            export ADDITIONAL_VOLUMES_SIZE
+            export ADDITIONAL_VOLUMES_IOPS
+            export ADDITIONAL_VOLUMES_ENCRYPTION
+        fi    
+    fi
+
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -380,9 +549,10 @@ function aws_config_file()
     fi
     validate_variable "YUM_PASSWORD" "${CONFIG_FILE}" "${YUM_PASSWORD}"
     export YUM_PASSWORD
-    
+
+    echo " "
     set -u
-        
+               
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }

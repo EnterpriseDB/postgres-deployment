@@ -70,11 +70,21 @@ module "edb-db-cluster" {
   synchronicity                       = var.synchronicity
   cluster_name                        = var.cluster_name
   instance_type                       = var.instance_type
+  instance_volume_type                = var.instance_volume_type
+  instance_volume_iops                = var.instance_volume_iops
+  instance_volume_size                = var.instance_volume_size
+  ebs_volume_count                    = var.ebs_volume_count
+  ebs_volume_type                     = var.ebs_volume_type
+  ebs_volume_size                     = var.ebs_volume_size
+  ebs_volume_iops                     = var.ebs_volume_iops
+  ebs_volume_encryption               = var.ebs_volume_encryption
   ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id
   ssh_key_path                        = var.ssh_key_path
+  full_private_ssh_key_path           = var.full_private_ssh_key_path
+  root_user                           = var.root_user
   created_by                          = var.created_by
 
   depends_on = [module.routes]

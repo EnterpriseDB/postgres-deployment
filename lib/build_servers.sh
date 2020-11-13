@@ -63,13 +63,21 @@ function aws_build_server()
                 F_IMAGE_NAME="RHEL-7.8-x86_64*"
                 export F_IMAGE_NAME
                 ;;            
-           "RHEL8")
+            "RHEL8")
                 shift; 
                 F_IMAGE_NAME="RHEL-8.2-x86_64*"
                 export F_IMAGE_NAME
                 ;;                       
         esac
 
+        if [[ "${F_OSNAME}" =~ "Cent" ]]        
+        then
+            ANSIBLE_USER="centos"
+        elif [[ "${F_OSNAME}" =~ "RHEL" ]]
+        then
+            ANSIBLE_USER="ec2-user"
+        fi
+    
         process_log "Checking availability of Instance Type in target region"
         instancetypeExists=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
         if [ ! -z "$instancetypeExists" ]
@@ -96,6 +104,10 @@ function aws_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")    
     cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -111,7 +123,17 @@ function aws_build_server()
         -var="ami_id=${F_AMI_ID}" \
         -var="aws_region=${REGION}" \
         -var="instance_count=${F_INSTANCES}" \
+        -var="instance_volume_type=${INSTANCE_VOLUME_TYPE}" \
+        -var="instance_volume_iops=${INSTANCE_VOLUME_IOPS}" \
+        -var="instance_volume_size=${INSTANCE_VOLUME_SIZE}" \
+        -var="ebs_volume_count=${ADDITIONAL_VOLUMES_COUNT}" \
+        -var="ebs_volume_type=${ADDITIONAL_VOLUMES_TYPE}" \
+        -var="ebs_volume_size=${ADDITIONAL_VOLUMES_SIZE}" \
+        -var="ebs_volume_iops=${ADDITIONAL_VOLUMES_IOPS}" \
+        -var="ebs_volume_encryption=${ADDITIONAL_VOLUMES_ENCRYPTION}" \
         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
+        -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
+        -var="root_user=${ANSIBLE_USER}" \
         -var="cluster_name=$F_PROJECTNAME" \
         -var="pem_instance_count=${F_PEMINSTANCE}"
 
@@ -127,9 +149,10 @@ function aws_build_server()
     sed -i "/^ *$/d" pem-inventory.yml
     
     cp -f pem-inventory.yml hosts.yml
-        
-    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
-    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
+    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 }
 
 
@@ -245,8 +268,10 @@ function azure_build_server()
     
     cp -f pem-inventory.yml hosts.yml
         
-    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
-    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
+    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
+       ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} \
+       ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
 }
 
 function gcloud_build_server()
@@ -331,8 +356,10 @@ function gcloud_build_server()
        
     cp -f pem-inventory.yml hosts.yml
         
-    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
-    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
+       ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
+       ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 }
 
 ################################################################################

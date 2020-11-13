@@ -139,7 +139,7 @@ variable "vpc_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "PROJECT_NAME"
+  default     = "mnc8"
   type        = string
 }
 
@@ -147,7 +147,7 @@ variable "cluster_name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "PROJECT_NAME-edb-iam-postgres"
+  default     = "mnc8-edb-iam-postgres"
 }
 
 # IAM Force Destroy

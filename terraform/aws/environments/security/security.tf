@@ -1,6 +1,6 @@
-variable "vpc_id" {}
-variable "public_cidrblock" {}
-variable "project_tag" {}
+variable vpc_id {}
+variable public_cidrblock {}
+variable project_tag {}
 
 resource "aws_security_group" "edb-prereqs-rules" {
   vpc_id = var.vpc_id
