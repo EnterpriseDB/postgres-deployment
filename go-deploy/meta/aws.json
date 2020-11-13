@@ -123,7 +123,7 @@
 				"flag_name": "db-engine",
 				"flag_short": "d",
 				"flag_description": "PostgreSQL DB Engine. [PG|EPAS]",
-				"options": ["PG", "EPAS"]
+				"options": ["PostgreSQL", "EDB Postgres Advanced Server"]
 			},
 			"5": {
 				"name": "db_version",
@@ -229,7 +229,59 @@
 		"name": "run-project",
 		"short": "Runs Terraform for AWS project creation",
 		"long": "",
-		"arguments": {}
+		"arguments": {
+			"pre_run_checks": {
+				"0": {
+					"command": "aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=%s --region %s --output text",
+					"variables": {
+						"0": "instance_type",
+						"1": "region"
+					},
+					"output": "instance_exists",
+					"log_text": ""
+				},
+				"1": {
+					"command": "aws ec2 describe-images --filters Name=name,Values=\"%s\" --query sort_by(Images,|||&Name)[-1].ImageId --region %s --output text",
+					"variables": {
+						"0": "instance_image",
+						"1": "region"
+					},
+					"output": "ami_id"
+				}
+			},
+			"terraform_run": {
+				"variables": [
+					{
+						"prefix": "os",
+						"variable": "operating_system"
+					},
+					{
+						"prefix": "ami_id",
+						"variable": "ami_id"
+					},
+					{
+						"prefix": "aws_region",
+						"variable": "region"
+					},
+					{
+						"prefix": "instance_count",
+						"variable": "ec2_count"
+					},
+					{
+						"prefix": "ssh_key_path",
+						"variable": "ec2_count"
+					},
+					{
+						"prefix": "cluster_name",
+						"variable": "project_name"
+					},
+					{
+						"prefix": "pem_instance_count",
+						"variable": "pem_instance"
+					}
+				]
+			}
+		}
 	},
 	"destroy-project" : {
 		"name": "destroy-project",
