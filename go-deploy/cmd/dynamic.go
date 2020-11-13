@@ -618,8 +618,8 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 			projectFound := false
 
 			project := map[string]interface{}{
-				"credentials":   map[string]interface{}{},
-				"configuration": map[string]interface{}{},
+				// "credentials":   map[string]interface{}{},
+				// "configuration": map[string]interface{}{},
 			}
 
 			projectCredentials := getProjectCredentials()
@@ -627,14 +627,22 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 
 			for pName, proj := range projectConfigurations {
 				if pName == strings.ToLower(projectName) {
-					project["configuration"] = proj
+					projMap := proj.(map[string]interface{})
+					for k, v := range projMap {
+						project[k] = v
+					}
+					// project["configuration"] = proj
 					projectFound = true
 				}
 			}
 
 			for pName, proj := range projectCredentials {
 				if pName == strings.ToLower(projectName) {
-					project["credentials"] = proj
+					projMap := proj.(map[string]interface{})
+					for k, v := range projMap {
+						project[k] = v
+					}
+					// project["credentials"] = proj
 					projectFound = true
 				}
 			}
@@ -644,7 +652,9 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 				return
 			}
 
-			err := terraform.RunTerraform(project)
+			arguments := command["arguments"].(map[string]interface{})
+
+			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -665,8 +675,8 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 			projectFound := false
 
 			project := map[string]interface{}{
-				"credentials":   map[string]interface{}{},
-				"configuration": map[string]interface{}{},
+				// "credentials":   map[string]interface{}{},
+				// "configuration": map[string]interface{}{},
 			}
 
 			projectCredentials := getProjectCredentials()
@@ -674,14 +684,22 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 
 			for pName, proj := range projectConfigurations {
 				if pName == strings.ToLower(projectName) {
-					project["configuration"] = proj
+					projMap := proj.(map[string]interface{})
+					for k, v := range projMap {
+						project[k] = v
+					}
+					// project["configuration"] = proj
 					projectFound = true
 				}
 			}
 
 			for pName, proj := range projectCredentials {
 				if pName == strings.ToLower(projectName) {
-					project["credentials"] = proj
+					projMap := proj.(map[string]interface{})
+					for k, v := range projMap {
+						project[k] = v
+					}
+					// project["credentials"] = proj
 					projectFound = true
 				}
 			}
