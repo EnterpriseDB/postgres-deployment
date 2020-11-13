@@ -20,7 +20,7 @@ variable add_hosts_filename {}
 
 resource "azurerm_subnet" "subnet" {
   count                = var.instance_count
-  name                 = "${var.cluster_name}-EDB-PREREQS-SUBNET-${count.index}"
+  name                 = format("%s-%s-%s", var.cluster_name, "EDB-PREREQS-SUBNET", count.index)
   resource_group_name  = var.resourcegroup_name
   virtual_network_name = var.vnet_name
   address_prefix       = "10.0.${count.index}.0/24"
@@ -28,7 +28,7 @@ resource "azurerm_subnet" "subnet" {
 
 resource "azurerm_public_ip" "publicip" {
   count               = var.instance_count
-  name                = "${var.cluster_name}-EDB-PREREQS-PUBLIC-IP-${count.index}"
+  name                = format("%s-%s-%s", var.cluster_name, "EDB-PREREQS-PUBLIC-IP", count.index)
   location            = var.azure_location
   resource_group_name = var.resourcegroup_name
   allocation_method   = "Static"
@@ -40,16 +40,16 @@ resource "azurerm_public_ip" "publicip" {
 
 resource "azurerm_network_interface" "Public_Nic" {
   count               = var.instance_count
-  name                = "${var.cluster_name}-EDB-PREREQS-PUBLIC-NIC-${count.index}"
+  name                = format("%s-%s-%s", var.cluster_name, "EDB-PREREQS-PUBLIC-NIC", count.index)
   resource_group_name = var.resourcegroup_name
   location            = var.azure_location
 
   ip_configuration {
     name      = "Private_Nic_${count.index}"
-    subnet_id = "${element(azurerm_subnet.subnet.*.id, count.index)}"
+    subnet_id = element(azurerm_subnet.subnet.*.id, count.index)
 
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${element(azurerm_public_ip.publicip.*.id, count.index)}"
+    public_ip_address_id          = element(azurerm_public_ip.publicip.*.id, count.index)
 
   }
 }
@@ -61,8 +61,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   location              = var.azure_location
   size                  = var.instance_size
   admin_username        = var.admin_username
-  network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index)}"]
-  #network_interface_ids = ["${element(azurerm_network_interface.Public_Nic.*.id, count.index < 3 ? count.index : 2)}"]
+  network_interface_ids = [element(azurerm_network_interface.Public_Nic.*.id, count.index)]
 
   admin_ssh_key {
     username   = var.admin_username
@@ -82,7 +81,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   os_disk {
-    name                 = "${var.cluster_name}-EDB-VM-OS-Disk-${count.index}"
+    name                 = format("%s-%s-%s", var.cluster_name, "EDB-VM-OS-Disk", count.index)
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
