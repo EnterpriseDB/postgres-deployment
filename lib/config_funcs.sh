@@ -430,9 +430,9 @@ function aws_config_file()
                 VIOPS="${RESULT}"
                 ;;
             esac
-            validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
-            export INSTANCE_VOLUME_IOPS            
         fi
+        validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
+        export INSTANCE_VOLUME_IOPS                    
     fi
 
     # Additional Volumes
