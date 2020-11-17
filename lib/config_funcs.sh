@@ -403,12 +403,14 @@ function aws_config_file()
     CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
+        VIOPS=250
         if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
         then
             declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
             declare -a CHOICES=('1' '2' '3' '4')
         
             RESULT=""
+
             custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
               "Please enter your choice:" \
               OPTIONS \
@@ -465,32 +467,36 @@ function aws_config_file()
                 AIOPSTYPE="io2"
                 ;;
             esac
+
+            AIOPS=250
+            if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+            then
+                declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
+                declare -a CHOICES=('1' '2' '3' '4')
             
-            declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
-            declare -a CHOICES=('1' '2' '3' '4')
-        
-            RESULT=""
-            custom_options_prompt "Which provisioned size for iops would you like?" \
-              "Please enter your choice:" \
-              OPTIONS \
-              CHOICES \
-              RESULT
-            case "${RESULT}" in
-              1)
-                AIOPS=250
-                ;;
-              2)
-                AIOPS=350
-                ;;
-              3)
-                AIOPS=3000
-                ;;
-              4)
                 RESULT=""
-                validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
-                AIOPS="${RESULT}"
-                ;;
-            esac
+                custom_options_prompt "Which provisioned size for iops would you like?" \
+                  "Please enter your choice:" \
+                  OPTIONS \
+                  CHOICES \
+                  RESULT
+                case "${RESULT}" in
+                  1)
+                    AIOPS=250
+                    ;;
+                  2)
+                    AIOPS=350
+                    ;;
+                  3)
+                    AIOPS=3000
+                    ;;
+                  4)
+                    RESULT=""
+                   validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
+                   AIOPS="${RESULT}"
+                   ;;
+                esac
+            fi
             RESULT=""
             validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
             AVS="${RESULT}"         
