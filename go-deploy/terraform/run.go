@@ -34,21 +34,11 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 		templateLocation = strings.Join(splitPath, "/")
 	}
 
+	project["project_name"] = projectName
 	project["instance_type"] = "c5.2xlarge"
 	project["instance_image"] = "CentOS Linux 7 x86_64 HVM EBS*"
 
-	setVariableAndTagNames()
-
-	// os := "CentOS Linux 7 x86_64 HVM EBS*"
-	// region := "us-east-2"
-	// instanceCount := "1"
-	// ssh := "~/.ssh/id_rsa.pub"
-	// pem := "0"
-
-	// _, err := checkImage("CentOS Linux 7 x86_64 HVM EBS*", region)
-	// if err != nil {
-	// 	return err
-	// }
+	setVariableAndTagNames(projectName)
 
 	if arguements["pre_run_checks"] != nil {
 		preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
@@ -64,34 +54,42 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 		}
 	}
 
-	fmt.Println(project)
+	terraformWorkspace(projectName)
 
-	// // checkType("c5.2xlarge", region)
-	// _, err := checkImage("CentOS Linux 7 x86_64 HVM EBS*", region)
-	// if err != nil {
-	// 	return err
-	// }
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = templateLocation
 
-	// terraformWorkspace(projectName)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("%s\n", stdoutStderr)
+		log.Fatal(err)
+	}
 
-	// cmd := exec.Command("terraform", "init")
-	// cmd.Dir = templateLocation
+	if arguements["terraform_build"] != nil {
+		terraformBuild := arguements["terraform_build"].(map[string]interface{})
+		argSlice := terraformBuild["variables"].([]interface{})
+		fmt.Println(terraformBuild)
+		terraformApply(argSlice, project)
+	}
 
-	// stdoutStderr, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	fmt.Printf("%s\n", stdoutStderr)
-	// 	log.Fatal(err)
-	// }
+	if arguements["post_run_checks"] != nil {
+		postRunChecks := arguements["post_run_checks"].(map[string]interface{})
 
-	// terraformApply(os, ami, region, instanceCount, ssh, projectName, pem)
-	// checkInstanceStatus(region)
+		for i := 0; i < len(postRunChecks); i++ {
+			iString := strconv.Itoa(i)
+			check := postRunChecks[iString].(map[string]interface{})
 
-	// fmt.Printf("%s\n", stdoutStderr)
+			output, _ := preCheck(check, project)
+			if check["output"] != nil {
+				project[check["output"].(string)] = output
+			}
+		}
+	}
 
 	return nil
 }
 
-func setVariableAndTagNames() error {
+func setVariableAndTagNames(projectName string) error {
 	tagsInput := "/tags.tf.template"
 	tagsOutput := "/tags.tf"
 
@@ -103,7 +101,7 @@ func setVariableAndTagNames() error {
 		log.Fatal(err)
 	}
 
-	tagsReplaced := bytes.ReplaceAll(tagTemplate, []byte("PROJECT_NAME"), []byte("TEST_TEST"))
+	tagsReplaced := bytes.ReplaceAll(tagTemplate, []byte("PROJECT_NAME"), []byte(projectName))
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s%s", templateLocation, tagsOutput), tagsReplaced, 0644)
 	if err != nil {
@@ -115,7 +113,7 @@ func setVariableAndTagNames() error {
 		log.Fatal(err)
 	}
 
-	variablesReplaced := bytes.ReplaceAll(variableTemplate, []byte("PROJECT_NAME"), []byte("TEST_TEST"))
+	variablesReplaced := bytes.ReplaceAll(variableTemplate, []byte("PROJECT_NAME"), []byte(projectName))
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s%s", templateLocation, variablesOutput), variablesReplaced, 0644)
 	if err != nil {
@@ -167,61 +165,6 @@ func preCheck(check map[string]interface{}, project map[string]interface{}) (str
 	return output, nil
 }
 
-// func checkType(instanceType string, region string) error {
-// 	log.Printf("Checking availability of Instance Type in target region")
-// 	filterOption := fmt.Sprintf("Name=instance-type,Values=%s", instanceType)
-
-// 	comm := exec.Command("aws",
-// 		"ec2",
-// 		"describe-instance-type-offerings",
-// 		"--location-type",
-// 		"availability-zone",
-// 		"--filters",
-// 		filterOption,
-// 		"--region",
-// 		region,
-// 		"--output",
-// 		"json")
-
-// 	stdoutStderr, err := comm.CombinedOutput()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	fmt.Printf("%s\n", stdoutStderr)
-
-// 	return nil
-// }
-
-// func checkImage(imageName string, region string) (string, error) {
-// 	filterOption := fmt.Sprintf(`Name=name,Values="%s"`, imageName)
-// 	query := fmt.Sprintf(`sort_by(Images, &Name)[-1].ImageId`)
-
-// 	comm := exec.Command("aws",
-// 		"ec2",
-// 		"describe-images",
-// 		"--filters",
-// 		filterOption,
-// 		"--query",
-// 		query,
-// 		"--region",
-// 		region,
-// 		"--output",
-// 		"text")
-
-// 	fmt.Println(comm.Args)
-
-// 	stdoutStderr, err := comm.CombinedOutput()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Printf("%s\n", stdoutStderr)
-// 	strippedT := strings.ReplaceAll(string(stdoutStderr), "\n", "")
-// 	fmt.Println(strippedT)
-
-// 	return string(strippedT), nil
-// }
-
 func terraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 	comm := exec.Command("terraform", "workspace", "list")
@@ -268,23 +211,21 @@ func terraformWorkspace(projectName string) error {
 	return nil
 }
 
-func terraformApply(os string, ami string, region string, instanceCount string, ssh string, projectName string, pem string) error {
+func terraformApply(argSlice []interface{}, project map[string]interface{}) error {
 	arguments := []string{}
 
 	arguments = append(arguments, "apply")
 	arguments = append(arguments, "-auto-approve")
-	arguments = append(arguments, fmt.Sprintf(`-var=os=%s`, os))
-	arguments = append(arguments, fmt.Sprintf(`-var=ami_id=%s`, ami))
-	arguments = append(arguments, fmt.Sprintf(`-var=aws_region=%s`, region))
-	arguments = append(arguments, fmt.Sprintf(`-var=instance_count=%s`, instanceCount))
-	arguments = append(arguments, fmt.Sprintf(`-var=ssh_key_path=%s`, ssh))
-	arguments = append(arguments, fmt.Sprintf(`-var=cluster_name=%s`, projectName))
-	arguments = append(arguments, fmt.Sprintf(`-var=pem_instance_count=%s`, pem))
+
+	for _, arg := range argSlice {
+		argMap := arg.(map[string]interface{})
+		a := fmt.Sprintf("-var=%s=%s", argMap["prefix"], project[argMap["variable"].(string)])
+
+		arguments = append(arguments, a)
+	}
 
 	comm := exec.Command("terraform", arguments...)
 	comm.Dir = templateLocation
-
-	fmt.Println(comm.Args)
 
 	stdoutStderr, err := comm.CombinedOutput()
 	if err != nil {
