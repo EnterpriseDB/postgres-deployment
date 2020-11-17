@@ -105,17 +105,20 @@
 				"type": "int",
 				"flag_name": "ec2-count",
 				"flag_short": "c",
-				"flag_description": "The amount of EC2 instances",
+				"flag_description": "The number of EC2 instances",
 				"validate": {
 					"minimum": 1
 				}
 			},
 			"3": {
-				"name": "use_pem",
-				"type": "bool",
+				"name": "pem_instance_count",
+				"type": "int",
 				"flag_name": "use-pem",
 				"flag_short": "u",
-				"flag_description": "Use a PEM server [y|n]"
+				"flag_description": "The number of PEM instances",
+				"validate": {
+					"minimum": 0
+				}
 			},
 			"4": {
 				"name": "db_engine",
@@ -175,11 +178,14 @@
 				}
 			},
 			"3": {
-				"name": "use_pem",
-				"type": "bool",
+				"name": "pem_instance_count",
+				"type": "int",
 				"flag_name": "use-pem",
 				"flag_short": "u",
-				"flag_description": "Use a PEM server [y|n]"
+				"flag_description": "The number of PEM instances",
+				"validate": {
+					"minimum": 0
+				}
 			},
 			"4": {
 				"name": "db_engine",
@@ -249,7 +255,7 @@
 					"output": "ami_id"
 				}
 			},
-			"terraform_run": {
+			"terraform_build": {
 				"variables": [
 					{
 						"prefix": "os",
@@ -269,7 +275,7 @@
 					},
 					{
 						"prefix": "ssh_key_path",
-						"variable": "ec2_count"
+						"variable": "public_key"
 					},
 					{
 						"prefix": "cluster_name",
@@ -277,9 +283,19 @@
 					},
 					{
 						"prefix": "pem_instance_count",
-						"variable": "pem_instance"
+						"variable": "pem_instance_count"
 					}
 				]
+			},
+			"post_run_checks": {
+				"0": {
+					"command": "aws ec2 wait instance-status-ok --region %s",
+					"variables": {
+						"0": "region"
+					},
+					"output": "instance_exists",
+					"log_text": ""
+				}
 			}
 		}
 	},

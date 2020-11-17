@@ -617,10 +617,7 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 
 			projectFound := false
 
-			project := map[string]interface{}{
-				// "credentials":   map[string]interface{}{},
-				// "configuration": map[string]interface{}{},
-			}
+			project := map[string]interface{}{}
 
 			projectCredentials := getProjectCredentials()
 			projectConfigurations := getProjectConfigurations()
@@ -631,7 +628,6 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 					for k, v := range projMap {
 						project[k] = v
 					}
-					// project["configuration"] = proj
 					projectFound = true
 				}
 			}
@@ -642,7 +638,6 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 					for k, v := range projMap {
 						project[k] = v
 					}
-					// project["credentials"] = proj
 					projectFound = true
 				}
 			}
@@ -674,10 +669,7 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 
 			projectFound := false
 
-			project := map[string]interface{}{
-				// "credentials":   map[string]interface{}{},
-				// "configuration": map[string]interface{}{},
-			}
+			project := map[string]interface{}{}
 
 			projectCredentials := getProjectCredentials()
 			projectConfigurations := getProjectConfigurations()
@@ -688,7 +680,6 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 					for k, v := range projMap {
 						project[k] = v
 					}
-					// project["configuration"] = proj
 					projectFound = true
 				}
 			}
@@ -699,7 +690,6 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 					for k, v := range projMap {
 						project[k] = v
 					}
-					// project["credentials"] = proj
 					projectFound = true
 				}
 			}
