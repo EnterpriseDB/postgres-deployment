@@ -48,6 +48,8 @@ function aws_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass"
+    
+    local LOG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/projectdetails.txt"
 
     if [[ "${OSNAME}" =~ "CentOS" ]]
     then
@@ -70,7 +72,7 @@ function aws_ansible_pg_install()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${SSH_KEY}" "${F_NEW_PRIV_KEYNAME}"
-       
+
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
@@ -85,57 +87,65 @@ function aws_ansible_pg_install()
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
                     playbook-single-instance.yml   
     fi
-                    
+
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
+
+    exec 3>&1 1>>"${LOG_FILE}" 2>&1
     
-    #if [[ ${PEM_EXISTS} -gt 0 ]]
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
-        echo -e "PEM SERVER:"
-        echo -e "-----------"
+        echo -e "PEM SERVER:" | tee /dev/fd/3
+        echo -e "-----------" | tee /dev/fd/3
         for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
                             |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem"
+           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
            then
-             echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/postgres_pass)"
-             echo ""
+             echo -e "  Username:\tpostgres" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/postgres_pass)" | tee /dev/fd/3
+             echo "" | tee /dev/fd/3
            else
-             echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
-             echo ""
+             echo -e "  Username:\tenterprisedb" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass/enterprisedb_pass)" | tee /dev/fd/3
+             echo "" | tee /dev/fd/3
            fi
         done
     fi
    
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]]
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]    
     then
-        echo -e "PRIMARY SERVER"
-        echo -e "--------------"
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        then
+           echo -e "SERVER" | tee /dev/fd/3
+        else
+           echo -e "PRIMARY SERVER" | tee /dev/fd/3
+        fi
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep primary \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
-            echo ""
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
+            echo "" | tee /dev/fd/3
         done
     fi
     if [[ ${STANDBY_EXISTS} -gt 0 ]]
     then
-        echo -e "STANDBY SERVERS"
-        echo -e "--------------"
+        echo -e "STANDBY SERVERS" | tee /dev/fd/3
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep standby \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
             echo ""
         done
     fi
+
+    exec > /dev/tty 2>&1
 }
 
 ################################################################################
@@ -186,7 +196,9 @@ function azure_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass"    
-  
+
+    local LOG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/projectdetails.txt"
+    
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
@@ -217,52 +229,61 @@ function azure_ansible_pg_install()
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
-    
+
+    exec 3>&1 1>>"${LOG_FILE}" 2>&1
+        
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
-        echo -e "PEM SERVER:"
-        echo -e "-----------"
+        echo -e "PEM SERVER:" | tee /dev/fd/3
+        echo -e "-----------" | tee /dev/fd/3
         for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
                             |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem"
+           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
            then
-             echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/postgres_pass)"
-             echo ""
+             echo -e "  Username:\tpostgres" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/postgres_pass)" | tee /dev/fd/3
+             echo "" | tee /dev/fd/3
            else
-             echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
-             echo ""
+             echo -e "  Username:\tenterprisedb" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass/enterprisedb_pass)" | tee /dev/fd/3
+             echo "" | tee /dev/fd/3
            fi
         done
     fi
    
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]]
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]    
     then
-        echo -e "PRIMARY SERVER"
-        echo -e "--------------"
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        then
+           echo -e "SERVER" | tee /dev/fd/3
+        else
+           echo -e "PRIMARY SERVER" | tee /dev/fd/3
+        fi
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep primary \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
-            echo ""
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
+            echo "" | tee /dev/fd/3
         done
     fi
     if [[ ${STANDBY_EXISTS} -gt 0 ]]
     then
-        echo -e "STANDBY SERVERS"
-        echo -e "--------------"
+        echo -e "STANDBY SERVERS" | tee /dev/fd/3
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep standby \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
-            echo ""
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
+            echo "" | tee /dev/fd/3
         done
     fi
+    
+    exec > /dev/tty 2>&1
 }
 
 ################################################################################
@@ -333,7 +354,9 @@ function gcloud_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass"    
-  
+
+    local LOG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/projectdetails.txt"
+
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                 
@@ -362,50 +385,59 @@ function gcloud_ansible_pg_install()
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
-    
+
+    exec 3>&1 1>>"${LOG_FILE}" 2>&1
+        
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
     then
-        echo -e "PEM SERVER:"
-        echo -e "-----------"
+        echo -e "PEM SERVER:" | tee /dev/fd/3
+        echo -e "-----------" | tee /dev/fd/3
         for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
                             |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem"
+           echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
            then
-             echo -e "  Username:\tpostgres"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/postgres_pass)"
+             echo -e "  Username:\tpostgres" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/postgres_pass)" | tee /dev/fd/3
              echo ""
            else
-             echo -e "  Username:\tenterprisedb"
-             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/enterprisedb_pass)"
-             echo ""
+             echo -e "  Username:\tenterprisedb" | tee /dev/fd/3
+             echo -e "  Password:\t$(cat ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass/enterprisedb_pass)" | tee /dev/fd/3
+             echo "" | tee /dev/fd/3
            fi
         done
     fi
-   
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]]
+
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
     then
-        echo -e "PRIMARY SERVER"
-        echo -e "--------------"
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        then
+           echo -e "SERVER" | tee /dev/fd/3
+        else
+           echo -e "PRIMARY SERVER" | tee /dev/fd/3
+        fi
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep primary \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
-            echo ""
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
+            echo "" | tee /dev/fd/3
         done
     fi
     if [[ ${STANDBY_EXISTS} -gt 0 ]]
     then
-        echo -e "STANDBY SERVERS"
-        echo -e "--------------"
+        echo -e "STANDBY SERVERS" | tee /dev/fd/3
+        echo -e "--------------" | tee /dev/fd/3
         for srv  in $(parse_yaml hosts.yml|grep standby \
                          |grep public_ip|cut -d"=" -f2|xargs echo)
         do
-            echo -e "  Username:\t${ANSIBLE_USER}"
-            echo -e "  Public Ip:\t${srv}"
-            echo ""
+            echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
+            echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
+            echo "" | tee /dev/fd/3
         done
     fi
+
+    exec > /dev/tty 2>&1
 }

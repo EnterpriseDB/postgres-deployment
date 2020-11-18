@@ -13,7 +13,7 @@ variable "vnet_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "tclusterEDB"
+  default     = "c8mnEDB"
   type        = string
 }
 
@@ -73,20 +73,9 @@ variable admin_username {
   default = "centos"
 }
 
-# Ansible Inventory Filenames
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
-}
-
 # Ansible Yaml PEM Inventory Filename
 variable "ansible_pem_inventory_yaml_filename" {
   default = "pem-inventory.yml"
-}
-
-# Ansible Ini Inventory Filename
-variable "ansible_inventory_ini_filename" {
-  default = "inventory"
 }
 
 # OS CSV Filename

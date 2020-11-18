@@ -29,7 +29,7 @@ variable "subnetwork_region" {
 
 variable "subnetwork_name" {
   # Must have network_name tag as a prefix
-  default = "edb-network-subnetwork"
+  default = "edb-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {
@@ -63,19 +63,9 @@ variable "ssh_key_location" {
 }
 
 # Ansible Inventory Filenames
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
-}
-
 # Ansible Yaml PEM Inventory Filename
 variable "ansible_pem_inventory_yaml_filename" {
   default = "pem-inventory.yml"
-}
-
-# Ansible Ini Inventory Filename
-variable "ansible_inventory_ini_filename" {
-  default = "inventory"
 }
 
 # OS CSV Filename

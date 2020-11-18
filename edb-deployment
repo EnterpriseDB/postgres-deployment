@@ -89,6 +89,7 @@ then
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
                      "${PRIV_FILE_PATH}" \
+                     "${AMI_ID}" \
                     2>&1 | tee ${TERRAFORM_LOG}    
 
     copy_files_to_project_folder "aws"
@@ -248,21 +249,33 @@ fi
 ################################################################################
 if [[ "${AWS_SERVER}" = "destroy" ]]
 then
-    aws_config_file "${PROJECT_NAME}"
-
-    aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    RESULT=""
+    custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
+    if [[ "${RESULT}" = "Yes" ]]
+    then    
+        aws_config_file "${PROJECT_NAME}"
+        aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    fi
 fi
 
 if [[ "${AZURE_SERVER}" = "destroy" ]]
 then
-    azure_config_file "${PROJECT_NAME}"
-    
-    azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
+    RESULT=""
+    custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
+    if [[ "${RESULT}" = "Yes" ]]
+    then    
+        azure_config_file "${PROJECT_NAME}"
+        azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
+    fi
 fi
 
 if [[ "${GCLOUD_SERVER}" = "destroy" ]]
 then
-    gcloud_config_file "${PROJECT_NAME}"
-
-    gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    RESULT=""
+    custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
+    if [[ "${RESULT}" = "Yes" ]]
+    then    
+        gcloud_config_file "${PROJECT_NAME}"
+        gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
+    fi        
 fi

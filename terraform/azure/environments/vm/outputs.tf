@@ -5,28 +5,12 @@ resource "local_file" "AnsiblePEMYamlInventory" {
 ---
 servers:
   %{for count in range(var.instance_count)~}
-%{if count == 0}pemserver:%{endif}%{if count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
-    node_type: %{if count == 0}pemserver%{endif}%{if count == 1}primary%{endif}%{if count > 1}standby%{endif}
+%{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
+    node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}    
     public_ip: ${azurerm_public_ip.publicip[count].ip_address}
     private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
     %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
-  %{endfor~}
-EOT
-}
-
-resource "local_file" "AnsibleYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_inventory_yaml_filename
-  content  = <<EOT
----
-servers:
-  %{for count in range(var.instance_count)~}
-server${count}:
-    node_type: %{if count == 0}primary%{else}standby%{endif}
-    public_ip: ${azurerm_public_ip.publicip[count].ip_address}
-    private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
   %{endfor~}
 EOT
 }
