@@ -26,7 +26,7 @@ source ${DIRECTORY}/lib/common_funcs.sh
 ################################################################################
 # function: aws_ansible_pg_install
 ################################################################################
-function aws_ansible_pg_install()
+function ansible_pg_install()
 {
     local F_OSNAME="$1"
     local F_PG_TYPE="$2"
@@ -115,15 +115,19 @@ function aws_ansible_pg_install()
     # of the ansible
     echo -e "PEM SERVER:" | tee /dev/fd/3
     echo -e "-----------" | tee /dev/fd/3
-    echo -e "  PEM URL:\thttps://${F_PROJECTNAME}pem.edbpov.io:8443/pem" | tee /dev/fd/3
+    echo -e "  PEM URL:\thttps://${F_PROJECTNAME}pem.edbpov.io:8443/pem"  \
+            | tee /dev/fd/3
+
     if [[ "${F_PG_TYPE}" = "PG" ]]
     then
        echo -e "  Username:\tpostgres" | tee /dev/fd/3
-       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/postgres_pass)" | tee /dev/fd/3
+       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/postgres_pass)" \
+         | tee /dev/fd/3
        echo "" | tee /dev/fd/3
     else
        echo -e "  Username:\tenterprisedb" | tee /dev/fd/3
-       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/enterprisedb_pass)" | tee /dev/fd/3
+       echo -e "  Password:\t$(cat ${F_PROJECT_DIR}/.edbpass/enterprisedb_pass)" \
+         | tee /dev/fd/3
        echo "" | tee /dev/fd/3
     fi
    

@@ -98,7 +98,7 @@ then
     aws_config_file "${PROJECT_NAME}" \
                     "${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}"
     
-    aws_ansible_pg_install "${OSNAME}" \
+    ansible_pg_install "${OSNAME}" \
                        "${PG_TYPE}" \
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
@@ -144,7 +144,9 @@ fi
 if [[ "${AWS_SERVER}" = "destroy" ]]
 then
     RESULT=""
-    custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
+    custom_yesno_prompt \
+      "Are you sure you want to destroy project: '${PROJECT_NAME}'?" \
+      "Enter: (Y)es/(N)o " RESULT
     if [[ "${RESULT}" = "Yes" ]]
     then
        aws_config_file "${PROJECT_NAME}" \
