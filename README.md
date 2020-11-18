@@ -49,7 +49,6 @@ Postgres Deployment Scripts are dependent on following components. Install the f
 * The EDB Deployment CLI is part of the code. Following is an example of viewing the options available through the CLI:
 
 ```
-    aws-server      [create|destroy]  PROJECT_NAME
 edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
 
 EDB deployment script for aws, azure and gcp
