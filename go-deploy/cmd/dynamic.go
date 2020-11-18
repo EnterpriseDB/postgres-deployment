@@ -607,7 +607,7 @@ func getProjectNamesCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
-func runProjectCmd(commandName string, command map[string]interface{}, variables map[string]interface{}) *cobra.Command {
+func runProjectCmd(commandName string, command map[string]interface{}, variables map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
@@ -649,7 +649,7 @@ func runProjectCmd(commandName string, command map[string]interface{}, variables
 
 			arguments := command["arguments"].(map[string]interface{})
 
-			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, variables, nil)
+			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, variables, fileName, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -659,7 +659,7 @@ func runProjectCmd(commandName string, command map[string]interface{}, variables
 	return cmd
 }
 
-func destroyProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
+func destroyProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
@@ -699,7 +699,9 @@ func destroyProjectCmd(commandName string, command map[string]interface{}) *cobr
 				return
 			}
 
-			err := terraform.DestroyTerraform(project)
+			arguments := command["arguments"].(map[string]interface{})
+
+			err := terraform.DestroyTerraform(strings.ToLower(projectName), project, arguments, fileName, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -761,11 +763,11 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 
 			command.AddCommand(c)
 		case "run-project":
-			c := runProjectCmd(a, bMap, variables)
+			c := runProjectCmd(a, bMap, variables, fileName)
 
 			command.AddCommand(c)
 		case "destroy-project":
-			c := destroyProjectCmd(a, bMap)
+			c := destroyProjectCmd(a, bMap, fileName)
 
 			command.AddCommand(c)
 		default:

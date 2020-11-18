@@ -8,39 +8,43 @@ import (
 	"strings"
 )
 
-func DestroyTerraform(project map[string]interface{}) error {
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
+func DestroyTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, fileName string, customTemplateLocation *string) error {
+	if customTemplateLocation != nil {
+		templateLocation = *customTemplateLocation
+	} else {
+		path, err := os.Getwd()
+		if err != nil {
+			log.Println(err)
+		}
+
+		splitPath := strings.Split(path, "/")
+
+		if len(splitPath) > 0 {
+			splitPath = splitPath[:len(splitPath)-1]
+		}
+
+		splitPath = append(splitPath, "terraform")
+		splitPath = append(splitPath, fileName)
+
+		templateLocation = strings.Join(splitPath, "/")
 	}
 
-	fmt.Println(project)
+	getTerraformWorkspace(projectName)
 
-	splitPath := strings.Split(path, "/")
-
-	if len(splitPath) > 0 {
-		splitPath = splitPath[:len(splitPath)-1]
+	if arguements["terraform_destroy"] != nil {
+		terrDestroy := arguements["terraform_destroy"].(map[string]interface{})
+		argSlice := terrDestroy["variables"].([]interface{})
+		terraformDestroy(argSlice, project)
 	}
-
-	splitPath = append(splitPath, "terraform")
-	splitPath = append(splitPath, "aws")
-
-	projectName := "test1"
-	joinedPath := strings.Join(splitPath, "/")
-	region := "us-east-2"
-
-	getTerraformWorkspace(projectName, joinedPath)
-	terraformDestroy(region, joinedPath)
-	deleteTerraformWorkspace(projectName, joinedPath)
 
 	return nil
 }
 
-func getTerraformWorkspace(projectName string, joinedPath string) error {
+func getTerraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 
 	comm := exec.Command("terraform", "workspace", "select", projectName)
-	comm.Dir = joinedPath
+	comm.Dir = templateLocation
 
 	stdoutStderr, err := comm.CombinedOutput()
 	if err != nil {
@@ -52,13 +56,25 @@ func getTerraformWorkspace(projectName string, joinedPath string) error {
 	return nil
 }
 
-func terraformDestroy(region string, joinedPath string) error {
+func terraformDestroy(argSlice []interface{}, project map[string]interface{}) error {
 	log.Printf("Checking Projects in terraform")
 
-	regionArguement := fmt.Sprintf(`-var=aws_region=%s`, region)
+	arguments := []string{}
 
-	comm := exec.Command("terraform", "destroy", "-auto-approve", regionArguement)
-	comm.Dir = joinedPath
+	arguments = append(arguments, "destroy")
+	arguments = append(arguments, "-auto-approve")
+
+	for _, arg := range argSlice {
+		argMap := arg.(map[string]interface{})
+		a := fmt.Sprintf("-var=%s=%s", argMap["prefix"], project[argMap["variable"].(string)])
+
+		arguments = append(arguments, a)
+	}
+
+	fmt.Println(arguments)
+
+	comm := exec.Command("terraform", arguments...)
+	comm.Dir = templateLocation
 
 	stdoutStderr, err := comm.CombinedOutput()
 	if err != nil {
@@ -70,11 +86,11 @@ func terraformDestroy(region string, joinedPath string) error {
 	return nil
 }
 
-func deleteTerraformWorkspace(projectName string, joinedPath string) error {
+func deleteTerraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 
 	comm := exec.Command("terraform", "workspace", "select", "default")
-	comm.Dir = joinedPath
+	comm.Dir = templateLocation
 
 	stdoutStderr, err := comm.CombinedOutput()
 	if err != nil {
@@ -82,7 +98,7 @@ func deleteTerraformWorkspace(projectName string, joinedPath string) error {
 	}
 
 	comm = exec.Command("terraform", "workspace", "delete", projectName)
-	comm.Dir = joinedPath
+	comm.Dir = templateLocation
 
 	stdoutStderr, err = comm.CombinedOutput()
 	if err != nil {

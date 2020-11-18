@@ -13,7 +13,7 @@ import (
 
 var templateLocation = ""
 
-func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, variables map[string]interface{}, customTemplateLocation *string) error {
+func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, variables map[string]interface{}, fileName string, customTemplateLocation *string) error {
 	if customTemplateLocation != nil {
 		templateLocation = *customTemplateLocation
 	} else {
@@ -29,7 +29,7 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 		}
 
 		splitPath = append(splitPath, "terraform")
-		splitPath = append(splitPath, "aws")
+		splitPath = append(splitPath, fileName)
 
 		templateLocation = strings.Join(splitPath, "/")
 	}
@@ -68,7 +68,6 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 	if arguements["terraform_build"] != nil {
 		terraformBuild := arguements["terraform_build"].(map[string]interface{})
 		argSlice := terraformBuild["variables"].([]interface{})
-		fmt.Println(terraformBuild)
 		terraformApply(argSlice, project)
 	}
 
