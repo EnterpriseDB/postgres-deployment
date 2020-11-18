@@ -320,7 +320,16 @@
 			"name": "destroy-project",
 			"short": "Runs Terraform for AWS project destruction",
 			"long": "",
-			"arguments": {}
+			"arguments": {
+				"terraform_destroy": {
+					"variables": [
+						{
+							"prefix": "aws_region",
+							"variable": "region"
+						}
+					]
+				}
+			}
 		}
 	}
 }
