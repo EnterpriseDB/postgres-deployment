@@ -13,7 +13,7 @@ import (
 
 var templateLocation = ""
 
-func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, customTemplateLocation *string) error {
+func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, variables map[string]interface{}, customTemplateLocation *string) error {
 	if customTemplateLocation != nil {
 		templateLocation = *customTemplateLocation
 	} else {
@@ -35,9 +35,9 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 	}
 
 	project["project_name"] = projectName
-	project["instance_type"] = "c5.2xlarge"
-	project["instance_image"] = "CentOS Linux 7 x86_64 HVM EBS*"
 
+	setHardCodedVariables(project, variables)
+	setMappedVariables(project, variables)
 	setVariableAndTagNames(projectName)
 
 	if arguements["pre_run_checks"] != nil {
@@ -118,6 +118,35 @@ func setVariableAndTagNames(projectName string) error {
 	err = ioutil.WriteFile(fmt.Sprintf("%s%s", templateLocation, variablesOutput), variablesReplaced, 0644)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func setHardCodedVariables(project map[string]interface{}, variables map[string]interface{}) error {
+	if variables != nil {
+		hardCoded := variables["hard"].(map[string]interface{})
+
+		for variable, value := range hardCoded {
+			project[variable] = value
+		}
+	}
+
+	return nil
+}
+
+func setMappedVariables(project map[string]interface{}, variables map[string]interface{}) error {
+	if variables != nil {
+		hardCoded := variables["maps"].(map[string]interface{})
+
+		for input, mMap := range hardCoded {
+			m := mMap.(map[string]interface{})
+			actualMap := m["map"].(map[string]interface{})
+			val := project[input].(string)
+			out := actualMap[val]
+
+			project[m["output"].(string)] = out
+		}
 	}
 
 	return nil
@@ -230,19 +259,6 @@ func terraformApply(argSlice []interface{}, project map[string]interface{}) erro
 	stdoutStderr, err := comm.CombinedOutput()
 	if err != nil {
 		fmt.Printf("%s\n", stdoutStderr)
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%s\n", stdoutStderr)
-
-	return nil
-}
-
-func checkInstanceStatus(region string) error {
-	cmd := exec.Command("aws", "ec2", "wait", "instance-status-ok", "--region", region)
-
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
 		log.Fatal(err)
 	}
 
