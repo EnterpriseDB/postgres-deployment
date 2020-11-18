@@ -607,7 +607,7 @@ func getProjectNamesCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
-func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
+func runProjectCmd(commandName string, command map[string]interface{}, variables map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
@@ -649,7 +649,7 @@ func runProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 
 			arguments := command["arguments"].(map[string]interface{})
 
-			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, nil)
+			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, variables, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -716,9 +716,12 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 		Long:  ``,
 	}
 
-	var cmds map[string]interface{}
+	var configuration map[string]interface{}
 
-	_ = json.Unmarshal(commandConfiguration, &cmds)
+	_ = json.Unmarshal(commandConfiguration, &configuration)
+
+	cmds := configuration["commands"].(map[string]interface{})
+	variables := configuration["variables"].(map[string]interface{})
 
 	for a, b := range cmds {
 		bMap := b.(map[string]interface{})
@@ -758,7 +761,7 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 
 			command.AddCommand(c)
 		case "run-project":
-			c := runProjectCmd(a, bMap)
+			c := runProjectCmd(a, bMap, variables)
 
 			command.AddCommand(c)
 		case "destroy-project":
