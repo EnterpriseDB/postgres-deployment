@@ -256,7 +256,7 @@ function aws_config_file()
             # Ask about how many instances for multi-node cluster
             RESULT=""
             validate_string_not_empty "What will the absolute path of the public key file be?" \
-              "[${HOME}/.ssh/id_rsa.pub] (Enter will utilize the listed value as default): " \
+              "[${HOME}/.ssh/id_rsa.pub]: " \
               RESULT
             PUB_FILE_PATH="${RESULT}"
             validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
@@ -295,7 +295,7 @@ function aws_config_file()
             # Ask about how many instances for multi-node cluster
             RESULT=""
             validate_string_not_empty "What will the absolute path of the private key file be?" \
-              "[${HOME}/.ssh/id_rsa] (Enter will utilize the listed value as default): " \
+              "[${HOME}/.ssh/id_rsa]: " \
               RESULT
             PRIV_FILE_PATH="${RESULT}"
             validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
