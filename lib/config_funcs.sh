@@ -238,27 +238,79 @@ function aws_config_file()
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
+        declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa.pub]" '2. Custom')
+        declare -a CHOICES=('1' '2')
+        
         RESULT=""
-        validate_string_not_empty "What will the absolute path of the public key file be?" \
-          "[${HOME}/.ssh/id_rsa.pub]: " \
+        custom_options_prompt "Which public key file will you choose?" \
+          "Please enter your choice:" \
+          OPTIONS \
+          CHOICES \
           RESULT
-        PUB_FILE_PATH="${RESULT}"
+        case "${RESULT}" in
+          1)
+            validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${HOME}/.ssh/id_rsa.pub"
+            export PUB_FILE_PATH
+            ;;
+          2)
+            # Ask about how many instances for multi-node cluster
+            RESULT=""
+            validate_string_not_empty "What will the absolute path of the public key file be?" \
+              "[${HOME}/.ssh/id_rsa.pub]: " \
+              RESULT
+            PUB_FILE_PATH="${RESULT}"
+            validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
+            export PUB_FILE_PATH
+            ;;
+        esac
+            
+        #RESULT=""
+        #validate_string_not_empty "What will the absolute path of the public key file be?" \
+        #  "[${HOME}/.ssh/id_rsa.pub] (Enter will utilize the listed value as default): " \
+        #  RESULT
+        #PUB_FILE_PATH="${RESULT}"
     fi
-    validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
-    export PUB_FILE_PATH
+    #validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
+    #export PUB_FILE_PATH
 
     # Private Key File
     CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
+        declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa]" '2. Custom')
+        declare -a CHOICES=('1' '2')
+        
         RESULT=""
-        validate_string_not_empty "What will the absolute path of the private key file be?" \
-          "[${HOME}/.ssh/id_rsa]: " \
+        custom_options_prompt "Which private key file will you choose?" \
+          "Please enter your choice:" \
+          OPTIONS \
+          CHOICES \
           RESULT
-        PRIV_FILE_PATH="${RESULT}"
+        case "${RESULT}" in
+          1)
+            validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${HOME}/.ssh/id_rsa"
+            export PRIV_FILE_PATH
+            ;;
+          2)
+            # Ask about how many instances for multi-node cluster
+            RESULT=""
+            validate_string_not_empty "What will the absolute path of the private key file be?" \
+              "[${HOME}/.ssh/id_rsa]: " \
+              RESULT
+            PRIV_FILE_PATH="${RESULT}"
+            validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+            export PRIV_FILE_PATH
+            ;;
+        esac
+    
+        #RESULT=""
+        #validate_string_not_empty "What will the absolute path of the private key file be?" \
+        #  "[${HOME}/.ssh/id_rsa]: (Enter will utilize the listed value as default)" \
+        #  RESULT
+        #PRIV_FILE_PATH="${RESULT}"
     fi
-    validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
-    export PRIV_FILE_PATH
+    #validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+    #export PRIV_FILE_PATH
       
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
@@ -360,81 +412,95 @@ function aws_config_file()
     export AMI_ID
 
     # Instance Volumes
-    # Volume Type
     CHECK=$(check_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then   
-        declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
-        declare -a CHOICES=('1' '2' '3')
-        
-        RESULT=""
-        custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
-           "Please enter your choice:" \
-           OPTIONS \
-           CHOICES \
-           RESULT
-        case "${RESULT}" in
-          1)
-            VIOPSTYPE="gp2"
-            ;;
-          2)
-            VIOPSTYPE="io1"
-            ;;
-          3)
-            VIOPSTYPE="io2"
-            ;;
-        esac
-        validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "${VIOPSTYPE}"
-        export INSTANCE_VOLUME_TYPE
-    fi
-
-    # Volume Size
-    CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then     
-        RESULT=""
-        validate_string_not_empty "Please enter the instances main volume size: " "" RESULT
-        VS="${RESULT}"
-        validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "${VS}"
-        export INSTANCE_VOLUME_SIZE
-    fi
-
-    # Volume IOPS
-    CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        VIOPS=250
-        if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+        RESULT=""
+        custom_yesno_prompt "Do you want to configure the instances main volume?" \
+          "Enter: (Y)es/(N)o" \
+          RESULT
+        if [[ "${RESULT}" = "Yes" ]]
         then
-            declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
-            declare -a CHOICES=('1' '2' '3' '4')
+            # Volume Type
+            declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
+            declare -a CHOICES=('1' '2' '3')
         
             RESULT=""
-
-            custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
-              "Please enter your choice:" \
-              OPTIONS \
-              CHOICES \
-              RESULT
+            custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
+               "Please enter your choice:" \
+               OPTIONS \
+               CHOICES \
+               RESULT
             case "${RESULT}" in
               1)
-                VIOPS=250
+                VIOPSTYPE="gp2"
                 ;;
               2)
-                VIOPS=350
+                VIOPSTYPE="io1"
                 ;;
               3)
-                VIOPS=3000
-                ;;
-              4)
-                RESULT=""
-                validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
-                VIOPS="${RESULT}"
+                VIOPSTYPE="io2"
                 ;;
             esac
+            validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "${VIOPSTYPE}"
+            export INSTANCE_VOLUME_TYPE
+
+            # Volume Size
+            CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
+            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+            then     
+                RESULT=""
+                validate_string_not_empty "Please enter the size in GB for main volume: " "" RESULT
+                VS="${RESULT}"
+                validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "${VS}"
+                export INSTANCE_VOLUME_SIZE
+            fi
+
+            # Volume IOPS
+            CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
+            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+            then
+                VIOPS=250
+                if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+                then
+                    declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
+                    declare -a CHOICES=('1' '2' '3' '4')
+        
+                    RESULT=""
+
+                    custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
+                      "Please enter your choice:" \
+                      OPTIONS \
+                      CHOICES \
+                      RESULT
+                    case "${RESULT}" in
+                      1)
+                        VIOPS=250
+                        ;;
+                      2)
+                        VIOPS=350
+                        ;;
+                      3)
+                        VIOPS=3000
+                        ;;
+                      4)
+                        RESULT=""
+                        validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
+                        VIOPS="${RESULT}"
+                        ;;
+                    esac
+                fi
+                validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
+                export INSTANCE_VOLUME_IOPS
+            fi
+        else
+            validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "gp2"
+            validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "100"
+            validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "250"
+            export INSTANCE_VOLUME_TYPE
+            export INSTANCE_VOLUME_SIZE
+            export INSTANCE_VOLUME_IOPS
         fi
-        validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
-        export INSTANCE_VOLUME_IOPS                    
     fi
 
     # Additional Volumes
@@ -694,7 +760,7 @@ function azure_config_file()
         declare -a CHOICES=('1' '2')
 
         RESULT=""
-        custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
+        custom_options_prompt "How many Virtual Machines would you like to create?" \
           "Please enter your choice:" \
           OPTIONS \
           CHOICES \
@@ -712,7 +778,7 @@ function azure_config_file()
             # Ask about how many instances for multi-node cluster
             RESULT=""
             validate_string_not_empty \
-              "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
+              "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
             RESULT=$(( RESULT + 1 ))
