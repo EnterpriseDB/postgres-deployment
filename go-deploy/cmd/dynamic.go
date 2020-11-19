@@ -4,12 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
-
-	"postgres-deployment/go-deploy/terraform"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -19,95 +16,30 @@ var flowVariables = map[string]*string{}
 var values = map[string]interface{}{}
 var encryptedValues = map[string]string{}
 var projectName = ""
+var variables = map[string]interface{}{}
 
 var projects = map[string]interface{}{}
 
-func validateNumber(argMap map[string]interface{}, value float64) error {
-	if argMap["validate"] != nil {
-		validation := argMap["validate"].(map[string]interface{})
-		if validation["minimum"] != nil {
-			if value < validation["minimum"].(float64) {
-				return errors.New("Must be greater than minumum")
-			}
-		}
-		if validation["maximum"] != nil {
-			if value > validation["maximum"].(float64) {
-				return errors.New("Must be smaller than maximum")
-			}
-		}
+func convertBoolIn(input string) string {
+	output := ""
+	if input == "y" || input == "yes" || input == "true" || input == "t" {
+		output = "true"
+	} else if input == "n" || input == "no" || input == "false" || input == "f" {
+		output = "false"
 	}
 
-	return nil
+	return output
 }
 
-func validateBool(input string, inputName string) error {
-	if input != "y" &&
-		input != "n" &&
-		input != "yes" &&
-		input != "no" &&
-		input != "false" &&
-		input != "true" &&
-		input != "t" &&
-		input != "f" {
-		return errors.New(fmt.Sprintf("%s must be y or n", inputName))
+func convertBoolOut(input string) string {
+	output := ""
+	if input == "true" {
+		output = "y"
+	} else {
+		output = "n"
 	}
 
-	return nil
-}
-
-func validate(argMap map[string]interface{}, currentValue string) func(string) error {
-	valid := func(input string) error {
-		if argMap["type"] != nil && argMap["type"].(string) == "int" {
-			if len(input) != 0 {
-				inputFloat, err := strconv.ParseFloat(input, 64)
-				if err != nil {
-					return errors.New("Invalid number")
-				}
-
-				err = validateNumber(argMap, inputFloat)
-				if err != nil {
-					return err
-				}
-			} else if currentValue != "" {
-				currentValueFloat, err := strconv.ParseFloat(currentValue, 64)
-				if err != nil {
-					return errors.New("Invalid number")
-				}
-
-				err = validateNumber(argMap, currentValueFloat)
-				if err != nil {
-					return err
-				}
-			} else {
-				return errors.New("Invalid number")
-			}
-
-			return nil
-		} else if argMap["type"] != nil && argMap["type"].(string) == "bool" {
-			if len(input) != 0 {
-				inputLower := strings.ToLower(input)
-				err := validateBool(inputLower, argMap["name"].(string))
-				if err != nil {
-					return err
-				}
-			} else if currentValue != "" {
-				err := validateBool(currentValue, argMap["name"].(string))
-				if err != nil {
-					return err
-				}
-			} else {
-				return errors.New(fmt.Sprintf("%s must be y or n", argMap["name"].(string)))
-			}
-		} else {
-			if len(input) == 0 && currentValue == "" {
-				return errors.New(fmt.Sprintf("%s cannot be empty", argMap["name"].(string)))
-			}
-		}
-
-		return nil
-	}
-
-	return valid
+	return output
 }
 
 func instVaribles(command map[string]interface{}) {
@@ -168,6 +100,10 @@ func handleProjectNameInput(isProjectAware bool) error {
 		projectNamesMap := getProjectNames()
 
 		if isProjectAware {
+			if len(projectNamesMap) == 0 {
+				return errors.New("No Projects Exist")
+			}
+
 			templates := &promptui.SelectTemplates{
 				Label:    "{{ . }}",
 				Selected: "Project Name: {{ . }}",
@@ -374,176 +310,6 @@ func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 	cmd.PersistentFlags().StringVarP(&projectName, "project-name", "p", "", "Name of the project")
 }
 
-func createCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues(command, false, nil)
-			if err != nil {
-				return err
-			}
-
-			projects := getProjectCredentials()
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(credFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
-func createConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues(command, false, nil)
-			if err != nil {
-				return err
-			}
-
-			projects := getProjectConfigurations()
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(confFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
-func updateCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			projects := getProjectCredentials()
-			err := handleInputValues(command, true, projects)
-			if err != nil {
-				return err
-			}
-
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(credFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
-func updateConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			projects := getProjectConfigurations()
-			err := handleInputValues(command, true, projects)
-			if err != nil {
-				return err
-			}
-
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(confFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
-func deleteCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			projects := getProjectCredentials()
-			err := handleInputValues(command, true, projects)
-			if err != nil {
-				return err
-			}
-
-			if projects[strings.ToLower(projectName)] == nil {
-				return fmt.Errorf("Project not found")
-			}
-
-			delete(projects, strings.ToLower(projectName))
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(credFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
-func deleteConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			projects := getProjectConfigurations()
-			err := handleInputValues(command, true, projects)
-			if err != nil {
-				return err
-			}
-
-			if projects[strings.ToLower(projectName)] == nil {
-				return fmt.Errorf("Project not found")
-			}
-
-			delete(projects, strings.ToLower(projectName))
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(confFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags(cmd, command)
-
-	return cmd
-}
-
 func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -607,110 +373,6 @@ func getProjectNamesCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
-func runProjectCmd(commandName string, command map[string]interface{}, variables map[string]interface{}, fileName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		Run: func(cmd *cobra.Command, args []string) {
-			handleInputValues(command, true, nil)
-
-			projectFound := false
-
-			project := map[string]interface{}{}
-
-			projectCredentials := getProjectCredentials()
-			projectConfigurations := getProjectConfigurations()
-
-			for pName, proj := range projectConfigurations {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			for pName, proj := range projectCredentials {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			if !projectFound {
-				fmt.Println("Project not found")
-				return
-			}
-
-			arguments := command["arguments"].(map[string]interface{})
-
-			err := terraform.RunTerraform(strings.ToLower(projectName), project, arguments, variables, fileName, nil)
-			if err != nil {
-				fmt.Println(err)
-			}
-		},
-	}
-
-	return cmd
-}
-
-func destroyProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		Run: func(cmd *cobra.Command, args []string) {
-			handleInputValues(command, true, nil)
-
-			projectFound := false
-
-			project := map[string]interface{}{}
-
-			projectCredentials := getProjectCredentials()
-			projectConfigurations := getProjectConfigurations()
-
-			for pName, proj := range projectConfigurations {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			for pName, proj := range projectCredentials {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			if !projectFound {
-				fmt.Println("Project not found")
-				return
-			}
-
-			arguments := command["arguments"].(map[string]interface{})
-
-			err := terraform.DestroyTerraform(strings.ToLower(projectName), project, arguments, fileName, nil)
-			if err != nil {
-				fmt.Println(err)
-			}
-		},
-	}
-
-	return cmd
-}
-
 func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,
@@ -723,13 +385,17 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 	_ = json.Unmarshal(commandConfiguration, &configuration)
 
 	cmds := configuration["commands"].(map[string]interface{})
-	variables := configuration["variables"].(map[string]interface{})
+	variables = configuration["variables"].(map[string]interface{})
 
 	for a, b := range cmds {
 		bMap := b.(map[string]interface{})
 		d := bMap
 
 		switch d["name"].(string) {
+		case "create-project":
+			c := createProjectCommand(a, bMap)
+
+			command.AddCommand(c)
 		case "create-credential":
 			c := createCredCommand(a, bMap)
 
@@ -746,12 +412,20 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 			c := getProjectNamesCmd(a, bMap)
 
 			command.AddCommand(c)
+		case "update-project":
+			c := updateProjectCommand(a, bMap)
+
+			command.AddCommand(c)
 		case "update-credential":
 			c := updateCredCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "update-configuration":
 			c := updateConfCommand(a, bMap)
+
+			command.AddCommand(c)
+		case "delete-project":
+			c := deleteProjectCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "delete-credential":
@@ -763,7 +437,7 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 
 			command.AddCommand(c)
 		case "run-project":
-			c := runProjectCmd(a, bMap, variables, fileName)
+			c := runProjectCmd(a, bMap, fileName)
 
 			command.AddCommand(c)
 		case "destroy-project":

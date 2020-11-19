@@ -38,52 +38,52 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 
 	setHardCodedVariables(project, variables)
 	setMappedVariables(project, variables)
-	setVariableAndTagNames(projectName)
+	// setVariableAndTagNames(projectName)
 
-	if arguements["pre_run_checks"] != nil {
-		preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
+	// if arguements["pre_run_checks"] != nil {
+	// 	preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
 
-		for i := 0; i < len(preRunChecks); i++ {
-			iString := strconv.Itoa(i)
-			check := preRunChecks[iString].(map[string]interface{})
+	// 	for i := 0; i < len(preRunChecks); i++ {
+	// 		iString := strconv.Itoa(i)
+	// 		check := preRunChecks[iString].(map[string]interface{})
 
-			output, _ := preCheck(check, project)
-			if check["output"] != nil {
-				project[check["output"].(string)] = output
-			}
-		}
-	}
+	// 		output, _ := preCheck(check, project)
+	// 		if check["output"] != nil {
+	// 			project[check["output"].(string)] = output
+	// 		}
+	// 	}
+	// }
 
-	terraformWorkspace(projectName)
+	// terraformWorkspace(projectName)
 
-	cmd := exec.Command("terraform", "init")
-	cmd.Dir = templateLocation
+	// cmd := exec.Command("terraform", "init")
+	// cmd.Dir = templateLocation
 
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("%s\n", stdoutStderr)
-		log.Fatal(err)
-	}
+	// stdoutStderr, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	fmt.Printf("%s\n", stdoutStderr)
+	// 	log.Fatal(err)
+	// }
 
-	if arguements["terraform_build"] != nil {
-		terraformBuild := arguements["terraform_build"].(map[string]interface{})
-		argSlice := terraformBuild["variables"].([]interface{})
-		terraformApply(argSlice, project)
-	}
+	// if arguements["terraform_build"] != nil {
+	// 	terraformBuild := arguements["terraform_build"].(map[string]interface{})
+	// 	argSlice := terraformBuild["variables"].([]interface{})
+	// 	terraformApply(argSlice, project)
+	// }
 
-	if arguements["post_run_checks"] != nil {
-		postRunChecks := arguements["post_run_checks"].(map[string]interface{})
+	// if arguements["post_run_checks"] != nil {
+	// 	postRunChecks := arguements["post_run_checks"].(map[string]interface{})
 
-		for i := 0; i < len(postRunChecks); i++ {
-			iString := strconv.Itoa(i)
-			check := postRunChecks[iString].(map[string]interface{})
+	// 	for i := 0; i < len(postRunChecks); i++ {
+	// 		iString := strconv.Itoa(i)
+	// 		check := postRunChecks[iString].(map[string]interface{})
 
-			output, _ := preCheck(check, project)
-			if check["output"] != nil {
-				project[check["output"].(string)] = output
-			}
-		}
-	}
+	// 		output, _ := preCheck(check, project)
+	// 		if check["output"] != nil {
+	// 			project[check["output"].(string)] = output
+	// 		}
+	// 	}
+	// }
 
 	return nil
 }
@@ -136,15 +136,28 @@ func setHardCodedVariables(project map[string]interface{}, variables map[string]
 
 func setMappedVariables(project map[string]interface{}, variables map[string]interface{}) error {
 	if variables != nil {
-		hardCoded := variables["maps"].(map[string]interface{})
+		maps := variables["maps"].(map[string]interface{})
 
-		for input, mMap := range hardCoded {
-			m := mMap.(map[string]interface{})
-			actualMap := m["map"].(map[string]interface{})
-			val := project[input].(string)
-			out := actualMap[val]
+		for input, mapArray := range maps {
+			mArr := mapArray.(map[string]interface{})
+			for _, mMap := range mArr {
+				m := mMap.(map[string]interface{})
+				actualMap := m["map"].(map[string]interface{})
+				out := ""
 
-			project[m["output"].(string)] = out
+				if m["type"] == "starts-with" {
+					for criteria, value := range actualMap {
+						if strings.HasPrefix(project[input].(string), criteria) {
+							out = value.(string)
+						}
+					}
+				} else {
+					val := project[input].(string)
+					out = actualMap[val].(string)
+				}
+
+				project[m["output"].(string)] = out
+			}
 		}
 	}
 
