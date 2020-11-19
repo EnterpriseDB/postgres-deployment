@@ -96,15 +96,6 @@ Other Options:
     ./edb-deployment aws-project      switch  PROJECT_NAME
 ```
 
-# Demos/Examples:
-* AWS
-  * Create Postgres infrastructure in AWS
-    ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
-  * Install Postgres on infrastructure in AWS
-    ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
-  * Destroy Postgres infrastructure in AWS
-    ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
-
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
 
