@@ -153,9 +153,9 @@ function ansible_pg_install()
     echo "" | tee /dev/fd/3
     echo -e "EPAS3 - Streaming Replica 2 (asynchronous)" | tee /dev/fd/3
     echo -e "------------------------------------------" | tee /dev/fd/3
-    F_PUBLIC_IP=$(parse_yaml hosts.yml|grep epas2 \
+    F_PUBLIC_IP=$(parse_yaml hosts.yml|grep epas3 \
                   | grep public_ip|cut -d"=" -f2|xargs echo)
-    F_PRIVATE_IP=$(parse_yaml hosts.yml|grep epas2 \
+    F_PRIVATE_IP=$(parse_yaml hosts.yml|grep epas3 \
                   | grep private_ip|cut -d"=" -f2|xargs echo)
     echo -e "  Login IP address:\t${F_PUBLIC_IP}" | tee /dev/fd/3
     echo -e "  Login user:\t${F_PROJECTNAME}" | tee /dev/fd/3
