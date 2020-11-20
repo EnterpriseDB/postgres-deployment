@@ -19,9 +19,9 @@ Postgres Deployment Scripts are dependent on following components. Install the f
 
 * Install the dependent packages are:
   * curl, wget, curl, terraform and ansible
-  * boto installation steps:
-    ```pip install boto```
-    ```pip install boto3```
+  * boto installation steps
+    *```pip install boto```
+    *```pip install boto3```
   * To install Terraform: **[Installing Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)**
   * To install Ansible: **[Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
   * An example script is provided that is located at: ```./lib/prereqs.sh```
