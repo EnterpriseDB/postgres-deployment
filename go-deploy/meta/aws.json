@@ -5,21 +5,18 @@
 				"name": "user_name",
 				"type": "string",
 				"flag_name": "user-name",
-				"flag_short": "n",
 				"flag_description": "EDB Yum Username"
 			},
 			"1": {
 				"name": "user_password",
 				"type": "string",
 				"flag_name": "user-password",
-				"flag_short": "w",
 				"flag_description": "EDB Yum Password"
 			},
 			"2": {
 				"name": "public_key",
 				"type": "string",
 				"flag_name": "public-key",
-				"flag_short": "u",
 				"flag_description": "Location of public key file",
 				"default": "~/.ssh/id_rsa.pub"
 			},
@@ -27,7 +24,6 @@
 				"name": "private_key",
 				"type": "string",
 				"flag_name": "private-key",
-				"flag_short": "k",
 				"flag_description": "Location of private key file",
 				"default": "~/.ssh/id_rsa"
 			}
@@ -37,7 +33,6 @@
 				"name": "operating_system",
 				"type": "string",
 				"flag_name": "operating-system",
-				"flag_short": "o",
 				"flag_description": "Operating system for the EC2 instances",
 				"options": ["CentOS7", "RHEL7"]
 			},
@@ -45,7 +40,6 @@
 				"name": "region",
 				"type": "string",
 				"flag_name": "region",
-				"flag_short": "r",
 				"flag_description": "AWS region for the EC2 instances",
 				"options": ["us-east-2", "us-east-1", "us-west-1"]
 			},
@@ -53,7 +47,6 @@
 				"name": "ec2_count",
 				"type": "int",
 				"flag_name": "ec2-count",
-				"flag_short": "c",
 				"flag_description": "The number of EC2 instances",
 				"validate": {
 					"minimum": 1
@@ -63,7 +56,6 @@
 				"name": "pem_instance_count",
 				"type": "int",
 				"flag_name": "use-pem",
-				"flag_short": "u",
 				"flag_description": "The number of PEM instances",
 				"validate": {
 					"minimum": 0
@@ -73,7 +65,6 @@
 				"name": "db_engine",
 				"type": "string",
 				"flag_name": "db-engine",
-				"flag_short": "d",
 				"flag_description": "PostgreSQL DB Engine. [PG|EPAS]",
 				"options": ["PostgreSQL", "EDB Postgres Advanced Server"]
 			},
@@ -81,7 +72,6 @@
 				"name": "db_version",
 				"type": "string",
 				"flag_name": "db-version",
-				"flag_short": "v",
 				"flag_description": "PostgreSQL DB Version",
 				"options": ["11", "12", "13"]
 			},
@@ -89,9 +79,35 @@
 				"name": "replication",
 				"type": "string",
 				"flag_name": "replication",
-				"flag_short": "e",
-				"flag_description": "PostgreSQL DB Version",
+				"flag_description": "PostgreSQL replication type",
 				"options": ["synchronous", "asynchronous"]
+			},
+			"7": {
+				"name": "ami_id",
+				"type": "string",
+				"flag_name": "ami-id",
+				"flag_description": "AMI ID for instances"
+			},
+			"8": {
+				"name": "instance_volume_type",
+				"type": "string",
+				"flag_name": "instance-volume-type",
+				"flag_description": "Disk type for instance main volume",
+				"options": ["gp2", "io1", "io2"]
+			},
+			"9": {
+				"name": "instance_volume_size",
+				"type": "string",
+				"flag_name": "instance-volume-size",
+				"flag_description": "Instance main volume size"
+			},
+			"10": {
+				"name": "instance_volume_iops",
+				"type": "string",
+				"flag_name": "instance-volume-iops",
+				"flag_description": "Instance main volume size",
+				"options": ["250", "350", "3000"],
+				"can_add": true
 			}
 		},
 		"hard": {
@@ -124,12 +140,50 @@
 		"create-project" : {
 			"name": "create-project",
 			"short": "Create an AWS project",
-			"long": ""
+			"long": "",
+			"credential-groups": {
+				"0": {
+					"variables": [0, 1, 2, 3]
+				}
+			},
+			"configuration-groups": {
+				"0": {
+					"variables": [0, 1, 2, 3, 4, 5, 6, 8, 9]
+				},
+				"1": {
+					"variables": [7],
+					"condition": {
+						"type": "bool",
+						"prompt": "Do you want to utilize an AMI ID for the Instances [y/n]?"
+					}
+				},
+				"2": {
+					"variables": [10],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "instance_volume_type",
+							"type": "in",
+							"options": ["io1", "io2"]
+						}
+					}
+				}
+			}
 		},
 		"update-project" : {
 			"name": "update-project",
 			"short": "Update an AWS project",
-			"long": ""
+			"long": "",
+			"credential-groups": {
+				"0": {
+					"variables": [0, 1, 2, 3]
+				}
+			},
+			"configuration-groups": {
+				"0": {
+					"variables": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+				}
+			}
 		},
 		"delete-project" : {
 			"name": "delete-project",
@@ -140,36 +194,10 @@
 			"name": "create-credential",
 			"short": "Create credentials for AWS project",
 			"long": "",
-			"arguments": {
+			"arguments": {},
+			"credential-groups": {
 				"0": {
-					"name": "user_name",
-					"type": "string",
-					"flag_name": "user-name",
-					"flag_short": "n",
-					"flag_description": "EDB Yum Username"
-				},
-				"1": {
-					"name": "user_password",
-					"type": "string",
-					"flag_name": "user-password",
-					"flag_short": "w",
-					"flag_description": "EDB Yum Password"
-				},
-				"2": {
-					"name": "public_key",
-					"type": "string",
-					"flag_name": "public-key",
-					"flag_short": "u",
-					"flag_description": "Location of public key file",
-					"default": "~/.ssh/id_rsa.pub"
-				},
-				"3": {
-					"name": "private_key",
-					"type": "string",
-					"flag_name": "private-key",
-					"flag_short": "k",
-					"flag_description": "Location of private key file",
-					"default": "~/.ssh/id_rsa"
+					"variables": [0, 1, 2, 3]
 				}
 			}
 		},
@@ -177,36 +205,10 @@
 			"name": "update-credential",
 			"short": "Update credentials for AWS project",
 			"long": "",
-			"arguments": {
+			"arguments": {},
+			"credential-groups": {
 				"0": {
-					"name": "user_name",
-					"type": "string",
-					"flag_name": "user-name",
-					"flag_short": "n",
-					"flag_description": "EDB Yum Username"
-				},
-				"1": {
-					"name": "user_password",
-					"type": "string",
-					"flag_name": "user-password",
-					"flag_short": "w",
-					"flag_description": "EDB Yum Password"
-				},
-				"2": {
-					"name": "public_key",
-					"type": "string",
-					"flag_name": "public-key",
-					"flag_short": "u",
-					"flag_description": "Location of public key file",
-					"default": "~/.ssh/id_rsa.pub"
-				},
-				"3": {
-					"name": "private_key",
-					"type": "string",
-					"flag_name": "private-key",
-					"flag_short": "k",
-					"flag_description": "Location of private key file",
-					"default": "~/.ssh/id_rsa"
+					"variables": [0, 1, 2, 3]
 				}
 			}
 		},
@@ -220,66 +222,28 @@
 			"name": "create-configuration",
 			"short": "Create configuration for AWS project",
 			"long": "",
-			"arguments": {
+			"arguments": {},
+			"configuration-groups": {
 				"0": {
-					"name": "operating_system",
-					"type": "string",
-					"flag_name": "operating-system",
-					"flag_short": "o",
-					"flag_description": "Operating system for the EC2 instances",
-					"options": ["CentOS7", "RHEL7"]
+					"variables": [0, 1, 2, 3, 4, 5, 6, 8, 9]
 				},
 				"1": {
-					"name": "region",
-					"type": "string",
-					"flag_name": "region",
-					"flag_short": "r",
-					"flag_description": "AWS region for the EC2 instances",
-					"options": ["us-east-2", "us-east-1", "us-west-1"]
+					"variables": [7],
+					"condition": {
+						"type": "bool",
+						"prompt": "Do you want to utilize an AMI ID for the Instances [y/n]?"
+					}
 				},
 				"2": {
-					"name": "ec2_count",
-					"type": "int",
-					"flag_name": "ec2-count",
-					"flag_short": "c",
-					"flag_description": "The number of EC2 instances",
-					"validate": {
-						"minimum": 1
+					"variables": [10],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "instance_volume_type",
+							"type": "in",
+							"options": ["io1", "io2"]
+						}
 					}
-				},
-				"3": {
-					"name": "pem_instance_count",
-					"type": "int",
-					"flag_name": "use-pem",
-					"flag_short": "u",
-					"flag_description": "The number of PEM instances",
-					"validate": {
-						"minimum": 0
-					}
-				},
-				"4": {
-					"name": "db_engine",
-					"type": "string",
-					"flag_name": "db-engine",
-					"flag_short": "d",
-					"flag_description": "PostgreSQL DB Engine. [PG|EPAS]",
-					"options": ["PostgreSQL", "EDB Postgres Advanced Server"]
-				},
-				"5": {
-					"name": "db_version",
-					"type": "string",
-					"flag_name": "db-version",
-					"flag_short": "v",
-					"flag_description": "PostgreSQL DB Version",
-					"options": ["11", "12", "13"]
-				},
-				"6": {
-					"name": "replication",
-					"type": "string",
-					"flag_name": "replication",
-					"flag_short": "e",
-					"flag_description": "PostgreSQL DB Version",
-					"options": ["synchronous", "asynchronous"]
 				}
 			}
 		},
@@ -287,66 +251,28 @@
 			"name": "update-configuration",
 			"short": "Update configuration for AWS project",
 			"long": "",
-			"arguments": {
+			"arguments": {},
+			"configuration-groups": {
 				"0": {
-					"name": "operating_system",
-					"type": "string",
-					"flag_name": "operating-system",
-					"flag_short": "o",
-					"flag_description": "Operating system for the EC2 instances",
-					"options": ["CentOS7", "RHEL7"]
+					"variables": [0, 1, 2, 3, 4, 5, 6, 8, 9]
 				},
 				"1": {
-					"name": "region",
-					"type": "string",
-					"flag_name": "region",
-					"flag_short": "r",
-					"flag_description": "AWS region for the EC2 instances",
-					"options": ["us-east-2", "us-east-1", "us-west-1"]
+					"variables": [7],
+					"condition": {
+						"type": "bool",
+						"prompt": "Do you want to update the AMI ID configuration [y/n]?"
+					}
 				},
 				"2": {
-					"name": "ec2_count",
-					"type": "int",
-					"flag_name": "ec2-count",
-					"flag_short": "c",
-					"flag_description": "The amount of EC2 instances",
-					"validate": {
-						"minimum": 1
+					"variables": [10],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "instance_volume_type",
+							"type": "in",
+							"options": ["io1", "io2"]
+						}
 					}
-				},
-				"3": {
-					"name": "pem_instance_count",
-					"type": "int",
-					"flag_name": "use-pem",
-					"flag_short": "u",
-					"flag_description": "The number of PEM instances",
-					"validate": {
-						"minimum": 0
-					}
-				},
-				"4": {
-					"name": "db_engine",
-					"type": "string",
-					"flag_name": "db-engine",
-					"flag_short": "d",
-					"flag_description": "PostgreSQL DB Engine. [PG|EPAS]",
-					"options": ["PG", "EPAS"]
-				},
-				"5": {
-					"name": "db_version",
-					"type": "string",
-					"flag_name": "db-version",
-					"flag_short": "v",
-					"flag_description": "PostgreSQL DB Version",
-					"options": ["11", "12", "13"]
-				},
-				"6": {
-					"name": "replication",
-					"type": "string",
-					"flag_name": "replication",
-					"flag_short": "e",
-					"flag_description": "PostgreSQL DB Version",
-					"options": ["synchronous", "asynchronous"]
 				}
 			}
 		},
@@ -380,8 +306,7 @@
 							"0": "instance_type",
 							"1": "region"
 						},
-						"output": "instance_exists",
-						"log_text": ""
+						"output": "instance_exists"
 					},
 					"1": {
 						"command": "aws ec2 describe-images --filters Name=name,Values=\"%s\" --query sort_by(Images,|||&Name)[-1].ImageId --region %s --output text",

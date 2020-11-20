@@ -12,13 +12,88 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
-	var err error
-
-	err = handleProjectNameInput(isProjectAware)
+func handleGroups(vars map[string]interface{}, groups map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
+	err := handleProjectNameInput(isProjectAware)
 	if err != nil {
 		return err
 	}
+
+	keys := make([]int, 0)
+	for keyString, _ := range groups {
+		key, err := strconv.Atoi(keyString)
+		if err != nil {
+			return fmt.Errorf("Failed to build from meta-data")
+		}
+		keys = append(keys, key)
+	}
+
+	sort.Ints(keys)
+
+	for _, k := range keys {
+		keyString := strconv.Itoa(k)
+
+		groupMap := groups[keyString].(map[string]interface{})
+		handleVariables := false
+
+		if groupMap["condition"] != nil {
+			condition := groupMap["condition"].(map[string]interface{})
+			conditionType := condition["type"].(string)
+
+			if conditionType == "bool" {
+				promptString := condition["prompt"].(string)
+				prompt := promptui.Prompt{
+					Label:    promptString,
+					Validate: validateManualBool,
+				}
+
+				shouldHandleGroup, err := prompt.Run()
+				if err != nil {
+					return err
+				}
+
+				if convertBoolIn(shouldHandleGroup) == "true" {
+					handleVariables = true
+				}
+			} else if conditionType == "variable" {
+				equalsFunction := condition["equals"].(map[string]interface{})
+				if equalsFunction["type"].(string) == "in" {
+					options := equalsFunction["options"].([]interface{})
+
+					for _, optionInterface := range options {
+						option := optionInterface.(string)
+
+						if values[equalsFunction["variable"].(string)] == option {
+							handleVariables = true
+						}
+					}
+				}
+			}
+		} else {
+			handleVariables = true
+		}
+
+		if handleVariables {
+			groupVars := map[string]interface{}{}
+			variableNumbers := groupMap["variables"].([]interface{})
+
+			for _, number := range variableNumbers {
+				keyString := strconv.Itoa(int(number.(float64)))
+				groupVars[keyString] = vars[keyString]
+
+			}
+
+			err := handleInputValues2(groupVars, isProjectAware, projects)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
+	var err error
 
 	existingValues := map[string]interface{}{}
 	if projects != nil {
@@ -141,7 +216,9 @@ func createProjectCommand(commandName string, command map[string]interface{}) *c
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues2(variables["credentials"].(map[string]interface{}), false, nil)
+			groups := command["credential-groups"].(map[string]interface{})
+
+			err := handleGroups(variables["credentials"].(map[string]interface{}), groups, false, nil)
 			if err != nil {
 				return err
 			}
@@ -165,8 +242,9 @@ func createProjectCommand(commandName string, command map[string]interface{}) *c
 
 			if convertBoolIn(shouldConfigure) == "true" {
 				values = map[string]interface{}{}
+				groups = command["configuration-groups"].(map[string]interface{})
 
-				err = handleInputValues2(variables["configurations"].(map[string]interface{}), false, nil)
+				err = handleGroups(variables["configurations"].(map[string]interface{}), groups, false, nil)
 				if err != nil {
 					return err
 				}
@@ -183,7 +261,8 @@ func createProjectCommand(commandName string, command map[string]interface{}) *c
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
+	createFlags2(cmd, variables["configurations"].(map[string]interface{}), false)
 
 	return cmd
 }
@@ -194,7 +273,9 @@ func createCredCommand(commandName string, command map[string]interface{}) *cobr
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues2(variables["credentials"].(map[string]interface{}), false, nil)
+			groups := command["credential-groups"].(map[string]interface{})
+
+			err := handleGroups(variables["credentials"].(map[string]interface{}), groups, false, nil)
 			if err != nil {
 				return err
 			}
@@ -210,7 +291,7 @@ func createCredCommand(commandName string, command map[string]interface{}) *cobr
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
 
 	return cmd
 }
@@ -221,7 +302,9 @@ func createConfCommand(commandName string, command map[string]interface{}) *cobr
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := handleInputValues2(variables["configurations"].(map[string]interface{}), false, nil)
+			groups := command["configuration-groups"].(map[string]interface{})
+
+			err := handleGroups(variables["configurations"].(map[string]interface{}), groups, false, nil)
 			if err != nil {
 				return err
 			}
@@ -237,7 +320,7 @@ func createConfCommand(commandName string, command map[string]interface{}) *cobr
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["configurations"].(map[string]interface{}), true)
 
 	return cmd
 }

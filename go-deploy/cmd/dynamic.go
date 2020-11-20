@@ -54,6 +54,14 @@ func instVaribles(command map[string]interface{}) {
 	}
 }
 
+func instVaribles2(vars map[string]interface{}) {
+	for _, argValue := range vars {
+		argMap := argValue.(map[string]interface{})
+		var newArguement = ""
+		flowVariables[argMap["name"].(string)] = &newArguement
+	}
+}
+
 func getProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
@@ -308,6 +316,24 @@ func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 	}
 
 	cmd.PersistentFlags().StringVarP(&projectName, "project-name", "p", "", "Name of the project")
+}
+
+func createFlags2(cmd *cobra.Command, vars map[string]interface{}, shouldCreateProjectFlag bool) {
+	instVaribles2(vars)
+
+	for _, argValue := range vars {
+		argMap := argValue.(map[string]interface{})
+		flagShort := ""
+		if argMap["flag_short"] != nil {
+			flagShort = argMap["flag_short"].(string)
+		}
+
+		cmd.PersistentFlags().StringVarP(flowVariables[argMap["name"].(string)], argMap["flag_name"].(string), flagShort, "", argMap["flag_description"].(string))
+	}
+
+	if shouldCreateProjectFlag {
+		cmd.PersistentFlags().StringVarP(&projectName, "project-name", "p", "", "Name of the project")
+	}
 }
 
 func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {

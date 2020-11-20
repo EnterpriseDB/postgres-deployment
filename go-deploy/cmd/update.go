@@ -71,7 +71,8 @@ func updateProjectCommand(commandName string, command map[string]interface{}) *c
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
+	createFlags2(cmd, variables["configurations"].(map[string]interface{}), false)
 
 	return cmd
 }
@@ -83,7 +84,9 @@ func updateCredCommand(commandName string, command map[string]interface{}) *cobr
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			projects := getProjectCredentials()
-			err := handleInputValues2(variables["credentials"].(map[string]interface{}), true, projects)
+			groups := command["credential-groups"].(map[string]interface{})
+
+			err := handleGroups(variables["credentials"].(map[string]interface{}), groups, true, projects)
 			if err != nil {
 				return err
 			}
@@ -98,7 +101,7 @@ func updateCredCommand(commandName string, command map[string]interface{}) *cobr
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
 
 	return cmd
 }
@@ -110,7 +113,9 @@ func updateConfCommand(commandName string, command map[string]interface{}) *cobr
 		Long:  command["long"].(string),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			projects := getProjectConfigurations()
-			err := handleInputValues2(variables["configurations"].(map[string]interface{}), true, projects)
+			groups := command["configuration-groups"].(map[string]interface{})
+
+			err := handleGroups(variables["configurations"].(map[string]interface{}), groups, true, projects)
 			if err != nil {
 				return err
 			}
@@ -125,7 +130,7 @@ func updateConfCommand(commandName string, command map[string]interface{}) *cobr
 		},
 	}
 
-	createFlags(cmd, command)
+	createFlags2(cmd, variables["configurations"].(map[string]interface{}), true)
 
 	return cmd
 }
