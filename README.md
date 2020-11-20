@@ -7,9 +7,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 # Pre-Requisites:
 Postgres Deployment Scripts are dependent on following components. Install the following components before using the Postgres Deployment Scripts.
 
-1. Vendor Cloud SDK ( AWS, Azure or Google Cloud )
+1. **Latest vendor** Cloud CLI or SDK ( AWS, Azure or Google Cloud )
 
-   Depending on the cloud provider, install AWS CLI, Azure CLI or Google Cloud SDK on the system.
+   Depending on the cloud provider, install the **latest version** for: AWS CLI, Azure CLI or Google Cloud SDK on the system.
    
 2. Packages: curl and wget
 3. Terraform >= 0.13
