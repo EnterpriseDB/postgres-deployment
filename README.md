@@ -32,7 +32,7 @@ Postgres Deployment Scripts are dependent on following components. Install the f
   
   For cloning the repository use the following command:
   
-  ```git clone https://github.com/EnterpriseDB/postres-deployment.git```
+  ```git clone https://github.com/EnterpriseDB/postgres-deployment.git```
   
   Download ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
