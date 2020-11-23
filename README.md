@@ -72,8 +72,6 @@ Other Options:
 ```
 
 ## How to Use:
-* Create your SSH Key or make it available for its reference
-  ![Create SSH Key](./demos/KeyGen.gif)
   
 * Utilizing the EDB CLI for a Postgres Installation
   * Create the Infrastructure in your Cloud Vendor:
@@ -120,29 +118,6 @@ Other Options:
     ./edb-deployment azure-project    switch  PROJECT_NAME 
     ./edb-deployment gcloud-project   switch  PROJECT_NAME
 ```
-
-# Demos/Examples:
-* AWS
-  * Create Postgres infrastructure in AWS
-    ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
-  * Install Postgres on infrastructure in AWS
-    ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
-  * Destroy Postgres infrastructure in AWS
-    ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
-* Azure
-  * Create Postgres infrastructure in Azure
-    ![Create Postgres infrastructure in Azure](./demos/AZURE_Create_test.gif)
-  * Install Postgres on infrastructure in Azure
-    ![AZURE Install Postgres on infrastructure in Azure](./demos/AZURE_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Azure
-    ![Destroy Postgres infrastructure in Azure](./demos/AZURE_Destroy_test.gif)
-* Google Cloud
-  * Create Postgres infrastructure in Google Cloud
-    ![Create Postgres infrastructure in Google Cloud](./demos/GCLOUD_Create_test.gif)
-  * Install Postgres on infrastructure in Google Cloud
-    ![AZURE Install Postgres on infrastructure in Google Cloud](./demos/GCLOUD_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Google Cloud
-    ![Destroy Postgres infrastructure in Google Cloud](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation
