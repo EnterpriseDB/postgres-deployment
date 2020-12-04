@@ -55,7 +55,11 @@ module "vm" {
 
   instance_size                       = var.instance_size
   instance_count                      = var.instance_count
+  instance_disktype                   = var.instance_disktype
   pem_instance_count                  = var.pem_instance_count
+  vm_manageddisk_count                = var.vm_manageddisk_count
+  vm_manageddisk_volume_size          = var.vm_manageddisk_volume_size
+  vm_manageddisk_disktype             = var.vm_manageddisk_disktype
   synchronicity                       = var.synchronicity
   cluster_name                        = var.cluster_name
   vnet_name                           = var.vnet_name
@@ -63,6 +67,7 @@ module "vm" {
   securitygroup_name                  = var.securitygroup_name
   azure_location                      = var.azure_location
   ssh_key_path                        = var.ssh_key_path
+  full_private_ssh_key_path           = var.full_private_ssh_key_path
   project_tags                        = var.project_tags
   publisher                           = var.publisher
   offer                               = var.offer

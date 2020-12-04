@@ -13,7 +13,7 @@ variable "vnet_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "c8mnEDB"
+  default     = "snclEDB"
   type        = string
 }
 
@@ -24,9 +24,16 @@ variable "ssh_key_path" {
   default = ""
 }
 
+variable "full_private_ssh_key_path" {
+  description = "SSH private key path from local machine"
+  type        = string
+  # Example: "~/mypemfile.pem"
+  default = ""
+}
+
 # Instance Size
 variable "instance_size" {
-  default = "Standard_A1" 
+  default = "Standard_A1"
 }
 
 # Count
@@ -34,6 +41,27 @@ variable "instance_count" {
   default = 1
 }
 
+# Primary Disk
+variable instance_disktype {
+  #default = "Standard_LRS"
+  #default = "StandardSSD_LRS"
+  default = "Premium_LRS"
+}
+
+# Managed Disks
+variable vm_manageddisk_count {
+  default = 5
+}
+
+variable vm_manageddisk_volume_size {
+  default = 10
+}
+
+variable vm_manageddisk_disktype {
+  #default = "Standard_LRS"
+  #default = "StandardSSD_LRS"
+  default = "Premium_LRS"
+}
 
 # PEM Instance Count
 variable "pem_instance_count" {

@@ -12,14 +12,14 @@ resource "google_compute_firewall" "ssh" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-ssh"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-ssh")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-ssh")]
   #source_ranges = ["${var.source_ranges}"]
-  source_ranges = [var.source_ranges]  
+  source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "http" {
   #name    = "${var.network_name}-firewall-http"
-  name    = format("%s-%s", var.network_name, "firewall-http")  
+  name    = format("%s-%s", var.network_name, "firewall-http")
   network = var.network_name
 
   allow {
@@ -28,7 +28,7 @@ resource "google_compute_firewall" "http" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-http"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-http")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-http")]
   #source_ranges = ["${var.source_ranges}"]
   source_ranges = [var.source_ranges]
 }
@@ -44,7 +44,7 @@ resource "google_compute_firewall" "https" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-https"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-https")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-https")]
   #source_ranges = ["${var.source_ranges}"]
   source_ranges = [var.source_ranges]
 }
@@ -59,9 +59,9 @@ resource "google_compute_firewall" "icmp" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-icmp"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-icmp")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-icmp")]
   #source_ranges = ["${var.source_ranges}"]
-  source_ranges = [var.source_ranges]  
+  source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "postgresql" {
@@ -75,7 +75,7 @@ resource "google_compute_firewall" "postgresql" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-postgresql"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-postgresql")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-postgresql")]
   #source_ranges = ["${var.source_ranges}"]
   source_ranges = [var.source_ranges]
 }
@@ -91,9 +91,9 @@ resource "google_compute_firewall" "epas" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-epas"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-epas")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-epas")]
   #source_ranges = ["${var.source_ranges}"]
-  source_ranges = [var.source_ranges]  
+  source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "efm" {
@@ -107,7 +107,7 @@ resource "google_compute_firewall" "efm" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-epas"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-efm")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-efm")]
   #source_ranges = ["${var.source_ranges}"]
   source_ranges = [var.source_ranges]
 }
@@ -123,14 +123,14 @@ resource "google_compute_firewall" "firewall-openshift-console" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-openshift-console"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-openshift-console")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-openshift-console")]
   #source_ranges = ["${var.source_ranges}"]
-  source_ranges = [var.source_ranges]  
+  source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "firewall-secure-forward" {
   #name = "${var.network_name}-firewall-secure-forward"
-  name    = format("%s-%s", var.network_name, "firewall-secure-forward")
+  name = format("%s-%s", var.network_name, "firewall-secure-forward")
   #network = google_compute_network.edb_prereq_network.name
   network = var.network_name
 
@@ -140,7 +140,7 @@ resource "google_compute_firewall" "firewall-secure-forward" {
   }
 
   #target_tags   = ["${var.network_name}-firewall-secure-forward"]
-  target_tags   = [format("%s-%s", var.network_name, "firewall-secure-forward")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-secure-forward")]
   #source_ranges = ["${var.source_ranges}"]
-  source_ranges = [var.source_ranges]  
+  source_ranges = [var.source_ranges]
 }

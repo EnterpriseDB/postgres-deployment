@@ -24,17 +24,17 @@ resource "google_compute_instance" "edb-prereq-engine-instance" {
 
   zone = data.google_compute_zones.available.names[count.index < 3 ? count.index : 2]
 
-#  tags = [
-#    "${var.network_name}-firewall-ssh",
-#    "${var.network_name}-firewall-http",
-#    "${var.network_name}-firewall-https",
-#    "${var.network_name}-firewall-icmp",
-#    "${var.network_name}-firewall-postgresql",
-#    "${var.network_name}-firewall-epas",
-#    "${var.network_name}-firewall-efm",
-#    "${var.network_name}-firewall-openshift-console",
-#    "${var.network_name}-firewall-secure-forward",
-#  ]
+  #  tags = [
+  #    "${var.network_name}-firewall-ssh",
+  #    "${var.network_name}-firewall-http",
+  #    "${var.network_name}-firewall-https",
+  #    "${var.network_name}-firewall-icmp",
+  #    "${var.network_name}-firewall-postgresql",
+  #    "${var.network_name}-firewall-epas",
+  #    "${var.network_name}-firewall-efm",
+  #    "${var.network_name}-firewall-openshift-console",
+  #    "${var.network_name}-firewall-secure-forward",
+  #  ]
 
   tags = [
     format("%s-%s", var.network_name, "firewall-ssh"),

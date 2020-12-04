@@ -29,7 +29,7 @@ variable "subnetwork_region" {
 
 variable "subnetwork_name" {
   # Must have network_name tag as a prefix
-  default = "edb-network-subnetwork"  
+  default = "edb-network-subnetwork"
 }
 
 variable "ip_cidr_range" {

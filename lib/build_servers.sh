@@ -168,12 +168,13 @@ function azure_build_server()
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
     local F_PRIV_FILE_KEYPATH="$9"
-    #Minimal size
+    # Minimal size
     #local F_AZURE_INSTANCE_SIZE="Standard_A1"
-    #Small size
-    local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
-    #Larger size
-    #local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
+    # Small size
+    # Before adding managed disks
+    #local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
+    # Larger size
+    local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
     local ANSIBLE_USER=""
     
     process_log "Building Azure Servers"
@@ -207,6 +208,10 @@ function azure_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -253,7 +258,8 @@ function azure_build_server()
          -var="instance_count=${F_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="cluster_name=$F_PROJECTNAME" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
 
     if [[ $? -eq 0 ]]
     then
