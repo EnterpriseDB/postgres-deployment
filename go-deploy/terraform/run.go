@@ -71,19 +71,19 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 		terraformApply(argSlice, project)
 	}
 
-	// if arguements["post_run_checks"] != nil {
-	// 	postRunChecks := arguements["post_run_checks"].(map[string]interface{})
+	if arguements["post_run_checks"] != nil {
+		postRunChecks := arguements["post_run_checks"].(map[string]interface{})
 
-	// 	for i := 0; i < len(postRunChecks); i++ {
-	// 		iString := strconv.Itoa(i)
-	// 		check := postRunChecks[iString].(map[string]interface{})
+		for i := 0; i < len(postRunChecks); i++ {
+			iString := strconv.Itoa(i)
+			check := postRunChecks[iString].(map[string]interface{})
 
-	// 		output, _ := preCheck(check, project)
-	// 		if check["output"] != nil {
-	// 			project[check["output"].(string)] = output
-	// 		}
-	// 	}
-	// }
+			output, _ := preCheck(check, project)
+			if check["output"] != nil {
+				project[check["output"].(string)] = output
+			}
+		}
+	}
 
 	return nil
 }
