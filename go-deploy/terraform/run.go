@@ -38,38 +38,38 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 
 	setHardCodedVariables(project, variables)
 	setMappedVariables(project, variables)
-	// setVariableAndTagNames(projectName)
+	setVariableAndTagNames(projectName)
 
-	// if arguements["pre_run_checks"] != nil {
-	// 	preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
+	if arguements["pre_run_checks"] != nil {
+		preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
 
-	// 	for i := 0; i < len(preRunChecks); i++ {
-	// 		iString := strconv.Itoa(i)
-	// 		check := preRunChecks[iString].(map[string]interface{})
+		for i := 0; i < len(preRunChecks); i++ {
+			iString := strconv.Itoa(i)
+			check := preRunChecks[iString].(map[string]interface{})
 
-	// 		output, _ := preCheck(check, project)
-	// 		if check["output"] != nil {
-	// 			project[check["output"].(string)] = output
-	// 		}
-	// 	}
-	// }
+			output, _ := preCheck(check, project)
+			if check["output"] != nil {
+				project[check["output"].(string)] = output
+			}
+		}
+	}
 
-	// terraformWorkspace(projectName)
+	terraformWorkspace(projectName)
 
-	// cmd := exec.Command("terraform", "init")
-	// cmd.Dir = templateLocation
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = templateLocation
 
-	// stdoutStderr, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	fmt.Printf("%s\n", stdoutStderr)
-	// 	log.Fatal(err)
-	// }
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("%s\n", stdoutStderr)
+		log.Fatal(err)
+	}
 
-	// if arguements["terraform_build"] != nil {
-	// 	terraformBuild := arguements["terraform_build"].(map[string]interface{})
-	// 	argSlice := terraformBuild["variables"].([]interface{})
-	// 	terraformApply(argSlice, project)
-	// }
+	if arguements["terraform_build"] != nil {
+		terraformBuild := arguements["terraform_build"].(map[string]interface{})
+		argSlice := terraformBuild["variables"].([]interface{})
+		terraformApply(argSlice, project)
+	}
 
 	// if arguements["post_run_checks"] != nil {
 	// 	postRunChecks := arguements["post_run_checks"].(map[string]interface{})
@@ -260,7 +260,14 @@ func terraformApply(argSlice []interface{}, project map[string]interface{}) erro
 
 	for _, arg := range argSlice {
 		argMap := arg.(map[string]interface{})
-		a := fmt.Sprintf("-var=%s=%s", argMap["prefix"], project[argMap["variable"].(string)])
+		value := ""
+
+		if project[argMap["variable"].(string)] != nil {
+			value = project[argMap["variable"].(string)].(string)
+		} else if argMap["default"] != nil {
+			value = argMap["default"].(string)
+		}
+		a := fmt.Sprintf("-var=%s=%s", argMap["prefix"], value)
 
 		arguments = append(arguments, a)
 	}

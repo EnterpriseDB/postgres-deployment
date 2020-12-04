@@ -1,15 +1,14 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/manifoldco/promptui"
-	"github.com/spf13/cobra"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 func handleGroups(vars map[string]interface{}, groups map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
@@ -56,7 +55,8 @@ func handleGroups(vars map[string]interface{}, groups map[string]interface{}, is
 				}
 			} else if conditionType == "variable" {
 				equalsFunction := condition["equals"].(map[string]interface{})
-				if equalsFunction["type"].(string) == "in" {
+				equalsType := equalsFunction["type"].(string)
+				if equalsType == "in" {
 					options := equalsFunction["options"].([]interface{})
 
 					for _, optionInterface := range options {
@@ -65,6 +65,12 @@ func handleGroups(vars map[string]interface{}, groups map[string]interface{}, is
 						if values[equalsFunction["variable"].(string)] == option {
 							handleVariables = true
 						}
+					}
+				} else if equalsType == "exact" {
+					match := equalsFunction["match"].(string)
+
+					if values[equalsFunction["variable"].(string)] == match {
+						handleVariables = true
 					}
 				}
 			}
@@ -79,7 +85,6 @@ func handleGroups(vars map[string]interface{}, groups map[string]interface{}, is
 			for _, number := range variableNumbers {
 				keyString := strconv.Itoa(int(number.(float64)))
 				groupVars[keyString] = vars[keyString]
-
 			}
 
 			err := handleInputValues2(groupVars, isProjectAware, projects)
@@ -197,6 +202,32 @@ func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projec
 				}
 			}
 
+			if argMap["file"] != nil && argMap["file"].(bool) {
+				input := currentValue
+
+				if newValue != "" {
+					input = newValue
+				}
+
+				expandedInput, _ := homedir.Expand(input)
+				fileName := getFileName(expandedInput)
+
+				_, projectPath := getProjectPath()
+
+				newFileName := prependProjectName(fileName)
+				output := appendToProjectRoute(newFileName, projectPath)
+
+				fmt.Println(output)
+
+				if _, err := os.Stat(projectPath); os.IsNotExist(err) {
+					os.Mkdir(projectPath, os.ModePerm)
+				}
+
+				fileCopy(expandedInput, projectPath, output)
+
+				newValue = output
+			}
+
 			if newValue != "" {
 				flowVariables[argMap["name"].(string)] = &newValue
 			} else {
@@ -210,117 +241,21 @@ func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projec
 	return nil
 }
 
-func createProjectCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			groups := command["credential-groups"].(map[string]interface{})
+func getFileName(route string) string {
+	splitRoute := strings.Split(route, "/")
 
-			err := handleGroups(variables["credentials"].(map[string]interface{}), groups, false, nil)
-			if err != nil {
-				return err
-			}
-
-			projects := getProjectCredentials()
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(credFile, fileData, 0600)
-
-			prompt := promptui.Prompt{
-				Label:    "Do you wish to add configuration now? [y/n]",
-				Validate: validateManualBool,
-			}
-
-			shouldConfigure, err := prompt.Run()
-			if err != nil {
-				return err
-			}
-
-			if convertBoolIn(shouldConfigure) == "true" {
-				values = map[string]interface{}{}
-				groups = command["configuration-groups"].(map[string]interface{})
-
-				err = handleGroups(variables["configurations"].(map[string]interface{}), groups, false, nil)
-				if err != nil {
-					return err
-				}
-
-				projects := getProjectConfigurations()
-				projects[strings.ToLower(projectName)] = values
-
-				fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-				ioutil.WriteFile(confFile, fileData, 0600)
-			}
-
-			return nil
-		},
-	}
-
-	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
-	createFlags2(cmd, variables["configurations"].(map[string]interface{}), false)
-
-	return cmd
+	return splitRoute[len(splitRoute)-1]
 }
 
-func createCredCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			groups := command["credential-groups"].(map[string]interface{})
-
-			err := handleGroups(variables["credentials"].(map[string]interface{}), groups, false, nil)
-			if err != nil {
-				return err
-			}
-
-			projects := getProjectCredentials()
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(credFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags2(cmd, variables["credentials"].(map[string]interface{}), true)
-
-	return cmd
+func prependProjectName(fileName string) string {
+	return fmt.Sprintf("%s_%s", projectName, fileName)
 }
 
-func createConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   command["name"].(string),
-		Short: command["short"].(string),
-		Long:  command["long"].(string),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			groups := command["configuration-groups"].(map[string]interface{})
-
-			err := handleGroups(variables["configurations"].(map[string]interface{}), groups, false, nil)
-			if err != nil {
-				return err
-			}
-
-			projects := getProjectConfigurations()
-			projects[strings.ToLower(projectName)] = values
-
-			fileData, _ := json.MarshalIndent(projects, "", "  ")
-
-			ioutil.WriteFile(confFile, fileData, 0600)
-
-			return nil
-		},
-	}
-
-	createFlags2(cmd, variables["configurations"].(map[string]interface{}), true)
-
-	return cmd
+func appendToProjectRoute(fileName string, projectPath string) string {
+	return fmt.Sprintf("%s/%s", projectPath, fileName)
 }
+
+// get filename from route: '~/.ssh/id_rsa' -> id_rsa
+// prepend project name + _: id_rsa -> test_id_rsa
+// append new name to project directory: projects/aws/test/test_id_rsa
+// copy file from existing to new: ~/.ssh/id_rsa -> projects/aws/test/test_id_rsa

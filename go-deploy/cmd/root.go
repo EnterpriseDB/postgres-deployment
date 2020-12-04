@@ -16,7 +16,6 @@ import (
 
 var (
 	cfgFile     string
-	credentials string
 	DeployViper *viper.Viper
 )
 
@@ -75,6 +74,9 @@ func init() {
 				os.Exit(1)
 			}
 			RootCmd.AddCommand(command)
+			RootCmd.AddCommand(createCredCommand())
+			RootCmd.AddCommand(updateCredCommand())
+			RootCmd.AddCommand(deleteCredCommand())
 		}
 	}
 }
@@ -96,6 +98,7 @@ func initConfig() {
 
 		credFile = fmt.Sprintf("%s/%s", home, ".edb/deploy-credentials.json")
 
+		fmt.Println(credFile)
 		_, err = os.Stat(credFile)
 
 		if os.IsNotExist(err) {

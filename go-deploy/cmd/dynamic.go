@@ -17,6 +17,7 @@ var values = map[string]interface{}{}
 var encryptedValues = map[string]string{}
 var projectName = ""
 var variables = map[string]interface{}{}
+var cloudName = ""
 
 var projects = map[string]interface{}{}
 
@@ -65,23 +66,7 @@ func instVaribles2(vars map[string]interface{}) {
 func getProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
-	projectCredentials := getProjectCredentials()
 	projectConfigurations := getProjectConfigurations()
-
-	for pName, p := range projectCredentials {
-		lowerPName := strings.ToLower(pName)
-		if p != nil && len(p.(map[string]interface{})) != 0 {
-			if projectNames[lowerPName] == nil {
-				projectNames[lowerPName] = map[string]interface{}{
-					"credentials":   true,
-					"configuration": false,
-				}
-			} else {
-				proj := projectNames[lowerPName].(map[string]interface{})
-				proj["credentials"] = true
-			}
-		}
-	}
 
 	for pName, p := range projectConfigurations {
 		lowerPName := strings.ToLower(pName)
@@ -323,12 +308,15 @@ func createFlags2(cmd *cobra.Command, vars map[string]interface{}, shouldCreateP
 
 	for _, argValue := range vars {
 		argMap := argValue.(map[string]interface{})
-		flagShort := ""
-		if argMap["flag_short"] != nil {
-			flagShort = argMap["flag_short"].(string)
-		}
 
-		cmd.PersistentFlags().StringVarP(flowVariables[argMap["name"].(string)], argMap["flag_name"].(string), flagShort, "", argMap["flag_description"].(string))
+		if argMap["flag_name"] != nil {
+			flagShort := ""
+			if argMap["flag_short"] != nil {
+				flagShort = argMap["flag_short"].(string)
+			}
+
+			cmd.PersistentFlags().StringVarP(flowVariables[argMap["name"].(string)], argMap["flag_name"].(string), flagShort, "", argMap["flag_description"].(string))
+		}
 	}
 
 	if shouldCreateProjectFlag {
@@ -347,23 +335,14 @@ func getProjectCmd(commandName string, command map[string]interface{}) *cobra.Co
 			projectFound := false
 
 			project := map[string]interface{}{
-				"credentials":   map[string]interface{}{},
 				"configuration": map[string]interface{}{},
 			}
 
-			projectCredentials := getProjectCredentials()
 			projectConfigurations := getProjectConfigurations()
 
 			for pName, proj := range projectConfigurations {
 				if pName == strings.ToLower(projectName) {
 					project["configuration"] = proj
-					projectFound = true
-				}
-			}
-
-			for pName, proj := range projectCredentials {
-				if pName == strings.ToLower(projectName) {
-					project["credentials"] = proj
 					projectFound = true
 				}
 			}
@@ -406,6 +385,8 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 		Long:  ``,
 	}
 
+	cloudName = fileName
+
 	var configuration map[string]interface{}
 
 	_ = json.Unmarshal(commandConfiguration, &configuration)
@@ -419,15 +400,7 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 
 		switch d["name"].(string) {
 		case "create-project":
-			c := createProjectCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "create-credential":
-			c := createCredCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "create-configuration":
-			c := createConfCommand(a, bMap)
+			c := createConfCommand(a, bMap, fileName)
 
 			command.AddCommand(c)
 		case "get-project":
@@ -439,26 +412,10 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 
 			command.AddCommand(c)
 		case "update-project":
-			c := updateProjectCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "update-credential":
-			c := updateCredCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "update-configuration":
 			c := updateConfCommand(a, bMap)
 
 			command.AddCommand(c)
 		case "delete-project":
-			c := deleteProjectCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "delete-credential":
-			c := deleteCredCommand(a, bMap)
-
-			command.AddCommand(c)
-		case "delete-configuration":
 			c := deleteConfCommand(a, bMap)
 
 			command.AddCommand(c)
@@ -468,6 +425,10 @@ func rootDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Co
 			command.AddCommand(c)
 		case "destroy-project":
 			c := destroyProjectCmd(a, bMap, fileName)
+
+			command.AddCommand(c)
+		case "install-postgres":
+			c := installCmd(a, bMap, fileName)
 
 			command.AddCommand(c)
 		default:

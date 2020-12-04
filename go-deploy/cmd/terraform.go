@@ -20,20 +20,9 @@ func runProjectCmd(commandName string, command map[string]interface{}, fileName 
 
 			project := map[string]interface{}{}
 
-			projectCredentials := getProjectCredentials()
 			projectConfigurations := getProjectConfigurations()
 
 			for pName, proj := range projectConfigurations {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			for pName, proj := range projectCredentials {
 				if pName == strings.ToLower(projectName) {
 					projMap := proj.(map[string]interface{})
 					for k, v := range projMap {
@@ -54,6 +43,8 @@ func runProjectCmd(commandName string, command map[string]interface{}, fileName 
 			if err != nil {
 				fmt.Println(err)
 			}
+
+			copyFiles(fileName)
 		},
 	}
 
@@ -72,20 +63,9 @@ func destroyProjectCmd(commandName string, command map[string]interface{}, fileN
 
 			project := map[string]interface{}{}
 
-			projectCredentials := getProjectCredentials()
 			projectConfigurations := getProjectConfigurations()
 
 			for pName, proj := range projectConfigurations {
-				if pName == strings.ToLower(projectName) {
-					projMap := proj.(map[string]interface{})
-					for k, v := range projMap {
-						project[k] = v
-					}
-					projectFound = true
-				}
-			}
-
-			for pName, proj := range projectCredentials {
 				if pName == strings.ToLower(projectName) {
 					projMap := proj.(map[string]interface{})
 					for k, v := range projMap {
