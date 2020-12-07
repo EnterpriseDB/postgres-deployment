@@ -1,4 +1,4 @@
-module postgres-deployment/go-deploy
+module github.com/EnterpriseDB/postgres-deployment/go-deploy
 
 go 1.15
 

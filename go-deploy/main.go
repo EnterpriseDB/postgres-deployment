@@ -1,6 +1,6 @@
 package main
 
-import "postgres-deployment/go-deploy/cmd"
+import "github.com/EnterpriseDB/postgres-deployment/go-deploy/cmd"
 
 func main() {
 	cmd.Execute()

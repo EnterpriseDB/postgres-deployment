@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"postgres-deployment/go-deploy/terraform"
 	"strings"
+
+	"github.com/EnterpriseDB/postgres-deployment/go-deploy/terraform"
 
 	"github.com/spf13/cobra"
 )
