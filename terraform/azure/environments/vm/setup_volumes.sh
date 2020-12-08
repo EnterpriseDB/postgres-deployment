@@ -1,16 +1,24 @@
 #!/bin/bash
-for i in {1..5}
+for i in {c..g}
 do
-    DEVNAME="nvme${i}n1"
+    DEVNAME="sd${i}"
     case "${i}" in
-      1)
+      c)
         VOLNAME="pgdata"
         ;;
-      2)
+      d)
         VOLNAME="pgwal"
         ;;
-      *)
-        CURRVOL=$(( i - 2 ))
+      e)
+        CURRVOL="1"
+        VOLNAME="pgtblspc${CURRVOL}"
+        ;;
+      f)
+        CURRVOL="2"
+        VOLNAME="pgtblspc${CURRVOL}"
+        ;;
+      g)
+        CURRVOL="3"
         VOLNAME="pgtblspc${CURRVOL}"
         ;;
     esac

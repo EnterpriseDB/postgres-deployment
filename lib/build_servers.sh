@@ -243,7 +243,7 @@ function azure_build_server()
 #         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
  
 #    if [ "$?" = "0" ]; then
-#      # Wait for VMs to be fully available
+#      # Wait for instances to be fully available
 #      az vm wait --ids $(az vm list -g "$F_EDB_PREREQ_GROUP" --query "[].id" -o tsv) --created
 #    fi
 
@@ -258,6 +258,9 @@ function azure_build_server()
          -var="instance_count=${F_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="cluster_name=$F_PROJECTNAME" \
+         -var="vm_manageddisk_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="vm_manageddisk_disktype=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="vm_manageddisk_volume_size=$ADDITIONAL_VOLUMES_SIZE" \
          -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
          -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
 
@@ -269,7 +272,6 @@ function azure_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
     
     cp -f pem-inventory.yml hosts.yml
