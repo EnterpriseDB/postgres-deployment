@@ -262,7 +262,7 @@ function azure_build_server()
          -var="vm_manageddisk_disktype=$ADDITIONAL_VOLUMES_DISKTYPE" \
          -var="vm_manageddisk_volume_size=$ADDITIONAL_VOLUMES_SIZE" \
          -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
-         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}"
 
     if [[ $? -eq 0 ]]
     then
@@ -307,11 +307,11 @@ function gcloud_build_server()
     if [[ "${F_OS}" =~ "centos" ]]
     then  
         F_ANSIBLE_USER="centos"
-    fi
-
-    if [[ "${F_OS}" =~ "rhel" ]]
+    elif [[ "${F_OS}" =~ "rhel" ]]
     then  
         F_ANSIBLE_USER="ec2-user"
+    else
+        exit_on_error "Unknown Operating system"
     fi
         
     process_log "Checking availability of Image in target region"
@@ -330,6 +330,10 @@ function gcloud_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -349,7 +353,11 @@ function gcloud_build_server()
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \
          -var="instance_name=$F_PROJECTNAME" \
-         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
+         -var="volume_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="volume_disk_type=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="volume_disk_size=$ADDITIONAL_VOLUMES_SIZE" \
+         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}"
  
     if [[ $? -eq 0 ]]
     then
@@ -359,7 +367,6 @@ function gcloud_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
     sed -i "/^ *$/d" pem-inventory.yml
        
     cp -f pem-inventory.yml hosts.yml

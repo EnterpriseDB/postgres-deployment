@@ -3,6 +3,11 @@ variable pem_instance_count {}
 variable synchronicity {}
 variable instance_name {}
 variable vm_type {}
+variable vm_disk_type {}
+variable vm_disk_size {}
+variable volume_count {}
+variable volume_disk_type {}
+variable volume_disk_size {}
 variable network_name {}
 variable subnetwork_name {}
 variable subnetwork_region {}
@@ -12,29 +17,20 @@ variable ssh_key_location {}
 variable ansible_pem_inventory_yaml_filename {}
 variable os_csv_filename {}
 variable add_hosts_filename {}
+variable full_private_ssh_key_path {}
+
 
 data "google_compute_zones" "available" {
   region = var.subnetwork_region
 }
 
-resource "google_compute_instance" "edb-prereq-engine-instance" {
+resource "google_compute_instance" "vm" {
   count        = var.instance_count
   name         = (var.pem_instance_count == "1" && count.index == 0 ? format("%s-%s", var.instance_name, "pemserver") : (var.pem_instance_count == "0" && count.index == 1 ? format("%s-%s", var.instance_name, "primary") : (count.index > 1 ? format("%s-%s%s", var.instance_name, "standby", count.index) : format("%s-%s%s", var.instance_name, "primary", count.index))))
   machine_type = var.vm_type
 
-  zone = data.google_compute_zones.available.names[count.index < 3 ? count.index : 2]
-
-  #  tags = [
-  #    "${var.network_name}-firewall-ssh",
-  #    "${var.network_name}-firewall-http",
-  #    "${var.network_name}-firewall-https",
-  #    "${var.network_name}-firewall-icmp",
-  #    "${var.network_name}-firewall-postgresql",
-  #    "${var.network_name}-firewall-epas",
-  #    "${var.network_name}-firewall-efm",
-  #    "${var.network_name}-firewall-openshift-console",
-  #    "${var.network_name}-firewall-secure-forward",
-  #  ]
+  #zone = data.google_compute_zones.available.names[count.index < 3 ? count.index : 2]
+  zone = data.google_compute_zones.available.names[0]
 
   tags = [
     format("%s-%s", var.network_name, "firewall-ssh"),
@@ -51,13 +47,12 @@ resource "google_compute_instance" "edb-prereq-engine-instance" {
   boot_disk {
     initialize_params {
       image = var.os
-      size  = 20
+      type  = var.vm_disk_type
+      size  = var.vm_disk_size
     }
   }
 
-  metadata = {
-    ssh-keys = "${var.ssh_user}:${file(var.ssh_key_location)}"
-  }
+  metadata_startup_script = file("../../terraform/gcloud/environments/compute/setup_volumes.sh")
 
   network_interface {
     subnetwork = var.network_name
@@ -67,4 +62,21 @@ resource "google_compute_instance" "edb-prereq-engine-instance" {
     }
 
   }
+
+}
+
+resource "google_compute_disk" "volumes" {
+  #count = var.volume_count
+  count    = var.instance_count * var.volume_count  
+  name  = format("%s-%s", var.network_name, count.index)
+  type  = var.volume_disk_type
+  size  = var.volume_disk_size
+  zone = data.google_compute_zones.available.names[0]
+}
+
+resource "google_compute_attached_disk" "vm_attached_disk" {
+  #count    = var.volume_count
+  count    = var.instance_count * var.volume_count
+  disk     = element(google_compute_disk.volumes.*.id, count.index)
+  instance = element(google_compute_instance.vm.*.id, count.index)
 }

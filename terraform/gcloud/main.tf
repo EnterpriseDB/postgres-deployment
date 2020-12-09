@@ -26,6 +26,11 @@ module "compute" {
   synchronicity                       = var.synchronicity
   instance_name                       = var.instance_name
   vm_type                             = var.vm_type
+  vm_disk_type                        = var.vm_disk_type
+  vm_disk_size                        = var.vm_disk_size
+  volume_count                        = var.volume_count
+  volume_disk_type                    = var.volume_disk_type
+  volume_disk_size                    = var.volume_disk_size
   network_name                        = var.instance_name
   subnetwork_name                     = "${var.instance_name}-subnetwork-${var.subnetwork_region}"
   subnetwork_region                   = var.subnetwork_region
@@ -35,6 +40,7 @@ module "compute" {
   ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
+  full_private_ssh_key_path           = var.full_private_ssh_key_path
 
   depends_on = [module.security]
 }

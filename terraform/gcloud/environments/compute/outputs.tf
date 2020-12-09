@@ -7,8 +7,8 @@ servers:
   %{for count in range(var.instance_count)~}
 %{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
     node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}  
-    public_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
-    private_ip: ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.network_ip}
+    public_ip: ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
+    private_ip: ${google_compute_instance.vm[count].network_interface.0.network_ip}
     %{if count > 1}replication_type: ${var.synchronicity}%{endif}
     %{if count > 0}pem_agent: true%{endif}
   %{endfor~}
@@ -30,8 +30,8 @@ echo "Setting SSH Keys"
 ssh-add -l ${var.ssh_key_location}
 echo "Adding IPs"
 %{for count in range(var.instance_count)~}
-ssh-keyscan -H ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_instance.edb-prereq-engine-instance[count].network_interface.0.access_config.0.nat_ip}
+ssh-keyscan -H ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip} >> ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
 %{endfor~}    
     EOT
 }

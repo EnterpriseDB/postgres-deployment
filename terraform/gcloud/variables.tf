@@ -7,7 +7,6 @@ variable "project_name" {
   default = ""
 }
 
-
 variable "instance_count" {
   default = 3
 }
@@ -29,7 +28,7 @@ variable "subnetwork_region" {
 
 variable "subnetwork_name" {
   # Must have network_name tag as a prefix
-  default = "edb-network-subnetwork"
+  default = "edb-network-subnetwork"  
 }
 
 variable "ip_cidr_range" {
@@ -90,4 +89,61 @@ variable "instance_name" {
 
 variable "network_name" {
   default = "edb-network"
+}
+
+# VM Disks
+# VM disk size
+variable "vm_disk_size" {
+  description = "The size of the VM Disk Size in GB."
+  default = 50
+}
+
+variable "vm_disk_type" {
+  # Enter VM Disk type like pd_standard or pd_ssd
+  # volume_type = "pd-standard"
+  # volume_type = "pd-balanced"
+  # volume_type = "pd-ssd"
+  default = "pd-ssd"
+  type    = string
+}
+
+# Attached Disks
+# Volume Count
+variable "volume_count" {
+  default = 5
+}
+
+# Volume disk types
+variable "volume_disk_type" {
+  # Enter VM volume type like pd_standard or pd_ssd
+  # volume_type = "pd-standard"
+  # volume_type = "pd-balanced"
+  # volume_type = "pd-ssd"
+  default = "pd-ssd"
+  type    = string
+}
+
+# Volume disk size
+variable "volume_disk_size" {
+  description = "The size of the Volume Disk Size in GB."
+  default = 10
+}
+
+# Volume disk iops
+variable "volume_iops" {
+  description = "The iops for volume."
+  default = 250
+}
+
+# Volume disk encryption
+variable "volume_encryption" {
+  description = "The encryption type for volume."
+  default = "false"
+}
+
+variable "full_private_ssh_key_path" {
+  description = "SSH private key path from local machine"
+  type        = string
+  # Example: "~/mypemfile.pem"
+  default = ""
 }
