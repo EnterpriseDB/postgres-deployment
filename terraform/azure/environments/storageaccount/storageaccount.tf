@@ -1,8 +1,8 @@
-variable storageaccount_name {}
-variable storagecontainer_name {}
-variable resourcegroup_name {}
-variable azure_location {}
-variable project_tags {}
+variable "storageaccount_name" {}
+variable "storagecontainer_name" {}
+variable "resourcegroup_name" {}
+variable "azure_location" {}
+variable "project_tags" {}
 
 
 resource "azurerm_storage_account" "storage" {

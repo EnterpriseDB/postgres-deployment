@@ -1,7 +1,7 @@
-variable instance_count {}
-variable vpc_id {}
-variable project_tag {}
-variable public_cidrblock {}
+variable "instance_count" {}
+variable "vpc_id" {}
+variable "project_tag" {}
+variable "public_cidrblock" {}
 
 
 data "aws_subnet_ids" "ids" {

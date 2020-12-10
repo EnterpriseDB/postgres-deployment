@@ -358,7 +358,9 @@ function gcloud_build_server()
          -var="volume_disk_size=$ADDITIONAL_VOLUMES_SIZE" \
          -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}" \
          -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}"
- 
+
+    # Force application of startup script
+
     if [[ $? -eq 0 ]]
     then
         process_log "Waiting for Instances to be available"
@@ -367,6 +369,7 @@ function gcloud_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
+
     sed -i "/^ *$/d" pem-inventory.yml
        
     cp -f pem-inventory.yml hosts.yml

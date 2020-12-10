@@ -1,7 +1,7 @@
-variable instance_name {}
-variable network_name {}
-variable subnetwork_region {}
-variable ip_cidr_range {}
+variable "instance_name" {}
+variable "network_name" {}
+variable "subnetwork_region" {}
+variable "ip_cidr_range" {}
 
 resource "google_compute_network" "edb_prereq_network" {
   #name = var.network_name

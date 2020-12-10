@@ -1,5 +1,5 @@
-variable network_name {}
-variable source_ranges {}
+variable "network_name" {}
+variable "source_ranges" {}
 
 resource "google_compute_firewall" "ssh" {
   #name    = "${var.network_name}-firewall-ssh"

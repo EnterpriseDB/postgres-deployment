@@ -1,6 +1,6 @@
-variable azure_location {}
-variable resourcegroup_tag {}
-variable resourcegroup_name {}
+variable "azure_location" {}
+variable "resourcegroup_tag" {}
+variable "resourcegroup_name" {}
 
 
 resource "azurerm_resource_group" "resource_group" {

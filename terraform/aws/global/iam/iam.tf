@@ -1,7 +1,7 @@
-variable user_name {}
-variable user_path {}
-variable user_force_destroy {}
-variable project_tags {}
+variable "user_name" {}
+variable "user_path" {}
+variable "user_force_destroy" {}
+variable "project_tags" {}
 
 resource "aws_iam_user" "this" {
   name          = var.user_name
