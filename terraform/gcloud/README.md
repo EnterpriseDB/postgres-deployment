@@ -58,6 +58,11 @@ Before starting to delve into this repository, it is best to get familiar with t
 * Create your SSH Key or make it available for its reference
   ![Create SSH Key](../../demos/KeyGen.gif)
 
+* Add the generated public key to Google Cloud Metadata for each user: (centos, ec2-user)
+  [Managing SSH keys in metadata] (https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys)
+
+  ![Create SSH Key](../../demos/KeyGen.gif)
+
 * The dependent packages are:
   * curl, wget, curl, terraform and ansible
   * An example script is provided that is located at: ```./lib/prereqs.sh```

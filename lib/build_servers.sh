@@ -373,11 +373,26 @@ function gcloud_build_server()
     sed -i "/^ *$/d" pem-inventory.yml
        
     cp -f pem-inventory.yml hosts.yml
-        
+
+    mv -f ${DIRECTORY}/terraform/gcloud/hosts \
+       ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/hosts
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
+      
+    # Force Re-Running Startup Script
+    if [[ "$ADDITIONAL_VOLUMES_COUNT" != "0" ]]
+    then
+       cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
+       
+       ansible all -i ./hosts \
+           --ssh-common-args='-o StrictHostKeyChecking=no' \
+           --user="${F_ANSIBLE_USER}" \
+           --private-key="./${F_NEW_PRIV_KEYNAME}" \
+           -m shell -a "sudo google_metadata_script_runner startup"
+    fi
+    process_log "Cluster was provisioned successfully!"
 }
 
 ################################################################################

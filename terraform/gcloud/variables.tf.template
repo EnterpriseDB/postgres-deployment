@@ -78,6 +78,12 @@ variable "add_hosts_filename" {
   default = "add_host.sh"
 }
 
+# Ansible Hosts Filename
+variable "hosts_filename" {
+  type    = string
+  default = "hosts"
+}
+
 # Tags
 variable "prefix" {
   default = "edb"

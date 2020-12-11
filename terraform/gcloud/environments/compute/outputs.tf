@@ -35,3 +35,13 @@ ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_instance.vm[count].network_
 %{endfor~}    
     EOT
 }
+
+resource "local_file" "hosts" {
+  count    = var.instance_count
+  filename = var.hosts_filename
+  content  = <<EOT
+  %{for count in range(var.instance_count)~}
+  ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
+  %{endfor~}
+EOT
+}
