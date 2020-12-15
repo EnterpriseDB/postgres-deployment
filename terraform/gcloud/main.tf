@@ -42,6 +42,7 @@ module "compute" {
   add_hosts_filename                  = var.add_hosts_filename
   hosts_filename                      = var.hosts_filename
   full_private_ssh_key_path           = var.full_private_ssh_key_path
+  disk_encryption_key                 = var.disk_encryption_key
 
   depends_on = [module.security]
 }

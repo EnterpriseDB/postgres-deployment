@@ -153,3 +153,7 @@ variable "full_private_ssh_key_path" {
   # Example: "~/mypemfile.pem"
   default = ""
 }
+
+variable "disk_encryption_key" {
+  default = "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+}

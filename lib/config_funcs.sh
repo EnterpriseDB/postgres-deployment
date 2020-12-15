@@ -1236,64 +1236,82 @@ function gcloud_config_file()
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
 
-    # Un-Comment to prompt for Additional Volumes in CLI
-    # Additional Volumes
-    # CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
-    # if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    # then
-    #     RESULT=""
-    #     custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
-    #       "Enter: (Y)es/(N)o" \
-    #       RESULT
-    #     if [[ "${RESULT}" = "Yes" ]]
-    #     then    
-    #         declare -a OPTIONS=('1. Standard' '2. Balanced' '3. SSD')
-    #         declare -a CHOICES=('1' '2' '3')
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        # custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #   "Enter: (Y)es/(N)o" \
+        #   RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            declare -a OPTIONS=('1. Standard' '2. Balanced' '3. SSD')
+            declare -a CHOICES=('1' '2' '3')
         
-    #         RESULT=""
-    #         custom_options_prompt "Which type of disk volume would you like?" \
-    #           "Please enter your choice:" \
-    #           OPTIONS \
-    #           CHOICES \
-    #           RESULT
-    #         case "${RESULT}" in
-    #           1)
-    #             ADISKTYPE="pd-standard"
-    #             ;;
-    #           2)
-    #             ADISKTYPE="pd-balanced"
-    #             ;;
-    #           3)
-    #             ADISKTYPE="pd-ssd"
-    #             ;;                
-    #         esac
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                ADISKTYPE="pd-standard"
+                ;;
+              2)
+                ADISKTYPE="pd-balanced"
+                ;;
+              3)
+                ADISKTYPE="pd-ssd"
+                ;;                
+            esac
 
-    #         RESULT=""
-    #         validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
-    #         AVS="${RESULT}"         
-    #         validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
-    #         validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
-    #         validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
-    #         export ADDITIONAL_VOLUMES_COUNT
-    #         export ADDITIONAL_VOLUMES_DISKTYPE
-    #         export ADDITIONAL_VOLUMES_SIZE
-    #     else
-    #         validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
-    #         validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "pd-standard"
-    #         validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
-    #         export ADDITIONAL_VOLUMES_COUNT
-    #         export ADDITIONAL_VOLUMES_DISKTYPE
-    #         export ADDITIONAL_VOLUMES_SIZE
-    #     fi    
-    # fi
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"         
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "pd-standard"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        fi    
+    fi
 
-    # Sets the Default values for disabling Additional Volumes
-    validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
-    validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "pd-standard"
-    validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
-    export ADDITIONAL_VOLUMES_COUNT
-    export ADDITIONAL_VOLUMES_DISKTYPE
-    export ADDITIONAL_VOLUMES_SIZE
+    CHECK=$(check_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        #RESULT="No"        
+        # Un-Comment to prompt for Disk Encryption Key
+        # Additional Volumes
+        custom_yesno_prompt "Do you want to provide an Encryption Key for the Disks?" \
+          "Enter: (Y)es/(N)o" \
+          RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            RESULT=""
+            validate_string_not_empty "Please enter the encryption key: " "" RESULT
+            EKEY="${RESULT}"         
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        else
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        fi    
+    fi
 
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
