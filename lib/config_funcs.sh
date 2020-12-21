@@ -415,10 +415,15 @@ function aws_config_file()
     CHECK=$(check_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want to configure the instances main volume?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want to configure the instances main volume?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT         
         if [[ "${RESULT}" = "Yes" ]]
         then
             # Volume Type
@@ -507,10 +512,15 @@ function aws_config_file()
     CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
         then    
             declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
@@ -902,10 +912,15 @@ function azure_config_file()
     CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
         then    
             declare -a OPTIONS=('1. Standard' '2. SSD')

@@ -194,6 +194,7 @@ function copy_files_to_project_folder {
    cp -f ${DIRECTORY}/playbook/rhel_firewald_rule.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.        
    mv -f ${DIRECTORY}/terraform/${cloud}/hosts.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
 
+   mv -f ${DIRECTORY}/terraform/${cloud}/inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    mv -f ${DIRECTORY}/terraform/${cloud}/pem-inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    mv -f ${DIRECTORY}/terraform/${cloud}/os.csv ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    mv -f ${DIRECTORY}/terraform/${cloud}/add_host.sh ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.

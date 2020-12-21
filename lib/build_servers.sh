@@ -145,8 +145,10 @@ function aws_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
+    
+    # Remove empty lines from inventory files
+    sed -i "/^ *$/d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml    
     
     cp -f pem-inventory.yml hosts.yml
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
