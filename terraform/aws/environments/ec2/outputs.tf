@@ -9,12 +9,12 @@ all:
 %{if var.pem_instance_count == "1" && count == 0}
      pemserver:
        hosts:
-         pemserver${count+1}:%{endif}
+         pemserver${count + 1}:%{endif}
 %{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}
      primary:
        hosts:
          primary${count}:%{endif}
-%{if var.pem_instance_count == "0" && count == "1" || var.pem_instance_count == "1" && count == 2 }
+%{if var.pem_instance_count == "0" && count == "1" || var.pem_instance_count == "1" && count == 2}
      standby:
        hosts:
 %{endif}

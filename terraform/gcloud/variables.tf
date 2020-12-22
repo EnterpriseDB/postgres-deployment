@@ -28,7 +28,7 @@ variable "subnetwork_region" {
 
 variable "subnetwork_name" {
   # Must have network_name tag as a prefix
-  default = "edb-network-subnetwork"  
+  default = "edb-network-subnetwork"
 }
 
 variable "ip_cidr_range" {
@@ -101,7 +101,7 @@ variable "network_name" {
 # VM disk size
 variable "vm_disk_size" {
   description = "The size of the VM Disk Size in GB."
-  default = 50
+  default     = 50
 }
 
 variable "vm_disk_type" {
@@ -132,19 +132,19 @@ variable "volume_disk_type" {
 # Volume disk size
 variable "volume_disk_size" {
   description = "The size of the Volume Disk Size in GB."
-  default = 10
+  default     = 10
 }
 
 # Volume disk iops
 variable "volume_iops" {
   description = "The iops for volume."
-  default = 250
+  default     = 250
 }
 
 # Volume disk encryption
 variable "volume_encryption" {
   description = "The encryption type for volume."
-  default = "false"
+  default     = "false"
 }
 
 variable "full_private_ssh_key_path" {
