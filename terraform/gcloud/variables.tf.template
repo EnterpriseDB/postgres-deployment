@@ -62,6 +62,12 @@ variable "ssh_key_location" {
 }
 
 # Ansible Inventory Filenames
+# Ansible Yaml Inventory Filename
+variable "ansible_inventory_yaml_filename" {
+  default = "inventory.yml"
+}
+
+# Ansible Inventory Filenames
 # Ansible Yaml PEM Inventory Filename
 variable "ansible_pem_inventory_yaml_filename" {
   default = "pem-inventory.yml"

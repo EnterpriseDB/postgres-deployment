@@ -375,7 +375,9 @@ function gcloud_build_server()
         exit_on_error "Failed to build the servers."
     fi
 
-    sed -i "/^ *$/d" pem-inventory.yml
+    # Remove empty lines from inventory files
+    sed -i "/^ *$/d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml      
        
     cp -f pem-inventory.yml hosts.yml
 

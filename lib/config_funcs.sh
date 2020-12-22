@@ -1309,12 +1309,12 @@ function gcloud_config_file()
     then
         RESULT=""
         # Comment below for prompting details about Additional Volumes
-        #RESULT="No"        
+        RESULT="No"        
         # Un-Comment to prompt for Disk Encryption Key
         # Additional Volumes
-        custom_yesno_prompt "Do you want to provide an Encryption Key for the Disks?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+        #custom_yesno_prompt "Do you want to provide an Encryption Key for the Disks?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
         then    
             RESULT=""
