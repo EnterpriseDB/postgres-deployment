@@ -1,5 +1,7 @@
 # Getting Started
-Postgres Deployment Scripts are an easy way to deploy (PostgreSQL or EDB Postgres Advanced Server) and EDB Tools. It is a contribution by the EDB Team members, which can help people explore Postgres and EDB Tools. Users can interact via the GitHub repository's issues and may add comments in the issues. These deployment scripts are not officially supported by the EDB Support. It is maintained and supported by the GitHub members of this repository.
+Postgres Deployment Scripts are an easy way to deploy PostgreSQL, EDB Postgres Advanced Server, and EDB Tools. The deployment scripts use Ansible, Terraform, and bash to deploy PostgreSQL, EDBPostgres Advanced Server and tools for high availability, management and monitoring, and backup and recovery. 
+
+The deployment scripts are open source tools and are not officially supported by EDB Support. They are maintained and supported by the GitHub members of this repository. Please provide feedback by posting issues and providing pull requests.
 
 Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process of a specific cloud (AWS, Azure and Google Cloud).
 
@@ -7,9 +9,9 @@ Before starting to delve into this repository, it is best to get familiar with t
 # Pre-Requisites:
 Postgres Deployment Scripts are dependent on following components. Install the following components before using the Postgres Deployment Scripts.
 
-1. Vendor Cloud SDK ( AWS, Azure or Google Cloud )
+1. **Latest vendor** Cloud CLI or SDK ( AWS, Azure or Google Cloud )
 
-   Depending on the cloud provider, install AWS CLI, Azure CLI or Google Cloud SDK on the system.
+   Depending on the cloud provider, install the **latest version** for: AWS CLI, Azure CLI or Google Cloud SDK on the system.
    
 2. Packages: curl and wget
 3. Terraform >= 0.13
@@ -28,15 +30,17 @@ Postgres Deployment Scripts are dependent on following components. Install the f
   * To install the Microsoft Azure CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
   * To install the Google Cloud SDK please refer to: **[Installing the Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-interactive)**
 
-* Download/Clone the repository as indicated below:
+* Download or clone the repository as indicated below:
   
   For cloning the repository use the following command:
   
-  ```git clone https://github.com/EnterpriseDB/postres-deployment.git```
+  ```git clone https://github.com/EnterpriseDB/postgres-deployment.git```
   
-  Download ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
+  For downloading the repository use the following command 
+  
+  ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
 
-* Extract the zip file to a desired destination
+  and then extract the zip file to a desired destination
  
 * Open the ```Terminal``` command line
 
@@ -72,8 +76,6 @@ Other Options:
 ```
 
 ## How to Use:
-* Create your SSH Key or make it available for its reference
-  ![Create SSH Key](./demos/KeyGen.gif)
   
 * Utilizing the EDB CLI for a Postgres Installation
   * Create the Infrastructure in your Cloud Vendor:
@@ -120,29 +122,6 @@ Other Options:
     ./edb-deployment azure-project    switch  PROJECT_NAME 
     ./edb-deployment gcloud-project   switch  PROJECT_NAME
 ```
-
-# Demos/Examples:
-* AWS
-  * Create Postgres infrastructure in AWS
-    ![Create Postgres infrastructure in AWS](./demos/AWS_Create_test.gif)
-  * Install Postgres on infrastructure in AWS
-    ![Install Postgres against infrastructure in AWS](./demos/AWS_Postgres_Install.gif)
-  * Destroy Postgres infrastructure in AWS
-    ![Destroy Postgres infrastructure in AWS](./demos/AWS_Destroy_test.gif)
-* Azure
-  * Create Postgres infrastructure in Azure
-    ![Create Postgres infrastructure in Azure](./demos/AZURE_Create_test.gif)
-  * Install Postgres on infrastructure in Azure
-    ![AZURE Install Postgres on infrastructure in Azure](./demos/AZURE_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Azure
-    ![Destroy Postgres infrastructure in Azure](./demos/AZURE_Destroy_test.gif)
-* Google Cloud
-  * Create Postgres infrastructure in Google Cloud
-    ![Create Postgres infrastructure in Google Cloud](./demos/GCLOUD_Create_test.gif)
-  * Install Postgres on infrastructure in Google Cloud
-    ![AZURE Install Postgres on infrastructure in Google Cloud](./demos/GCLOUD_PEM_Install.gif)
-  * Destroy Postgres infrastructure in Google Cloud
-    ![Destroy Postgres infrastructure in Google Cloud](./demos/GCLOUD_Destroy_test.gif)
 
 # LICENSE
 Original work Copyright 2019-2020, EnterpriseDB Corporation

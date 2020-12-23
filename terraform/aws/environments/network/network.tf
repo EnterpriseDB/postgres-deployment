@@ -1,7 +1,7 @@
-variable instance_count {}
-variable vpc_id {}
-variable public_subnet_tag {}
-variable aws_region {}
+variable "instance_count" {}
+variable "vpc_id" {}
+variable "public_subnet_tag" {}
+variable "aws_region" {}
 
 
 data "aws_availability_zones" "available" {

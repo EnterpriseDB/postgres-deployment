@@ -145,8 +145,10 @@ function aws_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
+    
+    # Remove empty lines from inventory files
+    sed -i "/^ *$/d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml    
     
     cp -f pem-inventory.yml hosts.yml
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
@@ -168,12 +170,13 @@ function azure_build_server()
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
     local F_PRIV_FILE_KEYPATH="$9"
-    #Minimal size
+    # Minimal size
     #local F_AZURE_INSTANCE_SIZE="Standard_A1"
-    #Small size
-    local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
-    #Larger size
-    #local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
+    # Small size
+    # Before adding managed disks
+    #local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
+    # Larger size
+    local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
     local ANSIBLE_USER=""
     
     process_log "Building Azure Servers"
@@ -207,6 +210,10 @@ function azure_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -238,7 +245,7 @@ function azure_build_server()
 #         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
  
 #    if [ "$?" = "0" ]; then
-#      # Wait for VMs to be fully available
+#      # Wait for instances to be fully available
 #      az vm wait --ids $(az vm list -g "$F_EDB_PREREQ_GROUP" --query "[].id" -o tsv) --created
 #    fi
 
@@ -253,7 +260,11 @@ function azure_build_server()
          -var="instance_count=${F_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="cluster_name=$F_PROJECTNAME" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
+         -var="vm_manageddisk_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="vm_manageddisk_disktype=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="vm_manageddisk_volume_size=$ADDITIONAL_VOLUMES_SIZE" \
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}"
 
     if [[ $? -eq 0 ]]
     then
@@ -263,8 +274,10 @@ function azure_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
+    
+    # Remove empty lines from inventory files
+    sed -i "/^ *$/d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml      
     
     cp -f pem-inventory.yml hosts.yml
         
@@ -299,11 +312,11 @@ function gcloud_build_server()
     if [[ "${F_OS}" =~ "centos" ]]
     then  
         F_ANSIBLE_USER="centos"
-    fi
-
-    if [[ "${F_OS}" =~ "rhel" ]]
+    elif [[ "${F_OS}" =~ "rhel" ]]
     then  
         F_ANSIBLE_USER="ec2-user"
+    else
+        exit_on_error "Unknown Operating system"
     fi
         
     process_log "Checking availability of Image in target region"
@@ -322,6 +335,10 @@ function gcloud_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -341,8 +358,14 @@ function gcloud_build_server()
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \
          -var="instance_name=$F_PROJECTNAME" \
-         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
- 
+         -var="volume_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="volume_disk_type=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="volume_disk_size=$ADDITIONAL_VOLUMES_SIZE" \
+         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
+         -var="disk_encryption_key=${DISK_ENCRYPTION_KEY}"
+
+    # Force application of startup script
     if [[ $? -eq 0 ]]
     then
         process_log "Waiting for Instances to be available"
@@ -351,15 +374,32 @@ function gcloud_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
+
+    # Remove empty lines from inventory files
+    sed -i "/^ *$/d" inventory.yml
+    sed -i "/^ *$/d" pem-inventory.yml      
        
     cp -f pem-inventory.yml hosts.yml
-        
+
+    mv -f ${DIRECTORY}/terraform/gcloud/hosts \
+       ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/hosts
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
+      
+    # Force Re-Running Startup Script
+    if [[ "$ADDITIONAL_VOLUMES_COUNT" != "0" ]]
+    then
+       cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
+       
+       ansible all -i ./hosts \
+           --ssh-common-args='-o StrictHostKeyChecking=no' \
+           --user="${F_ANSIBLE_USER}" \
+           --private-key="./${F_NEW_PRIV_KEYNAME}" \
+           -m shell -a "sudo google_metadata_script_runner startup"
+    fi
+    process_log "Cluster was provisioned successfully!"
 }
 
 ################################################################################

@@ -1,5 +1,5 @@
-variable storageaccount_name {}
-variable storagecontainer_name {}
+variable "storageaccount_name" {}
+variable "storagecontainer_name" {}
 
 
 resource "azurerm_storage_container" "container" {

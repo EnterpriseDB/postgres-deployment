@@ -238,27 +238,79 @@ function aws_config_file()
     CHECK=$(check_variable "PUB_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
+        declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa.pub]" '2. Custom')
+        declare -a CHOICES=('1' '2')
+        
         RESULT=""
-        validate_string_not_empty "What will the absolute path of the public key file be?" \
-          "[${HOME}/.ssh/id_rsa.pub]: " \
+        custom_options_prompt "Which public key file will you choose?" \
+          "Please enter your choice:" \
+          OPTIONS \
+          CHOICES \
           RESULT
-        PUB_FILE_PATH="${RESULT}"
+        case "${RESULT}" in
+          1)
+            validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${HOME}/.ssh/id_rsa.pub"
+            export PUB_FILE_PATH
+            ;;
+          2)
+            # Ask about how many instances for multi-node cluster
+            RESULT=""
+            validate_string_not_empty "What will the absolute path of the public key file be?" \
+              "[${HOME}/.ssh/id_rsa.pub]: " \
+              RESULT
+            PUB_FILE_PATH="${RESULT}"
+            validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
+            export PUB_FILE_PATH
+            ;;
+        esac
+            
+        #RESULT=""
+        #validate_string_not_empty "What will the absolute path of the public key file be?" \
+        #  "[${HOME}/.ssh/id_rsa.pub] (Enter will utilize the listed value as default): " \
+        #  RESULT
+        #PUB_FILE_PATH="${RESULT}"
     fi
-    validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
-    export PUB_FILE_PATH
+    #validate_variable "PUB_FILE_PATH" "${CONFIG_FILE}" "${PUB_FILE_PATH}"
+    #export PUB_FILE_PATH
 
     # Private Key File
     CHECK=$(check_variable "PRIV_FILE_PATH" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
+        declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa]" '2. Custom')
+        declare -a CHOICES=('1' '2')
+        
         RESULT=""
-        validate_string_not_empty "What will the absolute path of the private key file be?" \
-          "[${HOME}/.ssh/id_rsa]: " \
+        custom_options_prompt "Which private key file will you choose?" \
+          "Please enter your choice:" \
+          OPTIONS \
+          CHOICES \
           RESULT
-        PRIV_FILE_PATH="${RESULT}"
+        case "${RESULT}" in
+          1)
+            validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${HOME}/.ssh/id_rsa"
+            export PRIV_FILE_PATH
+            ;;
+          2)
+            # Ask about how many instances for multi-node cluster
+            RESULT=""
+            validate_string_not_empty "What will the absolute path of the private key file be?" \
+              "[${HOME}/.ssh/id_rsa]: " \
+              RESULT
+            PRIV_FILE_PATH="${RESULT}"
+            validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+            export PRIV_FILE_PATH
+            ;;
+        esac
+    
+        #RESULT=""
+        #validate_string_not_empty "What will the absolute path of the private key file be?" \
+        #  "[${HOME}/.ssh/id_rsa]: (Enter will utilize the listed value as default)" \
+        #  RESULT
+        #PRIV_FILE_PATH="${RESULT}"
     fi
-    validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
-    export PRIV_FILE_PATH
+    #validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
+    #export PRIV_FILE_PATH
       
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
@@ -360,91 +412,115 @@ function aws_config_file()
     export AMI_ID
 
     # Instance Volumes
-    # Volume Type
     CHECK=$(check_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then   
-        declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
-        declare -a CHOICES=('1' '2' '3')
-        
-        RESULT=""
-        custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
-           "Please enter your choice:" \
-           OPTIONS \
-           CHOICES \
-           RESULT
-        case "${RESULT}" in
-          1)
-            VIOPSTYPE="gp2"
-            ;;
-          2)
-            VIOPSTYPE="io1"
-            ;;
-          3)
-            VIOPSTYPE="io2"
-            ;;
-        esac
-        validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "${VIOPSTYPE}"
-        export INSTANCE_VOLUME_TYPE
-    fi
-
-    # Volume Size
-    CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-    then     
-        RESULT=""
-        validate_string_not_empty "Please enter the instances main volume size: " "" RESULT
-        VS="${RESULT}"
-        validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "${VS}"
-        export INSTANCE_VOLUME_SIZE
-    fi
-
-    # Volume IOPS
-    CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
-    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        VIOPS=250
-        if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want to configure the instances main volume?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT         
+        if [[ "${RESULT}" = "Yes" ]]
         then
-            declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
-            declare -a CHOICES=('1' '2' '3' '4')
+            # Volume Type
+            declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
+            declare -a CHOICES=('1' '2' '3')
         
             RESULT=""
-
-            custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
-              "Please enter your choice:" \
-              OPTIONS \
-              CHOICES \
-              RESULT
+            custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
+               "Please enter your choice:" \
+               OPTIONS \
+               CHOICES \
+               RESULT
             case "${RESULT}" in
               1)
-                VIOPS=250
+                VIOPSTYPE="gp2"
                 ;;
               2)
-                VIOPS=350
+                VIOPSTYPE="io1"
                 ;;
               3)
-                VIOPS=3000
-                ;;
-              4)
-                RESULT=""
-                validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
-                VIOPS="${RESULT}"
+                VIOPSTYPE="io2"
                 ;;
             esac
+            validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "${VIOPSTYPE}"
+            export INSTANCE_VOLUME_TYPE
+
+            # Volume Size
+            CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
+            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+            then     
+                RESULT=""
+                validate_string_not_empty "Please enter the size in GB for main volume: " "" RESULT
+                VS="${RESULT}"
+                validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "${VS}"
+                export INSTANCE_VOLUME_SIZE
+            fi
+
+            # Volume IOPS
+            CHECK=$(check_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}")
+            if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+            then
+                VIOPS=250
+                if [[ "${VIOPSTYPE}" = "io1" ]] || [[ "${VIOPSTYPE}" = "io2" ]]
+                then
+                    declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
+                    declare -a CHOICES=('1' '2' '3' '4')
+        
+                    RESULT=""
+
+                    custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
+                      "Please enter your choice:" \
+                      OPTIONS \
+                      CHOICES \
+                      RESULT
+                    case "${RESULT}" in
+                      1)
+                        VIOPS=250
+                        ;;
+                      2)
+                        VIOPS=350
+                        ;;
+                      3)
+                        VIOPS=3000
+                        ;;
+                      4)
+                        RESULT=""
+                        validate_string_not_empty "Please enter the custom IOPS value: " "" RESULT
+                        VIOPS="${RESULT}"
+                        ;;
+                    esac
+                fi
+                validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
+                export INSTANCE_VOLUME_IOPS
+            fi
+        else
+            validate_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}" "gp2"
+            validate_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}" "100"
+            validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "250"
+            export INSTANCE_VOLUME_TYPE
+            export INSTANCE_VOLUME_SIZE
+            export INSTANCE_VOLUME_IOPS
         fi
-        validate_variable "INSTANCE_VOLUME_IOPS" "${CONFIG_FILE}" "${VIOPS}"
-        export INSTANCE_VOLUME_IOPS                    
     fi
 
     # Additional Volumes
     CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
         then    
             declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
@@ -694,7 +770,7 @@ function azure_config_file()
         declare -a CHOICES=('1' '2')
 
         RESULT=""
-        custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
+        custom_options_prompt "How many Virtual Machines would you like to create?" \
           "Please enter your choice:" \
           OPTIONS \
           CHOICES \
@@ -712,7 +788,7 @@ function azure_config_file()
             # Ask about how many instances for multi-node cluster
             RESULT=""
             validate_string_not_empty \
-              "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
+              "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
             RESULT=$(( RESULT + 1 ))
@@ -831,6 +907,58 @@ function azure_config_file()
     fi
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+
+    # Additional Volumes
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            declare -a OPTIONS=('1. Standard' '2. SSD')
+            declare -a CHOICES=('1' '2')
+        
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                ADISKTYPE="Standard_LRS"
+                ;;
+              2)
+                ADISKTYPE="StandardSSD_LRS"
+                ;;
+            esac
+
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"         
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "Standard_LRS"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        fi    
+    fi
 
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
@@ -1122,6 +1250,83 @@ function gcloud_config_file()
     fi
     export STANDBY_TYPE
     validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        # custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #   "Enter: (Y)es/(N)o" \
+        #   RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            declare -a OPTIONS=('1. Standard' '2. Balanced' '3. SSD')
+            declare -a CHOICES=('1' '2' '3')
+        
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                ADISKTYPE="pd-standard"
+                ;;
+              2)
+                ADISKTYPE="pd-balanced"
+                ;;
+              3)
+                ADISKTYPE="pd-ssd"
+                ;;                
+            esac
+
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"         
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "pd-standard"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        fi    
+    fi
+
+    CHECK=$(check_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"        
+        # Un-Comment to prompt for Disk Encryption Key
+        # Additional Volumes
+        #custom_yesno_prompt "Do you want to provide an Encryption Key for the Disks?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then    
+            RESULT=""
+            validate_string_not_empty "Please enter the encryption key: " "" RESULT
+            EKEY="${RESULT}"         
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        else
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        fi    
+    fi
 
     # EDB YUM UserName
     CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    

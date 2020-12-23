@@ -1,5 +1,5 @@
-variable aws_iam_user_name {}
-variable project_tag {}
+variable "aws_iam_user_name" {}
+variable "project_tag" {}
 
 
 resource "aws_iam_group" "group" {

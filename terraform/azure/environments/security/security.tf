@@ -1,7 +1,7 @@
-variable securitygroup_name {}
-variable resourcegroup_name {}
-variable azure_location {}
-variable project_tag {}
+variable "securitygroup_name" {}
+variable "resourcegroup_name" {}
+variable "azure_location" {}
+variable "project_tag" {}
 
 resource "azurerm_network_security_group" "main" {
   name                = var.securitygroup_name
