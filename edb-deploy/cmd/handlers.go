@@ -224,8 +224,18 @@ func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projec
 				}
 
 				fileCopy(expandedInput, projectPath, output)
-
 				newValue = output
+
+				if verbose {
+					fmt.Println("--- Debugging - handlers.go - handleInputValues2:")
+					fmt.Println("projectPath")
+					fmt.Println(projectPath)
+					fmt.Println("output")
+					fmt.Println(output)
+				}
+
+				// Change Permissions for File
+				chmodFilePermissions(output)
 			}
 
 			if newValue != "" {

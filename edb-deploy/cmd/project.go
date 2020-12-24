@@ -6,12 +6,29 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var projectPrefixName = "projects"
+
+func getDebuggingStateFromOS() bool {
+	var debuggingState bool
+
+	// Retrieve from Environment variable debugging setting
+	verboseValue, verbosePresent := os.LookupEnv("DEBUG")
+	if verbosePresent {
+		verbose, _ = strconv.ParseBool(verboseValue)
+		debuggingState = true
+	} else {
+		debuggingState = false
+	}
+
+	return debuggingState
+}
 
 func getProjectPath() (string, string) {
 	path, err := os.Getwd()
@@ -101,6 +118,55 @@ func fileCopy(sourceFile string, destinationPath string, destinationFile string)
 	}
 }
 
+func removeEmptyLinesAndSpaces(fileNameAndPath string) error {
+	file, err := ioutil.ReadFile(fileNameAndPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	strFileContent := regexp.MustCompile(`[\t\r\n]+`).ReplaceAllString(strings.TrimSpace(string(file)), "\n")
+	re := regexp.MustCompile("(?m)^\\s*$[\r\n]*")
+	strFileContent = strings.Trim(re.ReplaceAllString(strFileContent, ""), "\r\n")
+	err = ioutil.WriteFile(fileNameAndPath, []byte(strFileContent), 0644)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return nil
+}
+
+func fileExists(fileNameAndPath string) bool {
+	info, err := os.Stat(fileNameAndPath)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if os.IsNotExist(err) {
+		return false
+
+	}
+	return !info.IsDir()
+}
+
+func chmodFilePermissions(fileNameAndPath string) error {
+	fileStats, err := os.Stat(fileNameAndPath)
+	if verbose {
+		fmt.Printf("File Permission before change: %s\n", fileStats.Mode())
+	}
+	// Set the File permissions to a more moderate setting
+	err = os.Chmod(fileNameAndPath, 0600)
+	if err != nil {
+		return err
+	}
+	fileStats, err = os.Stat(fileNameAndPath)
+	if verbose {
+		fmt.Printf("File Permission after change: %s\n", fileStats.Mode())
+	}
+
+	return nil
+}
 func copyFiles(fileName string) error {
 	tPath := getTerraformPath(fileName)
 	pPath := getPlaybookPath()
@@ -128,11 +194,27 @@ func copyFiles(fileName string) error {
 
 	pemInputConf := fmt.Sprintf("%s/pem-inventory.yml", tPath)
 	pemOutputConf := fmt.Sprintf("%s/pem-inventory.yml", projectPath)
+	if verbose {
+		fmt.Println("--- Debugging - project.go - copyFiles:")
+		fmt.Println("projectPath")
+		fmt.Println(projectPath)
+		fmt.Println("pemOutputConf")
+		fmt.Println(pemOutputConf)
+	}
 	fileCopy(pemInputConf, projectPath, pemOutputConf)
+	removeEmptyLinesAndSpaces(pemOutputConf)
 
 	iInputConf := fmt.Sprintf("%s/inventory.yml", tPath)
 	iOutputConf := fmt.Sprintf("%s/inventory.yml", projectPath)
+	if verbose {
+		fmt.Println("--- Debugging - project.go - copyFiles:")
+		fmt.Println("projectPath")
+		fmt.Println(projectPath)
+		fmt.Println("iOutputConf")
+		fmt.Println(iOutputConf)
+	}
 	fileCopy(iInputConf, projectPath, iOutputConf)
+	removeEmptyLinesAndSpaces(iOutputConf)
 
 	oInputConf := fmt.Sprintf("%s/os.csv", tPath)
 	oOutputConf := fmt.Sprintf("%s/os.csv", projectPath)

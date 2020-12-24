@@ -2,14 +2,33 @@ package terraform
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
+
+	"github.com/smallfish/simpleyaml"
 )
 
 var hardCodedPath = ""
 var projectPrefixName = "projects"
+var inventoryYamlFileName = "inventory.yml"
+var clusterProjectDetailsFile = "projectdetails.txt"
+var pgPasswordFileName = "postgres_pass"
+var epasPasswordFileName = "enterprisedb_pass"
+
+func readFileContent(fileNameAndPath string) string {
+
+	fileContent, err := ioutil.ReadFile(fileNameAndPath)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return string(fileContent)
+}
 
 func getProjectPath(projectName string, fileName string) string {
 	path, err := os.Getwd()
@@ -32,6 +51,130 @@ func getProjectPath(projectName string, fileName string) string {
 	return projectPath
 }
 
+func createClusterDetailsFile(projectName string,
+	fileName string,
+	ansibleUser string,
+	pgType string) error {
+	pgTypePassword := ""
+	projectPath := getProjectPath(projectName, fileName)
+
+	if pgType == "EPAS" {
+		pgTypePassword = readFileContent(projectPath + "/.edbpass/" + epasPasswordFileName)
+	} else {
+		pgTypePassword = readFileContent(projectPath + "/.edbpass/" + pgPasswordFileName)
+	}
+
+	inventoryYamlFileName = projectPath + "/" + inventoryYamlFileName
+	iYamlFile, err := ioutil.ReadFile(inventoryYamlFileName)
+	if err != nil {
+		panic(err)
+	}
+
+	iyaml, err := simpleyaml.NewYaml(iYamlFile)
+	if err != nil {
+		panic(err)
+	}
+
+	file, err := os.Create(projectPath + "/" + clusterProjectDetailsFile)
+
+	if err != nil {
+		panic(err)
+	}
+
+	pemServerPublicIP, err := iyaml.GetPath("all", "children", "pemserver", "hosts", "pemserver1", "ansible_host").String()
+
+	if pemServerPublicIP != "" {
+		fmt.Println("PEM SERVER:")
+		file.WriteString("PEM SERVER:" + "\n")
+		fmt.Println("-----------")
+		file.WriteString("-----------" + "\n")
+		fmt.Println("PEM URL: https://" + pemServerPublicIP + ":8443/pem")
+		file.WriteString("PEM URL: https://" + pemServerPublicIP + ":8443/pem" + "\n")
+	}
+
+	if pgType == "EPAS" {
+		fmt.Println("Username: enterprisedb")
+		file.WriteString("Username: enterprisedb" + "\n")
+		fmt.Println("Password: " + pgTypePassword)
+		file.WriteString("Password: " + pgTypePassword + "\n")
+	} else {
+		fmt.Println("Username: postgres")
+		file.WriteString("Username: postgres" + "\n")
+		fmt.Println("Password: " + pgTypePassword)
+		file.WriteString("Password: " + pgTypePassword + "\n")
+	}
+
+	primaryServers, err := iyaml.GetPath("all", "children", "primary", "hosts").GetMapKeys()
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform - ansible.go - createClusterFileDetails :")
+		fmt.Println("Primary Server: ", primaryServers)
+		fmt.Println("Primary Server Value:", primaryServers[0])
+		fmt.Println("---")
+	}
+
+	sort.Strings(primaryServers)
+
+	fmt.Println(" ")
+	file.WriteString("\n")
+
+	if len(primaryServers) > 0 {
+		fmt.Println("PRIMARY SERVERS:")
+		file.WriteString("PRIMARY SERVERS:" + "\n")
+		fmt.Println("---------------")
+		file.WriteString("---------------" + "\n")
+		fmt.Println("Username: ", ansibleUser)
+		file.WriteString("Username: " + ansibleUser + "\n")
+		for i := 0; i < len(primaryServers); i++ {
+			primaryServersIP, err := iyaml.GetPath("all", "children", "primary", "hosts", primaryServers[i], "ansible_host").String()
+			fmt.Println("SERVER: ", primaryServers[i])
+			file.WriteString("SERVER: " + primaryServers[i] + "\n")
+			fmt.Println("Public IP: ", primaryServersIP)
+			file.WriteString("Public IP: " + primaryServersIP + "\n")
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	fmt.Println(" ")
+	file.WriteString("\n")
+
+	standbyServers, err := iyaml.GetPath("all", "children", "standby", "hosts").GetMapKeys()
+	if verbose {
+		fmt.Println("--- Debugging - terraform - ansible.go - createClusterFileDetails :")
+		fmt.Println("Standby Servers: ", standbyServers)
+		fmt.Println("---")
+	}
+	sort.Strings(standbyServers)
+
+	if len(standbyServers) > 0 {
+		fmt.Println("STANDBY SERVERS:")
+		file.WriteString("STANDBY SERVERS:" + "\n")
+		fmt.Println("---------------")
+		file.WriteString("---------------" + "\n")
+		fmt.Println("Username: ", ansibleUser)
+		file.WriteString("Username: " + ansibleUser + "\n")
+		for i := 0; i < len(standbyServers); i++ {
+			secondaryServersIP, err := iyaml.GetPath("all", "children", "standby", "hosts", standbyServers[i], "ansible_host").String()
+			fmt.Println("STANDBY SERVER: ", standbyServers[i])
+			file.WriteString("STANDBY SERVER: " + standbyServers[i] + "\n")
+			fmt.Println("Public IP: ", secondaryServersIP)
+			file.WriteString("Public IP: " + secondaryServersIP + "\n")
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	fmt.Println(" ")
+	err = file.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nil
+}
+
 func RunAnsible(projectName string,
 	project map[string]interface{},
 	arguements map[string]interface{},
@@ -40,6 +183,9 @@ func RunAnsible(projectName string,
 	customTemplateLocation *string,
 ) error {
 	projectPath := getProjectPath(projectName, fileName)
+
+	// Retrieve from Environment variable debugging setting
+	verbose = getDebuggingStateFromOS()
 
 	setHardCodedVariables(project, variables)
 	setMappedVariables(project, variables)
@@ -83,6 +229,8 @@ func RunAnsible(projectName string,
 	project["extra_vars"] = ansibleExtraVars
 
 	args = []string{"--ssh-common-args=-o StrictHostKeyChecking=no"}
+	ansibleUser := ""
+	pgType := ""
 
 	for _, arg := range variableSlice {
 		argMap := arg.(map[string]interface{})
@@ -91,17 +239,44 @@ func RunAnsible(projectName string,
 
 		if project[argMap["variable"].(string)] != nil {
 			value = project[argMap["variable"].(string)].(string)
+			if strings.Contains(value, "pg_type") {
+				splitValue := strings.Split(value, " ")
+				for i := 0; i < len(splitValue); i++ {
+					if strings.Contains(splitValue[i], "pg_type") {
+						pgType = splitValue[i]
+						pgType = strings.ReplaceAll(pgType, "pg_type=", "")
+					}
+				}
+			}
 		} else if argMap["default"] != nil {
 			value = argMap["default"].(string)
 		}
 
 		if argMap["prefix"] != nil {
 			a = fmt.Sprintf("--%s=%s", argMap["prefix"], value)
+			if argMap["prefix"] == "user" {
+				ansibleUser = value
+			}
 		} else {
 			a = value
 		}
 
 		args = append(args, a)
+	}
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform - ansible.go - installCmd :")
+		fmt.Println("ProjectName")
+		fmt.Println(projectName)
+		fmt.Println("args")
+		fmt.Println(args)
+		fmt.Println("ansibleUser")
+		fmt.Println(ansibleUser)
+		fmt.Println("pgType")
+		fmt.Println(pgType)
+		fmt.Println("projectPath")
+		fmt.Println(projectPath)
+		fmt.Println("---")
 	}
 
 	comm = exec.Command("ansible-playbook", args...)
@@ -114,6 +289,9 @@ func RunAnsible(projectName string,
 	}
 
 	fmt.Printf("%s\n", stdoutStderr)
+
+	createClusterDetailsFile(projectName, fileName,
+		ansibleUser, pgType)
 
 	return nil
 }

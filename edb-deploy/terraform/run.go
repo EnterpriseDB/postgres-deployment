@@ -12,9 +12,11 @@ import (
 )
 
 var templateLocation = ""
-var verbose bool = true
 
 func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, variables map[string]interface{}, fileName string, customTemplateLocation *string) error {
+	// Retrieve from Environment variable debugging setting
+	verbose = getDebuggingStateFromOS()
+
 	if customTemplateLocation != nil {
 		templateLocation = *customTemplateLocation
 	} else {

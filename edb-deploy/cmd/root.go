@@ -22,7 +22,10 @@ var (
 var jsonBase = []byte(`{}`)
 var credFile = ""
 var confFile = ""
-var verbose bool = true
+
+var verbose bool = false
+var metaPath = "./meta"
+var metaFileExt = ".json"
 
 var RootCmd = &cobra.Command{
 	Use:   "edb-deploy",
@@ -43,12 +46,28 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	// Retrieve from Environment variable debugging setting
+	verbose = getDebuggingStateFromOS()
+
+	// Command Line Argument
+	cmdLineArgs := os.Args
+	cloudName := cmdLineArgs[1]
+
+	if verbose {
+		fmt.Println("--- Debugging:")
+		fmt.Println("DEBUG")
+		fmt.Println(verbose)
+		fmt.Println("Cloud Command Line Argument")
+		fmt.Println(cloudName)
+		fmt.Println("---")
+	}
+
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	RootCmd.Flags().BoolP("verbose", "v", false, "Enable verbosity for debugging")
 
 	var files []string
 
-	root := "./meta"
+	root := metaPath
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		files = append(files, path)
 		return nil
@@ -60,7 +79,23 @@ func init() {
 	}
 
 	for _, file := range files {
-		if file != root {
+		if verbose {
+			fmt.Println("--- Debugging:")
+			fmt.Println("DEBUG")
+			fmt.Println(verbose)
+			fmt.Println("Cloud Command Line Argument")
+			fmt.Println(cloudName)
+			fmt.Println("Matching Cloud Meta File")
+			fmt.Println(cloudName + metaFileExt)
+			fmt.Println("File Name in Meta Path")
+			fmt.Println(file)
+			fmt.Println("Cloud Meta File in Meta File Name and Extension?")
+			fmt.Println(strings.Contains(file, cloudName+metaFileExt))
+			fmt.Println("---")
+		}
+
+		// Limits the Meta File to be processed to the matching Cloud
+		if file != root && strings.Contains(file, cloudName+metaFileExt) {
 			content, err := ioutil.ReadFile(file)
 			if err != nil {
 				log.Fatal(err)
@@ -79,7 +114,6 @@ func init() {
 			RootCmd.AddCommand(createCredCommand())
 			RootCmd.AddCommand(updateCredCommand())
 			RootCmd.AddCommand(deleteCredCommand())
-			RootCmd.PersistentFlags().Bool("verbose", verbose, "The verbosity to use")
 		}
 	}
 }

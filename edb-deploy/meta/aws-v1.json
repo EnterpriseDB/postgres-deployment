@@ -1,0 +1,534 @@
+{
+	"variables": {
+		"configurations": {
+			"0": {
+				"name": "operating_system",
+				"type": "string",
+				"flag_name": "operating-system",
+				"flag_description": "Operating system for the EC2 instances",
+				"options": ["CentOS7", "RHEL7"]
+			},
+			"1": {
+				"name": "region",
+				"type": "string",
+				"flag_name": "region",
+				"flag_description": "AWS region for the EC2 instances",
+				"options": ["us-east-2", "us-east-1", "us-west-1"]
+			},
+			"2": {
+				"name": "installation_type",
+				"type": "string",
+				"flag_name": "installation-type",
+				"flag_description": "Type of installation",
+				"options": ["Single Installation", "Multi-Node Installation"]
+			},
+			"3": {
+				"name": "ec2_count",
+				"type": "int",
+				"flag_name": "ec2-count",
+				"flag_description": "The number of EC2 instances",
+				"validate": {
+					"minimum": 1
+				}
+			},
+			"4": {
+				"name": "public_key",
+				"type": "string",
+				"flag_name": "public-key",
+				"flag_description": "Location of public key file",
+				"default": "~/.ssh/id_rsa.pub",
+				"file": true
+			},
+			"5": {
+				"name": "private_key",
+				"type": "string",
+				"flag_name": "private-key",
+				"flag_description": "Location of private key file",
+				"default": "~/.ssh/id_rsa",
+				"file": true
+			},
+			"6": {
+				"name": "db_engine",
+				"type": "string",
+				"flag_name": "db-engine",
+				"flag_description": "PostgreSQL DB Engine.",
+				"options": ["PostgreSQL", "EDB Postgres Advanced Server"]
+			},
+			"7": {
+				"name": "db_version",
+				"type": "string",
+				"flag_name": "db-version",
+				"flag_description": "PostgreSQL DB Version",
+				"options": ["11", "12", "13"]
+			},
+			"8": {
+				"name": "replication",
+				"type": "string",
+				"flag_name": "replication",
+				"flag_description": "PostgreSQL physical replication type",
+				"options": ["synchronous", "asynchronous"]
+			},
+			"13": {
+				"name": "use_ami",
+				"type": "bool",
+				"flag_name": "use-ami",
+				"flag_description": "Do you want to utilize an AMI ID for the Instances? [y/n]"
+			},
+			"9": {
+				"name": "ami_id",
+				"type": "string",
+				"flag_name": "ami-id",
+				"flag_description": "AMI ID for instances"
+			},
+			"10": {
+				"name": "instance_volume_type",
+				"type": "string",
+				"flag_name": "instance-volume-type",
+				"flag_description": "Disk type for instance main volume",
+				"options": ["gp2", "io1", "io2"]
+			},
+			"11": {
+				"name": "instance_volume_size",
+				"type": "string",
+				"flag_name": "instance-volume-size",
+				"flag_description": "Instance main volume size in GB"
+			},
+			"12": {
+				"name": "instance_volume_iops",
+				"type": "string",
+				"flag_name": "instance-volume-iops",
+				"flag_description": "Instance main volume iops",
+				"options": ["250", "350", "3000"],
+				"can_add": true
+			},
+			"14": {
+				"name": "separate_volumes",
+				"type": "bool",
+				"flag_description": "Do you want separate volume for PGDATA, PGWAL and Tablespaces? [y/n]"
+			},
+			"15": {
+				"name": "additional_volumes_type",
+				"type": "string",
+				"flag_description": "Disk type for additional volume",
+				"options": ["gp2", "io1", "io2"]
+			},
+			"16": {
+				"name": "additional_volumes_size",
+				"type": "string",
+				"flag_description": "Instance additional volume size in GB"
+			},
+			"17": {
+				"name": "additional_volumes_iops",
+				"type": "string",
+				"flag_description": "Instance additional volume iops",
+				"options": ["250", "350", "3000"]
+			},
+			"18": {
+				"name": "additional_volumes_encryption",
+				"type": "bool",
+				"flag_description": "encrypt additional volumes? [y/n]"
+			}
+		},
+		"hard": {
+			"instance_type": "c5.2xlarge"
+		},
+		"maps": {
+			"operating_system": {
+				"0": {
+					"output": "instance_image",
+					"type": "exact",
+					"map": {
+						"CentOS7": "CentOS Linux 7 x86_64 HVM EBS*",
+						"CentOS8": "CentOS 8*",
+						"RHEL7": "RHEL-7.8-x86_64*",
+						"RHEL8": "RHEL-8.2-x86_64*"
+					}
+				},
+				"1": {
+					"output": "ansible_user",
+					"type": "starts-with",
+					"map": {
+						"Cent": "centos",
+						"RHEL": "ec2-user"
+					}
+				}
+			},
+			"installation_type": {
+				"0": {
+					"output": "pem_instance_count",
+					"type": "exact",
+					"map": {
+						"Single Installation": "0",
+						"Multi-Node Installation": "1"
+					}
+				},
+				"1": {
+					"output": "pem_server",
+					"type": "exact",
+					"map": {
+						"Single Installation": "false",
+						"Multi-Node Installation": "true"
+					}
+				},
+				"3": {
+					"output": "playbook",
+					"type": "exact",
+					"map": {
+						"Single Installation": "playbook-single-instance.yml",
+						"Multi-Node Installation": "playbook.yml"
+					}
+				}
+			},
+			"separate_volumes": {
+				"0": {
+					"output": "additional_volumes_count",
+					"type": "exact",
+					"map": {
+						"true": "5",
+						"false": "0"
+					}
+				}
+			},
+			"db_engine": {
+				"0": {
+					"output": "pg_type",
+					"type": "exact",
+					"map": {
+						"PostgreSQL": "PG",
+						"EDB Postgres Advanced Server": "EPAS"
+					}
+				}
+			}
+		}
+	},
+	"commands": {
+		"create-project" : {
+			"name": "create-project",
+			"short": "Create configuration for AWS project",
+			"long": "",
+			"arguments": {},
+			"configuration-groups": {
+				"0": {
+					"variables": [0, 1, 2]
+				},
+				"1": {
+					"variables": [3, 8],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "installation_type",
+							"type": "exact",
+							"match": "Multi-Node Installation"
+						}
+					}
+				},
+				"2": {
+					"variables": [4, 5, 6, 7, 13]
+				},
+				"3": {
+					"variables": [9],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "use_ami",
+							"type": "exact",
+							"match": "true"
+						}
+					}
+				},
+				"4": {
+					"variables": [10, 11]
+				},
+				"5": {
+					"variables": [12],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "instance_volume_type",
+							"type": "in",
+							"options": ["io1", "io2"]
+						}
+					}
+				},
+				"6": {
+					"variables": [14]
+				},
+				"7": {
+					"variables": [15, 16, 17, 18],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "separate_volumes",
+							"type": "exact",
+							"match": "true"
+						}
+					}
+				}
+			}
+		},
+		"update-project" : {
+			"name": "update-project",
+			"short": "Update configuration for AWS project",
+			"long": "",
+			"arguments": {},
+			"configuration-groups": {
+				"0": {
+					"variables": [0, 1, 2]
+				},
+				"1": {
+					"variables": [3],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "installation_type",
+							"type": "exact",
+							"match": "Multi-Node Installation"
+						}
+					}
+				},
+				"2": {
+					"variables": [4, 5, 6, 7, 8, 13]
+				},
+				"3": {
+					"variables": [9],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "use_ami",
+							"type": "exact",
+							"match": "true"
+						}
+					}
+				},
+				"4": {
+					"variables": [10, 11]
+				},
+				"5": {
+					"variables": [12],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "instance_volume_type",
+							"type": "in",
+							"options": ["io1", "io2"]
+						}
+					}
+				},
+				"6": {
+					"variables": [14]
+				},
+				"7": {
+					"variables": [15, 16, 17, 18],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "separate_volumes",
+							"type": "exact",
+							"match": "true"
+						}
+					}
+				}
+			}
+		},
+		"delete-project" : {
+			"name": "delete-project",
+			"short": "Delete configuration for AWS project",
+			"long": "",
+			"arguments": {}
+		},
+		"get-project" : {
+			"name": "get-project",
+			"short": "Get AWS project details",
+			"long": "",
+			"arguments": {}
+		},
+		"get-project-names" : {
+			"name": "get-project-names",
+			"short": "Get list of AWS projects",
+			"long": "",
+			"arguments": {}
+		},
+		"run-project" : {
+			"name": "run-project",
+			"short": "Runs Terraform for AWS project creation",
+			"long": "",
+			"arguments": {
+				"pre_run_checks": {
+					"0": {
+						"command": "aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=%s --region %s --output text",
+						"variables": {
+							"0": "instance_type",
+							"1": "region"
+						},
+						"output": "instance_exists"
+					},
+					"1": {
+						"command": "aws ec2 describe-images --filters Name=name,Values=\"%s\" --query sort_by(Images,|||&Name)[-1].ImageId --region %s --output text",
+						"variables": {
+							"0": "instance_image",
+							"1": "region"
+						},
+						"output": "ami_id"
+					}
+				},
+				"terraform_build": {
+					"variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "ami_id",
+							"variable": "ami_id"
+						},
+						{
+							"prefix": "aws_region",
+							"variable": "region"
+						},
+						{
+							"prefix": "instance_count",
+							"variable": "ec2_count",
+							"default": "1"
+						},
+						{
+							"prefix": "instance_volume_type",
+							"variable": "instance_volume_type"
+						},
+						{
+							"prefix": "instance_volume_iops",
+							"variable": "instance_volume_iops",
+							"default": "250"
+						},
+						{
+							"prefix": "instance_volume_size",
+							"variable": "instance_volume_size"
+						},
+						{
+							"prefix": "ebs_volume_count",
+							"variable": "additional_volumes_count",
+							"default": "0"
+						},
+						{
+							"prefix": "ebs_volume_type",
+							"variable": "additional_volumes_type",
+							"default": "No"
+						},
+						{
+							"prefix": "ebs_volume_size",
+							"variable": "additional_volumes_size",
+							"default": "0"
+						},
+						{
+							"prefix": "ebs_volume_iops",
+							"variable": "additional_volumes_iops",
+							"default": "0"
+						},
+						{
+							"prefix": "ebs_volume_encryption",
+							"variable": "additional_volumes_encryption",
+							"default": "false"
+						},
+						{
+							"prefix": "ssh_key_path",
+							"variable": "public_key"
+						},
+						{
+							"prefix": "full_private_ssh_key_path",
+							"variable": "private_key"
+						},
+						{
+							"prefix": "root_user",
+							"variable": "ansible_user"
+						},
+						{
+							"prefix": "cluster_name",
+							"variable": "project_name"
+						},
+						{
+							"prefix": "pem_instance_count",
+							"variable": "pem_instance_count",
+							"default": {}
+						}
+					]
+				},
+				"post_run_checks": {
+					"0": {
+						"command": "aws ec2 wait instance-status-ok --region %s",
+						"variables": {
+							"0": "region"
+						},
+						"output": "instance_exists"
+					}
+				}
+			}
+		},
+		"destroy-project" : {
+			"name": "destroy-project",
+			"short": "Runs Terraform for AWS project destruction",
+			"long": "",
+			"arguments": {
+				"terraform_destroy": {
+					"variables": [
+						{
+							"prefix": "aws_region",
+							"variable": "region"
+						}
+					]
+				}
+			}
+		},
+		"install-postgres": {
+			"name": "install-postgres",
+			"short": "Runs Ansible to install postgres",
+			"long": "",
+			"arguments": {
+				"ansible_run": {
+					"extra_variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "pg_type",
+							"variable": "pg_type"
+						},
+						{
+							"prefix": "pg_version",
+							"variable": "db_version"
+						},
+						{
+							"prefix": "yum_username",
+							"variable": "user_name"
+						},
+						{
+							"prefix": "yum_password",
+							"variable": "password"
+						},
+						{
+							"prefix": "pass_dir",
+							"variable": "pass_dir"
+						}
+					],
+					"variables": [
+						{
+							"prefix": "user",
+							"variable": "ansible_user"
+						},
+						{
+							"prefix": "extra-vars",
+							"variable": "extra_vars"
+						},
+						{
+							"prefix": "private-key",
+							"variable": "private_key"
+						},
+						{
+							"variable": "playbook"
+						}
+					]
+				}
+			}
+		}
+	}
+}
+

@@ -57,6 +57,19 @@ func installCmd(commandName string, command map[string]interface{}, fileName str
 
 			arguments := command["arguments"].(map[string]interface{})
 
+			if verbose {
+				fmt.Println("--- Debugging - ansible.go - installCmd :")
+				fmt.Println("ProjectName")
+				fmt.Println(projectName)
+				fmt.Println("arguments")
+				fmt.Println(arguments)
+				fmt.Println("variables")
+				fmt.Println(variables)
+				fmt.Println("fileName")
+				fmt.Println(fileName)
+				fmt.Println("---")
+			}
+
 			project["user_name"] = credentials.YumUserName
 			project["password"] = credentials.YumPassword
 
