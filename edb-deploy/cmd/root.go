@@ -44,26 +44,58 @@ func Execute() {
 	}
 }
 
+func assignCloudDynamicRootCommand(file string) {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fileName := strings.Split(file, "/")[1]
+	commandName := strings.Split(fileName, ".")[0]
+
+	if verbose {
+		fmt.Println("--- Debugging - root.go - assignCloudDynamicRootCommand:")
+		fmt.Println("DEBUG")
+		fmt.Println(verbose)
+		fmt.Println("file")
+		fmt.Println(file)
+		fmt.Println("fileName")
+		fmt.Println(fileName)
+		fmt.Println("---")
+	}
+
+	command, err := rootAWSDynamicCommand(content, commandName)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	RootCmd.AddCommand(command)
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Retrieve from Environment variable debugging setting
 	verbose = getDebuggingStateFromOS()
+	cloudName := ""
 
 	// Command Line Argument
 	cmdLineArgs := os.Args
-	cloudName := cmdLineArgs[1]
+	if os.Args != nil && len(os.Args) > 1 {
+		cloudName = cmdLineArgs[1]
+	}
 
 	if verbose {
 		fmt.Println("--- Debugging:")
 		fmt.Println("DEBUG")
 		fmt.Println(verbose)
-		fmt.Println("Cloud Command Line Argument")
-		fmt.Println(cloudName)
+		if cloudName != "" {
+			fmt.Println("Cloud Command Line Argument")
+			fmt.Println(cloudName)
+		}
 		fmt.Println("---")
 	}
-
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	var files []string
 
@@ -83,39 +115,27 @@ func init() {
 			fmt.Println("--- Debugging:")
 			fmt.Println("DEBUG")
 			fmt.Println(verbose)
-			fmt.Println("Cloud Command Line Argument")
-			fmt.Println(cloudName)
-			fmt.Println("Matching Cloud Meta File")
-			fmt.Println(cloudName + metaFileExt)
-			fmt.Println("File Name in Meta Path")
-			fmt.Println(file)
-			fmt.Println("Cloud Meta File in Meta File Name and Extension?")
-			fmt.Println(strings.Contains(file, cloudName+metaFileExt))
+			if cloudName != "" {
+				fmt.Println("Cloud Command Line Argument")
+				fmt.Println(cloudName)
+				fmt.Println("Matching Cloud Meta File")
+				fmt.Println(cloudName + metaFileExt)
+				fmt.Println("File Name in Meta Path")
+				fmt.Println(file)
+				fmt.Println("Cloud Meta File in Meta File Name and Extension?")
+				fmt.Println(strings.Contains(file, cloudName+metaFileExt))
+			}
 			fmt.Println("---")
 		}
 
 		// Limits the Meta File to be processed to the matching Cloud
-		if file != root && strings.Contains(file, cloudName+metaFileExt) {
-			content, err := ioutil.ReadFile(file)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fileName := strings.Split(file, "/")[1]
-			commandName := strings.Split(fileName, ".")[0]
-
-			command, err := rootDynamicCommand(content, commandName)
-
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			RootCmd.AddCommand(command)
-			RootCmd.AddCommand(createCredCommand())
-			RootCmd.AddCommand(updateCredCommand())
-			RootCmd.AddCommand(deleteCredCommand())
+		if file != root && cloudName != "" &&
+			strings.Contains(file, cloudName+metaFileExt) {
+			assignCloudDynamicRootCommand(file)
 		}
 	}
+
+	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func initConfig() {

@@ -18,6 +18,7 @@ var inventoryYamlFileName = "inventory.yml"
 var clusterProjectDetailsFile = "projectdetails.txt"
 var pgPasswordFileName = "postgres_pass"
 var epasPasswordFileName = "enterprisedb_pass"
+var pgTypeText = "pg_type"
 
 func readFileContent(fileNameAndPath string) string {
 
@@ -239,12 +240,12 @@ func RunAnsible(projectName string,
 
 		if project[argMap["variable"].(string)] != nil {
 			value = project[argMap["variable"].(string)].(string)
-			if strings.Contains(value, "pg_type") {
+			if strings.Contains(value, pgTypeText) {
 				splitValue := strings.Split(value, " ")
 				for i := 0; i < len(splitValue); i++ {
-					if strings.Contains(splitValue[i], "pg_type") {
+					if strings.Contains(splitValue[i], pgTypeText) {
 						pgType = splitValue[i]
-						pgType = strings.ReplaceAll(pgType, "pg_type=", "")
+						pgType = strings.ReplaceAll(pgType, pgTypeText+"=", "")
 					}
 				}
 			}

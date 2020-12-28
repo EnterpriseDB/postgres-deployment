@@ -3,20 +3,20 @@ variable "project_tags" {
   description = "A map of tags to add to all resources."
   type        = map(string)
   default = {
-    key = "prsncl_EDB_PREREQS_POSTGRES_AWS"
+    key = "awscmncl_EDB_PREREQS_POSTGRES_AWS"
   }
 }
 
 variable "project_tag" {
   type    = string
-  default = "prsncl_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT"
+  default = "awscmncl_EDB_PREREQS_POSTGRES_AWS_DEPLOYMENT"
 }
 
 # IAM
 variable "name" {
   description = "Name to be used on all the resources as identifier"
   type        = string
-  default     = "prsncl_EDB_PREREQS_POSTGRES_AWS"
+  default     = "awscmncl_EDB_PREREQS_POSTGRES_AWS"
 }
 
 variable "user_path" {
@@ -32,12 +32,12 @@ variable "user_create_iam_access_key" {
 }
 
 variable "vpc_tag" {
-  default = "prsncl_EDB_PREREQS_POSTGRES_VPC"
+  default = "awscmncl_EDB_PREREQS_POSTGRES_VPC"
 }
 
 # Subnets
 variable "public_subnet_tag" {
-  default = "prsncl_EDB_PREREQS_POSTGRES_PUBLIC_SUBNET"
+  default = "awscmncl_EDB_PREREQS_POSTGRES_PUBLIC_SUBNET"
 }
 
 variable "vpc_id" {
