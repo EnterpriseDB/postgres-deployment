@@ -8,13 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// var flowVariables = map[string]*string{}
-// var values = map[string]interface{}{}
-// var cloudName = ""
-// var projectName = ""
-// var variables = map[string]interface{}{}
-// var encryptedValues = map[string]string{}
-
 func awsGetProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
@@ -115,24 +108,15 @@ func awsListProjectNamesCmd(commandName string, command map[string]interface{}) 
 	return cmd
 }
 
-var awsCmd = &cobra.Command{
+var awsCloudCmd = &cobra.Command{
 	Use:   "aws",
-	Short: "Print the version number of EDB CLI",
-	Long:  `This is current version of: edb-deploy`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("aws specific commands")
-		if verbose {
-			fmt.Println("--- Debugging - root.go - assignCloudDynamicRootCommand:")
-			fmt.Println("Calling: assignCloudDynamicRootCommand")
-			fmt.Println("./meta/aws.json")
-			fmt.Println("---")
-		}
-		assignCloudDynamicRootCommand("./meta/aws.json")
-	},
+	Short: "AWS specific commands",
+	Long:  `Displays commands for AWS`,
 }
 
 func init() {
-	//RootCmd.AddCommand(awsCloudCmd)
+
+	RootCmd.AddCommand(awsCloudCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -145,7 +129,7 @@ func init() {
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func rootAWSDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
+func rootAwsDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,
 		Short: fmt.Sprintf("%s specific commands", fileName),
@@ -168,32 +152,32 @@ func rootAWSDynamicCommand(commandConfiguration []byte, fileName string) (*cobra
 		switch d["name"].(string) {
 		case "create":
 			c := createConfCommand(a, bMap, fileName)
-			command.AddCommand(c)
+			awsCloudCmd.AddCommand(c)
 		case "get":
 			c := awsGetProjectCmd(a, bMap)
-			command.AddCommand(c)
+			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "n", "", "The project name to use")
 		case "list":
 			c := awsListProjectNamesCmd(a, bMap)
-			command.AddCommand(c)
+			awsCloudCmd.AddCommand(c)
 		case "update":
 			c := updateConfCommand(a, bMap)
-			command.AddCommand(c)
+			awsCloudCmd.AddCommand(c)
 		case "delete":
 			c := deleteConfCommand(a, bMap)
-			command.AddCommand(c)
+			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "n", "", "The project name to use")
 		case "run":
-			c := awsRunProjectCmd(a, bMap, fileName)
-			command.AddCommand(c)
+			c := runProjectCmd(a, bMap, fileName)
+			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		case "destroy":
-			c := awsDestroyProjectCmd(a, bMap, fileName)
-			command.AddCommand(c)
+			c := destroyProjectCmd(a, bMap, fileName)
+			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		case "install":
-			c := awsInstallCmd(a, bMap, fileName)
-			command.AddCommand(c)
+			c := installCmd(a, bMap, fileName)
+			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		default:
 			fmt.Println(d["name"].(string))

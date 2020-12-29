@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func azureGetProjectNames() map[string]interface{} {
+func gcloudGetProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
 	projectConfigurations := getProjectConfigurations()
@@ -32,28 +32,28 @@ func azureGetProjectNames() map[string]interface{} {
 	return projectNames
 }
 
-func azureGetProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
+func gcloudGetProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		Run: func(cmd *cobra.Command, args []string) {
-			azureProjectnameFlag := cmd.Flag("projectname")
+			gcloudProjectnameFlag := cmd.Flag("projectname")
 
-			if azureProjectnameFlag.Value.String() != "" && verbose {
+			if gcloudProjectnameFlag.Value.String() != "" && verbose {
 				fmt.Println("--- Debugging:")
 				fmt.Println("Flags")
 				fmt.Println("project-name")
-				fmt.Println(azureProjectnameFlag)
+				fmt.Println(gcloudProjectnameFlag)
 				fmt.Println("ProjectName")
 				fmt.Println(projectName)
 				fmt.Println("---")
 			}
 
-			if azureProjectnameFlag.Value.String() == "" {
+			if gcloudProjectnameFlag.Value.String() == "" {
 				handleInputValues(command, true, nil)
 			} else {
-				projectName = azureProjectnameFlag.Value.String()
+				projectName = gcloudProjectnameFlag.Value.String()
 			}
 
 			projectFound := false
@@ -86,13 +86,13 @@ func azureGetProjectCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
-func azureListProjectNamesCmd(commandName string, command map[string]interface{}) *cobra.Command {
+func gcloudListProjectNamesCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
 		Long:  command["long"].(string),
 		Run: func(cmd *cobra.Command, args []string) {
-			projectNames := azureGetProjectNames()
+			projectNames := gcloudGetProjectNames()
 
 			projectJSON, _ := json.MarshalIndent(projectNames, "", "  ")
 			//fmt.Println(string(projectJSON))
@@ -108,14 +108,14 @@ func azureListProjectNamesCmd(commandName string, command map[string]interface{}
 	return cmd
 }
 
-var azureCloudCmd = &cobra.Command{
-	Use:   "azure",
-	Short: "Azure specific commands",
-	Long:  `Displays commands for Azure`,
+var gcloudCloudCmd = &cobra.Command{
+	Use:   "gcloud",
+	Short: "Gcloud specific commands",
+	Long:  `Displays commands for gcloud`,
 }
 
 func init() {
-	RootCmd.AddCommand(azureCloudCmd)
+	RootCmd.AddCommand(gcloudCloudCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -128,7 +128,7 @@ func init() {
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
+func rootGcloudDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,
 		Short: fmt.Sprintf("%s specific commands", fileName),
@@ -151,32 +151,32 @@ func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cob
 		switch d["name"].(string) {
 		case "create":
 			c := createConfCommand(a, bMap, fileName)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 		case "get":
-			c := azureGetProjectCmd(a, bMap)
-			azureCloudCmd.AddCommand(c)
+			c := gcloudGetProjectCmd(a, bMap)
+			gcloudCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "n", "", "The project name to use")
 		case "list":
-			c := azureListProjectNamesCmd(a, bMap)
-			azureCloudCmd.AddCommand(c)
+			c := gcloudListProjectNamesCmd(a, bMap)
+			gcloudCloudCmd.AddCommand(c)
 		case "update":
 			c := updateConfCommand(a, bMap)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 		case "delete":
 			c := deleteConfCommand(a, bMap)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "n", "", "The project name to use")
 		case "run":
 			c := runProjectCmd(a, bMap, fileName)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		case "destroy":
 			c := destroyProjectCmd(a, bMap, fileName)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		case "install":
 			c := installCmd(a, bMap, fileName)
-			azureCloudCmd.AddCommand(c)
+			gcloudCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		default:
 			fmt.Println(d["name"].(string))

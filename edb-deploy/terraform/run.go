@@ -140,6 +140,16 @@ func setHardCodedVariables(project map[string]interface{}, variables map[string]
 }
 
 func setMappedVariables(project map[string]interface{}, variables map[string]interface{}) error {
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - setMappedVariables:")
+		fmt.Println("DEBUG")
+		fmt.Println(verbose)
+		fmt.Println("project")
+		fmt.Println(project)
+		fmt.Println("---")
+	}
+
 	if variables != nil {
 		maps := variables["maps"].(map[string]interface{})
 
@@ -161,8 +171,12 @@ func setMappedVariables(project map[string]interface{}, variables map[string]int
 
 				if verbose {
 					fmt.Println("--- Debugging:")
-					fmt.Println("m")
+					fmt.Println("Interface for: m")
 					fmt.Println(m)
+					fmt.Println("project")
+					fmt.Println(project)
+					fmt.Println("input")
+					fmt.Println(input)					
 					fmt.Println("---")
 				}
 

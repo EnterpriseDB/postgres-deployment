@@ -64,7 +64,22 @@ func assignCloudDynamicRootCommand(file string) {
 		fmt.Println("---")
 	}
 
-	command, err := rootAWSDynamicCommand(content, commandName)
+	command := &cobra.Command{
+		Use:   "%s",
+		Short: fmt.Sprintf("%s specific commands", fileName),
+		Long:  ``,
+	}
+
+	switch {
+	case strings.Contains(fileName, "aws"):
+		command, err = rootAwsDynamicCommand(content, commandName)
+	case strings.Contains(fileName, "azure"):
+		command, err = rootAzureDynamicCommand(content, commandName)
+	case strings.Contains(fileName, "gcloud"):
+		command, err = rootGcloudDynamicCommand(content, commandName)
+	default:
+		fmt.Errorf("There was an error with the indicated cloud")
+	}
 
 	if err != nil {
 		fmt.Println(err)

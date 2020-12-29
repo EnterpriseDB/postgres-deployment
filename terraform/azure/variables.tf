@@ -13,7 +13,7 @@ variable "vnet_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "c8mnEDB"
+  default     = "azcsevmnclEDB"
   type        = string
 }
 
@@ -24,9 +24,20 @@ variable "ssh_key_path" {
   default = ""
 }
 
+variable "full_private_ssh_key_path" {
+  description = "SSH private key path from local machine"
+  type        = string
+  # Example: "~/mypemfile.pem"
+  default = ""
+}
+
 # Instance Size
 variable "instance_size" {
-  default = "Standard_A1" 
+  # Options are:
+  # Standard_A1
+  # Standard_A2_v2
+  # Standard_A8_v2
+  default = "Standard_A1"
 }
 
 # Count
@@ -34,6 +45,30 @@ variable "instance_count" {
   default = 1
 }
 
+# Primary Disk
+variable instance_disktype {
+   #default = "Standard_LRS"
+   default = "StandardSSD_LRS"
+   # Only available on current VM Sizes   
+   #default = "Premium_LRS"    
+}
+
+# Managed Disks
+variable vm_manageddisk_count {
+  #default = 5
+  default = 0
+}
+
+variable vm_manageddisk_volume_size {
+  default = 10
+}
+
+variable vm_manageddisk_disktype {
+   #default = "Standard_LRS"
+   default = "StandardSSD_LRS"
+   # Only available on current VM Sizes
+   #default = "Premium_LRS"    
+}
 
 # PEM Instance Count
 variable "pem_instance_count" {
@@ -46,14 +81,16 @@ variable "synchronicity" {
 }
 
 # Operating Systems Supported
-# CentOS7
+# CentOS
 # publisher = "OpenLogic"
 # offer     = "Centos"
 # sku       = "7.7"
-# RHEL7
+# sku       = "8_1"
+# RHEL
 # publisher = "RedHat"
 # offer     = "RHEL"
 # sku       = "7.8"
+# sku       = "8.2"
 variable publisher {
   default = "OpenLogic"
   #default = "RedHat"
@@ -65,12 +102,26 @@ variable offer {
 }
 
 variable sku {
+  # CentOS
+  # publisher = "OpenLogic"
+  # offer     = "Centos"
+  # sku       = "7.7"
+  # sku       = "8_1"
+  # RHEL
+  # publisher = "RedHat"
+  # offer     = "RHEL"
+  # sku       = "7.8"
+  # sku       = "8.2"
   default = "7.7"
-  #default = "7.8"
 }
 
 variable admin_username {
   default = "centos"
+}
+
+# Ansible Yaml Inventory Filename
+variable "ansible_inventory_yaml_filename" {
+  default = "inventory.yml"
 }
 
 # Ansible Yaml PEM Inventory Filename

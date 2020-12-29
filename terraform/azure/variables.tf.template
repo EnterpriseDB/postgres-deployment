@@ -33,6 +33,10 @@ variable "full_private_ssh_key_path" {
 
 # Instance Size
 variable "instance_size" {
+  # Options are:
+  # Standard_A1
+  # Standard_A2_v2
+  # Standard_A8_v2
   default = "Standard_A1"
 }
 
@@ -51,7 +55,8 @@ variable instance_disktype {
 
 # Managed Disks
 variable vm_manageddisk_count {
-  default = 5
+  #default = 5
+  default = 0
 }
 
 variable vm_manageddisk_volume_size {
@@ -76,14 +81,16 @@ variable "synchronicity" {
 }
 
 # Operating Systems Supported
-# CentOS7
+# CentOS
 # publisher = "OpenLogic"
 # offer     = "Centos"
 # sku       = "7.7"
-# RHEL7
+# sku       = "8_1"
+# RHEL
 # publisher = "RedHat"
 # offer     = "RHEL"
 # sku       = "7.8"
+# sku       = "8.2"
 variable publisher {
   default = "OpenLogic"
   #default = "RedHat"
@@ -95,8 +102,17 @@ variable offer {
 }
 
 variable sku {
+  # CentOS
+  # publisher = "OpenLogic"
+  # offer     = "Centos"
+  # sku       = "7.7"
+  # sku       = "8_1"
+  # RHEL
+  # publisher = "RedHat"
+  # offer     = "RHEL"
+  # sku       = "7.8"
+  # sku       = "8.2"
   default = "7.7"
-  #default = "7.8"
 }
 
 variable admin_username {

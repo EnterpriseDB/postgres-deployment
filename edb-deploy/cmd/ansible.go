@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func azureInstallCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
+func installCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),

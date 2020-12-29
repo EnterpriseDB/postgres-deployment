@@ -264,8 +264,3 @@ func prependProjectName(fileName string) string {
 func appendToProjectRoute(fileName string, projectPath string) string {
 	return fmt.Sprintf("%s/%s", projectPath, fileName)
 }
-
-// get filename from route: '~/.ssh/id_rsa' -> id_rsa
-// prepend project name + _: id_rsa -> test_id_rsa
-// append new name to project directory: projects/aws/test/test_id_rsa
-// copy file from existing to new: ~/.ssh/id_rsa -> projects/aws/test/test_id_rsa

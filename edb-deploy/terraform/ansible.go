@@ -19,9 +19,28 @@ var clusterProjectDetailsFile = "projectdetails.txt"
 var pgPasswordFileName = "postgres_pass"
 var epasPasswordFileName = "enterprisedb_pass"
 var pgTypeText = "pg_type"
+var osSlice = []string{"Centos7.7", "Centos8_1", "RHEL7.8", "RHEL8.2"}
+
+func formatOS(os string) string {
+	str := os
+	stripped := strings.Replace(str, "_", ".", -1)
+	parts := strings.Split(stripped, ".")
+	stripped = parts[0]
+	stripped = strings.Replace(stripped, "os", "OS", -1)
+	stripped = strings.Replace(stripped, "rhel", "RHEL", -1)
+	return string(stripped)
+}
+
+func findValueContainedInSlice(a []string, x string) (int, string) {
+	for i, n := range a {
+		if strings.Contains(n, x) {
+			return i, n
+		}
+	}
+	return len(a), ""
+}
 
 func readFileContent(fileNameAndPath string) string {
-
 	fileContent, err := ioutil.ReadFile(fileNameAndPath)
 
 	if err != nil {
@@ -218,10 +237,51 @@ func RunAnsible(projectName string,
 		argMap := arg.(map[string]interface{})
 		value := ""
 
+		if verbose {
+			fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables:")
+			fmt.Println("extraVariableSlice")
+			fmt.Println(extraVariableSlice)
+			fmt.Println("variableSlice")
+			fmt.Println(variableSlice)
+			fmt.Println("variable")
+			fmt.Println(project[argMap["variable"].(string)])
+			fmt.Println("value")
+			fmt.Println(project[argMap["variable"].(string)].(string))
+		}
+
+		value = project[argMap["variable"].(string)].(string)
+
+		if verbose {
+			fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables:")
+			fmt.Println("variable")
+			fmt.Println(project[argMap["variable"].(string)])
+			fmt.Println("value")
+			fmt.Println(value)
+		}
+
 		if project[argMap["variable"].(string)] != nil {
 			value = project[argMap["variable"].(string)].(string)
 		} else if argMap["default"] != nil {
 			value = argMap["default"].(string)
+		}
+
+		position, retValue := findValueContainedInSlice(osSlice, value)
+		if position > -1 && retValue != "" {
+			if verbose {
+				fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
+				fmt.Println("valueIsContainedInSlice: true")
+				fmt.Println("osSlice")
+				fmt.Println(osSlice)
+			}
+			value = formatOS(retValue)
+		}
+
+		if verbose {
+			fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
+			fmt.Println("variable")
+			fmt.Println(project[argMap["variable"].(string)])
+			fmt.Println("Updated value")
+			fmt.Println(value)
 		}
 
 		ansibleExtraVars = fmt.Sprintf("%s%s=%s ", ansibleExtraVars, argMap["prefix"], value)
@@ -240,6 +300,16 @@ func RunAnsible(projectName string,
 
 		if project[argMap["variable"].(string)] != nil {
 			value = project[argMap["variable"].(string)].(string)
+			if verbose {
+				fmt.Println("--- Debugging - terraform - ansible.go - installCmd :")
+				fmt.Println("variable")
+				fmt.Println(project[argMap["variable"].(string)])
+				fmt.Println("value")
+				fmt.Println(project[argMap["variable"].(string)].(string))
+			}
+			// if strings.Contains(value, "centos") {
+			// 	value = "CentOS8"
+			// }
 			if strings.Contains(value, pgTypeText) {
 				splitValue := strings.Split(value, " ")
 				for i := 0; i < len(splitValue); i++ {

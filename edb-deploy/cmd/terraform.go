@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func azureRunProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
+func runProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
@@ -79,7 +79,7 @@ func azureRunProjectCmd(commandName string, command map[string]interface{}, file
 	return cmd
 }
 
-func azureDestroyProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
+func destroyProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),
