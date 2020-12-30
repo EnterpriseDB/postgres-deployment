@@ -80,7 +80,7 @@ function ansible_pg_install()
     fi
    
     # Download the ansible collections
-    ansible-galaxy collection install edb_devops.edb_postgres \
+    ansible-galaxy collection install edb_devops.edb_postgres:2.0.8 \
                 --force >> ${PG_INSTALL_LOG} 2>&1
                
     # switch to project directory before executing the ansible
