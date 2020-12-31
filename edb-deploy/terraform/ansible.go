@@ -20,8 +20,6 @@ var pgPasswordFileName = "postgres_pass"
 var epasPasswordFileName = "enterprisedb_pass"
 var pgTypeText = "pg_type"
 var osText = "operating_system"
-var osSlice = []string{"Centos7.7", "Centos8_1", "RHEL7.8", "RHEL8.2",
-	"centos-7", "centos-8", "rhel-7", "rhel-8"}
 
 func formatOS(os string) string {
 	str := os
@@ -268,17 +266,6 @@ func RunAnsible(projectName string,
 		} else if argMap["default"] != nil {
 			value = argMap["default"].(string)
 		}
-
-		// position, retValue := findValueContainedInSlice(osSlice, value)
-		// if position > -1 && retValue != "" {
-		// 	if verbose {
-		// 		fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
-		// 		fmt.Println("findValueContainedInSlice: true")
-		// 		fmt.Println("osSlice")
-		// 		fmt.Println(osSlice)
-		// 	}
-		// 	value = formatOS(retValue)
-		// }
 
 		if verbose {
 			fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
