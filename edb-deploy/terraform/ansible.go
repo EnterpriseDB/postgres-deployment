@@ -19,15 +19,19 @@ var clusterProjectDetailsFile = "projectdetails.txt"
 var pgPasswordFileName = "postgres_pass"
 var epasPasswordFileName = "enterprisedb_pass"
 var pgTypeText = "pg_type"
-var osSlice = []string{"Centos7.7", "Centos8_1", "RHEL7.8", "RHEL8.2"}
+var osText = "operating_system"
+var osSlice = []string{"Centos7.7", "Centos8_1", "RHEL7.8", "RHEL8.2",
+	"centos-7", "centos-8", "rhel-7", "rhel-8"}
 
 func formatOS(os string) string {
 	str := os
 	stripped := strings.Replace(str, "_", ".", -1)
+	stripped = strings.Replace(str, "-", "", -1)
 	parts := strings.Split(stripped, ".")
 	stripped = parts[0]
 	stripped = strings.Replace(stripped, "os", "OS", -1)
 	stripped = strings.Replace(stripped, "rhel", "RHEL", -1)
+	stripped = strings.Replace(stripped, "cent", "Cent", -1)
 	return string(stripped)
 }
 
@@ -265,16 +269,16 @@ func RunAnsible(projectName string,
 			value = argMap["default"].(string)
 		}
 
-		position, retValue := findValueContainedInSlice(osSlice, value)
-		if position > -1 && retValue != "" {
-			if verbose {
-				fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
-				fmt.Println("valueIsContainedInSlice: true")
-				fmt.Println("osSlice")
-				fmt.Println(osSlice)
-			}
-			value = formatOS(retValue)
-		}
+		// position, retValue := findValueContainedInSlice(osSlice, value)
+		// if position > -1 && retValue != "" {
+		// 	if verbose {
+		// 		fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
+		// 		fmt.Println("findValueContainedInSlice: true")
+		// 		fmt.Println("osSlice")
+		// 		fmt.Println(osSlice)
+		// 	}
+		// 	value = formatOS(retValue)
+		// }
 
 		if verbose {
 			fmt.Println("--- Debugging - terraform - ansible.go - installCmd - extraVariables - findValueContainedInSlice:")
@@ -307,9 +311,7 @@ func RunAnsible(projectName string,
 				fmt.Println("value")
 				fmt.Println(project[argMap["variable"].(string)].(string))
 			}
-			// if strings.Contains(value, "centos") {
-			// 	value = "CentOS8"
-			// }
+
 			if strings.Contains(value, pgTypeText) {
 				splitValue := strings.Split(value, " ")
 				for i := 0; i < len(splitValue); i++ {

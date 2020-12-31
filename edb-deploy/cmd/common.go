@@ -24,16 +24,6 @@ var projectName = ""
 var variables = map[string]interface{}{}
 var encryptedValues = map[string]string{}
 
-func valueIsContainedInSlice(slice []string, item string) bool {
-    set := make(map[string]struct{}, len(slice))
-    for _, s := range slice {
-        set[s] = struct{}{}
-    }
-
-    _, ok := set[item] 
-    return ok
-}
-
 func getDebuggingStateFromOS() bool {
 	var debuggingState bool
 

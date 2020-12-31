@@ -155,29 +155,34 @@ func rootGcloudDynamicCommand(commandConfiguration []byte, fileName string) (*co
 		case "get":
 			c := gcloudGetProjectCmd(a, bMap)
 			gcloudCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "n", "", "The project name to use")
+			c.Flags().StringP("projectname", "n", "", "The project name to detail")
 		case "list":
 			c := gcloudListProjectNamesCmd(a, bMap)
 			gcloudCloudCmd.AddCommand(c)
-		case "update":
-			c := updateConfCommand(a, bMap)
-			gcloudCloudCmd.AddCommand(c)
+		// Commented to prevent udpating the project details
+		// case "update":
+		// 	c := updateConfCommand(a, bMap)
+		// 	gcloudCloudCmd.AddCommand(c)
 		case "delete":
 			c := deleteConfCommand(a, bMap)
 			gcloudCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "n", "", "The project name to use")
-		case "run":
-			c := runProjectCmd(a, bMap, fileName)
-			gcloudCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
+			c.Flags().StringP("projectname", "n", "", "The project name to delete")
 		case "destroy":
 			c := destroyProjectCmd(a, bMap, fileName)
 			gcloudCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
+			c.Flags().StringP("projectname", "p", "", "The project name to destroy")
+		case "deploy":
+			c := deployProjectCmd(a, bMap, fileName)
+			gcloudCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to deploy")
+		case "run":
+			c := runProjectCmd(a, bMap, fileName)
+			gcloudCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to run")
 		case "install":
 			c := installCmd(a, bMap, fileName)
 			gcloudCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
+			c.Flags().StringP("projectname", "p", "", "The project name to install")
 		default:
 			fmt.Println(d["name"].(string))
 			return nil, fmt.Errorf("There was an error with the metadata")

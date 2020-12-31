@@ -155,29 +155,34 @@ func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cob
 		case "get":
 			c := azureGetProjectCmd(a, bMap)
 			azureCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "n", "", "The project name to use")
+			c.Flags().StringP("projectname", "n", "", "The project name to detail")
 		case "list":
 			c := azureListProjectNamesCmd(a, bMap)
 			azureCloudCmd.AddCommand(c)
-		case "update":
-			c := updateConfCommand(a, bMap)
-			azureCloudCmd.AddCommand(c)
+		// Commented to prevent udpating the project details
+		// case "update":
+		// 	c := updateConfCommand(a, bMap)
+		// 	azureCloudCmd.AddCommand(c)
 		case "delete":
 			c := deleteConfCommand(a, bMap)
 			azureCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "n", "", "The project name to use")
+			c.Flags().StringP("projectname", "n", "", "The project name to delete")
+		case "deploy":
+			c := deployProjectCmd(a, bMap, fileName)
+			gcloudCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to deploy")
 		case "run":
 			c := runProjectCmd(a, bMap, fileName)
 			azureCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
-		case "destroy":
-			c := destroyProjectCmd(a, bMap, fileName)
-			azureCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
+			c.Flags().StringP("projectname", "p", "", "The project name to run")
 		case "install":
 			c := installCmd(a, bMap, fileName)
 			azureCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
+			c.Flags().StringP("projectname", "p", "", "The project name to install")
+		case "destroy":
+			c := destroyProjectCmd(a, bMap, fileName)
+			azureCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to destroy")
 		default:
 			fmt.Println(d["name"].(string))
 			return nil, fmt.Errorf("There was an error with the metadata")

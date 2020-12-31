@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	"github.com/EnterpriseDB/postgres-deployment/edb-deploy/terraform"
-
 	"github.com/spf13/cobra"
 )
 
-func installCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
+func installCmd(commandName string,
+	command map[string]interface{},
+	fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
 		Short: command["short"].(string),

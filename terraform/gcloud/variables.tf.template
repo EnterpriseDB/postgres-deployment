@@ -122,7 +122,8 @@ variable "vm_disk_type" {
 # Attached Disks
 # Volume Count
 variable "volume_count" {
-  default = 5
+  #default = 5
+  default = 0
 }
 
 # Volume disk types

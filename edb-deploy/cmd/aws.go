@@ -160,23 +160,28 @@ func rootAwsDynamicCommand(commandConfiguration []byte, fileName string) (*cobra
 		case "list":
 			c := awsListProjectNamesCmd(a, bMap)
 			awsCloudCmd.AddCommand(c)
-		case "update":
-			c := updateConfCommand(a, bMap)
-			awsCloudCmd.AddCommand(c)
+		// Commented to prevent udpating the project details
+		// case "update":
+		// 	c := updateConfCommand(a, bMap)
+		// 	awsCloudCmd.AddCommand(c)
 		case "delete":
 			c := deleteConfCommand(a, bMap)
 			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "n", "", "The project name to use")
+		case "deploy":
+			c := deployProjectCmd(a, bMap, fileName)
+			gcloudCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to deploy")
 		case "run":
 			c := runProjectCmd(a, bMap, fileName)
 			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
-		case "destroy":
-			c := destroyProjectCmd(a, bMap, fileName)
-			awsCloudCmd.AddCommand(c)
-			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		case "install":
 			c := installCmd(a, bMap, fileName)
+			awsCloudCmd.AddCommand(c)
+			c.Flags().StringP("projectname", "p", "", "The project name to use")
+		case "destroy":
+			c := destroyProjectCmd(a, bMap, fileName)
 			awsCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to use")
 		default:

@@ -17,6 +17,12 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 	// Retrieve from Environment variable debugging setting
 	verbose = getDebuggingStateFromOS()
 
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - RunTerraform:")
+		fmt.Println("Starting...")
+		fmt.Println("---")
+	}
+
 	if customTemplateLocation != nil {
 		templateLocation = *customTemplateLocation
 	} else {
@@ -43,18 +49,60 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 	setMappedVariables(project, variables)
 	setVariableAndTagNames(projectName)
 
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - RunTerraform:")
+		fmt.Println("Calling: 'pre_run_checks'...")
+		fmt.Println("project")
+		fmt.Println(project)
+		fmt.Println("---")
+	}
+
 	if arguements["pre_run_checks"] != nil {
 		preRunChecks := arguements["pre_run_checks"].(map[string]interface{})
 
+		if verbose {
+			fmt.Println("--- Debugging - terraform -> run.go - RunTerraform:")
+			fmt.Println("preRunChecks")
+			fmt.Println(preRunChecks)
+			fmt.Println("len of preRunChecks")
+			fmt.Println(len(preRunChecks))
+			fmt.Println("---")
+		}
+
 		for i := 0; i < len(preRunChecks); i++ {
 			iString := strconv.Itoa(i)
+
+			if verbose {
+				fmt.Println("iString")
+				fmt.Println(iString)
+			}
+
 			check := preRunChecks[iString].(map[string]interface{})
 
+			if verbose {
+				fmt.Println("check")
+				fmt.Println(check)
+			}
+
 			output, _ := preCheck(check, project)
+
+			if verbose {
+				fmt.Println("project")
+				fmt.Println(project)
+				fmt.Println("output")
+				fmt.Println(output)
+			}
+
 			if check["output"] != nil {
 				project[check["output"].(string)] = output
 			}
 		}
+	}
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - RunTerraform:")
+		fmt.Println("Returned from Calling: 'pre_run_checks'...")
+		fmt.Println("---")
 	}
 
 	terraformWorkspace(projectName)
@@ -88,6 +136,12 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 		}
 	}
 
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - RunTerraform:")
+		fmt.Println("Leaving...")
+		fmt.Println("---")
+	}
+
 	return nil
 }
 
@@ -99,6 +153,12 @@ func setVariableAndTagNames(projectName string) error {
 	variablesOutput := "/variables.tf"
 
 	textToReplace := "PROJECT_NAME"
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - setVariableAndTagNames:")
+		fmt.Println("Starting...")
+		fmt.Println("---")
+	}
 
 	tagTemplate, err := ioutil.ReadFile(fmt.Sprintf("%s%s", templateLocation, tagsInput))
 	if err != nil {
@@ -124,10 +184,22 @@ func setVariableAndTagNames(projectName string) error {
 		log.Fatal(err)
 	}
 
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - setVariableAndTagNames:")
+		fmt.Println("Leaving...")
+		fmt.Println("---")
+	}
+
 	return nil
 }
 
 func setHardCodedVariables(project map[string]interface{}, variables map[string]interface{}) error {
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - setHardCodedVariables:")
+		fmt.Println("Starting...")
+		fmt.Println("---")
+	}
+
 	if variables != nil {
 		hardCoded := variables["hard"].(map[string]interface{})
 
@@ -136,11 +208,16 @@ func setHardCodedVariables(project map[string]interface{}, variables map[string]
 		}
 	}
 
+	if verbose {
+		fmt.Println("--- Debugging - terraform -> run.go - setHardCodedVariables:")
+		fmt.Println("Leaving...")
+		fmt.Println("---")
+	}
+
 	return nil
 }
 
 func setMappedVariables(project map[string]interface{}, variables map[string]interface{}) error {
-
 	if verbose {
 		fmt.Println("--- Debugging - terraform -> run.go - setMappedVariables:")
 		fmt.Println("DEBUG")
@@ -176,8 +253,7 @@ func setMappedVariables(project map[string]interface{}, variables map[string]int
 					fmt.Println("project")
 					fmt.Println(project)
 					fmt.Println("input")
-					fmt.Println(input)					
-					fmt.Println("---")
+					fmt.Println(input)
 				}
 
 				if m["type"] == "starts-with" {
@@ -192,6 +268,11 @@ func setMappedVariables(project map[string]interface{}, variables map[string]int
 				}
 
 				project[m["output"].(string)] = out
+				if verbose {
+					fmt.Println("out")
+					fmt.Println(out)
+					fmt.Println("---")
+				}
 			}
 		}
 	}
