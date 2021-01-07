@@ -11,7 +11,7 @@ case $OS in
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 
     # Update the package list and install the Cloud SDK
-    sudo apt-get -y update 
+    sudo apt-get -y update
     sudo apt-get install -y --force-yes google-cloud-sdk
     ;;
   *"Ubuntu"*)
@@ -22,9 +22,9 @@ case $OS in
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 
     # Update the package list and install the Cloud SDK
-    sudo apt-get -y update 
+    sudo apt-get -y update
     sudo apt-get install -y --force-yes google-cloud-sdk
-    ;; 
+    ;;
   *"CentOS"*)
     sudo rm -r ~/google-cloud-sdk
     sudo curl https://sdk.cloud.google.com/ > install.sh

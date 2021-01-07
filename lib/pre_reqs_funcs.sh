@@ -27,7 +27,7 @@ function package_command()
 {
    local F_OSINFO=$(cat /etc/*release | grep ^NAME)
    local F_OSTYPE
- 
+
    if [[ "${F_OSINFO}" =~ "Red" ]] || [[ "${F_OSINFO}" =~ "CentOS" ]]
    then
        echo "sudo yum -y install"
@@ -52,21 +52,21 @@ function install_wget_curl()
     F_INSTALL_CMD=$(package_command)
     F_WGET_EXISTS=$(which wget >/dev/null 2>&1 && echo $? || echo $?)
     F_CURL_EXISTS=$(which curl >/dev/null 2>&1 && echo $? || echo $?)
-    
+
     if [[ ${F_WGET_EXISTS} -ne 0 ]]
     then
         #process_log "Installing wget package"
-        #${F_INSTALL_CMD} wget >>${INSTALL_LOG} 2>&1 
+        #${F_INSTALL_CMD} wget >>${INSTALL_LOG} 2>&1
         process_log "wget is not installed"
         exit_on_error "wget is not installed"
     fi
-    
+
     if [[ ${F_CURL_EXISTS} -ne 0 ]]
     then
         #process_log "installing curl"
         #${F_INSTALL_CMD} curl >>${INSTALL_LOG} 2>&1
         process_log "curl is not installed"
-        exit_on_error "curl is not installed"       
+        exit_on_error "curl is not installed"
     fi
 }
 
@@ -81,7 +81,7 @@ function install_gawk()
 
     F_INSTALL_CMD=$(package_command)
     F_GAWK_EXISTS=$(which gawk >/dev/null 2>&1 && echo $? || echo $?)
-    
+
     if [[ ${F_GAWK_EXISTS} -ne 0 ]]
     then
         #process_log "Installing gawk package"
@@ -144,7 +144,7 @@ function install_ansible()
     IS_YUM=$(echo ${INSTALL_CMD}|grep -q yum)
     set -e
     DEBIAN_URL="http://ppa.launchpad.net/ansible/ansible/ubuntu bionic main"
-    
+
     if [[ ${ANSIBLE_EXISTS} -ne 0 ]] && [[ ${IS_APT} -eq 0 ]]
     then
         set +e
@@ -156,7 +156,7 @@ function install_ansible()
         #apt update >>${INSTALL_LOG} 2>&1
         #${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
         process_log "Ansible is not installed"
-        exit_on_error "Ansible is not installed"        
+        exit_on_error "Ansible is not installed"
         set -e
     fi
 
@@ -169,7 +169,7 @@ function install_ansible()
         #    >>${INSTALL_LOG} 2>&1
         #${INSTALL_CMD} ansible >>${INSTALL_LOG} 2>&1
         process_log "Ansible is not installed"
-        exit_on_error "Ansible is not installed"        
+        exit_on_error "Ansible is not installed"
         set -e
     fi
     #ansible --version >>${INSTALL_LOG} 2>&1
@@ -185,14 +185,14 @@ function verify_aws()
     local AWS_EXISTS
 
     AWS_EXISTS=$(which aws >/dev/null 2>&1 && echo $? || echo $?)
-    
+
     #if [[ ${AWS_EXISTS} -ne 0 ]]
     #then
     #    wget ${AWS_URL} >>${INSTALL_LOG} 2>&1
     #    unzip ${AWS_ZIP} >>${INSTALL_LOG} 2>&1
     #    sudo ./aws/install --update >>${INSTALL_LOG} 2>&1
     #fi
-    
+
     # check if we have credential files
     if [[ ! -f ~/.aws/credentials ]]
     then
@@ -220,7 +220,7 @@ function verify_azure()
     IS_APT=$(echo ${INSTALL_CMD}|grep -q apt)
     IS_YUM=$(echo ${INSTALL_CMD}|grep -q yum)
     set -e
-  
+
     #if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_APT} -eq 0 ]]
     #then
     #    set +e
@@ -234,7 +234,7 @@ function verify_azure()
     #    AZURE_CLI_REPO="$(echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | sudo tee /etc/apt/sources.list.d/azure-cli.list)"
     #    apt update >>${INSTALL_LOG} 2>&1
     #    ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
-    #    set -e    
+    #    set -e
     #fi
 
     #if [[ ${AZURE_EXISTS} -ne 0 ]] && [[ ${IS_YUM} -eq 0 ]]
@@ -253,9 +253,9 @@ function verify_azure()
 #gpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo)"
     #    apt update >>${INSTALL_LOG} 2>&1
     #    ${INSTALL_CMD} azure-cli >>${INSTALL_LOG} 2>&1
-    #    set -e    
+    #    set -e
     #fi
-     
+
     # check if we have credential files
     if [[ ! -f ~/.azure/accessTokens.json ]]
     then
@@ -278,14 +278,14 @@ function verify_gcloud()
     local GCLOUD_EXISTS
 
     GCLOUD_EXISTS=$(which gcloud >/dev/null 2>&1 && echo $? || echo $?)
-    
+
     #if [[ ${GCLOUD_EXISTS} -ne 0 ]]
     #then
     #    wget ${GCLOUD_URL} >>${INSTALL_LOG} 2>&1
     #    unzip ${GCLOUD_ZIP} >>${INSTALL_LOG} 2>&1
     #    sudo ./google-cloud-sdk/install.sh >>${INSTALL_LOG} 2>&1
     #fi
-    
+
     # check if we have default credential file
     if [[ ! -f ~/.config/gcloud/configurations/config_default ]]
     then
@@ -298,5 +298,5 @@ function verify_gcloud()
     then
         process_log "Google Cloud proper configuration not found"
         gcloud auth application-default login
-    fi    
+    fi
 }

@@ -48,7 +48,7 @@ function aws_ansible_pg_install()
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/.edbpass"
-    
+
     local LOG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/projectdetails.txt"
 
     if [[ "${OSNAME}" =~ "CentOS" ]]
@@ -60,10 +60,10 @@ function aws_ansible_pg_install()
     else
         exit_on_error "Unknown Operating system"
     fi
-    
+
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
-                
+
     cd ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME} || exit 1
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_KEYPATH}")
@@ -85,7 +85,7 @@ function aws_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
-                    playbook-single-instance.yml   
+                    playbook-single-instance.yml
     fi
 
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
@@ -93,8 +93,8 @@ function aws_ansible_pg_install()
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
-    
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
+
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
@@ -114,10 +114,10 @@ function aws_ansible_pg_install()
            fi
         done
     fi
-   
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]    
+
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
     then
-        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]
         then
            echo -e "SERVER" | tee /dev/fd/3
         else
@@ -160,7 +160,7 @@ function azure_ansible_pg_install()
     local EDB_YUM_PASSWORD="$4"
     local SSH_KEY="$5"
     local F_PRIV_FILE_KEYPATH="$6"
-    local F_PROJECTNAME="$7"    
+    local F_PROJECTNAME="$7"
     local PEM_INSTANCE_COUNT="$8"
     local PEM_EXISTS=0
     local PRIMARY_EXISTS=0
@@ -168,8 +168,8 @@ function azure_ansible_pg_install()
 
     local ANSIBLE_EXTRA_VARS
 
-    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
-    
+    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1
+
     while IFS=, read -r os_name_and_version
     do
       [[ "$os_name_and_version" != "os_name_and_version" ]] && OS_NAME_AND_VERSION=$os_name_and_version
@@ -177,32 +177,32 @@ function azure_ansible_pg_install()
 
     OS="$(echo -e "$OS_NAME_AND_VERSION" | tr -d '[:space:]')"
 
-    if [[ "${OS}" =~ "Centos" ]]        
+    if [[ "${OS}" =~ "Centos" ]]
     then
         ANSIBLE_USER="centos"
-        OSNAME="CentOS8"        
+        OSNAME="CentOS8"
     elif [[ "${OS}" =~ "RHEL" ]]
     then
         ANSIBLE_USER="ec2-user"
-        OSNAME="RHEL8"        
+        OSNAME="RHEL8"
     else
         exit_on_error "Unknown Operating system"
     fi
 
     cd ${DIRECTORY} || exit 1
-        
+
     ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass"    
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/.edbpass"
 
     local LOG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/projectdetails.txt"
-    
+
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
-                
-    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1    
+
+    cd ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME} || exit 1
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
@@ -223,16 +223,16 @@ function azure_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
-                    playbook-single-instance.yml   
+                    playbook-single-instance.yml
     fi
-                    
+
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
-        
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
+
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
@@ -252,10 +252,10 @@ function azure_ansible_pg_install()
            fi
         done
     fi
-   
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]    
+
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
     then
-        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]
         then
            echo -e "SERVER" | tee /dev/fd/3
         else
@@ -282,7 +282,7 @@ function azure_ansible_pg_install()
             echo "" | tee /dev/fd/3
         done
     fi
-    
+
     exec > /dev/tty 2>&1
 }
 
@@ -296,9 +296,9 @@ function gcloud_ansible_pg_install()
     local PG_VERSION="$2"
     local EDB_YUM_USERNAME="$3"
     local EDB_YUM_PASSWORD="$4"
-    local SSH_KEY="$5"    
+    local SSH_KEY="$5"
     local F_PRIV_FILE_KEYPATH="$6"
-    local F_PROJECTNAME="$7"    
+    local F_PROJECTNAME="$7"
     local PEM_INSTANCE_COUNT="$8"
     local PEM_EXISTS=0
     local PRIMARY_EXISTS=0
@@ -307,7 +307,7 @@ function gcloud_ansible_pg_install()
     local ANSIBLE_EXTRA_VARS
 
     cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
-    
+
     while IFS=, read -r os_name_and_version
     do
       [[ "$os_name_and_version" != "os_name_and_version" ]] && OS_NAME_AND_VERSION=$os_name_and_version
@@ -318,55 +318,55 @@ function gcloud_ansible_pg_install()
 
     case $FORMATTED_OS in
         "centos-7")
-            shift; 
+            shift;
             ANSIBLE_USER="centos"
             OSNAME="CentOS7"
             export ANSIBLE_USER
             export OSNAME
             ;;
         "centos-8")
-            shift; 
+            shift;
             ANSIBLE_USER="centos"
             OSNAME="CentOS8"
             export ANSIBLE_USER
             export OSNAME
             ;;
         "rhel-7")
-            shift; 
+            shift;
             ANSIBLE_USER="ec2-user"
             OSNAME="RHEL7"
             export ANSIBLE_USER
             export OSNAME
-            ;;            
+            ;;
         "rhel-8")
-            shift; 
+            shift;
             ANSIBLE_USER="ec2-user"
             OSNAME="RHEL8"
             export ANSIBLE_USER
             export OSNAME
-            ;;                       
-    esac 
-    
+            ;;
+    esac
+
     cd ${DIRECTORY} || exit 1
-        
+
     ANSIBLE_EXTRA_VARS="os=${OSNAME} pg_type=${PG_TYPE}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pg_version=${PG_VERSION}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_username=${EDB_YUM_USERNAME}"
     ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} yum_password=${EDB_YUM_PASSWORD}"
-    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass"    
+    ANSIBLE_EXTRA_VARS="${ANSIBLE_EXTRA_VARS} pass_dir=${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/.edbpass"
 
     local LOG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/projectdetails.txt"
 
     ansible-galaxy collection install edb_devops.edb_postgres \
                 --force >> ${PG_INSTALL_LOG} 2>&1
-                
-    cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1    
+
+    cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${SSH_KEY}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
-        
+
     if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
@@ -379,16 +379,16 @@ function gcloud_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
-                    playbook-single-instance.yml   
+                    playbook-single-instance.yml
     fi
-                    
+
     PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
     PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
     STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
-        
-    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]    
+
+    if [[ ${PEM_INSTANCE_COUNT} -gt 0 ]]
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
@@ -411,7 +411,7 @@ function gcloud_ansible_pg_install()
 
     if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
     then
-        if [[ ${INSTANCE_COUNT} -lt 2 ]]    
+        if [[ ${INSTANCE_COUNT} -lt 2 ]]
         then
            echo -e "SERVER" | tee /dev/fd/3
         else
