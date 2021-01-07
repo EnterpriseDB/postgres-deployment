@@ -134,7 +134,7 @@ function get_string_after_lastslash {
    set +u
    local filenameandpath=$1
    local F_Result=""
-   
+
    F_Result=$(echo "${filenameandpath##*/}")
 
    echo "$F_Result"
@@ -148,7 +148,7 @@ function get_string_before_last_hyphen {
    set +u
    local content=$1
    local F_Result=""
-   
+
    F_Result=$(echo "${content%-*}")
 
    echo "$F_Result"
@@ -163,7 +163,7 @@ function join_strings_with_underscore {
    local string1=$1
    local string2=$2
    local F_Result=""
-   
+
    F_Result="${string1}_${string2}"
 
    echo "$F_Result"
@@ -177,7 +177,7 @@ function get_first_word_from_output {
    set +u
    local text=$1
    local F_Result=""
-   
+
    F_Result=$(echo $text | grep -o "^\S*")
 
    echo "$F_Result"
@@ -190,10 +190,10 @@ function get_first_word_from_output {
 function copy_files_to_project_folder {
    set +u
    local cloud=$1
-   
+
    cp -f ${DIRECTORY}/playbook/ansible.cfg ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    cp -f ${DIRECTORY}/playbook/playbook*.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
-   cp -f ${DIRECTORY}/playbook/rhel_firewald_rule.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.        
+   cp -f ${DIRECTORY}/playbook/rhel_firewald_rule.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
    mv -f ${DIRECTORY}/terraform/${cloud}/hosts.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
 
    mv -f ${DIRECTORY}/terraform/${cloud}/inventory.yml ${PROJECTS_DIRECTORY}/${cloud}/${PROJECT_NAME}/.
@@ -215,7 +215,7 @@ function custom_yesno_prompt()
     local VALUETORETURN="$3"
     local YES="Yes"
     local NO="No"
- 
+
     while true
     do
        echo $QUESTION
@@ -230,7 +230,7 @@ function custom_yesno_prompt()
                 VALUETORETURN=${YES}
                 break
                 ;;
-          [nN]) 
+          [nN])
                 #echo "You responded: ${OPTION}"
                 VALUETORETURN=${NO}
                 break
@@ -262,7 +262,7 @@ function custom_options_prompt()
        do
            echo "$opt"
        done
-       echo -e "${MESSAGE} \c"       
+       echo -e "${MESSAGE} \c"
        read ANSWER
 
        #echo "You responded: ${ANSWER}"
@@ -278,7 +278,7 @@ function custom_options_prompt()
     done
 
     #echo "${ANSWER}"
-    RESULT="${ANSWER}"    
+    RESULT="${ANSWER}"
 }
 
 ################################################################################
@@ -297,7 +297,7 @@ function validate_string_not_empty()
            echo -e "$QUESTION \c"
        else
            echo "$QUESTION"
-           echo -e "$MESSAGE \c"           
+           echo -e "$MESSAGE \c"
        fi
        read ANSWER
 

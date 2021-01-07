@@ -43,7 +43,7 @@ function usage()
   echo "    azure-config    [show|update]     PROJECT_NAME"
   echo "    gcloud-config   [show|update]     PROJECT_NAME"
   echo "    aws-project     [list]"
-  echo "    aws-project     [switch]          PROJECT_NAME"  
+  echo "    aws-project     [switch]          PROJECT_NAME"
   echo "    azure-project   [list]"
   echo "    azure-project   [switch]          PROJECT_NAME"
   echo "    gcloud-project  [list]"
@@ -188,7 +188,7 @@ function verify_arguments()
                 else
                     if [[ "${AWS_PROJECT}" = "list" ]]
                     then
-                        shift; PROJECT_NAME=" "                    
+                        shift; PROJECT_NAME=" "
                     else
                         shift; PROJECT_NAME="${1}"
                     fi
@@ -205,7 +205,7 @@ function verify_arguments()
                 else
                     if [[ "${AZURE_PROJECT}" = "list" ]]
                     then
-                        shift; PROJECT_NAME=" "                    
+                        shift; PROJECT_NAME=" "
                     else
                         shift; PROJECT_NAME="${1}"
                     fi
@@ -222,7 +222,7 @@ function verify_arguments()
                 else
                     if [[ "${GCLOUD_PROJECT}" = "list" ]]
                     then
-                        shift; PROJECT_NAME=" "                    
+                        shift; PROJECT_NAME=" "
                     else
                         shift; PROJECT_NAME="${1}"
                     fi
