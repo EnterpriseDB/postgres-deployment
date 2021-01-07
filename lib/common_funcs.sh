@@ -90,14 +90,16 @@ function validate_variable()
         echo "${VARIABLE}=${VAR_VALUE}" >> ${FILE}
     elif [[ "${CHECK_VAR}" = "exists_empty" ]]
     then
-        sed -i "/${VARIABLE}=/d" ${FILE}
+        sed -i.bak "/${VARIABLE}=/d" ${FILE}
+        rm ${FILE}.bak
         echo "${VARIABLE}=${VAR_VALUE}" >> ${FILE}
     elif [[ "${CHECK_VAR}" = "exists_not_empty" ]]
     then
         OLD_VALUE=$(grep "^${VARIABLE}=" ${FILE} | cut -d"=" -f2)
         if [[ "${OLD_VALUE}" != "${VAR_VALUE}" ]]
         then
-            sed -i "/${VARIABLE}=/d" ${FILE}
+            sed -i.bak "/${VARIABLE}=/d" ${FILE}
+            rm ${FILE}.bak
             echo "${VARIABLE}=${VAR_VALUE}" >> ${FILE}
         fi
     fi

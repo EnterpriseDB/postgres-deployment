@@ -147,8 +147,10 @@ function aws_build_server()
     fi
     
     # Remove empty lines from inventory files
-    sed -i "/^ *$/d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml    
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+    sed -i.bak "/^ *$/d" pem-inventory.yml
+    rm pem-inventory.yml.bak
     
     cp -f pem-inventory.yml hosts.yml
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
@@ -276,8 +278,10 @@ function azure_build_server()
     fi
     
     # Remove empty lines from inventory files
-    sed -i "/^ *$/d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml      
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+    sed -i.bak "/^ *$/d" pem-inventory.yml
+    rm pem-inventory.yml.bak
     
     cp -f pem-inventory.yml hosts.yml
         
@@ -376,8 +380,10 @@ function gcloud_build_server()
     fi
 
     # Remove empty lines from inventory files
-    sed -i "/^ *$/d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml      
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+    sed -i.bak "/^ *$/d" pem-inventory.yml
+    rm pem-inventory.yml.bak
        
     cp -f pem-inventory.yml hosts.yml
 
