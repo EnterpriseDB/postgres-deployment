@@ -1,27 +1,29 @@
 ---
-- hosts: localhost
+- hosts: all
   name: Configure Postgres or EPAS on Instances
-  become: true
-  gather_facts: no
+  become: yes
+  gather_facts: yes
 
   # When using collections
   collections:
-      - edb_devops.edb_postgres
-
-  vars_files:
-    - hosts.yml
+    - edb_devops.edb_postgres
 
   pre_tasks:
-      - name: Initialize the user defined variables
-        set_fact:
-            os: "CentOS8"
-            pg_version: 12
-            pg_type: "PG"
-            yum_username: ""
-            yum_password: ""
+    - name: Initialize the user defined variables
+      set_fact:
+        pg_version: 12
+        pg_type: "PG"
+        yum_username: ""
+        yum_password: ""
 
   roles:
-    - setup_repo
-    - install_dbserver
-    - init_dbserver
-    - manage_dbserver
+    - role: setup_repo
+      when: "'setup_repo' in host_supported_roles"
+    - role: install_dbserver
+      when: "'install_dbserver' in host_supported_roles"
+    - role: init_dbserver
+      when: "'init_dbserver' in host_supported_roles"
+    - role: manage_dbserver
+      when: "'manage_dbserver' in host_supported_roles"
+    - role: autotuning
+      when: "'autotuning' in host_supported_roles"
