@@ -1,3 +1,11 @@
+// Purpose         : EDB CLI Go
+// Project         : postgres-deployment
+// Author          : https://www.rocketinsights.com/
+// Contributor     : Doug Ortiz
+// Date            : January 07, 2021
+// Version         : 1.0
+// Copyright © 2020 EnterpriseDB
+
 package cmd
 
 import (
@@ -149,7 +157,7 @@ func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cob
 		d := bMap
 
 		switch d["name"].(string) {
-		case "create":
+		case "configure":
 			c := createConfCommand(a, bMap, fileName)
 			azureCloudCmd.AddCommand(c)
 		case "get":
@@ -169,7 +177,7 @@ func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cob
 			c.Flags().StringP("projectname", "n", "", "The project name to delete")
 		case "deploy":
 			c := deployProjectCmd(a, bMap, fileName)
-			gcloudCloudCmd.AddCommand(c)
+			azureCloudCmd.AddCommand(c)
 			c.Flags().StringP("projectname", "p", "", "The project name to deploy")
 		case "run":
 			c := runProjectCmd(a, bMap, fileName)

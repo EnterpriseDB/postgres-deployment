@@ -1,3 +1,11 @@
+// Purpose         : EDB CLI Go
+// Project         : postgres-deployment
+// Author          : https://www.rocketinsights.com/
+// Contributor     : Doug Ortiz
+// Date            : January 07, 2021
+// Version         : 1.0
+// Copyright © 2020 EnterpriseDB
+
 package cmd
 
 import (
@@ -149,7 +157,7 @@ func rootGcloudDynamicCommand(commandConfiguration []byte, fileName string) (*co
 		d := bMap
 
 		switch d["name"].(string) {
-		case "create":
+		case "configure":
 			c := createConfCommand(a, bMap, fileName)
 			gcloudCloudCmd.AddCommand(c)
 		case "get":

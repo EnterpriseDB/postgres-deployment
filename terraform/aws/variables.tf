@@ -93,13 +93,13 @@ variable "instance_volume_size" {
 # EBS Volume Count
 variable "ebs_volume_count" {
   # default = 5
-  default = 0
+  default = 0  
 }
 
 # EBS volume prefix name
 variable "ebs_volume_name" {
   description = "The name of the EBS volume"
-  default     = "/dev/sdc"
+  default = "/dev/sdc"
 }
 
 # EBS Volume disk types
@@ -115,19 +115,19 @@ variable "ebs_volume_type" {
 # EBS Volume disk size
 variable "ebs_volume_size" {
   description = "The size of the EBS Volume Disk Size in GB."
-  default     = 100
+  default = 100
 }
 
 # EBS Volume disk iops
 variable "ebs_volume_iops" {
   description = "The iops for volume."
-  default     = 250
+  default = 250
 }
 
 # EBS Volume disk encryption
 variable "ebs_volume_encryption" {
   description = "The encryption type for volume."
-  default     = "false"
+  default = "false"
 }
 
 # VPC
@@ -145,7 +145,7 @@ variable "vpc_cidr_block" {
 # Name of the Cluster
 variable "cluster_name" {
   description = "The name to the cluster"
-  default     = "awscmncl"
+  default     = "rsncl"
   type        = string
 }
 
@@ -153,7 +153,7 @@ variable "cluster_name" {
 variable "user_name" {
   description = "Desired name for AWS IAM User"
   type        = string
-  default     = "awscmncl-edb-iam-postgres"
+  default     = "rsncl-edb-iam-postgres"
 }
 
 # IAM Force Destroy
@@ -187,6 +187,6 @@ variable "full_private_ssh_key_path" {
 }
 
 variable "root_user" {
-  type    = string
+  type = string
   default = "centos"
 }

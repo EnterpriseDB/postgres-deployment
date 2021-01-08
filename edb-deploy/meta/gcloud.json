@@ -161,9 +161,9 @@
 		}
 	},
 	"commands": {
-		"create" : {
-			"name": "create",
-			"short": "Create Cluster Configuration for Google Cloud Project",
+		"configure" : {
+			"name": "configure",
+			"short": "Configure Cluster Configuration for Google Cloud Project",
 			"long": "",
 			"arguments": {},
 			"configuration-groups": {

@@ -1,3 +1,11 @@
+// Purpose         : EDB CLI Go
+// Project         : postgres-deployment
+// Author          : https://www.rocketinsights.com/
+// Contributor     : Doug Ortiz
+// Date            : January 07, 2021
+// Version         : 1.0
+// Copyright © 2020 EnterpriseDB
+
 package terraform
 
 import (
@@ -205,6 +213,21 @@ func RunAnsible(projectName string,
 	customTemplateLocation *string,
 ) error {
 	projectPath := getProjectPath(projectName, fileName)
+
+	if verbose {
+		fmt.Println("--- Debugging - terraform/ansible.go - RunAnsible :")
+		fmt.Println("ProjectName")
+		fmt.Println(projectName)
+		fmt.Println("project")
+		fmt.Println(project)
+		fmt.Println("arguments")
+		fmt.Println(arguements)
+		fmt.Println("variables")
+		fmt.Println(variables)
+		fmt.Println("fileName")
+		fmt.Println(fileName)
+		fmt.Println("---")
+	}
 
 	// Retrieve from Environment variable debugging setting
 	verbose = getDebuggingStateFromOS()

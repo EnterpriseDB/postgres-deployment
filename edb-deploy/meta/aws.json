@@ -200,9 +200,9 @@
 		}
 	},
 	"commands": {
-		"create" : {
-			"name": "create",
-			"short": "Create Cluster Configuration for AWS project",
+		"configure" : {
+			"name": "configure",
+			"short": "Configure Cluster Configuration for AWS project",
 			"long": "",
 			"arguments": {},
 			"configuration-groups": {
@@ -282,7 +282,7 @@
 						},
 						{
 							"prefix": "instance_count",
-							"variable": "ec2_count",
+							"variable": "instance_count",
 							"default": "1"
 						},
 						{
@@ -316,6 +316,127 @@
 						},
 						"output": "instance_exists"
 					}
+				}
+			}
+		},
+		"deploy" : {
+			"name": "deploy",
+			"short": "Runs Terraform for Google Cloud Project creation and Ansible for Installation of Postgres",
+			"long": "",
+			"arguments": {
+				"pre_run_checks": {
+					"0": {
+						"command": "aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=%s --region %s --output text",
+						"variables": {
+							"0": "instance_type",
+							"1": "region"
+						},
+						"output": "instance_exists"
+					},
+					"1": {
+						"command": "aws ec2 describe-images --filters Name=name,Values=\"%s\" --query sort_by(Images,|||&Name)[-1].ImageId --region %s --output text",
+						"variables": {
+							"0": "instance_image",
+							"1": "region"
+						},
+						"output": "ami_id"
+					}
+				},
+				"terraform_build": {
+					"variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "ami_id",
+							"variable": "ami_id"
+						},
+						{
+							"prefix": "aws_region",
+							"variable": "region"
+						},
+						{
+							"prefix": "instance_count",
+							"variable": "instance_count",
+							"default": "1"
+						},
+						{
+							"prefix": "ssh_key_path",
+							"variable": "public_key"
+						},
+						{
+							"prefix": "full_private_ssh_key_path",
+							"variable": "private_key"
+						},
+						{
+							"prefix": "root_user",
+							"variable": "ansible_user"
+						},
+						{
+							"prefix": "cluster_name",
+							"variable": "project_name"
+						},
+						{
+							"prefix": "pem_instance_count",
+							"variable": "pem_instance_count",
+							"default": {}
+						}
+					]
+				},
+				"post_run_checks": {
+					"0": {
+						"command": "aws ec2 wait instance-status-ok --region %s",
+						"variables": {
+							"0": "region"
+						},
+						"output": "instance_exists"
+					}
+				},
+				"ansible_run": {
+					"extra_variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "pg_type",
+							"variable": "pg_type"
+						},
+						{
+							"prefix": "pg_version",
+							"variable": "db_version"
+						},
+						{
+							"prefix": "yum_username",
+							"variable": "user_name"
+						},
+						{
+							"prefix": "yum_password",
+							"variable": "password"
+						},
+						{
+							"prefix": "pass_dir",
+							"variable": "pass_dir"
+						}
+					],
+					"variables": [
+						{
+							"prefix": "user",
+							"variable": "ansible_user"
+						},
+						{
+							"prefix": "extra-vars",
+							"variable": "extra_vars"
+						},
+						{
+							"prefix": "private-key",
+							"variable": "private_key"
+						},
+						{
+							"variable": "playbook"
+						}
+					]
 				}
 			}
 		},

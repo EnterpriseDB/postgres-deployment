@@ -224,9 +224,9 @@
 		}
 	},
 	"commands": {
-		"create" : {
-			"name": "create",
-			"short": "Create Cluster Configuration for Azure project",
+		"configure" : {
+			"name": "configure",
+			"short": "Configure Cluster Configuration for Azure project",
 			"long": "",
 			"arguments": {},
 			"configuration-groups": {
@@ -341,6 +341,125 @@
 						},
 						"output": "instance_exists"
 					}
+				}
+			}
+		},
+		"deploy" : {
+			"name": "deploy",
+			"short": "Runs Terraform for Google Cloud Project creation and Ansible for Installation of Postgres",
+			"long": "",
+			"arguments": {
+				"pre_run_checks": {
+					"0": {
+						"command": "az vm image list --all -p %s -f %s -s %s -l %s --output table",
+						"variables": {
+							"0": "publisher",
+							"1": "offer",
+							"2": "sku",
+							"3": "location"
+						},
+						"output": "ami_exists"
+					}
+				},
+				"terraform_build": {
+					"variables": [
+						{
+							"prefix": "publisher",
+							"variable": "publisher"
+						},
+						{
+							"prefix": "offer",
+							"variable": "offer"
+						},
+						{
+							"prefix": "sku",
+							"variable": "sku"
+						},
+						{
+							"prefix": "azure_location",
+							"variable": "location"
+						},
+						{
+							"prefix": "instance_size",
+							"variable": "instance_size",
+							"default": "Standard_A2_v2"
+						},
+						{
+							"prefix": "admin_username",
+							"variable": "ansible_user"
+						},
+						{
+							"prefix": "instance_count",
+							"variable": "instance_count",
+							"default": "1"
+						},
+						{
+							"prefix": "pem_instance_count",
+							"variable": "pem_instance_count",
+							"default": {}
+						},
+						{
+							"prefix": "cluster_name",
+							"variable": "project_name"
+						},
+						{
+							"prefix": "ssh_key_path",
+							"variable": "public_key"
+						}					]
+				},
+				"post_run_checks": {
+					"0": {
+						"command": "az vm list -g %s_EDB-PREREQS-RESOURCEGROUP --query \"[].id]\" -o tsv",
+						"variables": {
+							"0": "project_name"
+						},
+						"output": "instance_exists"
+					}
+				},
+				"ansible_run": {
+					"extra_variables": [
+						{
+							"prefix": "os",
+							"variable": "sku"
+						},
+						{
+							"prefix": "pg_type",
+							"variable": "pg_type"
+						},
+						{
+							"prefix": "pg_version",
+							"variable": "db_version"
+						},
+						{
+							"prefix": "yum_username",
+							"variable": "user_name"
+						},
+						{
+							"prefix": "yum_password",
+							"variable": "password"
+						},
+						{
+							"prefix": "pass_dir",
+							"variable": "pass_dir"
+						}
+					],
+					"variables": [
+						{
+							"prefix": "user",
+							"variable": "ansible_user"
+						},			
+						{
+							"prefix": "extra-vars",
+							"variable": "extra_vars"
+						},
+						{
+							"prefix": "private-key",
+							"variable": "private_key"
+						},
+						{
+							"variable": "playbook"
+						}
+					]
 				}
 			}
 		},
