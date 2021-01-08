@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Ansible Functions
 package cmd
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Configures a deployed project
 func installCmd(commandName string,
 	command map[string]interface{},
 	fileName string) *cobra.Command {

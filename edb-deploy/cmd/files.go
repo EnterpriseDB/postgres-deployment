@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Project Functions
 package cmd
 
 import (
@@ -15,6 +16,7 @@ import (
 	"log"
 )
 
+// Returns credentials
 func getCredentials() credentials {
 	content, err := ioutil.ReadFile(credFile)
 	fmt.Println(credFile)
@@ -30,6 +32,7 @@ func getCredentials() credentials {
 	return creds
 }
 
+// Returns Project Configuration
 func getProjectConfigurations() map[string]interface{} {
 	content, err := ioutil.ReadFile(confFile)
 	if err != nil {

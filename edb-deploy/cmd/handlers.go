@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Management Functions for PromptUI
 package cmd
 
 import (
@@ -19,6 +20,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
+// Management of Groups
 func handleGroups(vars map[string]interface{}, groups map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
 	err := handleProjectNameInput(isProjectAware)
 	if err != nil {
@@ -105,6 +107,7 @@ func handleGroups(vars map[string]interface{}, groups map[string]interface{}, is
 	return nil
 }
 
+// Input Values Configuration
 func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
 	var err error
 
@@ -259,16 +262,19 @@ func handleInputValues2(vars map[string]interface{}, isProjectAware bool, projec
 	return nil
 }
 
+// Retrieves the FileName
 func getFileName(route string) string {
 	splitRoute := strings.Split(route, "/")
 
 	return splitRoute[len(splitRoute)-1]
 }
 
+// Returns a prefix with the Project Name
 func prependProjectName(fileName string) string {
 	return fmt.Sprintf("%s_%s", projectName, fileName)
 }
 
+// Returns the Project Name with a suffix
 func appendToProjectRoute(fileName string, projectPath string) string {
 	return fmt.Sprintf("%s/%s", projectPath, fileName)
 }

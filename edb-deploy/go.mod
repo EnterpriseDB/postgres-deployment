@@ -1,7 +1,10 @@
+// edb-deploy
 module github.com/EnterpriseDB/postgres-deployment/edb-deploy
 
+// Go Version
 go 1.15
 
+// Dependencies
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect

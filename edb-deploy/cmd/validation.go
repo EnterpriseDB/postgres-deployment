@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Validation Functions
 package cmd
 
 import (
@@ -15,6 +16,7 @@ import (
 	"strings"
 )
 
+// Manually validates Booleans
 func validateManualBool(input string) error {
 	if input != "y" &&
 		input != "n" &&
@@ -30,6 +32,7 @@ func validateManualBool(input string) error {
 	return nil
 }
 
+// Number Validation
 func validateNumber(argMap map[string]interface{}, value float64) error {
 	if argMap["validate"] != nil {
 		validation := argMap["validate"].(map[string]interface{})
@@ -48,6 +51,7 @@ func validateNumber(argMap map[string]interface{}, value float64) error {
 	return nil
 }
 
+// Boolean Validation
 func validateBool(input string, inputName string) error {
 	if input != "y" &&
 		input != "n" &&
@@ -63,6 +67,7 @@ func validateBool(input string, inputName string) error {
 	return nil
 }
 
+// General Validation
 func validate(argMap map[string]interface{}, currentValue string) func(string) error {
 	valid := func(input string) error {
 		if argMap["type"] != nil && argMap["type"].(string) == "int" {

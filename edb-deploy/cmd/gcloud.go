@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// GCloud Cobra Commands
 package cmd
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Lists the Project Names
 func gcloudGetProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
@@ -40,6 +42,7 @@ func gcloudGetProjectNames() map[string]interface{} {
 	return projectNames
 }
 
+// Displays Details of a Project
 func gcloudGetProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -94,6 +97,7 @@ func gcloudGetProjectCmd(commandName string, command map[string]interface{}) *co
 	return cmd
 }
 
+// Lists Available Projects
 func gcloudListProjectNamesCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -122,6 +126,7 @@ var gcloudCloudCmd = &cobra.Command{
 	Long:  `Displays commands for gcloud`,
 }
 
+// GCloud Cobra Command Initialization
 func init() {
 	RootCmd.AddCommand(gcloudCloudCmd)
 
@@ -136,6 +141,7 @@ func init() {
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+// GCloud Cobra Commands
 func rootGcloudDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,

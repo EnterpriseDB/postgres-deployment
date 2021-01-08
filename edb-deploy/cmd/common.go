@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Common Functions across Application
 package cmd
 
 import (
@@ -32,6 +33,7 @@ var projectName = ""
 var variables = map[string]interface{}{}
 var encryptedValues = map[string]string{}
 
+// Retrieves the value for Debugging from OS
 func getDebuggingStateFromOS() bool {
 	var debuggingState bool
 
@@ -47,6 +49,7 @@ func getDebuggingStateFromOS() bool {
 	return debuggingState
 }
 
+// Gets Project Path
 func getProjectPath() (string, string) {
 	path, err := os.Getwd()
 	if err != nil {
@@ -79,6 +82,7 @@ func getProjectPath() (string, string) {
 	return rootPath, projectPath
 }
 
+// Gets Terraform Path
 func getTerraformPath(cloudName string) string {
 	path, err := os.Getwd()
 	if err != nil {
@@ -98,6 +102,7 @@ func getTerraformPath(cloudName string) string {
 	return terraformPath
 }
 
+// Gets Ansible Playbook Path
 func getPlaybookPath() string {
 	path, err := os.Getwd()
 	if err != nil {
@@ -116,6 +121,7 @@ func getPlaybookPath() string {
 	return playbookPath
 }
 
+// Copies a Files
 func fileCopy(sourceFile string, destinationPath string, destinationFile string) {
 	input, err := ioutil.ReadFile(sourceFile)
 	if err != nil {
@@ -135,6 +141,7 @@ func fileCopy(sourceFile string, destinationPath string, destinationFile string)
 	}
 }
 
+// Removes Empty Lines and Spaces from a File
 func removeEmptyLinesAndSpaces(fileNameAndPath string) error {
 	file, err := ioutil.ReadFile(fileNameAndPath)
 	if err != nil {
@@ -153,6 +160,7 @@ func removeEmptyLinesAndSpaces(fileNameAndPath string) error {
 	return nil
 }
 
+// Checks for File Existence
 func fileExists(fileNameAndPath string) bool {
 	info, err := os.Stat(fileNameAndPath)
 
@@ -167,6 +175,7 @@ func fileExists(fileNameAndPath string) bool {
 	return !info.IsDir()
 }
 
+// Changes Permissions for a File
 func chmodFilePermissions(fileNameAndPath string) error {
 	fileStats, err := os.Stat(fileNameAndPath)
 	if verbose {
@@ -184,6 +193,8 @@ func chmodFilePermissions(fileNameAndPath string) error {
 
 	return nil
 }
+
+// Copies Multiples Files
 func copyFiles(fileName string) error {
 	tPath := getTerraformPath(fileName)
 	pPath := getPlaybookPath()
@@ -244,6 +255,7 @@ func copyFiles(fileName string) error {
 	return nil
 }
 
+// Converts Yes or No Values to Boolean
 func convertBoolIn(input string) string {
 	output := ""
 	if input == "y" || input == "yes" || input == "true" || input == "t" {
@@ -255,6 +267,7 @@ func convertBoolIn(input string) string {
 	return output
 }
 
+// Converts from Boolean to "y" or "n"
 func convertBoolOut(input string) string {
 	output := ""
 	if input == "true" {
@@ -266,6 +279,7 @@ func convertBoolOut(input string) string {
 	return output
 }
 
+// Manages Project Name Entry
 func handleProjectNameInput(isProjectAware bool) error {
 	var err error
 	if projectName == "" {
@@ -333,6 +347,7 @@ func handleProjectNameInput(isProjectAware bool) error {
 	return nil
 }
 
+// Manages Value Entries
 func handleInputValues(command map[string]interface{}, isProjectAware bool, projects map[string]interface{}) error {
 	var err error
 
@@ -462,6 +477,7 @@ func handleInputValues(command map[string]interface{}, isProjectAware bool, proj
 	return nil
 }
 
+// Iterates JSON Metadata File for "arguments" element
 func instVaribles(command map[string]interface{}) {
 	for element, value := range command {
 		if element == "arguments" {
@@ -474,6 +490,7 @@ func instVaribles(command map[string]interface{}) {
 	}
 }
 
+// Iterates JSON Metadata File
 func instVaribles2(vars map[string]interface{}) {
 	for _, argValue := range vars {
 		argMap := argValue.(map[string]interface{})
@@ -482,6 +499,7 @@ func instVaribles2(vars map[string]interface{}) {
 	}
 }
 
+// Creates Flags for Cobra Commands
 func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 	instVaribles(command)
 
@@ -502,6 +520,7 @@ func createFlags(cmd *cobra.Command, command map[string]interface{}) {
 	cmd.PersistentFlags().StringVarP(&projectName, "project-name", "p", "", "Name of the project")
 }
 
+// Creates Flags for Cobra Commands
 func createFlags2(cmd *cobra.Command, vars map[string]interface{}, shouldCreateProjectFlag bool) {
 	instVaribles2(vars)
 
@@ -526,6 +545,7 @@ func createFlags2(cmd *cobra.Command, vars map[string]interface{}, shouldCreateP
 	}
 }
 
+// Cobra Command: Project Configuration
 func createConfCommand(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -568,6 +588,7 @@ func createConfCommand(commandName string, command map[string]interface{}, fileN
 	return cmd
 }
 
+// Cobra Command: Update Configuration
 func updateConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -597,6 +618,7 @@ func updateConfCommand(commandName string, command map[string]interface{}) *cobr
 	return cmd
 }
 
+// Cobra Command: Delete Configuration
 func deleteConfCommand(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),

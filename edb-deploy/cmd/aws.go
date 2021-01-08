@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// AWS Cobra Commands
 package cmd
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Lists the Project Names
 func awsGetProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
@@ -40,6 +42,7 @@ func awsGetProjectNames() map[string]interface{} {
 	return projectNames
 }
 
+// Displays Details of a Project
 func awsGetProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -94,6 +97,7 @@ func awsGetProjectCmd(commandName string, command map[string]interface{}) *cobra
 	return cmd
 }
 
+// Lists Available Projects
 func awsListProjectNamesCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -122,8 +126,8 @@ var awsCloudCmd = &cobra.Command{
 	Long:  `Displays commands for AWS`,
 }
 
+// AWS Cobra Command Initialization
 func init() {
-
 	RootCmd.AddCommand(awsCloudCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -137,6 +141,7 @@ func init() {
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+// AWS Cobra Commands
 func rootAwsDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,

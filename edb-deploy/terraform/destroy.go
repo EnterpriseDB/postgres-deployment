@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Package terraform
 package terraform
 
 import (
@@ -16,6 +17,7 @@ import (
 	"strings"
 )
 
+// Prepares for a Terraform Destroy
 func DestroyTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, fileName string, customTemplateLocation *string) error {
 	if customTemplateLocation != nil {
 		templateLocation = *customTemplateLocation
@@ -48,6 +50,7 @@ func DestroyTerraform(projectName string, project map[string]interface{}, arguem
 	return nil
 }
 
+// Retrieves current Terraform Workspace
 func getTerraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 
@@ -64,6 +67,7 @@ func getTerraformWorkspace(projectName string) error {
 	return nil
 }
 
+// Executes a Terraform Destroy
 func terraformDestroy(argSlice []interface{}, project map[string]interface{}) error {
 	log.Printf("Checking Projects in terraform")
 
@@ -94,6 +98,7 @@ func terraformDestroy(argSlice []interface{}, project map[string]interface{}) er
 	return nil
 }
 
+// Deletes a Terraform Workspace
 func deleteTerraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 

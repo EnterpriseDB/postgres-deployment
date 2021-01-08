@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Cobra Command: Version
 package cmd
 
 import (
@@ -14,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Details about Cobra Command: Version
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of EDB CLI",
@@ -23,6 +25,7 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+// Cobra Command: Version - Initialization
 func init() {
 	RootCmd.AddCommand(versionCmd)
 

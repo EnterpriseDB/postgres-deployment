@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Terraform Functions
 package cmd
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Deploys ( Creates Infrastructure and Installas ) a Project via Terraform
 func deployProjectCmd(commandName string,
 	command map[string]interface{},
 	fileName string) *cobra.Command {
@@ -31,6 +33,7 @@ func deployProjectCmd(commandName string,
 	return cmd
 }
 
+// Creates Infrastructure with Terraform
 func runProjectCmdCode(cmd *cobra.Command,
 	command map[string]interface{},
 	fileName string) {
@@ -95,6 +98,7 @@ func runProjectCmdCode(cmd *cobra.Command,
 	copyFiles(fileName)
 }
 
+// Configures Infrastructure via Ansible
 func installCmdCode(cmd *cobra.Command,
 	command map[string]interface{},
 	fileName string) {
@@ -165,6 +169,7 @@ func installCmdCode(cmd *cobra.Command,
 	}
 }
 
+// Creates Infrastructure with Terraform
 func runProjectCmd(commandName string,
 	command map[string]interface{},
 	fileName string) *cobra.Command {
@@ -180,6 +185,7 @@ func runProjectCmd(commandName string,
 	return cmd
 }
 
+// Destroy a Project
 func destroyProjectCmd(commandName string, command map[string]interface{}, fileName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),

@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Cobra Root
 package cmd
 
 import (
@@ -35,6 +36,7 @@ var verbose bool = false
 var metaPath = "./meta"
 var metaFileExt = ".json"
 
+// Cobra Root Command
 var RootCmd = &cobra.Command{
 	Use:   "edb-deploy",
 	Short: "EDB edb-deploy Go CLI",
@@ -45,6 +47,7 @@ var RootCmd = &cobra.Command{
 	},
 }
 
+// Cobra Execute
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -52,6 +55,7 @@ func Execute() {
 	}
 }
 
+// Assigns JSON Metadata File based on Cloud Argument
 func assignCloudDynamicRootCommand(file string) {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -96,6 +100,7 @@ func assignCloudDynamicRootCommand(file string) {
 	RootCmd.AddCommand(command)
 }
 
+// Cobra Initialization
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -161,6 +166,7 @@ func init() {
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+// Config Initialization
 func initConfig() {
 	if cfgFile != "" {
 		_, err := os.Stat(cfgFile)

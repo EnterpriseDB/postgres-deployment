@@ -6,6 +6,8 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Package terraform
+// Contains code for terraform
 package terraform
 
 import (
@@ -21,6 +23,8 @@ import (
 
 var templateLocation = ""
 
+// RunTerraform
+// Calls Terraform
 func RunTerraform(projectName string, project map[string]interface{}, arguements map[string]interface{}, variables map[string]interface{}, fileName string, customTemplateLocation *string) error {
 	// Retrieve from Environment variable debugging setting
 	verbose = getDebuggingStateFromOS()
@@ -153,6 +157,8 @@ func RunTerraform(projectName string, project map[string]interface{}, arguements
 	return nil
 }
 
+// Replaces "PROJECT_NAME" with provided Project Name
+// across terraform tag and variable files
 func setVariableAndTagNames(projectName string) error {
 	tagsInput := "/tags.tf.template"
 	tagsOutput := "/tags.tf"
@@ -201,6 +207,7 @@ func setVariableAndTagNames(projectName string) error {
 	return nil
 }
 
+// Assigns Variables from json files as constants
 func setHardCodedVariables(project map[string]interface{}, variables map[string]interface{}) error {
 	if verbose {
 		fmt.Println("--- Debugging - terraform -> run.go - setHardCodedVariables:")
@@ -225,6 +232,7 @@ func setHardCodedVariables(project map[string]interface{}, variables map[string]
 	return nil
 }
 
+// Maps variables in map section from json file
 func setMappedVariables(project map[string]interface{}, variables map[string]interface{}) error {
 	if verbose {
 		fmt.Println("--- Debugging - terraform -> run.go - setMappedVariables:")
@@ -288,6 +296,7 @@ func setMappedVariables(project map[string]interface{}, variables map[string]int
 	return nil
 }
 
+// Executes the pre-checks indicated in json file
 func preCheck(check map[string]interface{}, project map[string]interface{}) (string, error) {
 	if check["log_text"] != nil {
 		log.Printf(check["log_text"].(string))
@@ -330,6 +339,7 @@ func preCheck(check map[string]interface{}, project map[string]interface{}) (str
 	return output, nil
 }
 
+// Manages Terraform workspaces
 func terraformWorkspace(projectName string) error {
 	log.Printf("Checking Projects in terraform")
 	comm := exec.Command("terraform", "workspace", "list")
@@ -376,6 +386,7 @@ func terraformWorkspace(projectName string) error {
 	return nil
 }
 
+// Executes a Terraform Apply
 func terraformApply(argSlice []interface{}, project map[string]interface{}) error {
 	arguments := []string{}
 

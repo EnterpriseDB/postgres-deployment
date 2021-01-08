@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Azure Cobra Commands
 package cmd
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Lists the Project Names
 func azureGetProjectNames() map[string]interface{} {
 	projectNames := map[string]interface{}{}
 
@@ -40,6 +42,7 @@ func azureGetProjectNames() map[string]interface{} {
 	return projectNames
 }
 
+// Displays Details of a Project
 func azureGetProjectCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -94,6 +97,7 @@ func azureGetProjectCmd(commandName string, command map[string]interface{}) *cob
 	return cmd
 }
 
+// Lists Available Projects
 func azureListProjectNamesCmd(commandName string, command map[string]interface{}) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   command["name"].(string),
@@ -122,6 +126,7 @@ var azureCloudCmd = &cobra.Command{
 	Long:  `Displays commands for Azure`,
 }
 
+// Azure Cobra Command Initialization
 func init() {
 	RootCmd.AddCommand(azureCloudCmd)
 
@@ -136,6 +141,7 @@ func init() {
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+// Azure Cobra Commands
 func rootAzureDynamicCommand(commandConfiguration []byte, fileName string) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:   fileName,

@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Credentials Management
 package cmd
 
 import (
@@ -25,6 +26,7 @@ type credentials struct {
 
 var creds = credentials{}
 
+// Cobra Command: Creates Credentials
 func createCredCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-credentials",
@@ -95,6 +97,7 @@ func createCredCommand() *cobra.Command {
 	return cmd
 }
 
+// Cobra Command: Updates Credentials
 func updateCredCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-credentials",
@@ -178,6 +181,7 @@ func updateCredCommand() *cobra.Command {
 	return cmd
 }
 
+// Cobra Command: Delete Credentials
 func deleteCredCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-credentials",
@@ -200,6 +204,7 @@ func deleteCredCommand() *cobra.Command {
 	return cmd
 }
 
+// Adds Credential Cobra Commands
 func init() {
 	RootCmd.AddCommand(createCredCommand())
 	RootCmd.AddCommand(updateCredCommand())

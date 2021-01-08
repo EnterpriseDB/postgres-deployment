@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Configuration Functions
 package terraform
 
 import (
@@ -29,6 +30,7 @@ var epasPasswordFileName = "enterprisedb_pass"
 var pgTypeText = "pg_type"
 var osText = "operating_system"
 
+// Parses OS Distributions
 func formatOS(os string) string {
 	str := os
 	stripped := strings.Replace(str, "_", ".", -1)
@@ -41,6 +43,7 @@ func formatOS(os string) string {
 	return string(stripped)
 }
 
+// Iterates a Slice seeking for a string value
 func findValueContainedInSlice(a []string, x string) (int, string) {
 	for i, n := range a {
 		if strings.Contains(n, x) {
@@ -50,6 +53,7 @@ func findValueContainedInSlice(a []string, x string) (int, string) {
 	return len(a), ""
 }
 
+// Reads a File
 func readFileContent(fileNameAndPath string) string {
 	fileContent, err := ioutil.ReadFile(fileNameAndPath)
 
@@ -60,6 +64,7 @@ func readFileContent(fileNameAndPath string) string {
 	return string(fileContent)
 }
 
+// Gets the Project Path
 func getProjectPath(projectName string, fileName string) string {
 	path, err := os.Getwd()
 	if err != nil {
@@ -81,6 +86,7 @@ func getProjectPath(projectName string, fileName string) string {
 	return projectPath
 }
 
+// Creates a Text File with the Project Details
 func createClusterDetailsFile(projectName string,
 	fileName string,
 	ansibleUser string,
@@ -205,6 +211,7 @@ func createClusterDetailsFile(projectName string,
 	return nil
 }
 
+// Executes Ansible
 func RunAnsible(projectName string,
 	project map[string]interface{},
 	arguements map[string]interface{},

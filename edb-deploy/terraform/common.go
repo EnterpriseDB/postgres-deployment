@@ -6,6 +6,7 @@
 // Version         : 1.0
 // Copyright © 2020 EnterpriseDB
 
+// Common Terraform Functions
 package terraform
 
 import (
@@ -15,6 +16,7 @@ import (
 
 var verbose bool = false
 
+// Gets the Debug Value from OS
 func getDebuggingStateFromOS() bool {
 	var debuggingState bool
 
