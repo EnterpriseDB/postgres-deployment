@@ -79,12 +79,14 @@ function aws_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook.yml
     else
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook-single-instance.yml
     fi
 
@@ -217,12 +219,14 @@ function azure_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook.yml
     else
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook-single-instance.yml
     fi
 
@@ -373,12 +377,14 @@ function gcloud_ansible_pg_install()
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook.yml
     else
        ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' \
                      --user="${ANSIBLE_USER}" \
                      --extra-vars="${ANSIBLE_EXTRA_VARS}" \
                      --private-key="./${F_NEW_PRIV_KEYNAME}" \
+                     -i inventory.yml \
                     playbook-single-instance.yml
     fi
 

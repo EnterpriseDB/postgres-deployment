@@ -55,10 +55,10 @@ ARGUMENTS="$(echo ${ARGUMENTS} | sed -e "s/  */ /g" \
 
 verify_arguments ${ARGUMENTS}
 
-if [[ "x${PROJECT_NAME}" = "x" ]] 
+if [[ "x${PROJECT_NAME}" = "x" ]]
 then
    read -r -e -p "Enter the project name: " PROJECT_NAME
-   
+
    if [[ -z ${PROJECT_NAME} ]]
    then
        exit_on_error "Project name cannot be empty. Try again!"
@@ -79,9 +79,9 @@ fi
 if [[ "${AWS_SERVER}" = "create" ]]
 then
     verify_aws
-    
+
     aws_config_file "${PROJECT_NAME}"
-    
+
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
                      "${INSTANCE_COUNT}" \
@@ -90,7 +90,7 @@ then
                      "${PROJECT_NAME}" \
                      "${PRIV_FILE_PATH}" \
                      "${AMI_ID}" \
-                    2>&1 | tee ${TERRAFORM_LOG}    
+                    2>&1 | tee ${TERRAFORM_LOG}
 
     copy_files_to_project_folder "aws"
 fi
@@ -98,9 +98,9 @@ fi
 if [[ "${AZURE_SERVER}" = "create" ]]
 then
     verify_azure
-    
+
     azure_config_file "${PROJECT_NAME}"
-   
+
     azure_build_server "${PUBLISHER}" \
                        "${OFFER}" \
                        "${SKU}" \
@@ -118,9 +118,9 @@ fi
 if [[ "${GCLOUD_SERVER}" = "create" ]]
 then
     verify_gcloud
-    
+
     gcloud_config_file "${PROJECT_NAME}"
-   
+
     gcloud_build_server "${OSNAME}" \
                         "${SUBNETWORK_REGION}" \
                         "${INSTANCE_COUNT}" \
@@ -141,7 +141,7 @@ fi
 if [[ "${AWS_POSTGRES_INSTALL}" = "install" ]]
 then
     aws_config_file "${PROJECT_NAME}"
-    
+
     aws_ansible_pg_install "${OSNAME}" \
                        "${PG_TYPE}" \
                        "${PG_VERSION}" \
@@ -156,7 +156,7 @@ fi
 if [[ "${AZURE_POSTGRES_INSTALL}" = "install" ]]
 then
     azure_config_file "${PROJECT_NAME}"
-    
+
     azure_ansible_pg_install "${PG_TYPE}" \
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
@@ -170,7 +170,7 @@ fi
 if [[ "${GCLOUD_POSTGRES_INSTALL}" = "install" ]]
 then
     gcloud_config_file "${PROJECT_NAME}"
-    
+
     gcloud_ansible_pg_install "${PG_TYPE}" \
                        "${PG_VERSION}" \
                        "${YUM_USERNAME}" \
@@ -186,7 +186,7 @@ fi
 ################################################################################
 if [[ "${AWS_CONFIG}" = "show" ]]
 then
-    aws_show_config_file "${PROJECT_NAME}"    
+    aws_show_config_file "${PROJECT_NAME}"
 fi
 
 if [[ "${AWS_CONFIG}" = "update" ]]
@@ -196,7 +196,7 @@ fi
 
 if [[ "${AZURE_CONFIG}" = "show" ]]
 then
-    azure_show_config_file "${PROJECT_NAME}"    
+    azure_show_config_file "${PROJECT_NAME}"
 fi
 
 if [[ "${AZURE_CONFIG}" = "update" ]]
@@ -206,7 +206,7 @@ fi
 
 if [[ "${GCLOUD_CONFIG}" = "show" ]]
 then
-    gcloud_show_config_file "${PROJECT_NAME}"    
+    gcloud_show_config_file "${PROJECT_NAME}"
 fi
 
 if [[ "${GCLOUD_CONFIG}" = "update" ]]
@@ -220,27 +220,27 @@ then
 fi
 
 if [[ "${AWS_PROJECT}" = "switch" ]]
-then 
+then
     aws_switch_projects "${PROJECT_NAME}"
 fi
 
 if [[ "${AZURE_PROJECT}" = "list" ]]
-then 
+then
     azure_list_projects
 fi
 
 if [[ "${AZURE_PROJECT}" = "switch" ]]
-then 
+then
     azure_switch_projects "${PROJECT_NAME}"
 fi
 
 if [[ "${GCLOUD_PROJECT}" = "list" ]]
-then 
+then
     gcloud_list_projects
 fi
 
 if [[ "${GCLOUD_PROJECT}" = "switch" ]]
-then 
+then
     gcloud_switch_projects "${PROJECT_NAME}"
 fi
 
@@ -252,7 +252,7 @@ then
     RESULT=""
     custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
     if [[ "${RESULT}" = "Yes" ]]
-    then    
+    then
         aws_config_file "${PROJECT_NAME}"
         aws_destroy_server "${REGION}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
     fi
@@ -263,7 +263,7 @@ then
     RESULT=""
     custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
     if [[ "${RESULT}" = "Yes" ]]
-    then    
+    then
         azure_config_file "${PROJECT_NAME}"
         azure_destroy_server "${LOCATION}" "${PROJECT_NAME}" "${PUB_FILE_PATH}" | tee  ${TERRAFORM_LOG}
     fi
@@ -274,8 +274,8 @@ then
     RESULT=""
     custom_yesno_prompt "Are you sure you want to destroy project: '${PROJECT_NAME}'?" "Enter: (Y)es/(N)o " RESULT
     if [[ "${RESULT}" = "Yes" ]]
-    then    
+    then
         gcloud_config_file "${PROJECT_NAME}"
         gcloud_destroy_server "${SUBNETWORK_REGION}" "${PROJECT_ID}" "${PUB_FILE_PATH}" "${PROJECT_NAME}" | tee  ${TERRAFORM_LOG}
-    fi        
+    fi
 fi
