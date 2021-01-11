@@ -45,8 +45,8 @@ variable "instance_count" {
 variable instance_disktype {
    #default = "Standard_LRS"
    default = "StandardSSD_LRS"
-   # Only available on current VM Sizes   
-   #default = "Premium_LRS"    
+   # Only available on current VM Sizes
+   #default = "Premium_LRS"
 }
 
 # Managed Disks
@@ -62,7 +62,7 @@ variable vm_manageddisk_disktype {
    #default = "Standard_LRS"
    default = "StandardSSD_LRS"
    # Only available on current VM Sizes
-   #default = "Premium_LRS"    
+   #default = "Premium_LRS"
 }
 
 # PEM Instance Count
@@ -106,11 +106,6 @@ variable admin_username {
 # Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
-}
-
-# Ansible Yaml PEM Inventory Filename
-variable "ansible_pem_inventory_yaml_filename" {
-  default = "pem-inventory.yml"
 }
 
 # OS CSV Filename

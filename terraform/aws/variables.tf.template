@@ -30,11 +30,6 @@ variable "synchronicity" {
   default = "asynchronous"
 }
 
-# Ansible Yaml PEM Inventory Filename
-variable "ansible_pem_inventory_yaml_filename" {
-  default = "pem-inventory.yml"
-}
-
 # Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"

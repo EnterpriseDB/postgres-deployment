@@ -146,13 +146,10 @@ function aws_build_server()
         exit_on_error "Failed to build the servers."
     fi
 
-    # Remove empty lines from inventory files
+    # Remove empty lines from inventory file
     sed -i.bak "/^ *$/d" inventory.yml
     rm inventory.yml.bak
-    sed -i.bak "/^ *$/d" pem-inventory.yml
-    rm pem-inventory.yml.bak
 
-    cp -f pem-inventory.yml hosts.yml
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
         ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} \
@@ -277,13 +274,9 @@ function azure_build_server()
         exit_on_error "Failed to build the servers."
     fi
 
-    # Remove empty lines from inventory files
+    # Remove empty lines from inventory file
     sed -i.bak "/^ *$/d" inventory.yml
     rm inventory.yml.bak
-    sed -i.bak "/^ *$/d" pem-inventory.yml
-    rm pem-inventory.yml.bak
-
-    cp -f pem-inventory.yml hosts.yml
 
     mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
@@ -379,13 +372,9 @@ function gcloud_build_server()
         exit_on_error "Failed to build the servers."
     fi
 
-    # Remove empty lines from inventory files
+    # Remove empty lines from inventory file
     sed -i.bak "/^ *$/d" inventory.yml
     rm inventory.yml.bak
-    sed -i.bak "/^ *$/d" pem-inventory.yml
-    rm pem-inventory.yml.bak
-
-    cp -f pem-inventory.yml hosts.yml
 
     mv -f ${DIRECTORY}/terraform/gcloud/hosts \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/hosts

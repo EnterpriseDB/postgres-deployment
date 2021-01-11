@@ -74,7 +74,6 @@ module "vm" {
   sku                                 = var.sku
   admin_username                      = var.admin_username
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
-  ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
 

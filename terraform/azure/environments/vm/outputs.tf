@@ -7,48 +7,31 @@ all:
   children:
   %{for count in range(var.instance_count)~}
 %{if var.pem_instance_count == "1" && count == 0}
-     pemserver:
-       hosts:
-         pemserver${count + 1}:%{endif}
+    pemserver:
+      hosts:
+        pemserver${count + 1}:%{endif}
 %{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}
-     primary:
-       hosts:
-         primary${count}:%{endif}
+    primary:
+      hosts:
+        primary${count}:%{endif}
 %{if var.pem_instance_count == "0" && count == "1" || var.pem_instance_count == "1" && count == 2}
-     standby:
-       hosts:
+    standby:
+      hosts:
 %{endif}
 %{if count > 1}
-         standby${count}:%{endif}
-           ansible_host: ${azurerm_public_ip.publicip[count].ip_address}
-           private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
+        standby${count}:%{endif}
+          ansible_host: ${azurerm_public_ip.publicip[count].ip_address}
+          private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
 %{if count > 1}
-           replication_type: ${var.synchronicity}%{endif}
+          replication_type: ${var.synchronicity}%{endif}
 %{if count > 0}
-           pem_agent: true%{endif}
+          pem_agent: true%{endif}
 %{if var.pem_instance_count == "1"}
-           pem_server_private_ip: ${azurerm_network_interface.Public_Nic[0].private_ip_address}%{endif}
+          pem_server_private_ip: ${azurerm_network_interface.Public_Nic[0].private_ip_address}%{endif}
 %{if var.pem_instance_count == "1" && count > 1}
-           upstream_node_private_ip: ${azurerm_network_interface.Public_Nic[1].private_ip_address}%{endif}
+          upstream_node_private_ip: ${azurerm_network_interface.Public_Nic[1].private_ip_address}%{endif}
 %{if var.pem_instance_count == "0" && count > 0}
-           upstream_node_private_ip: ${azurerm_network_interface.Public_Nic[0].private_ip_address}%{endif}
-  %{endfor~}
-EOT
-}
-
-resource "local_file" "AnsiblePEMYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_pem_inventory_yaml_filename
-  content  = <<EOT
----
-servers:
-  %{for count in range(var.instance_count)~}
-%{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
-    node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}    
-    public_ip: ${azurerm_public_ip.publicip[count].ip_address}
-    private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
-    %{if count > 0}pem_agent: true%{endif}
+          upstream_node_private_ip: ${azurerm_network_interface.Public_Nic[0].private_ip_address}%{endif}
   %{endfor~}
 EOT
 }
@@ -70,6 +53,6 @@ echo "Adding IPs"
 %{for count in range(var.instance_count)~}
 ssh-keyscan -H ${azurerm_public_ip.publicip[count].ip_address} >> ~/.ssh/known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.publicip[count].ip_address}
-%{endfor~}    
+%{endfor~}
     EOT
 }

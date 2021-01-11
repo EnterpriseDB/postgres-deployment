@@ -90,9 +90,9 @@ function aws_ansible_pg_install()
                     playbook-single-instance.yml
     fi
 
-    PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
-    PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
-    STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
+    PEM_EXISTS=$(parse_yaml inventory.yml|grep "all_children_pemserver"|wc -l)
+    PRIMARY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_primary"|wc -l)
+    STANDBY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_standby"|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
 
@@ -100,8 +100,8 @@ function aws_ansible_pg_install()
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
-        for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
-                            |grep public_ip|cut -d"=" -f2|xargs echo)
+        for pemsvr in $(parse_yaml inventory.yml|grep "all_children_pemserver" \
+                            |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
            echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
@@ -126,8 +126,8 @@ function aws_ansible_pg_install()
            echo -e "PRIMARY SERVER" | tee /dev/fd/3
         fi
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep primary \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_primary" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
@@ -138,8 +138,8 @@ function aws_ansible_pg_install()
     then
         echo -e "STANDBY SERVERS" | tee /dev/fd/3
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep standby \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_standby" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
@@ -230,9 +230,9 @@ function azure_ansible_pg_install()
                     playbook-single-instance.yml
     fi
 
-    PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
-    PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
-    STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
+    PEM_EXISTS=$(parse_yaml inventory.yml|grep "all_children_pemserver"|wc -l)
+    PRIMARY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_primary"|wc -l)
+    STANDBY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_standby"|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
 
@@ -240,8 +240,8 @@ function azure_ansible_pg_install()
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
-        for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
-                            |grep public_ip|cut -d"=" -f2|xargs echo)
+        for pemsvr in $(parse_yaml inventory.yml|grep "all_children_pemserver" \
+                            |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
            echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
@@ -266,8 +266,8 @@ function azure_ansible_pg_install()
            echo -e "PRIMARY SERVER" | tee /dev/fd/3
         fi
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep primary \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_primary" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
@@ -278,8 +278,8 @@ function azure_ansible_pg_install()
     then
         echo -e "STANDBY SERVERS" | tee /dev/fd/3
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep standby \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_standby" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
@@ -388,9 +388,9 @@ function gcloud_ansible_pg_install()
                     playbook-single-instance.yml
     fi
 
-    PEM_EXISTS=$(parse_yaml hosts.yml|grep pemserver|wc -l)
-    PRIMARY_EXISTS=$(parse_yaml hosts.yml|grep primary|wc -l)
-    STANDBY_EXISTS=$(parse_yaml hosts.yml|grep standby|wc -l)
+    PEM_EXISTS=$(parse_yaml inventory.yml|grep "all_children_pemserver"|wc -l)
+    PRIMARY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_primary"|wc -l)
+    STANDBY_EXISTS=$(parse_yaml inventory.yml|grep "all_children_standby"|wc -l)
 
     exec 3>&1 1>>"${LOG_FILE}" 2>&1
 
@@ -398,8 +398,8 @@ function gcloud_ansible_pg_install()
     then
         echo -e "PEM SERVER:" | tee /dev/fd/3
         echo -e "-----------" | tee /dev/fd/3
-        for pemsvr in $(parse_yaml hosts.yml|grep pemserver \
-                            |grep public_ip|cut -d"=" -f2|xargs echo)
+        for pemsvr in $(parse_yaml inventory.yml|grep "all_children_pemserver" \
+                            |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
            echo -e "  PEM URL:\thttps://${pemsvr}:8443/pem" | tee /dev/fd/3
            if [[ "${PG_TYPE}" = "PG" ]]
@@ -424,8 +424,8 @@ function gcloud_ansible_pg_install()
            echo -e "PRIMARY SERVER" | tee /dev/fd/3
         fi
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep primary \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_primary" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
@@ -436,8 +436,8 @@ function gcloud_ansible_pg_install()
     then
         echo -e "STANDBY SERVERS" | tee /dev/fd/3
         echo -e "--------------" | tee /dev/fd/3
-        for srv  in $(parse_yaml hosts.yml|grep standby \
-                         |grep public_ip|cut -d"=" -f2|xargs echo)
+        for srv  in $(parse_yaml inventory.yml|grep "all_children_standby" \
+                         |grep "ansible_host"|cut -d"=" -f2|xargs echo)
         do
             echo -e "  Username:\t${ANSIBLE_USER}" | tee /dev/fd/3
             echo -e "  Public Ip:\t${srv}" | tee /dev/fd/3
