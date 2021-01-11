@@ -14,7 +14,6 @@ variable "ebs_volume_size" {}
 variable "ebs_volume_iops" {}
 variable "ebs_volume_encryption" {}
 variable "ansible_inventory_yaml_filename" {}
-variable "ansible_pem_inventory_yaml_filename" {}
 variable "os_csv_filename" {}
 variable "add_hosts_filename" {}
 variable "ssh_key_path" {}

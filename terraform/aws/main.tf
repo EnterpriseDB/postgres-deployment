@@ -79,7 +79,6 @@ module "edb-db-cluster" {
   ebs_volume_iops                     = var.ebs_volume_iops
   ebs_volume_encryption               = var.ebs_volume_encryption
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
-  ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id

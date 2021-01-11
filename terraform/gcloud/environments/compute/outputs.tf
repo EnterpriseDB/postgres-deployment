@@ -7,48 +7,31 @@ all:
   children:
   %{for count in range(var.instance_count)~}
 %{if var.pem_instance_count == "1" && count == 0}
-     pemserver:
-       hosts:
-         pemserver${count + 1}:%{endif}
+    pemserver:
+      hosts:
+        pemserver${count + 1}:%{endif}
 %{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}
-     primary:
-       hosts:
-         primary${count}:%{endif}
+    primary:
+      hosts:
+        primary${count}:%{endif}
 %{if var.pem_instance_count == "0" && count == "1" || var.pem_instance_count == "1" && count == 2}
-     standby:
-       hosts:
+    standby:
+      hosts:
 %{endif}
 %{if count > 1}
-         standby${count}:%{endif}
-           ansible_host: ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
-           private_ip: ${google_compute_instance.vm[count].network_interface.0.network_ip}
+        standby${count}:%{endif}
+          ansible_host: ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.vm[count].network_interface.0.network_ip}
 %{if count > 1}
-           replication_type: ${var.synchronicity}%{endif}
+          replication_type: ${var.synchronicity}%{endif}
 %{if count > 0}
-           pem_agent: true%{endif}
+          pem_agent: true%{endif}
 %{if var.pem_instance_count == "1"}
-           pem_server_private_ip: ${google_compute_instance.vm[0].network_interface.0.network_ip}%{endif}
+          pem_server_private_ip: ${google_compute_instance.vm[0].network_interface.0.network_ip}%{endif}
 %{if var.pem_instance_count == "1" && count > 1}
-           upstream_node_private_ip: ${google_compute_instance.vm[1].network_interface.0.network_ip}%{endif}
+          upstream_node_private_ip: ${google_compute_instance.vm[1].network_interface.0.network_ip}%{endif}
 %{if var.pem_instance_count == "0" && count > 0}
-           upstream_node_private_ip: ${google_compute_instance.vm[0].network_interface.0.network_ip}%{endif}
-  %{endfor~}
-EOT
-}
-
-resource "local_file" "AnsiblePEMYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_pem_inventory_yaml_filename
-  content  = <<EOT
----
-servers:
-  %{for count in range(var.instance_count)~}
-%{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
-    node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}  
-    public_ip: ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
-    private_ip: ${google_compute_instance.vm[count].network_interface.0.network_ip}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
-    %{if count > 0}pem_agent: true%{endif}
+          upstream_node_private_ip: ${google_compute_instance.vm[0].network_interface.0.network_ip}%{endif}
   %{endfor~}
 EOT
 }
@@ -70,7 +53,7 @@ echo "Adding IPs"
 %{for count in range(var.instance_count)~}
 ssh-keyscan -H ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip} >> ~/.ssh/known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_instance.vm[count].network_interface.0.access_config.0.nat_ip}
-%{endfor~}    
+%{endfor~}
     EOT
 }
 

@@ -15,7 +15,6 @@ variable "os" {}
 variable "ssh_user" {}
 variable "ssh_key_location" {}
 variable "ansible_inventory_yaml_filename" {}
-variable "ansible_pem_inventory_yaml_filename" {}
 variable "os_csv_filename" {}
 variable "add_hosts_filename" {}
 variable "hosts_filename" {}
@@ -48,7 +47,7 @@ resource "google_compute_instance" "vm" {
   ]
 
   boot_disk {
-    # Un-comment to enable Disk Encryption    
+    # Un-comment to enable Disk Encryption
     #disk_encryption_key_raw = base64encode(var.disk_encryption_key)
     disk_encryption_key_raw = var.disk_encryption_key
 
@@ -84,7 +83,7 @@ resource "google_compute_disk" "volumes" {
   # If un-commented provisioning of resources will fail
   # disk_encryption_key {
   #   raw_key = var.disk_encryption_key
-  # }  
+  # }
 
   depends_on = [google_compute_instance.vm]
 }
