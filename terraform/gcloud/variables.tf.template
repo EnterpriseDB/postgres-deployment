@@ -7,7 +7,7 @@ variable "project_name" {
   default = ""
 }
 
-variable "instance_count" {
+variable "pg_instance_count" {
   default = 3
 }
 

@@ -16,7 +16,7 @@ variable "aws_region" {
 }
 
 # Instance Count
-variable "instance_count" {
+variable "pg_instance_count" {
   default = 3
 }
 

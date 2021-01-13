@@ -26,9 +26,9 @@ function aws_build_server()
 {
     local F_OSNAME="$1"
     local F_REGION="$2"
-    local F_INSTANCES="$3"
+    local F_PG_INSTANCE_COUNT="$3"
     local F_KEYPATH="$4"
-    local F_PEMINSTANCE="$5"
+    local F_PEM_INSTANCE_COUNT="$5"
     local F_PROJECTNAME="$6"
     local F_AMI_ID=""
     local F_IMAGE_NAME=""
@@ -122,7 +122,7 @@ function aws_build_server()
         -var="os=${F_OSNAME}" \
         -var="ami_id=${F_AMI_ID}" \
         -var="aws_region=${REGION}" \
-        -var="instance_count=${F_INSTANCES}" \
+        -var="pg_instance_count=${F_PG_INSTANCE_COUNT}" \
         -var="instance_volume_type=${INSTANCE_VOLUME_TYPE}" \
         -var="instance_volume_iops=${INSTANCE_VOLUME_IOPS}" \
         -var="instance_volume_size=${INSTANCE_VOLUME_SIZE}" \
@@ -135,7 +135,7 @@ function aws_build_server()
         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
         -var="root_user=${ANSIBLE_USER}" \
         -var="cluster_name=$F_PROJECTNAME" \
-        -var="pem_instance_count=${F_PEMINSTANCE}"
+        -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}"
 
     if [[ $? -eq 0 ]]
     then
@@ -163,7 +163,7 @@ function azure_build_server()
     local F_OFFER="$2"
     local F_SKU="$3"
     local F_LOCATION="$4"
-    local F_INSTANCE_COUNT="$5"
+    local F_PG_INSTANCE_COUNT="$5"
     local F_PUB_FILE_PATH="$6"
     local F_PROJECTNAME="$7"
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
@@ -256,7 +256,7 @@ function azure_build_server()
          -var="azure_location=${F_LOCATION}" \
          -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
          -var="admin_username=${ANSIBLE_USER}" \
-         -var="instance_count=${F_INSTANCE_COUNT}" \
+         -var="pg_instance_count=${F_PG_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="cluster_name=$F_PROJECTNAME" \
          -var="vm_manageddisk_count=$ADDITIONAL_VOLUMES_COUNT" \
@@ -289,7 +289,7 @@ function gcloud_build_server()
     local F_OSVERSION=""
     local F_OS="$1"
     local F_SUBNETWORK_REGION="$2"
-    local F_INSTANCE_COUNT="$3"
+    local F_PG_INSTANCE_COUNT="$3"
     local F_PUB_FILE_PATH="$4"
     local F_PROJECTID="$5"
     local F_PROJECTNAME="$6"
@@ -350,7 +350,7 @@ function gcloud_build_server()
          -var="os=$F_IMAGE_NAME" \
          -var="project_name=$F_PROJECTID" \
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
-         -var="instance_count=$F_INSTANCE_COUNT" \
+         -var="pg_instance_count=$F_PG_INSTANCE_COUNT" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \

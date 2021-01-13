@@ -54,7 +54,7 @@ module "vm" {
   source = "./environments/vm"
 
   instance_size                       = var.instance_size
-  instance_count                      = var.instance_count
+  pg_instance_count                   = var.pg_instance_count
   instance_disktype                   = var.instance_disktype
   pem_instance_count                  = var.pem_instance_count
   vm_manageddisk_count                = var.vm_manageddisk_count

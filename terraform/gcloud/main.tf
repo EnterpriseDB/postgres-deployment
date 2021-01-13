@@ -21,7 +21,7 @@ module "security" {
 module "compute" {
   source = "./environments/compute"
 
-  instance_count                      = var.instance_count
+  pg_instance_count                   = var.pg_instance_count
   pem_instance_count                  = var.pem_instance_count
   synchronicity                       = var.synchronicity
   instance_name                       = var.instance_name
