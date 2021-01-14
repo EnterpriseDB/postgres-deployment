@@ -49,7 +49,7 @@ function check_update_param()
                 exit_on_error "${PARAM} value cannot be string"
             fi
         fi
-        if [[ "${PARAM}" = "INSTANCE_COUNT" ]]
+        if [[ "${PARAM}" = "PG_INSTANCE_COUNT" ]]
         then
             if [[ "${VALUE}" -lt 1 ]]
             then
@@ -61,17 +61,15 @@ function check_update_param()
             VALUE=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
             if [[ "${VALUE}" = "yes" ]]
             then
-                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                PG_INSTANCE_COUNT=$(grep PG_INSTANCE_COUNT ${CONFIG_FILE} \
                                     |cut -d"=" -f2)
-                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                if [[ "x${PG_INSTANCE_COUNT}" = "x" ]]
                 then
-                    INSTANCE_COUNT=1
-                else
-                    INSTANCE_COUNT=$(( INSTANCE_COUNT + 1 ))
+                    PG_INSTANCE_COUNT=1
                 fi
-                validate_variable "INSTANCE_COUNT" \
+                validate_variable "PG_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
-                                  "${INSTANCE_COUNT}"
+                                  "${PG_INSTANCE_COUNT}"
                 PEM_INSTANCE_COUNT=1
                 validate_variable "PEM_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
@@ -80,17 +78,15 @@ function check_update_param()
 
             if [[ "${VALUE}" = "no" ]]
             then
-                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                PG_INSTANCE_COUNT=$(grep PG_INSTANCE_COUNT ${CONFIG_FILE} \
                                     |cut -d"=" -f2)
-                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                if [[ "x${PG_INSTANCE_COUNT}" = "x" ]]
                 then
-                    INSTANCE_COUNT=1
-                else
-                    INSTANCE_COUNT=$(( INSTANCE_COUNT ))
+                    PG_INSTANCE_COUNT=1
                 fi
-                validate_variable "INSTANCE_COUNT" \
+                validate_variable "PG_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
-                                  "${INSTANCE_COUNT}"
+                                  "${PG_INSTANCE_COUNT}"
                 PEM_INSTANCE_COUNT=0
                 validate_variable "PEM_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
@@ -195,7 +191,7 @@ function aws_config_file()
     export REGION
     validate_variable "REGION" "${CONFIG_FILE}" "${REGION}"
 
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
@@ -209,10 +205,10 @@ function aws_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -223,11 +219,10 @@ function aws_config_file()
               "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -763,7 +758,7 @@ function azure_config_file()
     export LOCATION
     validate_variable "LOCATION" "${CONFIG_FILE}" "${LOCATION}"
 
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
@@ -777,10 +772,10 @@ function azure_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -791,11 +786,10 @@ function azure_config_file()
               "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -1094,7 +1088,7 @@ function gcloud_config_file()
     export SUBNETWORK_REGION
     validate_variable "SUBNETWORK_REGION" "${CONFIG_FILE}" "${SUBNETWORK_REGION}"
 
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
@@ -1108,10 +1102,10 @@ function gcloud_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -1122,11 +1116,10 @@ function gcloud_config_file()
               "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;

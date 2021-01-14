@@ -37,8 +37,13 @@ variable "instance_size" {
 }
 
 # Count
-variable "instance_count" {
-  default = 1
+variable "pg_instance_count" {
+  default = 3
+}
+
+# PEM Instance Count
+variable "pem_instance_count" {
+  default = 0
 }
 
 # Primary Disk
@@ -63,11 +68,6 @@ variable vm_manageddisk_disktype {
    default = "StandardSSD_LRS"
    # Only available on current VM Sizes
    #default = "Premium_LRS"
-}
-
-# PEM Instance Count
-variable "pem_instance_count" {
-  default = 0
 }
 
 # Synchronicity

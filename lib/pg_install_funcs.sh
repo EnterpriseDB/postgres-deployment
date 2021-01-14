@@ -117,9 +117,9 @@ function aws_ansible_pg_install()
         done
     fi
 
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${PG_INSTANCE_COUNT} -lt 2 ]]
     then
-        if [[ ${INSTANCE_COUNT} -lt 2 ]]
+        if [[ ${PG_INSTANCE_COUNT} -lt 2 ]]
         then
            echo -e "SERVER" | tee /dev/fd/3
         else
@@ -257,9 +257,9 @@ function azure_ansible_pg_install()
         done
     fi
 
-    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${INSTANCE_COUNT} -lt 2 ]]
+    if [[ ${PRIMARY_EXISTS} -gt 0 ]] || [[ ${PG_INSTANCE_COUNT} -lt 2 ]]
     then
-        if [[ ${INSTANCE_COUNT} -lt 2 ]]
+        if [[ ${PG_INSTANCE_COUNT} -lt 2 ]]
         then
            echo -e "SERVER" | tee /dev/fd/3
         else

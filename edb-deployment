@@ -84,7 +84,7 @@ then
 
     aws_build_server "${OSNAME}" \
                      "${REGION}" \
-                     "${INSTANCE_COUNT}" \
+                     "${PG_INSTANCE_COUNT}" \
                      "${PUB_FILE_PATH}" \
                      "${PEM_INSTANCE_COUNT}" \
                      "${PROJECT_NAME}" \
@@ -105,7 +105,7 @@ then
                        "${OFFER}" \
                        "${SKU}" \
                        "${LOCATION}" \
-                       "${INSTANCE_COUNT}" \
+                       "${PG_INSTANCE_COUNT}" \
                        "${PUB_FILE_PATH}" \
                        "${PROJECT_NAME}" \
                        "${PEM_INSTANCE_COUNT}" \
@@ -123,7 +123,7 @@ then
 
     gcloud_build_server "${OSNAME}" \
                         "${SUBNETWORK_REGION}" \
-                        "${INSTANCE_COUNT}" \
+                        "${PG_INSTANCE_COUNT}" \
                         "${PUB_FILE_PATH}" \
                         "${PROJECT_ID}" \
                         "${PROJECT_NAME}" \
