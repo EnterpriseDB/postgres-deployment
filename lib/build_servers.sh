@@ -26,9 +26,9 @@ function aws_build_server()
 {
     local F_OSNAME="$1"
     local F_REGION="$2"
-    local F_INSTANCES="$3"
+    local F_PG_INSTANCE_COUNT="$3"
     local F_KEYPATH="$4"
-    local F_PEMINSTANCE="$5"
+    local F_PEM_INSTANCE_COUNT="$5"
     local F_PROJECTNAME="$6"
     local F_AMI_ID=""
     local F_IMAGE_NAME=""
@@ -37,47 +37,47 @@ function aws_build_server()
     local F_AMI_ID="$8"
     local F_PUB_KEYNAMEANDEXTENSION=""
     local F_PRIV_KEYNAMEANDEXTENSION=""
-    
+
     process_log "Building AWS Servers"
     cd ${DIRECTORY}/terraform/aws || exit 1
     process_log "including project names in the variables and tags"
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" tags.tf.template > tags.tf
     sed "s/PROJECT_NAME/${F_PROJECTNAME}/g" variables.tf.template \
-                                        > variables.tf 
+                                        > variables.tf
 
     if [ "$F_AMI_ID" = "No" ]
-    then   
+    then
         case $F_OSNAME in
             "CentOS7")
-                shift; 
+                shift;
                 F_IMAGE_NAME="CentOS Linux 7 x86_64 HVM EBS*"
                 export F_IMAGE_NAME
                 ;;
             "CentOS8")
-                shift; 
+                shift;
                 F_IMAGE_NAME="CentOS 8*"
                 export F_IMAGE_NAME
                 ;;
             "RHEL7")
-                shift; 
+                shift;
                 F_IMAGE_NAME="RHEL-7.8-x86_64*"
                 export F_IMAGE_NAME
-                ;;            
+                ;;
             "RHEL8")
-                shift; 
+                shift;
                 F_IMAGE_NAME="RHEL-8.2-x86_64*"
                 export F_IMAGE_NAME
-                ;;                       
+                ;;
         esac
 
-        if [[ "${F_OSNAME}" =~ "Cent" ]]        
+        if [[ "${F_OSNAME}" =~ "Cent" ]]
         then
             ANSIBLE_USER="centos"
         elif [[ "${F_OSNAME}" =~ "RHEL" ]]
         then
             ANSIBLE_USER="ec2-user"
         fi
-    
+
         process_log "Checking availability of Instance Type in target region"
         instancetypeExists=$(aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=${F_INSTANCE_TYPE} --region ${REGION} --output text)
         if [ ! -z "$instancetypeExists" ]
@@ -86,7 +86,7 @@ function aws_build_server()
         else
             exit_on_error "Instance Type: '${F_INSTANCE_TYPE}' is not available in region: '${REGION}'"
         fi
-       
+
         process_log "Checking availability of Instance Image in target region"
         F_AMI_ID=$(aws ec2 describe-images --filters Name=name,Values="${F_IMAGE_NAME}" --query 'sort_by(Images, &Name)[-1].ImageId' --region ${REGION} --output text)
     fi
@@ -101,7 +101,7 @@ function aws_build_server()
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_KEYPATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
-    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")    
+    F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_KEYPATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
     cp -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
@@ -115,14 +115,14 @@ function aws_build_server()
     else
         terraform workspace new "${F_PROJECTNAME}"
     fi
-        
+
     terraform init
-    
+
     terraform apply -auto-approve \
         -var="os=${F_OSNAME}" \
         -var="ami_id=${F_AMI_ID}" \
         -var="aws_region=${REGION}" \
-        -var="instance_count=${F_INSTANCES}" \
+        -var="pg_instance_count=${F_PG_INSTANCE_COUNT}" \
         -var="instance_volume_type=${INSTANCE_VOLUME_TYPE}" \
         -var="instance_volume_iops=${INSTANCE_VOLUME_IOPS}" \
         -var="instance_volume_size=${INSTANCE_VOLUME_SIZE}" \
@@ -135,7 +135,7 @@ function aws_build_server()
         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
         -var="root_user=${ANSIBLE_USER}" \
         -var="cluster_name=$F_PROJECTNAME" \
-        -var="pem_instance_count=${F_PEMINSTANCE}"
+        -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}"
 
     if [[ $? -eq 0 ]]
     then
@@ -145,10 +145,11 @@ function aws_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
-    
-    cp -f pem-inventory.yml hosts.yml
+
+    # Remove empty lines from inventory file
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PUB_KEYNAME} \
         ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/aws/${F_NEW_PRIV_KEYNAME} \
@@ -162,20 +163,21 @@ function azure_build_server()
     local F_OFFER="$2"
     local F_SKU="$3"
     local F_LOCATION="$4"
-    local F_INSTANCE_COUNT="$5"
+    local F_PG_INSTANCE_COUNT="$5"
     local F_PUB_FILE_PATH="$6"
     local F_PROJECTNAME="$7"
     local F_EDB_PREREQ_GROUP="${7}_EDB-PREREQS-RESOURCEGROUP"
     local F_PEM_INSTANCE_COUNT="$8"
     local F_PRIV_FILE_KEYPATH="$9"
-    #Minimal size
+    # Minimal size
     #local F_AZURE_INSTANCE_SIZE="Standard_A1"
-    #Small size
-    local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
-    #Larger size
-    #local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
+    # Small size
+    # Before adding managed disks
+    #local F_AZURE_INSTANCE_SIZE="Standard_A2_v2"
+    # Larger size
+    local F_AZURE_INSTANCE_SIZE="Standard_A8_v2"
     local ANSIBLE_USER=""
-    
+
     process_log "Building Azure Servers"
     cd ${DIRECTORY}/terraform/azure || exit 1
     process_log "including project names in the variables and tags"
@@ -191,7 +193,7 @@ function azure_build_server()
     else
         exit_on_error "Instance Size: '${F_AZURE_INSTANCE_SIZE}' is not available in region: '${F_LOCATION}'"
     fi
-       
+
     process_log "Checking availability of Instance Image in target region"
     amiExists=$(az vm image list --all -p ${F_PUBLISHER} -f ${F_OFFER} -s ${F_SKU} -l ${F_LOCATION} --output table)
     if [ ! -z "$amiExists" ]
@@ -207,6 +209,10 @@ function azure_build_server()
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -215,7 +221,7 @@ function azure_build_server()
         terraform workspace new "${F_PROJECTNAME}"
     fi
 
-    if [[ "${OFFER}" =~ "Cent" ]]        
+    if [[ "${OFFER}" =~ "Cent" ]]
     then
         ANSIBLE_USER="centos"
     elif [[ "${OFFER}" =~ "RHEL" ]]
@@ -224,7 +230,7 @@ function azure_build_server()
     else
         exit_on_error "Unknown Operating system"
     fi
-                                                    
+
     terraform init
 
 #    terraform apply -auto-approve \
@@ -236,9 +242,9 @@ function azure_build_server()
 #         -var="admin_username=${ANSIBLE_USER}" \
 #         -var="instance_count=1" \
 #         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
- 
+
 #    if [ "$?" = "0" ]; then
-#      # Wait for VMs to be fully available
+#      # Wait for instances to be fully available
 #      az vm wait --ids $(az vm list -g "$F_EDB_PREREQ_GROUP" --query "[].id" -o tsv) --created
 #    fi
 
@@ -250,10 +256,14 @@ function azure_build_server()
          -var="azure_location=${F_LOCATION}" \
          -var="instance_size=${F_AZURE_INSTANCE_SIZE}" \
          -var="admin_username=${ANSIBLE_USER}" \
-         -var="instance_count=${F_INSTANCE_COUNT}" \
+         -var="pg_instance_count=${F_PG_INSTANCE_COUNT}" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="cluster_name=$F_PROJECTNAME" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
+         -var="vm_manageddisk_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="vm_manageddisk_disktype=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="vm_manageddisk_volume_size=$ADDITIONAL_VOLUMES_SIZE" \
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}"
 
     if [[ $? -eq 0 ]]
     then
@@ -263,15 +273,15 @@ function azure_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
-    
-    cp -f pem-inventory.yml hosts.yml
-        
+
+    # Remove empty lines from inventory file
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+
     mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PUB_KEYNAME} \
        ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/azure/${F_NEW_PRIV_KEYNAME} \
-       ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}    
+       ${PROJECTS_DIRECTORY}/azure/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 }
 
 function gcloud_build_server()
@@ -279,9 +289,9 @@ function gcloud_build_server()
     local F_OSVERSION=""
     local F_OS="$1"
     local F_SUBNETWORK_REGION="$2"
-    local F_INSTANCE_COUNT="$3"
+    local F_PG_INSTANCE_COUNT="$3"
     local F_PUB_FILE_PATH="$4"
-    local F_PROJECTID="$5"    
+    local F_PROJECTID="$5"
     local F_PROJECTNAME="$6"
     local F_PEM_INSTANCE_COUNT="$7"
     local F_CREDENTIALS_FILE_LOCATION="$8"
@@ -297,31 +307,35 @@ function gcloud_build_server()
                                         > variables.tf
 
     if [[ "${F_OS}" =~ "centos" ]]
-    then  
+    then
         F_ANSIBLE_USER="centos"
+    elif [[ "${F_OS}" =~ "rhel" ]]
+    then
+        F_ANSIBLE_USER="ec2-user"
+    else
+        exit_on_error "Unknown Operating system"
     fi
 
-    if [[ "${F_OS}" =~ "rhel" ]]
-    then  
-        F_ANSIBLE_USER="ec2-user"
-    fi
-        
     process_log "Checking availability of Image in target region"
     F_IMAGE_LIST=$(gcloud compute images list --filter="family=${F_OS}" --format="[list,no-heading]")
-    F_IMAGE_NAME=$(get_first_word_from_output "${F_IMAGE_LIST}")    
+    F_IMAGE_NAME=$(get_first_word_from_output "${F_IMAGE_LIST}")
     if [ ! -z "$F_IMAGE_NAME" ]
     then
         process_log "Instance Image for: Family: '${F_OS}' is available in region: '${F_SUBNETWORK_REGION}'"
     else
         exit_on_error "Instance Image for: Family: '${F_OS}' is not available in location: '${F_SUBNETWORK_REGION}'"
     fi
-        
+
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
     F_PRIV_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PRIV_FILE_KEYPATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
     F_NEW_PRIV_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PRIV_KEYNAMEANDEXTENSION}")
     cp -f "${F_PUB_FILE_PATH}" "${F_NEW_PUB_KEYNAME}"
     cp -f "${F_PRIV_FILE_KEYPATH}" "${F_NEW_PRIV_KEYNAME}"
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
+    cp -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
+        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
 
     if output=$(terraform workspace list | grep "${F_PROJECTNAME}")  &&  [ ! -z "$output" ]
     then
@@ -329,20 +343,26 @@ function gcloud_build_server()
     else
         terraform workspace new "${F_PROJECTNAME}"
     fi
- 
+
     terraform init
 
     terraform apply -auto-approve \
          -var="os=$F_IMAGE_NAME" \
          -var="project_name=$F_PROJECTID" \
          -var="subnetwork_region=$F_SUBNETWORK_REGION" \
-         -var="instance_count=$F_INSTANCE_COUNT" \
+         -var="pg_instance_count=$F_PG_INSTANCE_COUNT" \
          -var="pem_instance_count=${F_PEM_INSTANCE_COUNT}" \
          -var="credentials=$F_CREDENTIALS_FILE_LOCATION" \
          -var="ssh_user=$F_ANSIBLE_USER" \
          -var="instance_name=$F_PROJECTNAME" \
-         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}"
- 
+         -var="volume_count=$ADDITIONAL_VOLUMES_COUNT" \
+         -var="volume_disk_type=$ADDITIONAL_VOLUMES_DISKTYPE" \
+         -var="volume_disk_size=$ADDITIONAL_VOLUMES_SIZE" \
+         -var="ssh_key_location=./${F_NEW_PUB_KEYNAME}" \
+         -var="full_private_ssh_key_path=${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}" \
+         -var="disk_encryption_key=${DISK_ENCRYPTION_KEY}"
+
+    # Force application of startup script
     if [[ $? -eq 0 ]]
     then
         process_log "Waiting for Instances to be available"
@@ -351,15 +371,30 @@ function gcloud_build_server()
     else
         exit_on_error "Failed to build the servers."
     fi
-    #sed -i "/^ */d" inventory.yml
-    sed -i "/^ *$/d" pem-inventory.yml
-       
-    cp -f pem-inventory.yml hosts.yml
-        
+
+    # Remove empty lines from inventory file
+    sed -i.bak "/^ *$/d" inventory.yml
+    rm inventory.yml.bak
+
+    mv -f ${DIRECTORY}/terraform/gcloud/hosts \
+       ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/hosts
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PUB_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PUB_KEYNAME}
     mv -f ${DIRECTORY}/terraform/gcloud/${F_NEW_PRIV_KEYNAME} \
        ${PROJECTS_DIRECTORY}/gcloud/${F_PROJECTNAME}/${F_NEW_PRIV_KEYNAME}
+
+    # Force Re-Running Startup Script
+    if [[ "$ADDITIONAL_VOLUMES_COUNT" != "0" ]]
+    then
+       cd ${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME} || exit 1
+
+       ansible all -i ./hosts \
+           --ssh-common-args='-o StrictHostKeyChecking=no' \
+           --user="${F_ANSIBLE_USER}" \
+           --private-key="./${F_NEW_PRIV_KEYNAME}" \
+           -m shell -a "sudo google_metadata_script_runner startup"
+    fi
+    process_log "Cluster was provisioned successfully!"
 }
 
 ################################################################################
@@ -374,13 +409,13 @@ function aws_destroy_server()
     cd ${DIRECTORY}/terraform/aws || exit 1
 
     terraform workspace select "${F_PROJECTNAME}"
-        
+
     terraform destroy -auto-approve \
         -var="aws_region=${REGION}"
 
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"
-    
+
     rm -Rf ${PROJECTS_DIRECTORY}/aws/${F_PROJECTNAME}
 }
 
@@ -397,13 +432,13 @@ function azure_destroy_server()
 
     F_PUB_KEYNAMEANDEXTENSION=$(get_string_after_lastslash "${F_PUB_FILE_PATH}")
     F_NEW_PUB_KEYNAME=$(join_strings_with_underscore "${F_PROJECTNAME}" "${F_PUB_KEYNAMEANDEXTENSION}")
-    
+
     terraform workspace select "${F_PROJECTNAME}"
-        
+
     terraform destroy -auto-approve \
         -var="azure_location=${F_LOCATION}" \
-         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"        
-        
+         -var="ssh_key_path=./${F_NEW_PUB_KEYNAME}"
+
     terraform workspace select default
     terraform workspace delete "${F_PROJECTNAME}"
 
@@ -418,10 +453,10 @@ function gcloud_destroy_server()
     local F_PROJECTNAME="$4"
 
     process_log "Removing Google Cloud Servers"
-    cd ${DIRECTORY}/terraform/gcloud || exit 1    
+    cd ${DIRECTORY}/terraform/gcloud || exit 1
 
     terraform workspace select "${F_PROJECTNAME}"
-    
+
     terraform destroy -auto-approve \
         -var="subnetwork_region=${F_SUBNETWORK_REGION}" \
         -var="project_name=${F_PROJECT_ID}" \

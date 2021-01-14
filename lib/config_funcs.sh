@@ -49,7 +49,7 @@ function check_update_param()
                 exit_on_error "${PARAM} value cannot be string"
             fi
         fi
-        if [[ "${PARAM}" = "INSTANCE_COUNT" ]]
+        if [[ "${PARAM}" = "PG_INSTANCE_COUNT" ]]
         then
             if [[ "${VALUE}" -lt 1 ]]
             then
@@ -61,17 +61,15 @@ function check_update_param()
             VALUE=$(echo ${VALUE}|tr '[:upper:]' '[:lower:]')
             if [[ "${VALUE}" = "yes" ]]
             then
-                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                PG_INSTANCE_COUNT=$(grep PG_INSTANCE_COUNT ${CONFIG_FILE} \
                                     |cut -d"=" -f2)
-                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                if [[ "x${PG_INSTANCE_COUNT}" = "x" ]]
                 then
-                    INSTANCE_COUNT=1
-                else
-                    INSTANCE_COUNT=$(( INSTANCE_COUNT + 1 ))
+                    PG_INSTANCE_COUNT=1
                 fi
-                validate_variable "INSTANCE_COUNT" \
+                validate_variable "PG_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
-                                  "${INSTANCE_COUNT}"
+                                  "${PG_INSTANCE_COUNT}"
                 PEM_INSTANCE_COUNT=1
                 validate_variable "PEM_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
@@ -80,17 +78,15 @@ function check_update_param()
 
             if [[ "${VALUE}" = "no" ]]
             then
-                INSTANCE_COUNT=$(grep INSTANCE_COUNT ${CONFIG_FILE} \
+                PG_INSTANCE_COUNT=$(grep PG_INSTANCE_COUNT ${CONFIG_FILE} \
                                     |cut -d"=" -f2)
-                if [[ "x${INSTANCE_COUNT}" = "x" ]]
+                if [[ "x${PG_INSTANCE_COUNT}" = "x" ]]
                 then
-                    INSTANCE_COUNT=1
-                else
-                    INSTANCE_COUNT=$(( INSTANCE_COUNT ))
+                    PG_INSTANCE_COUNT=1
                 fi
-                validate_variable "INSTANCE_COUNT" \
+                validate_variable "PG_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
-                                  "${INSTANCE_COUNT}"
+                                  "${PG_INSTANCE_COUNT}"
                 PEM_INSTANCE_COUNT=0
                 validate_variable "PEM_INSTANCE_COUNT" \
                                   "${CONFIG_FILE}"  \
@@ -106,8 +102,8 @@ function check_update_param()
             if [[ "${VALUE}" -gt 12 ]]
             then
                 exit_on_error "Instance count cannot be less than 10"
-            fi            
-        fi        
+            fi
+        fi
         validate_variable "${PARAM}" "${CONFIG_FILE}" "${VALUE}"
     fi
 }
@@ -121,7 +117,7 @@ function aws_config_file()
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}    
+    mkdir -p ${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -130,7 +126,7 @@ function aws_config_file()
     else
         source ${CONFIG_FILE}
     fi
-    
+
     set +u
 
     # Prompt for OSNAME
@@ -139,7 +135,7 @@ function aws_config_file()
     then
         declare -a OPTIONS=('1. CentOS 7' '2. CentOS 8' '3. RHEL 7' '4. RHEL 8')
         declare -a CHOICES=('1' '2' '3' '4')
-        
+
         RESULT=""
         custom_options_prompt "Which Operating System would you like to Install?" \
            "Please enter your choice:" \
@@ -163,14 +159,14 @@ function aws_config_file()
     fi
     export OSNAME
     validate_variable "OSNAME" "${CONFIG_FILE}" "${OSNAME}"
-    
+
     # Prompt for REGION
     CHECK=$(check_variable "REGION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. us-east-1' '2. us-east-2' '3. us-west-1' '4. us-west-2')
         declare -a CHOICES=('1' '2' '3' '4')
-        
+
         RESULT=""
         custom_options_prompt "Which Region would you like to use?" \
           "Please enter your choice:" \
@@ -190,17 +186,17 @@ function aws_config_file()
           4)
             REGION="us-west-2"
             ;;
-        esac   
+        esac
     fi
     export REGION
     validate_variable "REGION" "${CONFIG_FILE}" "${REGION}"
 
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "How many AWS EC2 Instances would you like to create?" \
           "Please enter your choice:" \
@@ -209,10 +205,10 @@ function aws_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -223,11 +219,10 @@ function aws_config_file()
               "Please enter how many AWS EC2 Instances you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
             export PEMSERVER
             ;;
@@ -240,7 +235,7 @@ function aws_config_file()
     then
         declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa.pub]" '2. Custom')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which public key file will you choose?" \
           "Please enter your choice:" \
@@ -263,7 +258,7 @@ function aws_config_file()
             export PUB_FILE_PATH
             ;;
         esac
-            
+
         #RESULT=""
         #validate_string_not_empty "What will the absolute path of the public key file be?" \
         #  "[${HOME}/.ssh/id_rsa.pub] (Enter will utilize the listed value as default): " \
@@ -279,7 +274,7 @@ function aws_config_file()
     then
         declare -a OPTIONS=("1. Default = [${HOME}/.ssh/id_rsa]" '2. Custom')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which private key file will you choose?" \
           "Please enter your choice:" \
@@ -302,7 +297,7 @@ function aws_config_file()
             export PRIV_FILE_PATH
             ;;
         esac
-    
+
         #RESULT=""
         #validate_string_not_empty "What will the absolute path of the private key file be?" \
         #  "[${HOME}/.ssh/id_rsa]: (Enter will utilize the listed value as default)" \
@@ -311,14 +306,14 @@ function aws_config_file()
     fi
     #validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
     #export PRIV_FILE_PATH
-      
+
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Postgres' '2. EDB Postgres Advanced Server')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which Database Engine would you like to install?" \
           "Please enter your choice:" \
@@ -335,7 +330,7 @@ function aws_config_file()
         esac
     fi
     validate_variable "PG_TYPE" "${CONFIG_FILE}" "${PG_TYPE}"
-    export PG_TYPE    
+    export PG_TYPE
 
     # Prompt for Database Engine Version
     CHECK=$(check_variable "PG_VERSION" "${CONFIG_FILE}")
@@ -343,7 +338,7 @@ function aws_config_file()
     then
         declare -a OPTIONS=('1. 10' '2. 11' '3. 12')
         declare -a CHOICES=('1' '2' '3')
-        
+
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
           "Please enter your choice:" \
@@ -360,19 +355,19 @@ function aws_config_file()
             ;;
           3)
             PG_VERSION="12"
-            ;;          
+            ;;
         esac
     fi
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"
-    export PG_VERSION    
-  
+    export PG_VERSION
+
     # Prompt for Standby Replication Type
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. synchronous' '2. asynchronous')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
           "Please enter your choice:" \
@@ -389,10 +384,10 @@ function aws_config_file()
         esac
     fi
     export STANDBY_TYPE
-    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"
 
     # AMI ID
-    CHECK=$(check_variable "AMI_ID" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "AMI_ID" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -415,16 +410,21 @@ function aws_config_file()
     CHECK=$(check_variable "INSTANCE_VOLUME_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want to configure the instances main volume?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want to configure the instances main volume?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
         then
             # Volume Type
             declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
             declare -a CHOICES=('1' '2' '3')
-        
+
             RESULT=""
             custom_options_prompt "Which type of disk type for the instances main volume would you like?" \
                "Please enter your choice:" \
@@ -448,7 +448,7 @@ function aws_config_file()
             # Volume Size
             CHECK=$(check_variable "INSTANCE_VOLUME_SIZE" "${CONFIG_FILE}")
             if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
-            then     
+            then
                 RESULT=""
                 validate_string_not_empty "Please enter the size in GB for main volume: " "" RESULT
                 VS="${RESULT}"
@@ -465,7 +465,7 @@ function aws_config_file()
                 then
                     declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
                     declare -a CHOICES=('1' '2' '3' '4')
-        
+
                     RESULT=""
 
                     custom_options_prompt "Which provisioned size for iops for the instances main volume would you like?" \
@@ -507,15 +507,20 @@ function aws_config_file()
     CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
-        RESULT=""
-        custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
-          "Enter: (Y)es/(N)o" \
-          RESULT
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
         if [[ "${RESULT}" = "Yes" ]]
-        then    
+        then
             declare -a OPTIONS=('1. gp2' '2. io1' '3. io2')
             declare -a CHOICES=('1' '2' '3')
-        
+
             RESULT=""
             custom_options_prompt "Which type of disk volume would you like?" \
               "Please enter your choice:" \
@@ -539,7 +544,7 @@ function aws_config_file()
             then
                 declare -a OPTIONS=('1. 250' '2. 350' '3. 3000' '4. Custom')
                 declare -a CHOICES=('1' '2' '3' '4')
-            
+
                 RESULT=""
                 custom_options_prompt "Which provisioned size for iops would you like?" \
                   "Please enter your choice:" \
@@ -565,7 +570,7 @@ function aws_config_file()
             fi
             RESULT=""
             validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
-            AVS="${RESULT}"         
+            AVS="${RESULT}"
             RESULT=""
             custom_yesno_prompt "Do you wish to encrypt the volumes ?" \
               "Enter: (Y)es/(N)o" \
@@ -575,7 +580,7 @@ function aws_config_file()
                 AVS_ENCRYPTION="true"
             else
                 AVS_ENCRYPTION="false"
-            fi                                
+            fi
             validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
             validate_variable "ADDITIONAL_VOLUMES_TYPE" "${CONFIG_FILE}" "${AIOPSTYPE}"
             validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
@@ -585,7 +590,7 @@ function aws_config_file()
             export ADDITIONAL_VOLUMES_TYPE
             export ADDITIONAL_VOLUMES_SIZE
             export ADDITIONAL_VOLUMES_IOPS
-            export ADDITIONAL_VOLUMES_ENCRYPTION                
+            export ADDITIONAL_VOLUMES_ENCRYPTION
         else
             validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "ADDITIONAL_VOLUMES_TYPE" "${CONFIG_FILE}" "No"
@@ -597,11 +602,11 @@ function aws_config_file()
             export ADDITIONAL_VOLUMES_SIZE
             export ADDITIONAL_VOLUMES_IOPS
             export ADDITIONAL_VOLUMES_ENCRYPTION
-        fi    
+        fi
     fi
 
     # EDB YUM UserName
-    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -610,9 +615,9 @@ function aws_config_file()
     fi
     validate_variable "YUM_USERNAME" "${CONFIG_FILE}" "${YUM_USERNAME}"
     export YUM_USERNAME
-    
+
     # EDB YUM Password
-    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -624,7 +629,7 @@ function aws_config_file()
 
     echo " "
     set -u
-               
+
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
@@ -632,10 +637,10 @@ function aws_config_file()
 function azure_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
     mkdir -p ${LOGDIR}
-    mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}        
+    mkdir -p ${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}
 
     if [[ ! -f ${CONFIG_FILE} ]]
     then
@@ -644,8 +649,8 @@ function azure_config_file()
     else
         source ${CONFIG_FILE}
     fi
-    
-    set +u    
+
+    set +u
 
     # Prompt for Publisher
     CHECK=$(check_variable "PUBLISHER" "${CONFIG_FILE}")
@@ -653,7 +658,7 @@ function azure_config_file()
     then
         declare -a OPTIONS=('1. OpenLogic' '2. Redhat')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which Publisher would you like to choose?" \
           "Please enter your choice:" \
@@ -671,7 +676,7 @@ function azure_config_file()
     fi
     validate_variable "PUBLISHER" "${CONFIG_FILE}" "${PUBLISHER}"
     export PUBLISHER
-    
+
     # Prompt for Offer
     CHECK=$(check_variable "OFFER" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -753,7 +758,7 @@ function azure_config_file()
     export LOCATION
     validate_variable "LOCATION" "${CONFIG_FILE}" "${LOCATION}"
 
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
@@ -767,12 +772,12 @@ function azure_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER            
+            export PEMSERVER
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -781,13 +786,12 @@ function azure_config_file()
               "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER            
+            export PEMSERVER
             ;;
         esac
     fi
@@ -817,14 +821,14 @@ function azure_config_file()
     fi
     validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
     export PRIV_FILE_PATH
- 
+
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Postgres' '2. EDB Postgres Advanced Server')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         echo "${options[@]}"
         custom_options_prompt "Which Database Engine would you like to install?" \
@@ -850,7 +854,7 @@ function azure_config_file()
     then
         declare -a OPTIONS=('1. 10' '2. 11' '3. 12')
         declare -a CHOICES=('1' '2' '3')
-        
+
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
           "Please enter your choice:" \
@@ -867,19 +871,19 @@ function azure_config_file()
             ;;
           3)
             PG_VERSION="12"
-            ;;          
+            ;;
         esac
     fi
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"
-    export PG_VERSION    
- 
+    export PG_VERSION
+
     # Prompt for Standby Replication Type
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. synchronous' '2. asynchronous')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
           "Please enter your choice:" \
@@ -896,10 +900,62 @@ function azure_config_file()
         esac
     fi
     export STANDBY_TYPE
-    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"
+
+    # Additional Volumes
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        #RESULT=""
+        #custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then
+            declare -a OPTIONS=('1. Standard' '2. SSD')
+            declare -a CHOICES=('1' '2')
+
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                ADISKTYPE="Standard_LRS"
+                ;;
+              2)
+                ADISKTYPE="StandardSSD_LRS"
+                ;;
+            esac
+
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "Standard_LRS"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        fi
+    fi
 
     # EDB YUM UserName
-    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -910,7 +966,7 @@ function azure_config_file()
     export YUM_USERNAME
 
     # EDB YUM Password
-    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -921,7 +977,7 @@ function azure_config_file()
     export YUM_PASSWORD
 
     set -u
-        
+
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
@@ -929,7 +985,7 @@ function azure_config_file()
 function gcloud_config_file()
 {
     local PROJECT_NAME="$1"
-    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"    
+    local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
     local READ_INPUT="read -r -e -p"
 
     local MESSAGE
@@ -945,7 +1001,7 @@ function gcloud_config_file()
         source ${CONFIG_FILE}
     fi
 
-    set +u    
+    set +u
 
     # Prompt for OSNAME
     CHECK=$(check_variable "OSNAME" "${CONFIG_FILE}")
@@ -953,7 +1009,7 @@ function gcloud_config_file()
     then
         declare -a OPTIONS=('1. centos-7' '2. centos-8' '3. rhel-7' '4. rhel-8')
         declare -a CHOICES=('1' '2' '3' '4')
-        
+
         RESULT=""
         custom_options_prompt "Which Operating System and Version would you like to use?" \
           "Please enter your choice:" \
@@ -973,7 +1029,7 @@ function gcloud_config_file()
           4)
             OSNAME="rhel-8"
             ;;
-        esac   
+        esac
     fi
     export OSNAME
     validate_variable "OSNAME" "${CONFIG_FILE}" "${OSNAME}"
@@ -990,7 +1046,7 @@ function gcloud_config_file()
     fi
     validate_variable "PROJECT_ID" "${CONFIG_FILE}" "${PROJECT_ID}"
     export PROJECT_ID
-        
+
     # Prompt for SUBNETWORK_REGION
     CHECK=$(check_variable "SUBNETWORK_REGION" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
@@ -998,7 +1054,7 @@ function gcloud_config_file()
         declare -a OPTIONS=('1. us-central1' '2. us-east1' '3. us-east4' '4. us-west1' \
           '5. us-west2' '6. us-west3' '7. us-west4')
         declare -a CHOICES=('1' '2' '3' '4' '5' '6' '7')
-        
+
         RESULT=""
         custom_options_prompt "Which Azure Location will you deploy towards?" \
           "Please enter your choice:" \
@@ -1027,17 +1083,17 @@ function gcloud_config_file()
           7)
             SUBNETWORK_REGION="us-west4"
             ;;
-        esac   
+        esac
     fi
     export SUBNETWORK_REGION
     validate_variable "SUBNETWORK_REGION" "${CONFIG_FILE}" "${SUBNETWORK_REGION}"
-   
-    CHECK=$(check_variable "INSTANCE_COUNT" "${CONFIG_FILE}")
+
+    CHECK=$(check_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Single Installation' '2. Multi-Node Installation')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "How many Virtual Machines would you like to create?" \
           "Please enter your choice:" \
@@ -1046,12 +1102,12 @@ function gcloud_config_file()
           RESULT
         case "${RESULT}" in
           1)
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "1"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "0"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "No"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER              
+            export PEMSERVER
             ;;
           2)
             # Ask about how many instances for multi-node cluster
@@ -1060,13 +1116,12 @@ function gcloud_config_file()
               "Please enter how many Virtual Machines you would like for the Multi-Node Cluster? " \
               "" \
               RESULT
-            RESULT=$(( RESULT + 1 ))
-            validate_variable "INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
+            validate_variable "PG_INSTANCE_COUNT" "${CONFIG_FILE}" "${RESULT}"
             validate_variable "PEM_INSTANCE_COUNT" "${CONFIG_FILE}" "1"
             validate_variable "PEMSERVER" "${CONFIG_FILE}" "Yes"
-            export INSTANCE_COUNT
+            export PG_INSTANCE_COUNT
             export PEM_INSTANCE_COUNT
-            export PEMSERVER              
+            export PEMSERVER
             ;;
         esac
     fi
@@ -1109,14 +1164,14 @@ function gcloud_config_file()
     fi
     validate_variable "PRIV_FILE_PATH" "${CONFIG_FILE}" "${PRIV_FILE_PATH}"
     export PRIV_FILE_PATH
- 
+
     # Prompt for Database Engine
     CHECK=$(check_variable "PG_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. Postgres' '2. EDB Postgres Advanced Server')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which Database Engine would you like to install?" \
           "Please enter your choice:" \
@@ -1141,7 +1196,7 @@ function gcloud_config_file()
     then
         declare -a OPTIONS=('1. 10' '2. 11' '3. 12')
         declare -a CHOICES=('1' '2' '3')
-        
+
         RESULT=""
         custom_options_prompt "Which Database Version do you wish to install?" \
           "Please enter your choice:" \
@@ -1158,19 +1213,19 @@ function gcloud_config_file()
             ;;
           3)
             PG_VERSION="12"
-            ;;          
+            ;;
         esac
     fi
     validate_variable "PG_VERSION" "${CONFIG_FILE}" "${PG_VERSION}"
     export PG_VERSION
- 
+
     # Prompt for Standby Replication Type
     CHECK=$(check_variable "STANDBY_TYPE" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         declare -a OPTIONS=('1. synchronous' '2. asynchronous')
         declare -a CHOICES=('1' '2')
-        
+
         RESULT=""
         custom_options_prompt "Which type of replication would you like for standby nodes?" \
           "Please enter your choice:" \
@@ -1187,10 +1242,87 @@ function gcloud_config_file()
         esac
     fi
     export STANDBY_TYPE
-    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"      
+    validate_variable "STANDBY_TYPE" "${CONFIG_FILE}" "${STANDBY_TYPE}"
+
+    CHECK=$(check_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"
+        # Un-Comment to prompt for Additional Volumes in CLI
+        # Additional Volumes
+        # custom_yesno_prompt "Do you want separate volume for PGDATA, PGWAL and Tablespaces?" \
+        #   "Enter: (Y)es/(N)o" \
+        #   RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then
+            declare -a OPTIONS=('1. Standard' '2. Balanced' '3. SSD')
+            declare -a CHOICES=('1' '2' '3')
+
+            RESULT=""
+            custom_options_prompt "Which type of disk volume would you like?" \
+              "Please enter your choice:" \
+              OPTIONS \
+              CHOICES \
+              RESULT
+            case "${RESULT}" in
+              1)
+                ADISKTYPE="pd-standard"
+                ;;
+              2)
+                ADISKTYPE="pd-balanced"
+                ;;
+              3)
+                ADISKTYPE="pd-ssd"
+                ;;
+            esac
+
+            RESULT=""
+            validate_string_not_empty "Please enter the size in GB for volumes: " "" RESULT
+            AVS="${RESULT}"
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "5"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "${ADISKTYPE}"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "${AVS}"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        else
+            validate_variable "ADDITIONAL_VOLUMES_COUNT" "${CONFIG_FILE}" "0"
+            validate_variable "ADDITIONAL_VOLUMES_DISKTYPE" "${CONFIG_FILE}" "pd-standard"
+            validate_variable "ADDITIONAL_VOLUMES_SIZE" "${CONFIG_FILE}" "0"
+            export ADDITIONAL_VOLUMES_COUNT
+            export ADDITIONAL_VOLUMES_DISKTYPE
+            export ADDITIONAL_VOLUMES_SIZE
+        fi
+    fi
+
+    CHECK=$(check_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}")
+    if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
+    then
+        RESULT=""
+        # Comment below for prompting details about Additional Volumes
+        RESULT="No"
+        # Un-Comment to prompt for Disk Encryption Key
+        # Additional Volumes
+        #custom_yesno_prompt "Do you want to provide an Encryption Key for the Disks?" \
+        #  "Enter: (Y)es/(N)o" \
+        #  RESULT
+        if [[ "${RESULT}" = "Yes" ]]
+        then
+            RESULT=""
+            validate_string_not_empty "Please enter the encryption key: " "" RESULT
+            EKEY="${RESULT}"
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        else
+            validate_variable "DISK_ENCRYPTION_KEY" "${CONFIG_FILE}" "${EKEY}"
+            export DISK_ENCRYPTION_KEY
+        fi
+    fi
 
     # EDB YUM UserName
-    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_USERNAME" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -1201,7 +1333,7 @@ function gcloud_config_file()
     export YUM_USERNAME
 
     # EDB YUM Password
-    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")    
+    CHECK=$(check_variable "YUM_PASSWORD" "${CONFIG_FILE}")
     if [[ "${CHECK}" = "not_exists" ]] || [[ "${CHECK}" = "exists_empty" ]]
     then
         RESULT=""
@@ -1212,7 +1344,7 @@ function gcloud_config_file()
     export YUM_PASSWORD
 
     set -u
-    
+
     process_log "set all parameters"
     source ${CONFIG_FILE}
 }
@@ -1222,7 +1354,7 @@ function aws_show_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    SHOW="$(echo cat ${CONFIG_FILE})"    
+    SHOW="$(echo cat ${CONFIG_FILE})"
     eval "$SHOW"
 
     process_log "showed aws project config details"
@@ -1233,7 +1365,7 @@ function azure_show_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    SHOW="$(echo cat ${CONFIG_FILE})"    
+    SHOW="$(echo cat ${CONFIG_FILE})"
     eval "$SHOW"
 
     process_log "showed azure project config details"
@@ -1244,7 +1376,7 @@ function gcloud_show_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    SHOW="$(echo cat ${CONFIG_FILE})"    
+    SHOW="$(echo cat ${CONFIG_FILE})"
     eval "$SHOW"
 
     process_log "showed gcloud project config details"
@@ -1255,7 +1387,7 @@ function aws_update_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/aws/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    EDIT="$(echo vi ${CONFIG_FILE})"    
+    EDIT="$(echo vi ${CONFIG_FILE})"
     eval "$EDIT"
 
     process_log "edited aws project config details"
@@ -1266,7 +1398,7 @@ function azure_update_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/azure/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    EDIT="$(echo vi ${CONFIG_FILE})"    
+    EDIT="$(echo vi ${CONFIG_FILE})"
     eval "$EDIT"
 
     process_log "edited azure project config details"
@@ -1277,7 +1409,7 @@ function gcloud_update_config_file()
     local PROJECT_NAME="$1"
     local CONFIG_FILE="${PROJECTS_DIRECTORY}/gcloud/${PROJECT_NAME}/${PROJECT_NAME}.cfg"
 
-    EDIT="$(echo vi ${CONFIG_FILE})"    
+    EDIT="$(echo vi ${CONFIG_FILE})"
     eval "$EDIT"
 
     process_log "edited gcloud project config details"

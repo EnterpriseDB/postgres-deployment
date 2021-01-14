@@ -1,16 +1,33 @@
-resource "local_file" "AnsiblePEMYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_pem_inventory_yaml_filename
+resource "local_file" "AnsibleYamlInventory" {
+  filename = var.ansible_inventory_yaml_filename
   content  = <<EOT
 ---
-servers:
-  %{for count in range(var.instance_count)~}
-%{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
-    node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}    
-    public_ip: ${azurerm_public_ip.publicip[count].ip_address}
-    private_ip: ${azurerm_network_interface.Public_Nic[count].private_ip_address}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
-    %{if count > 0}pem_agent: true%{endif}
+all:
+  children:
+%{if var.pem_instance_count == 1}
+    pemserver:
+      hosts:
+        pemserver1:
+          ansible_host: ${azurerm_public_ip.all_public_ip[var.pg_instance_count].ip_address}
+          private_ip: ${azurerm_network_interface.all_public_nic[var.pg_instance_count].private_ip_address}%{endif}
+  %{for count in range(var.pg_instance_count)~}
+%{if count == 0}
+    primary:
+      hosts:
+        primary${count + 1}:%{endif}
+%{if count == 1}
+    standby:
+      hosts:%{endif}
+%{if count > 0}
+        standby${count}:%{endif}
+          ansible_host: ${azurerm_public_ip.all_public_ip[count].ip_address}
+          private_ip: ${azurerm_network_interface.all_public_nic[count].private_ip_address}
+%{if count > 0}
+          replication_type: ${var.synchronicity}
+          upstream_node_private_ip: ${azurerm_network_interface.all_public_nic[0].private_ip_address}%{endif}
+%{if var.pem_instance_count == 1}
+          pem_agent: true
+          pem_server_private_ip: ${azurerm_network_interface.all_public_nic[var.pg_instance_count].private_ip_address}%{endif}
   %{endfor~}
 EOT
 }
@@ -29,9 +46,13 @@ resource "local_file" "host_script" {
 echo "Setting SSH Keys"
 ssh-add ${var.ssh_key_path}
 echo "Adding IPs"
-%{for count in range(var.instance_count)~}
-ssh-keyscan -H ${azurerm_public_ip.publicip[count].ip_address} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.publicip[count].ip_address}
-%{endfor~}    
+%{for count in range(var.pg_instance_count)~}
+ssh-keyscan -H ${azurerm_public_ip.all_public_ip[count].ip_address} >> ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.all_public_ip[count].ip_address}
+%{endfor~}
+%{if var.pem_instance_count == 1}
+ssh-keyscan -H ${azurerm_public_ip.all_public_ip[var.pg_instance_count].ip_address} >> ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.all_public_ip[var.pg_instance_count].ip_address}
+%{endif}
     EOT
 }

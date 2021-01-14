@@ -1,7 +1,12 @@
-variable instance_count {}
-variable vpc_id {}
-variable project_tag {}
-variable public_cidrblock {}
+variable "pg_instance_count" {
+  type = number
+}
+variable "pem_instance_count" {
+  type = number
+}
+variable "vpc_id" {}
+variable "project_tag" {}
+variable "public_cidrblock" {}
 
 
 data "aws_subnet_ids" "ids" {
@@ -32,7 +37,7 @@ resource "aws_route_table" "edb-prereqs-postgres-customroutetable" {
 }
 
 resource "aws_route_table_association" "edb-prereqs-postgres-rtassociations" {
-  count          = var.instance_count
+  count          = var.pg_instance_count + var.pem_instance_count
   subnet_id      = element(tolist(data.aws_subnet_ids.ids.ids), count.index)
   route_table_id = aws_route_table.edb-prereqs-postgres-customroutetable.id
 }

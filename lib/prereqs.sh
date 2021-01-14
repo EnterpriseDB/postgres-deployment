@@ -9,19 +9,19 @@ fi
 if cat /etc/*release | grep ^NAME | grep Debian; then
   sudo apt -y install curl
   sudo apt -y install wget
-  sudo apt -y install gawk  
-fi 
+  sudo apt -y install gawk
+fi
 
 if cat /etc/*release | grep ^NAME | grep CentOS; then
-  sudo yum -y install curl 
+  sudo yum -y install curl
   sudo yum -y install wget
-  sudo yum -y install gawk  
+  sudo yum -y install gawk
 fi
 
 if cat /etc/*release | grep ^NAME | grep Red; then
-  sudo yum -y install curl 
+  sudo yum -y install curl
   sudo yum -y install wget
-  sudo yum -y install gawk  
+  sudo yum -y install gawk
 fi
 
 # Terraform

@@ -1,5 +1,5 @@
-variable vpc_cidr_block {}
-variable vpc_tag {}
+variable "vpc_cidr_block" {}
+variable "vpc_tag" {}
 
 
 resource "aws_vpc" "main" {

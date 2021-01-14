@@ -1,8 +1,8 @@
-variable securitygroup_name {}
-variable resourcegroup_name {}
-variable azure_location {}
-variable vnet_name {}
-variable vnet_cidr_block {}
+variable "securitygroup_name" {}
+variable "resourcegroup_name" {}
+variable "azure_location" {}
+variable "vnet_name" {}
+variable "vnet_cidr_block" {}
 
 
 resource "azurerm_virtual_network" "main" {

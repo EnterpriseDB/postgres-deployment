@@ -19,10 +19,11 @@ module "vpc" {
 module "network" {
   source = "./environments/network"
 
-  instance_count    = var.instance_count
-  vpc_id            = module.vpc.vpc_id
-  public_subnet_tag = var.public_subnet_tag
-  aws_region        = var.aws_region
+  pg_instance_count  = var.pg_instance_count
+  pem_instance_count = var.pem_instance_count
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_tag  = var.public_subnet_tag
+  aws_region         = var.aws_region
 
   depends_on = [module.vpc]
 }
@@ -39,10 +40,11 @@ module "network" {
 module "routes" {
   source = "./environments/routes"
 
-  instance_count   = var.instance_count
-  vpc_id           = module.vpc.vpc_id
-  project_tag      = var.project_tag
-  public_cidrblock = var.public_cidrblock
+  pg_instance_count  = var.pg_instance_count
+  pem_instance_count = var.pem_instance_count
+  vpc_id             = module.vpc.vpc_id
+  project_tag        = var.project_tag
+  public_cidrblock   = var.public_cidrblock
 
   #  depends_on = [module.policies]
   depends_on = [module.network]
@@ -65,7 +67,7 @@ module "edb-db-cluster" {
   os                                  = var.os
   ami_id                              = var.ami_id
   vpc_id                              = module.vpc.vpc_id
-  instance_count                      = var.instance_count
+  pg_instance_count                   = var.pg_instance_count
   pem_instance_count                  = var.pem_instance_count
   synchronicity                       = var.synchronicity
   cluster_name                        = var.cluster_name
@@ -78,7 +80,7 @@ module "edb-db-cluster" {
   ebs_volume_size                     = var.ebs_volume_size
   ebs_volume_iops                     = var.ebs_volume_iops
   ebs_volume_encryption               = var.ebs_volume_encryption
-  ansible_pem_inventory_yaml_filename = var.ansible_pem_inventory_yaml_filename
+  ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id

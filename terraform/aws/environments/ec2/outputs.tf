@@ -1,17 +1,33 @@
-resource "local_file" "AnsiblePEMYamlInventory" {
-  count    = var.instance_count
-  filename = var.ansible_pem_inventory_yaml_filename
+resource "local_file" "AnsibleYamlInventory" {
+  filename = var.ansible_inventory_yaml_filename
   content  = <<EOT
 ---
-servers:
-  %{for count in range(var.instance_count)~}
-%{if var.pem_instance_count == "1" && count == 0}pemserver:%{endif}%{if var.pem_instance_count == "0" || var.pem_instance_count == "1" && count == 1}primary${count}:%{endif}%{if count > 1}standby${count}:%{endif}
-    node_type: %{if var.pem_instance_count == "1" && count == 0}pemserver%{endif}%{if var.pem_instance_count == "0" || count == 1}primary%{endif}%{if count > 1}standby%{endif}
-    public_dns: ${aws_instance.EDB_DB_Cluster[count].public_dns}
-    public_ip: ${aws_instance.EDB_DB_Cluster[count].public_ip}
-    private_ip: ${aws_instance.EDB_DB_Cluster[count].private_ip}
-    %{if count > 1}replication_type: ${var.synchronicity}%{endif}
-    %{if count > 0}pem_agent: true%{endif}
+all:
+  children:
+%{if var.pem_instance_count == 1}
+    pemserver:
+      hosts:
+        pemserver1:
+          ansible_host: ${aws_instance.pem_server[0].public_ip}
+          private_ip: ${aws_instance.pem_server[0].private_ip}%{endif}
+  %{for count in range(var.pg_instance_count)~}
+%{if count == 0}
+    primary:
+      hosts:
+        primary${count + 1}:%{endif}
+%{if count == 1}
+    standby:
+      hosts:%{endif}
+%{if count > 0}
+        standby${count}:%{endif}
+          ansible_host: ${aws_instance.pg_server[count].public_ip}
+          private_ip: ${aws_instance.pg_server[count].private_ip}
+%{if count > 0}
+          replication_type: ${var.synchronicity}
+          upstream_node_private_ip: ${aws_instance.pg_server[0].private_ip}%{endif}
+%{if var.pem_instance_count == 1}
+          pem_agent: true
+          pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}%{endif}
   %{endfor~}
 EOT
 }
@@ -31,9 +47,13 @@ echo "Setting SSH Keys"
 ssh-add ${var.ssh_key_path}
 echo "Adding IPs"
 
-%{for count in range(var.instance_count)~}
-ssh-keyscan -H ${aws_instance.EDB_DB_Cluster[count].public_ip} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.EDB_DB_Cluster[count].public_dns}
-%{endfor~}    
+%{for count in range(var.pg_instance_count)~}
+ssh-keyscan -H ${aws_instance.pg_server[count].public_ip} >> ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pg_server[count].public_dns}
+%{endfor~}
+%{if var.pem_instance_count == 1}
+ssh-keyscan -H ${aws_instance.pem_server[0].public_ip} >> ~/.ssh/known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pem_server[0].public_dns}
+%{endif}
     EOT
 }
