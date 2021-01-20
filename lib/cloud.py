@@ -103,6 +103,100 @@ class AzureCli:
     def __init__(self):
         pass
 
+    def check_instance_type_availability(self, instance_type, region):
+        try:
+            output = exec_shell([
+                "az",
+                "vm",
+                "list-sizes",
+                "--location %s" % region,
+                "--query \"[?name == '%s']\"" % instance_type,
+                "--output json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Instance type %s not available in region %s"
+                    % (instance_type, region)
+                )
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_image_availability(self, publisher, offer, sku, region):
+        try:
+            output = exec_shell([
+                "az",
+                "vm",
+                "image",
+                "list",
+                "--all",
+                "-p \"%s\"" % publisher,
+                "-f \"%s\"" % offer,
+                "-s \"%s\"" % sku,
+                "-l %s" % region,
+                "--query",
+                "\"[?offer == '%s' && sku =='%s']\"" % (offer, sku),
+                "--output json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Image %s:%s:%s not available in region %s"
+                    % (publisher, offer, sku, region)
+                )
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_instances_availability(self, project_name):
+        try:
+            output = exec_shell([
+                "az",
+                "vm",
+                "wait",
+                "--ids",
+                "$(az vm list -g \"%s_edb_resource_group\" --query \"[].id\" -o tsv)"
+                % project_name,
+                "--created"
+            ])
+            logging.debug("Command output: %s", output.decode("utf-8"))
+
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
 
 class GCloudCli:
     def __init__(self):
@@ -116,7 +210,7 @@ class CloudCli:
         if self.cloud == 'aws':
             self.cli = AWSCli()
         elif self.cloud == 'azure':
-            self.cli = AWSCli()
+            self.cli = AzureCli()
         elif self.cloud == 'gcloud':
             self.cli = GCloudCli()
         else:

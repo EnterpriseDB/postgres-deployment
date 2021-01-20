@@ -1,11 +1,11 @@
 variable "securitygroup_name" {}
 variable "resourcegroup_name" {}
-variable "azure_location" {}
+variable "azure_region" {}
 variable "project_tag" {}
 
 resource "azurerm_network_security_group" "main" {
   name                = var.securitygroup_name
-  location            = var.azure_location
+  location            = var.azure_region
   resource_group_name = var.resourcegroup_name
 
   security_rule {
@@ -64,6 +64,31 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "7800-7810"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "EDB-PEM"
+    priority                   = 600
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default port
+  security_rule {
+    name                       = "EDB-PgPoolII"
+    priority                   = 700
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9000"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
