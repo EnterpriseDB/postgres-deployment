@@ -8,7 +8,7 @@ import sys
 import stat
 import time
 
-from .cloud import CloudCli, AWSCli
+from .cloud import CloudCli, AWSCli, AzureCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
@@ -164,7 +164,7 @@ class Project:
         # Instanciate a new CloudCli
         cloud_cli = CloudCli(env.cloud)
 
-        # Check availability of instance types in target region
+        # Build a list of instance_type accordingly to the specs
         instance_types = []
         node_types = ['postgres_server', 'pem_server', 'barman_server',
                       'pooler_server']
@@ -175,6 +175,7 @@ class Project:
             if node['instance_type'] not in instance_types:
                 instance_types.append(node['instance_type'])
 
+        # AWS - Check instance type and image availability
         if env.cloud == 'aws' and not self.terraform_vars['aws_ami_id']:
             for instance_type in instance_types:
                 with AM(
@@ -188,20 +189,48 @@ class Project:
             # Check availability of image in target region and get its ID
             with AM(
                 "Checking image '%s' availability in %s"
-                % (self.terraform_vars['image'], env.aws_region)
+                % (self.terraform_vars['aws_image'], env.aws_region)
             ):
                 aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['image'], env.aws_region
+                    self.terraform_vars['aws_image'], env.aws_region
                 )
                 if not aws_ami_id:
                     raise ProjectError(
                         "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['image'], env.aws_region)
+                        % (self.terraform_vars['aws_image'], env.aws_region)
                     )
             with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                del(self.terraform_vars['image'])
+                # Useless variable for Terraform
+                del(self.terraform_vars['aws_image'])
                 self.terraform_vars['aws_ami_id'] = aws_ami_id
                 self._save_terraform_vars()
+
+        # Azure - Check instance type and image availability
+        if env.cloud == 'azure':
+            for instance_type in instance_types:
+                with AM(
+                    "Checking instance type %s availability in %s"
+                    % (instance_type, env.azure_region)
+                ):
+                    cloud_cli.check_instance_type_availability(
+                        instance_type, env.azure_region
+                    )
+            # Check availability of image in target region
+            with AM(
+                "Checking image %s:%s:%s availability in %s"
+                % (
+                    self.terraform_vars['azure_publisher'],
+                    self.terraform_vars['azure_offer'],
+                    self.terraform_vars['azure_sku'],
+                    env.azure_region
+                  )
+            ):
+                cloud_cli.cli.check_image_availability(
+                    self.terraform_vars['azure_publisher'],
+                    self.terraform_vars['azure_offer'],
+                    self.terraform_vars['azure_sku'],
+                    env.azure_region
+                )
 
     def _load_spec_file(self, spec_file_path):
         try:
@@ -283,7 +312,6 @@ class Project:
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key,
             ssh_pub_key=self.ssh_pub_key,
-            image=os_spec['image'],
             barman=ra['barman'],
             pooler_local=ra['pooler_local'],
             pooler_type=ra['pooler_type']
@@ -292,9 +320,19 @@ class Project:
         # AWS case
         if env.cloud == 'aws':
             self.terraform_vars.update(dict(
+                aws_image=os_spec['image'],
                 aws_region=env.aws_region,
                 aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
             ))
+        # Azure case
+        if env.cloud == 'azure':
+            self.terraform_vars.update(dict(
+                azure_region=env.azure_region,
+                azure_publisher=os_spec['publisher'],
+                azure_offer=os_spec['offer'],
+                azure_sku=os_spec['sku']
+            ))
+
 
         # Postgres servers terraform_vars
         self.terraform_vars.update(dict(
@@ -424,6 +462,8 @@ class Project:
         # Checking instance availability
         cloud_cli = CloudCli(self.cloud)
         self._load_terraform_vars()
+
+        # AWS case
         if self.cloud == 'aws':
             with AM(
                 "Checking instances availability in region %s"
@@ -432,6 +472,11 @@ class Project:
                 cloud_cli.cli.check_instances_availability(
                     self.terraform_vars['aws_region']
                 )
+        # Azure case
+        if self.cloud == 'azure':
+            with AM("Checking instances availability"):
+                cloud_cli.cli.check_instances_availability(self.name)
+
         with AM("SSH configuration"):
             terraform.exec_add_host_sh()
 

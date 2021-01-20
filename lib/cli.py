@@ -118,6 +118,23 @@ class AzureRegionOption:
     """)
 
 
+class AzureSpecFileOption:
+
+    help = textwrap.dedent("""
+        Azure instances specification file, in JSON. Default: %(default)s
+    """)
+
+    @staticmethod
+    def default():
+        spec_file_path = os.path.join(
+            os.path.dirname(os.path.relpath(__file__)),
+            'spec',
+            'azure.json'
+        )
+        if os.path.exists(spec_file_path):
+            return spec_file_path
+
+
 class GCloudRegionOption:
     choices = ['us-central1', 'us-east1', 'us-east4', 'us-west1', 'us-west2',
                'us-west3', 'us-west4']
@@ -273,7 +290,7 @@ def aws_subcommands(aws_subparser):
         metavar='<aws-spec-file>',
         help=AWSSpecFileOption.help
     )
-    # aws log sub-command options
+    # aws logs sub-command options
     aws_logs.add_argument(
         'project', type=str, metavar='<project-name>',
         help='Project name'
@@ -337,13 +354,10 @@ def azure_subcommands(azure_subparser):
         'update', help='Update configuration'
     )
     azure_list = azure_subparser.add_parser(
-        'list', help='List Terraform projects'
+        'list', help='List projects'
     )
-    azure_switch = azure_subparser.add_parser(
-        'switch', help='Switch to another Terraform project'
-    )
-    azure_log = azure_subparser.add_parser(
-        'log', help='Show project logs'
+    azure_logs = azure_subparser.add_parser(
+        'logs', help='Show project logs'
     )
     azure_remove = azure_subparser.add_parser(
         'remove', help='Remove project'
@@ -410,17 +424,31 @@ def azure_subcommands(azure_subparser):
         help=SSHPrivKeyOption.help
     )
     azure_configure.add_argument(
-        '-r', '--region',
-        dest='region',
+        '-s', '--spec',
+        dest='spec_file',
+        type=argparse.FileType('r'),
+        default=AzureSpecFileOption.default(),
+        metavar='<azure-spec-file>',
+        help=AzureSpecFileOption.help
+    )
+    azure_configure.add_argument(
+        '-r', '--azure-region',
+        dest='azure_region',
         choices=AzureRegionOption.choices,
         default=AzureRegionOption.default,
         metavar='<cloud-region>',
         help=AzureRegionOption.help
     )
-    # azure log sub-command options
-    azure_log.add_argument(
+    # azure logs sub-command options
+    azure_logs.add_argument(
         'project', type=str, metavar='<project-name>',
         help='Project name'
+    )
+    azure_logs.add_argument(
+        '-t', '--tail',
+        dest='tail',
+        action='store_true',
+        help="Do not stop at the end of file."
     )
     # azure remove sub-command options
     azure_remove.add_argument(
@@ -431,6 +459,27 @@ def azure_subcommands(azure_subparser):
     azure_show.add_argument(
         'project', type=str, metavar='<project-name>',
         help='Project name'
+    )
+    # azure provision sub-command options
+    azure_provision.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    # azure destroy sub-command options
+    azure_destroy.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    # azure deploy sub-command options
+    azure_deploy.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    azure_deploy.add_argument(
+        '-n', '--no-install-collection',
+        dest='no_install_collection',
+        action='store_true',
+        help="Do not install the Ansible collection."
     )
 
 
