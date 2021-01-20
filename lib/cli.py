@@ -28,8 +28,8 @@ class OSOption:
 
 
 class PgVersionOption:
-    choices = [11, 12, 13]
-    default = 13
+    choices = ['11', '12', '13']
+    default = '13'
     help = textwrap.dedent("""
         PostgreSQL or EPAS version. Allowed values are: 11, 12 and 13.
         Default: %(default)s
