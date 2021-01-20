@@ -16,7 +16,6 @@ def configure_logging(project, sub_command):
 
     logging.basicConfig(
         filename=project.log_file,
-        encoding='utf-8',
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)7s '+sub_command+': %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
