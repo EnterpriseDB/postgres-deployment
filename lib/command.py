@@ -1,0 +1,69 @@
+import logging
+from .project import Project
+
+class CommanderError(Exception):
+    pass
+
+class Commander:
+    def __init__(self, env):
+        self.env = env
+        self.project = Project(self.env.cloud, self.env.project)
+
+    def _check_project_exists(self):
+        if not self.project.exists():
+            msg = "Project %s does not exist" % self.project.name
+            logging.error(msg)
+            raise CommanderError(msg)
+
+    def execute(self):
+        logging.info(
+            "Executing command: %s %s", self.env.cloud, self.env.sub_command
+        )
+
+        if getattr(self, self.env.sub_command, False):
+            getattr(self, self.env.sub_command)()
+        else:
+            raise CommanderError(
+                "Sub-command %s not implemented" % self.env.sub_command
+            )
+
+    def configure(self):
+        if self.project.exists():
+            msg = "Project %s already exists" % self.project.name
+            logging.error(msg)
+            raise CommanderError(msg)
+
+        logging.info("Project configuration...")
+        self.project.create()
+        self.project.configure(self.env)
+        logging.info("End of project configuration")
+
+    def logs(self):
+        self._check_project_exists()
+        logging.info("Fetching logs for project %s", self.project.name)
+        self.project.show_logs(self.env.tail)
+
+    def remove(self):
+        self._check_project_exists()
+        logging.info("Removing project %s", self.project.name)
+        self.project.remove()
+
+    def show(self):
+        self._check_project_exists()
+        logging.info("Showing project %s configuration", self.project.name)
+        self.project.show_configuration()
+
+    def provision(self):
+        self._check_project_exists()
+        logging.info("Provisioning machines for project %s", self.project.name)
+        self.project.provision()
+
+    def destroy(self):
+        self._check_project_exists()
+        logging.info("Destroying machines for project %s", self.project.name)
+        self.project.destroy()
+
+    def deploy(self):
+        self._check_project_exists()
+        logging.info("Deploying components for project %s", self.project.name)
+        self.project.deploy(self.env.no_install_collection)
