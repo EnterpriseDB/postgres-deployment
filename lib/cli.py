@@ -159,6 +159,23 @@ class GCloudCredentialsOption:
             return credential_file
 
 
+class GCloudSpecFileOption:
+
+    help = textwrap.dedent("""
+        GCloud instances specification file, in JSON. Default: %(default)s
+    """)
+
+    @staticmethod
+    def default():
+        spec_file_path = os.path.join(
+            os.path.dirname(os.path.relpath(__file__)),
+            'spec',
+            'gcloud.json'
+        )
+        if os.path.exists(spec_file_path):
+            return spec_file_path
+
+
 def EDBCredentialsType(value):
     p = re.compile(r"^([^:]+):(.+)$")
     if not p.match(value):
@@ -192,9 +209,6 @@ def aws_subcommands(aws_subparser):
     )
     aws_show = aws_subparser.add_parser(
         'show', help='Show configuration'
-    )
-    aws_update = aws_subparser.add_parser(
-        'update', help='Update configuration'
     )
     aws_list = aws_subparser.add_parser(
         'list', help='List projects'
@@ -350,9 +364,6 @@ def azure_subcommands(azure_subparser):
     azure_show = azure_subparser.add_parser(
         'show', help='Show configuration'
     )
-    azure_update = azure_subparser.add_parser(
-        'update', help='Update configuration'
-    )
     azure_list = azure_subparser.add_parser(
         'list', help='List projects'
     )
@@ -482,7 +493,6 @@ def azure_subcommands(azure_subparser):
         help="Do not install the Ansible collection."
     )
 
-
 # GCloud sub-commands and options
 def gcloud_subcommands(gcloud_subparser):
     gcloud_configure = gcloud_subparser.add_parser(
@@ -500,14 +510,11 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_show = gcloud_subparser.add_parser(
         'show', help='Show configuration'
     )
-    gcloud_update = gcloud_subparser.add_parser(
-        'update', help='Update configuration'
-    )
     gcloud_list = gcloud_subparser.add_parser(
         'list', help='List projects'
     )
-    gcloud_log = gcloud_subparser.add_parser(
-        'log', help='Show project logs'
+    gcloud_logs = gcloud_subparser.add_parser(
+        'logs', help='Show project logs'
     )
     gcloud_remove = gcloud_subparser.add_parser(
         'remove', help='Remove project'
@@ -574,25 +581,46 @@ def gcloud_subcommands(gcloud_subparser):
         help=SSHPrivKeyOption.help
     )
     gcloud_configure.add_argument(
-        '-r', '--region',
-        dest='region',
+        '-r', '--gcloud-region',
+        dest='gcloud_region',
         choices=GCloudRegionOption.choices,
         default=GCloudRegionOption.default,
         metavar='<cloud-region>',
         help=GCloudRegionOption.help
     )
     gcloud_configure.add_argument(
-        '-c', '--credentials',
+        '-s', '--spec',
+        dest='spec_file',
+        type=argparse.FileType('r'),
+        default=GCloudSpecFileOption.default(),
+        metavar='<gcloud-spec-file>',
+        help=GCloudSpecFileOption.help
+    )
+    gcloud_configure.add_argument(
+        '-c', '--gcloud-credentials',
         dest='gcloud_credentials',
         type=argparse.FileType('r'),
         default=GCloudCredentialsOption.default(),
         metavar='<gcloud-credentials-json-file>',
         help=GCloudCredentialsOption.help
     )
-    # gcloud log sub-command options
-    gcloud_log.add_argument(
+    gcloud_configure.add_argument(
+        '-p', '--gcloud-project-id',
+        dest='gcloud_project_id',
+        type=str,
+        metavar='<gcloud-project-id>',
+        help="GCloud project ID"
+    )
+    # gcloud logs sub-command options
+    gcloud_logs.add_argument(
         'project', type=str, metavar='<project-name>',
         help='Project name'
+    )
+    gcloud_logs.add_argument(
+        '-t', '--tail',
+        dest='tail',
+        action='store_true',
+        help="Do not stop at the end of file."
     )
     # gcloud remove sub-command options
     gcloud_remove.add_argument(
@@ -603,6 +631,27 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_show.add_argument(
         'project', type=str, metavar='<project-name>',
         help='Project name'
+    )
+    # gcloud provision sub-command options
+    gcloud_provision.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    # gcloud destroy sub-command options
+    gcloud_destroy.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    # gcloud deploy sub-command options
+    gcloud_deploy.add_argument(
+        'project', type=str, metavar='<project-name>',
+        help='Project name'
+    )
+    gcloud_deploy.add_argument(
+        '-n', '--no-install-collection',
+        dest='no_install_collection',
+        action='store_true',
+        help="Do not install the Ansible collection."
     )
 
 def parse():
