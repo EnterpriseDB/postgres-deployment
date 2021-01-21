@@ -3,7 +3,7 @@ module "resourcegroup" {
 
   resourcegroup_name = var.resourcegroup_name
   resourcegroup_tag  = var.resourcegroup_tag
-  azure_location     = var.azure_location
+  azure_region       = var.azure_region
 }
 
 module "security" {
@@ -11,7 +11,7 @@ module "security" {
 
   securitygroup_name = var.securitygroup_name
   resourcegroup_name = var.resourcegroup_name
-  azure_location     = var.azure_location
+  azure_region       = var.azure_region
   project_tag        = var.project_tag
 
   depends_on = [module.resourcegroup]
@@ -22,7 +22,7 @@ module "network" {
 
   securitygroup_name = var.securitygroup_name
   resourcegroup_name = var.resourcegroup_name
-  azure_location     = var.azure_location
+  azure_region       = var.azure_region
   vnet_name          = var.vnet_name
   vnet_cidr_block    = var.vnet_cidr_block
 
@@ -35,7 +35,7 @@ module "storageaccount" {
   storageaccount_name   = var.storageaccount_name
   storagecontainer_name = var.storagecontainer_name
   resourcegroup_name    = var.resourcegroup_name
-  azure_location        = var.azure_location
+  azure_region          = var.azure_region
   project_tags          = var.project_tags
 
   depends_on = [module.network]
@@ -53,29 +53,29 @@ module "storagecontainer" {
 module "vm" {
   source = "./environments/vm"
 
-  instance_size                       = var.instance_size
-  pg_instance_count                   = var.pg_instance_count
-  instance_disktype                   = var.instance_disktype
-  pem_instance_count                  = var.pem_instance_count
-  vm_manageddisk_count                = var.vm_manageddisk_count
-  vm_manageddisk_volume_size          = var.vm_manageddisk_volume_size
-  vm_manageddisk_disktype             = var.vm_manageddisk_disktype
-  synchronicity                       = var.synchronicity
+  barman                              = var.barman
+  postgres_server                     = var.postgres_server
+  pem_server                          = var.pem_server
+  barman_server                       = var.barman_server
+  pooler_server                       = var.pooler_server
+  replication_type                    = var.replication_type
   cluster_name                        = var.cluster_name
   vnet_name                           = var.vnet_name
   resourcegroup_name                  = var.resourcegroup_name
   securitygroup_name                  = var.securitygroup_name
-  azure_location                      = var.azure_location
-  ssh_key_path                        = var.ssh_key_path
-  full_private_ssh_key_path           = var.full_private_ssh_key_path
+  azure_region                        = var.azure_region
+  ssh_pub_key                         = var.ssh_pub_key
+  ssh_priv_key                        = var.ssh_priv_key
   project_tags                        = var.project_tags
-  publisher                           = var.publisher
-  offer                               = var.offer
-  sku                                 = var.sku
-  admin_username                      = var.admin_username
+  azure_publisher                     = var.azure_publisher
+  azure_offer                         = var.azure_offer
+  azure_sku                           = var.azure_sku
+  ssh_user                            = var.ssh_user
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
   os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
-
+  pooler_type                         = var.pooler_type
+  pooler_local                        = var.pooler_local
+  network_count                       = var.pooler_server["count"] > var.postgres_server["count"] ? var.pooler_server["count"] : var.postgres_server["count"]
   depends_on = [module.network]
 }

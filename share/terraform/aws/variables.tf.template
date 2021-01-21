@@ -1,4 +1,3 @@
-# Ansible Yaml Inventory Filename
 variable "aws_region" {}
 variable "postgres_server" {}
 variable "pem_server" {}
@@ -14,6 +13,7 @@ variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
 
+# Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
 }

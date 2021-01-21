@@ -29,7 +29,6 @@ resource "aws_security_group" "edb-prereqs-rules" {
     cidr_blocks = [var.public_cidrblock]
   }
 
-
   ingress {
     from_port   = 8443
     to_port     = 8443
@@ -54,14 +53,15 @@ resource "aws_security_group" "edb-prereqs-rules" {
     from_port   = 7800
     to_port     = 7810
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.public_cidrblock]
   }
 
+  // PgPoolII default port
   ingress {
-    from_port   = 8443
-    to_port     = 8443
+    from_port   = 9000
+    to_port     = 9000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.public_cidrblock]
   }
 
   tags = {
