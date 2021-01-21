@@ -1,0 +1,436 @@
+{
+	"variables": {
+		"configurations": {
+			"0": {
+				"name": "operating_system",
+				"type": "string",
+				"flag_name": "operating-system",
+				"flag_description": "Operating system for the Virtual Machines",
+				"options": ["centos-7", "centos-8", "rhel-7", "rhel-8"]
+			},
+			"1": {
+				"name": "subnetwork_region",
+				"type": "string",
+				"flag_name": "subnetwork_region",
+				"flag_description": "Google Cloud Regions",
+				"options": ["us-central1", "us-east1", "us-east4", "us-west1", 
+					"us-west2", "us-west3", "us-west4"]
+			},
+			"2": {
+				"name": "installation_type",
+				"type": "string",
+				"flag_name": "installation-type",
+				"flag_description": "Type of installation",
+				"options": ["Single Installation", "Multi-Node Installation"]
+			},
+			"3": {
+				"name": "instance_count",
+				"type": "int",
+				"flag_name": "instance_count-count",
+				"flag_description": "The number of Instances",
+				"validate": {
+					"minimum": 1
+				}
+			},
+			"4": {
+				"name": "public_key",
+				"type": "string",
+				"flag_name": "public-key",
+				"flag_description": "Location of public key file",
+				"default": "~/.ssh/id_rsa.pub",
+				"file": true
+			},
+			"5": {
+				"name": "private_key",
+				"type": "string",
+				"flag_name": "private-key",
+				"flag_description": "Location of private key file",
+				"default": "~/.ssh/id_rsa",
+				"file": true
+			},
+			"6": {
+				"name": "db_engine",
+				"type": "string",
+				"flag_name": "db-engine",
+				"flag_description": "PostgreSQL DB Engine.",
+				"options": ["PostgreSQL", "EDB Postgres Advanced Server"]
+			},
+			"7": {
+				"name": "db_version",
+				"type": "string",
+				"flag_name": "db-version",
+				"flag_description": "PostgreSQL DB Version",
+				"options": ["11", "12", "13"]
+			},
+			"8": {
+				"name": "replication",
+				"type": "string",
+				"flag_name": "replication",
+				"flag_description": "PostgreSQL physical replication type",
+				"options": ["synchronous", "asynchronous"]
+			},
+			"22": {
+				"name": "project_id",
+				"type": "string",
+				"flag_name": "project_id",
+				"flag_description": "Google Cloud Project ID"
+			},
+			"23": {
+				"name": "credentials",
+				"type": "string",
+				"flag_name": "credentials",
+				"flag_description": "Location of Credentials file",
+				"default": "~/accounts.json"
+			}
+
+		},
+		"hard": {
+			"instance_size": "Standard_A1"
+		},
+		"maps": {
+			"operating_system": {
+				"1": {
+					"output": "ansible_user",
+					"type": "starts-with",
+					"map": {
+						"Cent": "centos",
+						"RHEL": "ec2-user",
+						"cent": "centos",
+						"rhel": "ec2-user"
+					}
+				},
+				"2": {
+					"output": "os",
+					"type": "starts-with",
+					"map": {
+						"Centos7.": "CentOS7",
+						"Centos8_": "CentOS8",
+						"RHEL7.": "RHEL7",
+						"RHEL8.": "RHEL8",
+						"centos-7": "CentOS7",
+						"centos-8": "CentOS8",						
+						"rhel-7": "RHEL7",
+						"rhel-8": "RHEL8"						
+					}
+				}				
+			},
+			"installation_type": {
+				"0": {
+					"output": "pem_instance_count",
+					"type": "exact",
+					"map": {
+						"Single Installation": "0",
+						"Multi-Node Installation": "1"
+					}
+				},
+				"1": {
+					"output": "instance_count",
+					"type": "exact",
+					"map": {
+						"Single Installation": "1",
+						"Multi-Node Installation": "4"
+					}
+				},				
+				"2": {
+					"output": "pem_server",
+					"type": "exact",
+					"map": {
+						"Single Installation": "false",
+						"Multi-Node Installation": "true"
+					}
+				},
+				"3": {
+					"output": "playbook",
+					"type": "exact",
+					"map": {
+						"Single Installation": "playbook-single-instance.yml",
+						"Multi-Node Installation": "playbook.yml"
+					}
+				}
+			},
+			"db_engine": {
+				"0": {
+					"output": "pg_type",
+					"type": "exact",
+					"map": {
+						"PostgreSQL": "PG",
+						"EDB Postgres Advanced Server": "EPAS"
+					}
+				}
+			}
+		}
+	},
+	"commands": {
+		"configure" : {
+			"name": "configure",
+			"short": "Configure Cluster Configuration for Google Cloud Project",
+			"long": "",
+			"arguments": {},
+			"configuration-groups": {
+				"0": {
+					"variables": [22]
+				},
+				"1": {
+					"variables": [1, 2]
+				},				
+				"2": {
+					"variables": [8],
+					"condition": {
+						"type": "variable",
+						"equals": {
+							"variable": "installation_type",
+							"type": "exact",
+							"match": "Multi-Node Installation"
+						}
+					}
+				},
+				"3": {
+					"variables": [0, 4, 5, 6, 7, 8, 23]
+				}
+			}
+		},
+		"delete" : {
+			"name": "delete",
+			"short": "Delete configuration for Google Cloud Project",
+			"long": "",
+			"arguments": {}
+		},
+		"get" : {
+			"name": "get",
+			"short": "Get Google Cloud Project Details",
+			"long": "",
+			"arguments": {}
+		},
+		"list" : {
+			"name": "list",
+			"short": "Get list of Google Cloud Projects",
+			"long": "",
+			"arguments": {}
+		},
+		"destroy" : {
+			"name": "destroy",
+			"short": "Runs Terraform for Google Cloud Project destruction",
+			"long": "",
+			"arguments": {
+				"terraform_destroy": {
+					"variables": [
+						{
+							"prefix": "subnetwork_region",
+							"variable": "subnetwork_region"
+						}
+					]
+				}
+			}
+		},
+		"deploy" : {
+			"name": "deploy",
+			"short": "Runs Terraform for Google Cloud Project creation and Ansible for Installation of Postgres",
+			"long": "",
+			"arguments": {
+				"pre_run_checks": {
+					"0": {					
+						"command": "gcloud compute images list --filter=family=%s --format=[list,no-heading]",
+						"variables": {
+							"0": "operating_system"
+						},
+						"output": "image_exists"
+					}
+				},
+				"terraform_build": {
+					"variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "project_name",
+							"variable": "project_id"
+						},
+						{
+							"prefix": "subnetwork_region",
+							"variable": "subnetwork_region"
+						},
+
+						{
+							"prefix": "instance_count",
+							"variable": "instance_count",
+							"default": "1"
+						},
+						{
+							"prefix": "pem_instance_count",
+							"variable": "pem_instance_count",
+							"default": {}
+						},
+						{
+							"prefix": "ssh_user",
+							"variable": "ansible_user"
+						},						
+						{
+							"prefix": "instance_name",
+							"variable": "project_name"
+						},
+						{
+							"prefix": "ssh_key_location",
+							"variable": "public_key"
+						}					]
+				},
+				"post_run_checks": {
+				},
+				"ansible_run": {
+					"extra_variables": [
+						{
+							"prefix": "os",
+							"variable": "os"
+						},
+						{
+							"prefix": "pg_type",
+							"variable": "pg_type"
+						},
+						{
+							"prefix": "pg_version",
+							"variable": "db_version"
+						},
+						{
+							"prefix": "yum_username",
+							"variable": "user_name"
+						},
+						{
+							"prefix": "yum_password",
+							"variable": "password"
+						},
+						{
+							"prefix": "pass_dir",
+							"variable": "pass_dir"
+						}
+					],
+					"variables": [
+						{
+							"prefix": "user",
+							"variable": "ansible_user"
+						},			
+						{
+							"prefix": "extra-vars",
+							"variable": "extra_vars"
+						},
+						{
+							"prefix": "private-key",
+							"variable": "private_key"
+						},
+						{
+							"variable": "playbook"
+						}
+					]
+				}
+
+			}
+		},		
+		"run" : {
+			"name": "run",
+			"short": "Runs Terraform for Google Cloud Project creation",
+			"long": "",
+			"arguments": {
+				"pre_run_checks": {
+					"0": {					
+						"command": "gcloud compute images list --filter=family=%s --format=[list,no-heading]",
+						"variables": {
+							"0": "operating_system"
+						},
+						"output": "image_exists"
+					}
+				},
+				"terraform_build": {
+					"variables": [
+						{
+							"prefix": "os",
+							"variable": "operating_system"
+						},
+						{
+							"prefix": "project_name",
+							"variable": "project_id"
+						},
+						{
+							"prefix": "subnetwork_region",
+							"variable": "subnetwork_region"
+						},
+
+						{
+							"prefix": "instance_count",
+							"variable": "instance_count",
+							"default": "1"
+						},
+						{
+							"prefix": "pem_instance_count",
+							"variable": "pem_instance_count",
+							"default": {}
+						},
+						{
+							"prefix": "ssh_user",
+							"variable": "ansible_user"
+						},						
+						{
+							"prefix": "instance_name",
+							"variable": "project_name"
+						},
+						{
+							"prefix": "ssh_key_location",
+							"variable": "public_key"
+						}					]
+				},
+				"post_run_checks": {
+				}
+			}
+		},
+		"install": {
+			"name": "install",
+			"short": "Runs Ansible to install postgres",
+			"long": "",
+			"arguments": {
+				"ansible_run": {
+					"extra_variables": [
+						{
+							"prefix": "os",
+							"variable": "os"
+						},
+						{
+							"prefix": "pg_type",
+							"variable": "pg_type"
+						},
+						{
+							"prefix": "pg_version",
+							"variable": "db_version"
+						},
+						{
+							"prefix": "yum_username",
+							"variable": "user_name"
+						},
+						{
+							"prefix": "yum_password",
+							"variable": "password"
+						},
+						{
+							"prefix": "pass_dir",
+							"variable": "pass_dir"
+						}
+					],
+					"variables": [
+						{
+							"prefix": "user",
+							"variable": "ansible_user"
+						},			
+						{
+							"prefix": "extra-vars",
+							"variable": "extra_vars"
+						},
+						{
+							"prefix": "private-key",
+							"variable": "private_key"
+						},
+						{
+							"variable": "playbook"
+						}
+					]
+				}
+			}
+		}
+	}
+}
