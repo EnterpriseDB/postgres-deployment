@@ -1,5 +1,4 @@
 provider "google" {
-  #credentials = file("${path.module}/../credentials/account.json")
-  credentials = var.credentials
-  project     = var.project_name
+  credentials = var.gcloud_credentials
+  project     = var.gcloud_project_id
 }

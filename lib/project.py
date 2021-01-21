@@ -8,7 +8,7 @@ import sys
 import stat
 import time
 
-from .cloud import CloudCli, AWSCli, AzureCli
+from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
@@ -121,6 +121,8 @@ class Project:
         # Transform templates
         for template in self.terraform_templates:
             template_path = os.path.join(self.project_path, template)
+            if not os.path.exists(template_path):
+                continue
             dest_path = os.path.join(
                 self.project_path,
                 os.path.splitext(template)[0]
@@ -232,6 +234,25 @@ class Project:
                     env.azure_region
                 )
 
+        # GCloud - Check instance type and image availability
+        if env.cloud == 'gcloud':
+            for instance_type in instance_types:
+                with AM(
+                    "Checking instance type %s availability in %s"
+                    % (instance_type, env.gcloud_region)
+                ):
+                    cloud_cli.check_instance_type_availability(
+                        instance_type, env.gcloud_region
+                    )
+            # Check availability of the image
+            with AM(
+                "Checking image %s availability"
+                % self.terraform_vars['gcloud_image']
+            ):
+                cloud_cli.cli.check_image_availability(
+                    self.terraform_vars['gcloud_image']
+                )
+
     def _load_spec_file(self, spec_file_path):
         try:
             with open(spec_file_path) as json_file:
@@ -332,7 +353,14 @@ class Project:
                 azure_offer=os_spec['offer'],
                 azure_sku=os_spec['sku']
             ))
-
+        # GCloud case
+        if env.cloud == 'gcloud':
+            self.terraform_vars.update(dict(
+                gcloud_image=os_spec['image'],
+                gcloud_region=env.gcloud_region,
+                gcloud_credentials=env.gcloud_credentials.name,
+                gcloud_project_id=env.gcloud_project_id
+            ))
 
         # Postgres servers terraform_vars
         self.terraform_vars.update(dict(
@@ -476,6 +504,22 @@ class Project:
         if self.cloud == 'azure':
             with AM("Checking instances availability"):
                 cloud_cli.cli.check_instances_availability(self.name)
+        # GCloud case
+        if self.cloud == 'gcloud':
+            with AM(
+                "Checking instances availability in region %s"
+                % self.terraform_vars['gcloud_region']
+            ):
+                cloud_cli.cli.check_instances_availability(
+                    self.name,
+                    self.terraform_vars['gcloud_region'],
+                    # Total number of nodes
+                    (self.terraform_vars['postgres_server']['count']
+                     + self.terraform_vars['barman_server']['count']
+                     + self.terraform_vars['pem_server']['count']
+                     + self.terraform_vars['pooler_server']['count'])
+                )
+
 
         with AM("SSH configuration"):
             terraform.exec_add_host_sh()
@@ -528,7 +572,7 @@ class Project:
                 json.dumps(extra_vars)
             )
 
-        with AM("Extracting data the inventory file"):
+        with AM("Extracting data from the inventory file"):
             inventory_data = ansible.list_inventory(self.ansible_inventory)
 
         # Display inventory informations
