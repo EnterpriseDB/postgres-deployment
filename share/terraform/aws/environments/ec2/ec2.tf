@@ -92,7 +92,7 @@ resource "aws_instance" "postgres_server" {
 resource "aws_ebs_volume" "postgres_ebs_vol" {
   count = var.postgres_server["count"] * var.postgres_server["additional_volumes"]["count"]
 
-  availability_zone = element(aws_instance.postgres_server.*.availability_zone, floor(count.index / var.postgres_server["additional_volumes"]["count"]))
+  availability_zone = element(aws_instance.postgres_server.*.availability_zone, count.index)
   size              = var.postgres_server["additional_volumes"]["size"]
   type              = var.postgres_server["additional_volumes"]["type"]
   iops              = var.postgres_server["additional_volumes"]["type"] == "io2" ? var.postgres_server["additional_volumes"]["iops"] : var.postgres_server["additional_volumes"]["type"] == "io1" ? var.postgres_server["additional_volumes"]["iops"] : null
