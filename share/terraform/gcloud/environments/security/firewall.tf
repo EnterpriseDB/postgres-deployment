@@ -91,8 +91,8 @@ resource "google_compute_firewall" "efm" {
   source_ranges = [var.source_ranges]
 }
 
-resource "google_compute_firewall" "firewall-openshift-console" {
-  name    = format("%s-%s", var.network_name, "firewall-openshift-console")
+resource "google_compute_firewall" "pem-server" {
+  name    = format("%s-%s", var.network_name, "firewall-pem-server")
   network = var.network_name
 
   allow {
@@ -100,7 +100,20 @@ resource "google_compute_firewall" "firewall-openshift-console" {
     ports    = ["8443"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-openshift-console")]
+  target_tags = [format("%s-%s", var.network_name, "firewall-pem-server")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["9000"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool")]
   source_ranges = [var.source_ranges]
 }
 

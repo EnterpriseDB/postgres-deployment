@@ -1,5 +1,6 @@
 import logging
 import json
+import time
 from subprocess import CalledProcessError
 
 from .system import exec_shell
@@ -201,6 +202,118 @@ class AzureCli:
 class GCloudCli:
     def __init__(self):
         pass
+
+    def check_instance_type_availability(self, instance_type, region):
+        try:
+            output = exec_shell([
+                "gcloud",
+                "compute",
+                "machine-types",
+                "list",
+                "--filter=\"name=%s zone:%s*\"" % (instance_type, region),
+                "--format=json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Instance type %s not available in region %s"
+                    % (instance_type, region)
+                )
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_image_availability(self, image):
+        try:
+            output = exec_shell([
+                "gcloud",
+                "compute",
+                "images",
+                "list",
+                "--filter=\"family=%s\"" % image,
+                "--format=json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0 or result[0]['status'] != 'READY':
+                raise CloudCliError("Image %s not available" % image)
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_instances_availability(self, project_name, region, node_count):
+        try_count = 0
+        try_max = 5
+        try_nap_time = 2
+        while True:
+            if try_count >= try_max:
+                raise CloudCliError(
+                    "Unable to check instances availability after %s trys"
+                    % try_count
+                )
+
+            try_count += 1
+
+            try:
+                output = exec_shell([
+                    "gcloud",
+                    "compute",
+                    "instances",
+                    "list",
+                    "--filter=\"name:%s-* zone ~ %s-[a-z] status=RUNNING\""
+                    % (project_name, region),
+                    "--format=json"
+                ])
+                result = json.loads(output.decode("utf-8"))
+                logging.debug("Command output: %s", result)
+
+                if (len(result) >= node_count):
+                    # Number of ready instances is good, just break the loop
+                    break
+
+                time.sleep(try_nap_time)
+
+            except ValueError:
+                # JSON decoding error
+                logging.error("Failed to decode JSON data")
+                logging.error("Output: %s", output.decode("utf-8"))
+                raise CloudCliError(
+                    "Failed to decode JSON data, please check the logs for "
+                    "details"
+                )
+            except CalledProcessError as e:
+                logging.error("Failed to execute the command: %s", e.cmd)
+                logging.error("Return code is: %s", e.returncode)
+                logging.error("Output: %s", e.output)
+                raise CloudCliError(
+                    "Failed to execute the following command, please check the"
+                    " logs for details: %s" % e.cmd
+                )
 
 
 class CloudCli:

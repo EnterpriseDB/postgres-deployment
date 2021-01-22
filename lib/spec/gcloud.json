@@ -1,0 +1,58 @@
+{
+  "available_os": {
+    "CentOS7": {
+      "image": "centos-7",
+      "ssh_user": "edbadm"
+    },
+    "CentOS8": {
+      "image": "centos-8",
+      "ssh_user": "edbadm"
+    },
+    "RedHat7": {
+      "image": "rhel-7",
+      "ssh_user": "edbadm"
+    },
+    "RedHat8": {
+      "image": "rhel-8",
+      "ssh_user": "edbadm"
+    }
+  },
+  "postgres_server": {
+    "instance_type": "e2-standard-4",
+    "volume": {
+      "type": "pd-standard",
+      "size": 50
+    },
+    "additional_volumes": {
+      "count": 2,
+      "type": "pd-ssd",
+      "size": 100
+    }
+  },
+  "pem_server": {
+    "instance_type": "e2-standard-4",
+    "volume": {
+      "type": "pd-standard",
+      "size": 100
+    }
+  },
+  "pooler_server": {
+    "instance_type": "e2-standard-2",
+    "volume": {
+      "type": "pd-standard",
+      "size": 50
+    }
+  },
+  "barman_server": {
+    "instance_type": "e2-standard-2",
+    "volume": {
+      "type": "pd-standard",
+      "size": 50
+    },
+    "additional_volumes": {
+      "count": 1,
+      "type": "pd-standard",
+      "size": 500
+    }
+  }
+}
