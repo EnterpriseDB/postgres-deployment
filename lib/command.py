@@ -73,3 +73,7 @@ class Commander:
     def list(self):
         logging.info("Listing project for cloud %s", self.env.cloud)
         Project.list(self.env.cloud)
+
+    def specs(self):
+        logging.info("Showing default specs. for cloud %s", self.env.cloud)
+        Project.show_specs(self.env.cloud)

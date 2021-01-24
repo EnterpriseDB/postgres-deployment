@@ -9,6 +9,7 @@ from lib.cloud import CloudCliError
 from lib.project import Project, ProjectError
 from lib.terraform import TerraformCliError
 from lib.ansible import AnsibleCliError
+from lib.specifications import SpecValidatorError
 
 def configure_project_logging(project, sub_command):
 
@@ -62,7 +63,8 @@ if __name__ == "__main__":
         CloudCliError,
         ProjectError,
         TerraformCliError,
-        AnsibleCliError
+        AnsibleCliError,
+        SpecValidatorError
     ) as e:
         # Update states
         if isinstance(e, TerraformCliError):
