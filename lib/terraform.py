@@ -1,7 +1,8 @@
 import logging
 import os
+from subprocess import CalledProcessError
 
-from .system import exec_shell_live
+from .system import exec_shell_live, exec_shell
 
 
 class TerraformCliError(Exception):
@@ -95,4 +96,34 @@ class TerraformCli:
             raise TerraformCliError(
                 ("Failed to execute script %s, please check the logs for "
                  "details.") % os.path.join(self.dir, "add_host.sh")
+            )
+
+    def count_resources(self):
+        try:
+            # Check if the terraform state file exists
+            if not os.path.exists(os.path.join(self.dir, 'terraform.tfstate')):
+                return 0
+
+            output = exec_shell(
+                ["terraform", "state", "list"],
+                environ=self.environ,
+                cwd=self.dir
+            )
+
+            result = output.decode("utf-8").split('\n')
+            logging.debug("Command output: %s", result)
+            return len(result) - 1
+        except CalledProcessError as e:
+            # Case when the terraform.tfstate file exists but not yet fully
+            # usable by terraform. In this case, we just return 0
+            if (e.returncode == 1 and
+                    "No state file was found!" in e.output.decode("utf-8")):
+                return 0
+
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise TerraformCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
             )

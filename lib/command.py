@@ -7,7 +7,9 @@ class CommanderError(Exception):
 class Commander:
     def __init__(self, env):
         self.env = env
-        self.project = Project(self.env.cloud, self.env.project)
+        self.project = None
+        if getattr(self.env, 'project', False):
+            self.project = Project(self.env.cloud, self.env.project)
 
     def _check_project_exists(self):
         if not self.project.exists():
@@ -67,3 +69,7 @@ class Commander:
         self._check_project_exists()
         logging.info("Deploying components for project %s", self.project.name)
         self.project.deploy(self.env.no_install_collection)
+
+    def list(self):
+        logging.info("Listing project for cloud %s", self.env.cloud)
+        Project.list(self.env.cloud)
