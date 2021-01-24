@@ -90,23 +90,6 @@ class AWSIAMIDOption:
     """)
 
 
-class AWSSpecFileOption:
-
-    help = textwrap.dedent("""
-        AWS instances specification file, in JSON. Default: %(default)s
-    """)
-
-    @staticmethod
-    def default():
-        spec_file_path = os.path.join(
-            os.path.dirname(os.path.relpath(__file__)),
-            'spec',
-            'aws.json'
-        )
-        if os.path.exists(spec_file_path):
-            return spec_file_path
-
-
 class AzureRegionOption:
     choices = ['centralus', 'eastus', 'eastus2', 'westus', 'westcentralus',
                'westus2', 'northcentralus', 'southcentralus']
@@ -116,23 +99,6 @@ class AzureRegionOption:
         westcentralus, westus2, northcentralus and southcentralus.
         Default: %(default)s
     """)
-
-
-class AzureSpecFileOption:
-
-    help = textwrap.dedent("""
-        Azure instances specification file, in JSON. Default: %(default)s
-    """)
-
-    @staticmethod
-    def default():
-        spec_file_path = os.path.join(
-            os.path.dirname(os.path.relpath(__file__)),
-            'spec',
-            'azure.json'
-        )
-        if os.path.exists(spec_file_path):
-            return spec_file_path
 
 
 class GCloudRegionOption:
@@ -157,23 +123,6 @@ class GCloudCredentialsOption:
         credential_file = os.path.join(home, 'accounts.json')
         if os.path.exists(credential_file):
             return credential_file
-
-
-class GCloudSpecFileOption:
-
-    help = textwrap.dedent("""
-        GCloud instances specification file, in JSON. Default: %(default)s
-    """)
-
-    @staticmethod
-    def default():
-        spec_file_path = os.path.join(
-            os.path.dirname(os.path.relpath(__file__)),
-            'spec',
-            'gcloud.json'
-        )
-        if os.path.exists(spec_file_path):
-            return spec_file_path
 
 
 def EDBCredentialsType(value):
@@ -212,6 +161,9 @@ def aws_subcommands(aws_subparser):
     )
     aws_list = aws_subparser.add_parser(
         'list', help='List projects'
+    )
+    aws_specs = aws_subparser.add_parser(
+        'specs', help='Show Cloud default specifications.'
     )
     aws_logs = aws_subparser.add_parser(
         'logs', help='Show project logs'
@@ -300,9 +252,8 @@ def aws_subcommands(aws_subparser):
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        default=AWSSpecFileOption.default(),
         metavar='<aws-spec-file>',
-        help=AWSSpecFileOption.help
+        help="AWS instances specification file, in JSON."
     )
     # aws logs sub-command options
     aws_logs.add_argument(
@@ -366,6 +317,9 @@ def azure_subcommands(azure_subparser):
     )
     azure_list = azure_subparser.add_parser(
         'list', help='List projects'
+    )
+    azure_specs = azure_subparser.add_parser(
+        'specs', help='Show Cloud default specifications.'
     )
     azure_logs = azure_subparser.add_parser(
         'logs', help='Show project logs'
@@ -438,9 +392,8 @@ def azure_subcommands(azure_subparser):
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        default=AzureSpecFileOption.default(),
         metavar='<azure-spec-file>',
-        help=AzureSpecFileOption.help
+        help="Azure instances specification file, in JSON."
     )
     azure_configure.add_argument(
         '-r', '--azure-region',
@@ -512,6 +465,9 @@ def gcloud_subcommands(gcloud_subparser):
     )
     gcloud_list = gcloud_subparser.add_parser(
         'list', help='List projects'
+    )
+    gcloud_specs = gcloud_subparser.add_parser(
+        'specs', help='Show Cloud default specifications.'
     )
     gcloud_logs = gcloud_subparser.add_parser(
         'logs', help='Show project logs'
@@ -592,9 +548,8 @@ def gcloud_subcommands(gcloud_subparser):
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        default=GCloudSpecFileOption.default(),
         metavar='<gcloud-spec-file>',
-        help=GCloudSpecFileOption.help
+        help="GCloud instances specification file, in JSON."
     )
     gcloud_configure.add_argument(
         '-c', '--gcloud-credentials',
