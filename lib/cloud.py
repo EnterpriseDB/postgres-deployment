@@ -5,8 +5,10 @@ from subprocess import CalledProcessError
 
 from .system import exec_shell
 
+
 class CloudCliError(Exception):
     pass
+
 
 class AWSCli:
     def __init__(self):

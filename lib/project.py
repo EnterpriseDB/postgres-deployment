@@ -51,6 +51,10 @@ class Project:
             self.terraform_share_path,
             self.cloud
         )
+        self.terraform_plugin_cache_path = os.path.join(
+            self.projects_root_path,
+            '.terraform_plugin_cache'
+        )
         self.ssh_priv_key = os.path.join(self.project_path, 'ssh_priv_key')
         self.ssh_pub_key = os.path.join(self.project_path, 'ssh_pub_key')
         self.terraform_vars = None
@@ -67,15 +71,12 @@ class Project:
         self.log_file = os.path.join(
             self.projects_root_path, "log", self.cloud, "%s.log" % self.name
         )
-        self.terraform_plugin_cache_path = os.path.join(
-            self.projects_root_path,
-            '.terraform_plugin_cache'
-        )
         self.ansible_playbook = os.path.join(self.project_path, 'playbook.yml')
         self.ansible_inventory = os.path.join(
             self.project_path,
             'inventory.yml'
         )
+        self.state_file = os.path.join(self.project_path, 'state.json')
 
     def create_log_dir(self):
         try:
@@ -86,8 +87,50 @@ class Project:
         except Exception as e:
             raise ProjectError(str(e))
 
+    @staticmethod
+    def create_root_log_dir():
+        try:
+            os.makedirs(os.path.join(Project.projects_root_path, "log"))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise ProjectError(str(e))
+        except Exception as e:
+            raise ProjectError(str(e))
+
     def exists(self):
         return os.path.exists(self.project_path)
+
+    def init_state(self):
+        with open(self.state_file, 'w') as f:
+            f.write(json.dumps(dict()))
+
+    def update_state(self, component, state):
+        try:
+            if not os.path.exists(self.state_file):
+                self.init_state()
+
+            with open(self.state_file, 'r') as f:
+                states = json.loads(f.read())
+            # Update component's state
+            states[component] = state
+            # Save the state file
+            with open(self.state_file, 'w') as f:
+                f.write(json.dumps(states))
+        except Exception as e:
+            msg = "Unable to update the state file %s" % self.state_file
+            logging.error(msg)
+            logging.exception(str(e))
+            raise ProjectError(msg)
+
+    def load_states(self):
+        try:
+            with open(self.state_file, 'r') as f:
+                return json.loads(f.read())
+        except Exception as e:
+            msg = "Unable to read the state file %s" % self.state_file
+            logging.error(msg)
+            logging.exception(str(e))
+            raise ProjectError(msg)
 
     def create(self):
         # Copy terraform code
@@ -96,6 +139,9 @@ class Project:
                 shutil.copytree(self.terraform_path, self.project_path)
             except Exception as e:
                 raise ProjectError(str(e))
+
+        with AM("Initialzing state file"):
+            self.init_state()
 
         # Create Terraform plugin cache
         with AM(
@@ -482,10 +528,16 @@ class Project:
         terraform = TerraformCli(
             self.project_path, self.terraform_plugin_cache_path
         )
+
+        self.update_state('terraform', 'INITIALIZATING')
         with AM("Terraform project initialization"):
             terraform.init()
+        self.update_state('terraform', 'INITIALIZATED')
+
+        self.update_state('terraform', 'PROVISIONING')
         with AM("Applying cloud resources creation"):
             terraform.apply(self.terraform_vars_file)
+        self.update_state('terraform', 'PROVISIONED')
 
         # Checking instance availability
         cloud_cli = CloudCli(self.cloud)
@@ -528,8 +580,12 @@ class Project:
         terraform = TerraformCli(
             self.project_path, self.terraform_plugin_cache_path
         )
+
+        self.update_state('terraform', 'DESTROYING')
         with AM("Destroying cloud resources"):
             terraform.destroy(self.terraform_vars_file)
+        self.update_state('terraform', 'DESTROYED')
+        self.update_state('ansible', 'UNKNOWN')
 
     def deploy(self, no_install_collection):
         inventory_data = None
@@ -563,6 +619,7 @@ class Project:
                 pg_wal=self.ansible_vars['pg_wal']
             ))
 
+        self.update_state('ansible', 'DEPLOYING')
         with AM("Deploying components with Ansible"):
             ansible.run_playbook(
                 self.ansible_vars['ssh_user'],
@@ -571,6 +628,7 @@ class Project:
                 self.ansible_playbook,
                 json.dumps(extra_vars)
             )
+        self.update_state('ansible', 'DEPLOYED')
 
         with AM("Extracting data from the inventory file"):
             inventory_data = ansible.list_inventory(self.ansible_inventory)
@@ -579,20 +637,16 @@ class Project:
         self.display_inventory(inventory_data)
 
     def display_inventory(self, inventory_data):
-        servers = []
-
         if not self.ansible_vars:
             self._load_ansible_vars()
-        ssh_user = self.ansible_vars['ssh_user']
 
         def _p(s):
             sys.stdout.write(s)
 
         sys.stdout.flush()
         _p("\n")
-
+        # Display PEM server informations
         if 'pemserver' in inventory_data['all']['children']:
-            # Display PEM server informations
             pem_user = 'pemadmin'
             pem_name = inventory_data['pemserver']['hosts'][0]
             pem_hostvars = inventory_data['_meta']['hostvars'][pem_name]
@@ -610,37 +664,92 @@ class Project:
             _p("PEM User: %s\n" % pem_user)
             _p("PEM Password: %s\n" % pem_password)
 
-        max_l_name = 0
-        for k, v in inventory_data['_meta']['hostvars'].items():
-            servers.append([
-                k,
-                v['ansible_host'],
-                v['private_ip']
+        # Build the nodes table
+        rows = []
+        for name, vars in inventory_data['_meta']['hostvars'].items():
+            rows.append([
+                name,
+                vars['ansible_host'],
+                self.ansible_vars['ssh_user'],
+                vars['private_ip']
             ])
-            if len(k) > max_l_name:
-                max_l_name = len(k)
 
-        max_l_name += 3
-        max_l_ip = 18
-        max_l_ssh_user = len(ssh_user) + 3 if len(ssh_user) > 7 else 10
+        Project.display_table(
+            ['Name', 'Public IP', 'SSH User', 'Private IP'],
+            rows
+        )
 
+
+    @staticmethod
+    def list(cloud):
+        projects_path = os.path.join(Project.projects_root_path, cloud)
+        rows = []
+        try:
+            for project_name in os.listdir(projects_path):
+                project_path = os.path.join(projects_path, project_name)
+                if not os.path.isdir(project_path):
+                    continue
+
+                project = Project(cloud, project_name)
+
+                terraform_resource_count = 0
+                terraform = TerraformCli(
+                    project.project_path,
+                    project.terraform_plugin_cache_path
+                )
+                terraform_resource_count = terraform.count_resources()
+
+                try:
+                    states = project.load_states()
+                except Exception as e:
+                    states={}
+
+                rows.append([
+                    project.name,
+                    project.project_path,
+                    states.get('terraform', 'UNKNOWN'),
+                    str(terraform_resource_count),
+                    states.get('ansible', 'UNKNOWN')
+                ])
+
+            Project.display_table(
+                ["Name", "Path", "Machines", "Resources", "Components"],
+                rows
+            )
+
+        except OSError as e:
+            msg = "Unable to list projects in %s" % projects_path
+            logging.error(msg)
+            logging.exception(str(e))
+            raise ProjectErro(msg)
+
+    @staticmethod
+    def display_table(headers, rows):
+        def _p(s):
+            sys.stdout.write(s)
+
+        # Calculate max lengths
+        max_lengths = [0 for i in range(len(headers))]
+        for i in range(len(headers)):
+            if len(headers[i]) > max_lengths[i]:
+                max_lengths[i] = len(headers[i])
+        for row in rows:
+            for i in range(len(headers)):
+                if len(row[i]) > max_lengths[i]:
+                    max_lengths[i] = len(row[i])
+
+        _p("\n")
         # Display headers
-        headers = ['Name', 'Public IP', 'SSH User', 'Private IP']
-        _p(headers[0].center(max_l_name))
-        _p(headers[1].center(max_l_ip))
-        _p(headers[2].center(max_l_ssh_user))
-        _p(headers[3].center(max_l_ip))
-        _p("\n")
-        _p("=" * (max_l_name + + max_l_ssh_user + max_l_ip * 2))
-        _p("\n")
+        for i in range(len(headers)):
+            _p(headers[i].center(max_lengths[i] + 4))
 
-        for line in sorted(servers, key=lambda x: x[0]):
-            # Display each line
-            _p(line[0].rjust(max_l_name))
-            _p(line[1].rjust(max_l_ip))
-            _p(ssh_user.rjust(max_l_ssh_user))
-            _p(line[2].rjust(max_l_ip))
+        _p("\n")
+        _p("=" * (sum(max_lengths) + 4 * len(max_lengths)))
+        _p("\n")
+        # Display rows
+        for row in rows:
+            for i in range(len(headers)):
+                _p(row[i].rjust(max_lengths[i] + 4))
             _p("\n")
-
         _p("\n")
         sys.stdout.flush()

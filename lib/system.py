@@ -2,12 +2,14 @@ import logging
 import os
 import subprocess
 
-def exec_shell(args):
+def exec_shell(args, environ=os.environ, cwd=None):
     logging.info("Executing command: %s", ' '.join(args))
     return subprocess.check_output(
         ' '.join(args),
         stderr=subprocess.STDOUT,
-        shell=True
+        shell=True,
+        cwd=cwd,
+        env=environ
     )
 
 def exec_shell_live(args, environ=os.environ, cwd=None):
@@ -18,7 +20,8 @@ def exec_shell_live(args, environ=os.environ, cwd=None):
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        cwd=cwd
+        cwd=cwd,
+        env=environ
     )
 
     rc = 0
