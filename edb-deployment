@@ -6,11 +6,11 @@ import sys
 from lib import cli
 from lib import command
 from lib.cloud import CloudCliError
-from lib.project import ProjectError
+from lib.project import Project, ProjectError
 from lib.terraform import TerraformCliError
 from lib.ansible import AnsibleCliError
 
-def configure_logging(project, sub_command):
+def configure_project_logging(project, sub_command):
 
     project.create_log_dir()
 
@@ -20,6 +20,21 @@ def configure_logging(project, sub_command):
         format='%(asctime)s %(levelname)7s '+sub_command+': %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
     )
+
+def configure_root_logging(cloud, sub_command):
+    # Configure logging module for the sub-commands that do not take project
+    # name argument.
+    Project.create_root_log_dir()
+
+    logging.basicConfig(
+        filename=os.path.join(
+            Project.projects_root_path, "log", "%s_%s.log" % (cloud, sub_command)
+        ),
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)7s '+sub_command+': %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+
 
 if __name__ == "__main__":
 
@@ -32,9 +47,14 @@ if __name__ == "__main__":
         commander = command.Commander(env)
 
         # Configure logging
-        configure_logging(commander.project, env.sub_command)
+        if commander.project:
+            configure_project_logging(commander.project, env.sub_command)
+        else:
+            configure_root_logging(env.cloud, env.sub_command)
+
         logging.debug("env=%s", env)
 
+        # Execute the sub-command
         commander.execute()
 
     except (
@@ -44,6 +64,12 @@ if __name__ == "__main__":
         TerraformCliError,
         AnsibleCliError
     ) as e:
+        # Update states
+        if isinstance(e, TerraformCliError):
+            commander.project.update_state('terraform', 'FAIL')
+        if isinstance(e, AnsibleCliError):
+            commander.project.update_state('ansible', 'FAIL')
+
         sys.stderr.write("ERROR: %s\n" % str(e))
         sys.exit(2)
     except KeyboardInterrupt as e:
