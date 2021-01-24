@@ -13,6 +13,7 @@ from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
 
+
 class ProjectError(Exception):
     pass
 
@@ -497,6 +498,17 @@ class Project:
                     sys.stdout.write(l)
 
     def remove(self):
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path
+        )
+        # Prevent project deletion if some cloud resources are still present
+        # for this project.
+        if terraform.count_resources() > 0:
+            raise ProjectError(
+                "Some cloud resources seem to be still present for this "
+                "project, please destroy them with the 'destroy' sub-command"
+            )
+
         if os.path.exists(self.log_file):
             with AM("Removing log file %s" % self.log_file):
                 os.unlink(self.log_file)
@@ -678,7 +690,6 @@ class Project:
             ['Name', 'Public IP', 'SSH User', 'Private IP'],
             rows
         )
-
 
     @staticmethod
     def list(cloud):
