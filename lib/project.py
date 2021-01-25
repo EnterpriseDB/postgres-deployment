@@ -12,7 +12,8 @@ from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
-
+from .specifications import default_spec, merge_user_spec
+from .spec.reference_architecture import ReferenceArchitectureSpec
 
 class ProjectError(Exception):
     pass
@@ -37,7 +38,6 @@ class Project:
         'ansible'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    reference_architecture_path = './lib/spec/reference_architecture.json'
     ansible_collection_name = 'edb_devops.edb_postgres'
 
     def __init__(self, cloud, name):
@@ -68,7 +68,7 @@ class Project:
             self.project_path,
             'ansible_vars.json'
         )
-        self.reference_architecture = None
+        self.reference_architecture = ReferenceArchitectureSpec
         self.log_file = os.path.join(
             self.projects_root_path, "log", self.cloud, "%s.log" % self.name
         )
@@ -158,6 +158,16 @@ class Project:
                 raise ProjectError(str(e))
 
     def configure(self, env):
+        # Load specifications
+        with AM("Loading Cloud specifications"):
+            if getattr(env, 'spec_file', False):
+                user_spec = self._load_spec_file(env.spec_file.name)
+                env.cloud_spec = merge_user_spec(env.cloud, user_spec)
+            else:
+                env.cloud_spec = default_spec(env.cloud)
+
+            logging.debug("env.cloud_specs=%s", env.cloud_spec)
+
         # Copy SSH keys
         with AM("Copying SSH key pair into %s" % self.project_path):
             shutil.copy(env.ssh_priv_key.name, self.ssh_priv_key)
@@ -182,11 +192,6 @@ class Project:
                         for l in f.readlines():
                             d.write(l.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
-
-        # Load spec file
-        with AM("Loading the JSON spec. file %s" % env.spec_file.name):
-            env.cloud_spec = self._load_spec_file(env.spec_file.name)
-            logging.debug("env.cloud_specs=%s", env.cloud_spec)
 
         # Build the vars files for Terraform and Ansible
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
@@ -355,21 +360,7 @@ class Project:
             logging.error(str(e))
             raise ProjectError(msg)
 
-    def _load_reference_architecture(self):
-        try:
-            with open(self.reference_architecture_path) as json_file:
-                self.reference_architecture = json.loads(json_file.read())
-        except json.decoder.JSONDecodeError as e:
-            msg = ("Unable to load the reference architecture spec. file %s"
-                   % self.reference_architecture_path)
-            logging.error(msg)
-            logging.error(str(e))
-            raise ProjectError(msg)
-
     def _build_terraform_vars(self, env):
-        # Load reference architecture specs.
-        self._load_reference_architecture()
-
         ra = self.reference_architecture[env.reference_architecture]
         pg_spec = env.cloud_spec['postgres_server']
         os_spec = env.cloud_spec['available_os'][env.operating_system]
@@ -763,4 +754,9 @@ class Project:
                 _p(row[i].rjust(max_lengths[i] + 4))
             _p("\n")
         _p("\n")
+        sys.stdout.flush()
+
+    @staticmethod
+    def show_specs(cloud):
+        sys.stdout.write(json.dumps(default_spec(cloud), indent=2))
         sys.stdout.flush()
