@@ -15,6 +15,7 @@ from .action import ActionManager as AM
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
 
+
 class ProjectError(Exception):
     pass
 
@@ -27,14 +28,12 @@ class Project:
     )
     terraform_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        '..',
-        'share',
+        'data',
         'terraform'
     )
     ansible_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        '..',
-        'share',
+        'data',
         'ansible'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']

@@ -4,6 +4,7 @@ import re
 import sys
 import textwrap
 
+from . import __version__
 
 class ReferenceArchitectureOption:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3']
@@ -613,6 +614,12 @@ def parse():
     parser = CLIParser(
         description='EDB deployment script for aws, azure and gcloud'
     )
+    parser.add_argument(
+        '-v', '--version',
+        dest='version',
+        action='store_true',
+        help="show version."
+    )
     subparsers = parser.add_subparsers(
         title='Cloud provider', dest='cloud', metavar='<cloud>'
     )
@@ -643,6 +650,12 @@ def parse():
 
     # Parse the arguments and options
     env = parser.parse_args()
+
+    # -v / --version
+    # Show version and exit
+    if env.version:
+        print(__version__)
+        sys.exit(0)
 
     # Check if the <cloud> argument is set
     if not getattr(env, 'cloud'):
