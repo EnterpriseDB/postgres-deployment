@@ -3,13 +3,13 @@ import logging
 import os
 import sys
 
-from lib import cli
-from lib import command
-from lib.cloud import CloudCliError
-from lib.project import Project, ProjectError
-from lib.terraform import TerraformCliError
-from lib.ansible import AnsibleCliError
-from lib.specifications import SpecValidatorError
+from edbdeploy import cli
+from edbdeploy import command
+from edbdeploy.cloud import CloudCliError
+from edbdeploy.project import Project, ProjectError
+from edbdeploy.terraform import TerraformCliError
+from edbdeploy.ansible import AnsibleCliError
+from edbdeploy.specifications import SpecValidatorError
 
 def configure_project_logging(project, sub_command):
 
