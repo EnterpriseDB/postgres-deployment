@@ -46,7 +46,15 @@ Advanced Server, and EDB Tools in the Cloud.
     python_requires=">=2.7",
     install_requires=[],
     extras_require={},
-    data_files=[],
+    data_files=[
+        (
+            'edb-deployment-scripts',
+            [
+                'scripts/install_requirements_linux_x64.sh',
+                'scripts/install_requirements_darwin_x64.sh',
+            ]
+        )
+    ],
     package_data={
         'edbdeploy': [
             'data/ansible/*.yml',
