@@ -6,7 +6,6 @@ variable "cluster_name" {}
 variable "gcloud_image" {}
 variable "gcloud_region" {}
 variable "network_name" {}
-variable "os_csv_filename" {}
 variable "pem_server" {}
 variable "pooler_local" {}
 variable "pooler_server" {}

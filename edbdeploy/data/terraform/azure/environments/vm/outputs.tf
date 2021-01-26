@@ -72,14 +72,6 @@ all:
 EOT
 }
 
-resource "local_file" "AnsibleOSCSVFile" {
-  filename = var.os_csv_filename
-  content  = <<EOT
-os_name_and_version
-${var.azure_offer}${var.azure_sku}
-EOT
-}
-
 resource "local_file" "host_script" {
   filename = var.add_hosts_filename
   content  = <<-EOT

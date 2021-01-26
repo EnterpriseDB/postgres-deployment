@@ -8,7 +8,6 @@ variable "barman_server" {}
 variable "barman" {}
 variable "cluster_name" {}
 variable "network_count" {}
-variable "os_csv_filename" {}
 variable "pem_server" {}
 variable "pooler_server" {}
 variable "pooler_type" {}
