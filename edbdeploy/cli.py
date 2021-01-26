@@ -135,6 +135,16 @@ def EDBCredentialsType(value):
     return value
 
 
+def ProjectType(value):
+    p = re.compile(r"^[a-z0-9]{3,12}$")
+    if not p.match(value):
+        raise argparse.ArgumentTypeError(
+            "Project name should only contain lower alphanumeric characters, "
+            "length must be between 3 and 12"
+        )
+    return value
+
+
 class CLIParser(argparse.ArgumentParser):
     def error(self, message):
         if message == "too few arguments":
@@ -174,7 +184,7 @@ def aws_subcommands(aws_subparser):
     )
     # aws configure sub-command options
     aws_configure.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     aws_configure.add_argument(
@@ -258,7 +268,7 @@ def aws_subcommands(aws_subparser):
     )
     # aws logs sub-command options
     aws_logs.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     aws_logs.add_argument(
@@ -269,27 +279,27 @@ def aws_subcommands(aws_subparser):
     )
     # aws remove sub-command options
     aws_remove.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # aws show sub-command options
     aws_show.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # aws provision sub-command options
     aws_provision.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # aws destroy sub-command options
     aws_destroy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # aws deploy sub-command options
     aws_deploy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     aws_deploy.add_argument(
@@ -330,7 +340,7 @@ def azure_subcommands(azure_subparser):
     )
     # azure configure sub-command options
     azure_configure.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Terraform project name'
     )
     azure_configure.add_argument(
@@ -406,7 +416,7 @@ def azure_subcommands(azure_subparser):
     )
     # azure logs sub-command options
     azure_logs.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     azure_logs.add_argument(
@@ -417,27 +427,27 @@ def azure_subcommands(azure_subparser):
     )
     # azure remove sub-command options
     azure_remove.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # azure show sub-command options
     azure_show.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # azure provision sub-command options
     azure_provision.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # azure destroy sub-command options
     azure_destroy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # azure deploy sub-command options
     azure_deploy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     azure_deploy.add_argument(
@@ -478,7 +488,7 @@ def gcloud_subcommands(gcloud_subparser):
     )
     # gcloud configure sub-command options
     gcloud_configure.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Terraform project name'
     )
     gcloud_configure.add_argument(
@@ -569,7 +579,7 @@ def gcloud_subcommands(gcloud_subparser):
     )
     # gcloud logs sub-command options
     gcloud_logs.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     gcloud_logs.add_argument(
@@ -580,27 +590,27 @@ def gcloud_subcommands(gcloud_subparser):
     )
     # gcloud remove sub-command options
     gcloud_remove.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # gcloud show sub-command options
     gcloud_show.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # gcloud provision sub-command options
     gcloud_provision.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # gcloud destroy sub-command options
     gcloud_destroy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     # gcloud deploy sub-command options
     gcloud_deploy.add_argument(
-        'project', type=str, metavar='<project-name>',
+        'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     )
     gcloud_deploy.add_argument(
