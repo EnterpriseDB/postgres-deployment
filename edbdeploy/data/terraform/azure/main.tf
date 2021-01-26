@@ -72,7 +72,6 @@ module "vm" {
   azure_sku                           = var.azure_sku
   ssh_user                            = var.ssh_user
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
-  os_csv_filename                     = var.os_csv_filename
   add_hosts_filename                  = var.add_hosts_filename
   pooler_type                         = var.pooler_type
   pooler_local                        = var.pooler_local
