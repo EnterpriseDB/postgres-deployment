@@ -24,7 +24,7 @@ class Project:
 
     projects_root_path = os.getenv(
         'EDB_DEPLOY_DIR',
-        os.path.join(os.path.expanduser("~"), ".edb_deploy")
+        os.path.join(os.path.expanduser("~"), ".edb-deployment")
     )
     terraform_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
