@@ -1,154 +1,321 @@
 # Getting Started
-Postgres Deployment Scripts are an easy way to deploy PostgreSQL, EDB Postgres Advanced Server, and EDB Tools. The deployment scripts use Ansible, Terraform, and bash to deploy PostgreSQL, EDBPostgres Advanced Server and tools for high availability, management and monitoring, and backup and recovery. 
 
-The deployment scripts are open source tools and are not officially supported by EDB Support. They are maintained and supported by the GitHub members of this repository. Please provide feedback by posting issues and providing pull requests.
+`edb-deployment` tool is an easy way to provision Cloud resources and deploy
+PostgreSQL, EDB Postgres Advanced Server and tools (high availability,
+backup/recovery, monitoring, connection poolers).
 
-Before starting to delve into this repository, it is best to get familiar with the steps in the deployment process of a specific cloud (AWS, Azure and Google Cloud).
+Supported Cloud providers are **AWS**, **Azure** and **Google Cloud**.
 
+`edb-deployment` helps user to deploy Postgres Reference Architectures. List
+and details of the Reference Architecture can be find [here](https://github.com/EnterpriseDB/edb-ref-archs/blob/main/edb-reference-architecture-codes/README.md).
 
-# Pre-Requisites:
-Postgres Deployment Scripts are dependent on following components. Install the following components before using the Postgres Deployment Scripts.
+`edb-deployment` is an open source tool and is not officially supported by EDB
+Support. It is maintained and supported by the GitHub members of this
+repository. Please provide feedback by posting issues and providing pull
+requests.
+
+Before starting to delve into this repository, it is best to get familiar with
+the steps in the deployment process of a specific cloud (AWS, Azure and Google
+Cloud).
+
+# Pre-Requisites
+
+`edb-deployment` is dependent on following components. Install the following
+components before using it.
+
+1. Python 3
+2. `pip3`
+
+Third party pre-requisites:
 
 1. **Latest vendor** Cloud CLI or SDK ( AWS, Azure or Google Cloud )
 
-   Depending on the cloud provider, install the **latest version** for: AWS CLI, Azure CLI or Google Cloud SDK on the system.
-   
-2. Packages: curl and wget
-3. Terraform >= 0.13
-4. Ansible >= 2.9
+   Depending on the cloud provider, install the **latest version** for: AWS
+   CLI, Azure CLI or Google Cloud SDK on the system.
 
-# INSTALLATION
+2. **Terraform** >= 0.13
+3. **Ansible** >= 2.9
 
-* Install the dependent packages are:
-  * curl, wget, curl, terraform and ansible
-  * To install Terraform: **[Installing Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)**
-  * To install Ansible: **[Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
-  * An example script is provided that is located at: ```./lib/prereqs.sh```
+To help the installation of the third party pre-requisites listed above,
+`edb-deployment` provides installation scripts for Linux (x64) and MacOS (x64).
+Please refer to section [Pre-Requisites installation scripts](#pre-requisites-installation-scripts).
 
-* A CLI or SDK depending on the Cloud vendor to utilize is required: 
-  * To install the Amazon Web Services CLI please refer to: **[Installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)**
-  * To install the Microsoft Azure CLI please refer to: **[Installing the AZURE CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)**
-  * To install the Google Cloud SDK please refer to: **[Installing the Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-interactive)**
+# Installation
 
-* Download or clone the repository as indicated below:
-  
-  For cloning the repository use the following command:
-  
-  ```git clone https://github.com/EnterpriseDB/postgres-deployment.git```
-  
-  For downloading the repository use the following command 
-  
-  ```postgres-deployment``` GitHub repo by clicking on the green **Code** button followed by clicking the **Download Zip** link
-
-  and then extract the zip file to a desired destination
- 
-* Open the ```Terminal``` command line
-
-* Navigate to the extracted folder location and type: ```cd postgres-deployment``` finishing with pressing the **Enter** button
-
-* Follow the demos/examples to deploy Postgres in a specific cloud.
-
-
-## USAGE:
-* The EDB Deployment CLI is part of the code. Following is an example of viewing the options available through the CLI:
-
-```
-edb-deployment [<cloud>-server|<cloud>-postgres] [OPTION]...
-
-EDB deployment script for aws, azure and gcp
-
-Subcommands:
-    aws-server      [create|destroy]  PROJECT_NAME
-    azure-server    [create|destroy]  PROJECT_NAME
-    gcloud-server   [create|destroy]  PROJECT_NAME
-    aws-postgres    install           PROJECT_NAME
-    azure-postgres  install           PROJECT_NAME
-    gcloud-postgres install           PROJECT_NAME
-    aws-config      [show|update]     PROJECT_NAME
-    azure-config    [show|update]     PROJECT_NAME
-    gcloud-config   [show|update]     PROJECT_NAME
-    aws-project     [list|switch]     PROJECT_NAME
-    azure-project   [list|switch]     PROJECT_NAME
-    gcloud-project  [list|switch]     PROJECT_NAME 
-
-Other Options:
-    -h, --help Display help and exit
+Installation is done using the `pip3` command. Once the code has been
+downloaded, either by cloning the repository or downloading a release, go to
+the created folder and run the command `pip3 install`:
+```shell
+$ cd postgres-deployment
+$ pip3 install . --upgrade
 ```
 
-## How to Use:
-  
-* Utilizing the EDB CLI for a Postgres Installation
-  * Create the Infrastructure in your Cloud Vendor:
-```
-    ./edb-deployment aws-server      create  PROJECT_NAME
-    ./edb-deployment azure-server    create  PROJECT_NAME 
-    ./edb-deployment gcloud-server   create  PROJECT_NAME
+Make sure the tool is well installed by running the command:
+```shell
+$ edb-deployment --version
 ```
 
-  * Install and configure EDB Postgres  in your Cloud Vendor:
-```
-    ./edb-deployment aws-postgres      install  PROJECT_NAME
-    ./edb-deployment azure-postgres    install  PROJECT_NAME 
-    ./edb-deployment gcloud-postgres   install  PROJECT_NAME
+## Pre-Requisites installation scripts
+
+To ease installation of the third party pre-requisites tools like `aws`,
+`terraform`, `ansible`, etc.. some bash installation scripts are provided for
+Linux (x64) and MacOS (x64). They are located in the `script/` folder.
+
+The following packages are required in order to execute the installation
+script: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
+`tar`. These packages should be installed through usual package manager (`dnf`,
+`apt`, `brew`, etc..).
+
+Finally, Python `virtualenv` must be installed with `root` privileges:
+```shell
+$ sudo pip3 install virtualenv
 ```
 
-  * Destroy the Infrastructure in your Cloud Vendor:
-```
-    ./edb-deployment aws-server      destroy  PROJECT_NAME
-    ./edb-deployment azure-server    destroy  PROJECT_NAME 
-    ./edb-deployment gcloud-server   destroy  PROJECT_NAME
-```
-  * Display the config file details of Cloud Project:
-```
-    ./edb-deployment aws-config      show  PROJECT_NAME
-    ./edb-deployment azure-config    show  PROJECT_NAME 
-    ./edb-deployment gcloud-config   show  PROJECT_NAME
-```
-  * Edit in vi the config file details of Cloud Project:
-```
-    ./edb-deployment aws-config      update  PROJECT_NAME
-    ./edb-deployment azure-config    update  PROJECT_NAME 
-    ./edb-deployment gcloud-config   update  PROJECT_NAME
-```
-  * List the available Terraform Cloud Projects:
-```
-    ./edb-deployment aws-project      list  PROJECT_NAME
-    ./edb-deployment azure-project    list  PROJECT_NAME 
-    ./edb-deployment gcloud-project   list  PROJECT_NAME
-```
-  * Switch to another available Terraform Cloud Project:
-```
-    ./edb-deployment aws-project      switch  PROJECT_NAME
-    ./edb-deployment azure-project    switch  PROJECT_NAME 
-    ./edb-deployment gcloud-project   switch  PROJECT_NAME
+The pre-requisites installation script can now be run. By default, third party
+tools are installed into the folder `$HOME/.edb-cloud-tools`, this path can be
+changed by setting the environment variable `INSTALL_PATH`.
+
+On Linux:
+```shell
+$ ./scripts/install_requirements_linux_x64.sh
 ```
 
-# LICENSE
+On MacOS:
+```shell
+$ ./scripts/install_requirements_darwin_x64.sh
+```
+
+The last action is to add the installation path to the `PATH` variable. If your
+shell is `bash`, just enter:
+```shell
+$ source ~/.bashrc
+```
+For other shells, you have to re-export the environment variable `PATH` this
+way:
+```shell
+$ export PATH=$PATH:$HOME/.edb-cloud-tools/bin
+```
+
+You can now check if the tools are ready to use with the commands
+`aws --version`, `ansible --version`, etc..
+
+# Usage
+
+Each new deployment will be done under a dedicated name space, this the
+`<PROJECT_NAME>`.
+
+`edb-deployment` CLI features are implemented through sub-commands. Each
+sub-command can be executed like this:
+```shell
+$ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
+```
+
+## Cloud vendor list
+
+  * `aws`: Amazon Web Services
+  * `azure`: Microsoft Azure Cloud
+  * `gcloud`: Google Cloud
+
+## Sub-commands
+
+  * `configure`: New project initialization and configuration
+  * `provision`: Cloud resources provisioning
+  * `destroy`: Cloud resources destruction
+  * `deploy`: Postgres and tools deployment
+  * `show`: Show configuration
+  * `list`: List projects
+  * `specs`: Show Cloud Vendor default specifications
+  * `logs`: Show project logs
+  * `remove`: Remove project
+
+# How to Use
+
+Deployment of new project should follow the work flow below:
+
+  1. [Configure Cloud credentials](#configure-cloud-credentials)
+  2. [Project configuration](#project-configuration)
+  3. [Cloud resources provisioning](#cloud-resources-provisioning)
+  4. [Postgres and tools deployment](#postgres-and-tools-deployment)
+
+## Configure Cloud credentials
+
+This step depends on the target Cloud vendor.
+
+### AWS credentials configuration
+
+AWS credentials configuration will be done through `aws` tool. For this step,
+we need to get your **AWS Access Key ID** and **AWS Secret Access Key**. For
+more information about Amazon Access Key management, please go to
+[official documentation page](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey).
+
+Run the following command and enter the Access Key ID and Secret Access Key:
+```shell
+$ aws configure
+```
+
+### Azure credentials configuration
+
+Azure Cloud credentials configuration can be achieved using the `az` tool with
+the following command:
+```shell
+$ az login --use-device-code
+```
+
+### GCloud credentials configuration
+
+GCloud credentials configuration includes more steps than the other Cloud
+vendors. **GCloud project ID** is required.
+
+  1. Login with your email address:
+  ```shell
+$ gcloud auth login <LOGIN_EMAIL> --no-launch-browser
+  ```
+  2. Open the link in your browser and copy the given verification code.
+  3. Project configuration
+  ```shell
+$ gcloud config set project <PROJECT_ID>
+  ```
+  4. To find the IAM account of the service, please enter the following command
+     to list service accounts:
+  ```shell
+$ gcloud iam service-accounts list
+  ```
+  5. Finally, to create and download a new service account key:
+  ```shell
+$ gcloud iam service-accounts keys create ~/accounts.json --iam-account=<IAM_ACCOUNT>
+  ```
+
+The JSON file `$HOME/accounts.json` must be kept and will be required by
+`edb-deployment`.
+
+## Project configuration
+
+Once Cloud vendor credentials have been configured, you can proceed with
+project configuration step.
+
+### Cloud vendor specifications
+
+`edb-deployment` brings default configuration values for the Cloud resources
+to be provisioned, like **instance type**, **disk size**, **OS image**,
+**additional volumes**, etc..
+
+To change these configuration values, you need first to dump the default values
+with:
+```shell
+$ edb-deployment <CLOUD_VENDOR> specs > my_configuration.json
+```
+
+Then, you can edit and update resources configuration stored in the JSON file.
+
+### Project initialization
+
+Project initialialization will done using the `configure` sub-command:
+```shell
+$ edb-deploy <CLOUD_VENDOR> configure <PROJECT_NAME> \
+  -a <REFERENCE_ARCHITECTURE_CODE> \
+  -o <OPERATING_SYSTEM> \
+  -t <PG_ENGINE_TYPE> \
+  -v <PG_VERSION> \
+  -u "<EDB_REPO_USERNAME>:<EDB_REPO_PASSWORD>" \
+  -r <CLOUD_REGION> \
+  -s my_configuration.json
+```
+
+Notes:
+  * `REFERENCE_ARCHITECTURE_CODE`
+
+    Reference architecture code name. Allowed values are: **EDB-RA-1** for a
+    single Postgres node deployment with one backup server and one PEM
+    monitoring server, **EDB-RA-2** for a 3 Postgres nodes deployment with
+    quorum base synchronous replication and automatic failover, one backup
+    server and one PEM monitoring server, and **EDB-RA-3** for extending
+    **EDB-RA-2** with 3 PgPoolII nodes. Default: **EDB-RA-1**
+
+  * `OPERATING_SYSTEM`
+
+    Operating system. Allowed values are: **CentOS7**, **CentOS8**, **RedHat7**
+    and **RedHat8**. Default: **CentOS8**
+
+  * `PG_ENGINE_TYPE`
+
+     Postgres engine type. Allowed values are: **PG** for PostgreSQL, **EPAS**
+     for EDB Postgres Advanced Server. Default: **PG**
+
+  * `PG_VERSION`
+
+    PostgreSQL or EPAS version. Allowed values are: **11**, **12** and **13**.
+    Default: **13**
+
+  * `"EDB_REPO_USERNAME:EDB_REPO_PASSWORD"`
+
+    EDB Packages repository credentials. **Required**.
+
+  * `CLOUD_REGION`
+
+    Cloud vendor region. Default value depends on Cloud vendor.
+
+For more details, please use:
+```shell
+$ edb-deployment <CLOUD_VENDOR> configure --help
+```
+
+## Cloud resources provisioning
+
+After project configuration, we can proceed to Cloud resources provisioning:
+```shell
+$ edb-deployment <CLOUD_VENDOR> provision <PROJECT_NAME>
+```
+
+## Components deployment
+
+Finally, we can deploy the components with the `deploy` sub-command:
+```shell
+$ edb-deployment <CLOUD_VENDOR> deploy <PROJECT_NAME>
+```
+
+## Other features
+
+List of projects:
+```shell
+$ edb-deployment <CLOUD_VENDOR> list
+```
+
+Cloud resources destruction:
+```shell
+$ edb-deployment <CLOUD_VENDOR> destroy <PROJECT_NAME>
+```
+
+Project tree deletion:
+```shell
+$ edb-deployment <CLOUD_VENDOR> remove <PROJECT_NAME>
+```
+
+# License
+
 Original work Copyright 2019-2020, EnterpriseDB Corporation
 
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are 
-met:
+modification, are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright 
-notice, this list of conditions and the following disclaimer.
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright 
-notice, this list of conditions and the following disclaimer in the 
-documentation and/or other materials provided with the distribution.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
 
-3. Neither the name of EnterpriseDB nor the names of its contributors 
-may be used to endorse or promote products derived from this software 
-without specific prior written permission.
+3. Neither the name of EnterpriseDB nor the names of its contributors may be
+used to endorse or promote products derived from this software without specific
+prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEV
-ER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE.
