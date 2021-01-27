@@ -16,7 +16,7 @@ sed -i.bak 's/$1/${1:-}/' ${INSTALL_PATH}/aws/bin/activate
 source ${INSTALL_PATH}/aws/bin/activate
 pip3 install awscli
 deactivate
-ln -s ${INSTALL_PATH}/aws/bin/aws ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/aws/bin/aws ${INSTALL_PATH}/bin/.
 
 # Azure CLI
 mkdir -p ${INSTALL_PATH}/azure
@@ -25,13 +25,13 @@ sed -i.bak 's/$1/${1:-}/' ${INSTALL_PATH}/azure/bin/activate
 source ${INSTALL_PATH}/azure/bin/activate
 pip3 install azure-cli
 deactivate
-ln -s ${INSTALL_PATH}/azure/bin/az ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/azure/bin/az ${INSTALL_PATH}/bin/.
 
 # GCloud CLI
 wget ${GCLOUD_ARCHIVE} -O /tmp/google-cloud-sdk.tar.gz
 tar xvzf /tmp/google-cloud-sdk.tar.gz -C ${INSTALL_PATH}
 rm /tmp/google-cloud-sdk.tar.gz
-ln -s ${INSTALL_PATH}/google-cloud-sdk/bin/gcloud ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/google-cloud-sdk/bin/gcloud ${INSTALL_PATH}/bin/.
 
 # Ansible & ansible-galaxy
 mkdir -p ${INSTALL_PATH}/ansible
@@ -40,16 +40,16 @@ sed -i.bak 's/$1/${1:-}/' ${INSTALL_PATH}/ansible/bin/activate
 source ${INSTALL_PATH}/ansible/bin/activate
 pip3 install ansible
 deactivate
-ln -s ${INSTALL_PATH}/ansible/bin/ansible ${INSTALL_PATH}/bin/.
-ln -s ${INSTALL_PATH}/ansible/bin/ansible-galaxy ${INSTALL_PATH}/bin/.
-ln -s ${INSTALL_PATH}/ansible/bin/ansible-playbook ${INSTALL_PATH}/bin/.
-ln -s ${INSTALL_PATH}/ansible/bin/ansible-inventory ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/ansible/bin/ansible ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/ansible/bin/ansible-galaxy ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/ansible/bin/ansible-playbook ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/ansible/bin/ansible-inventory ${INSTALL_PATH}/bin/.
 
 # Terraform
 mkdir -p ${INSTALL_PATH}/terraform/bin
 wget ${TERRAFORM_ARCHIVE} -O /tmp/terraform.zip
 unzip /tmp/terraform.zip -d ${INSTALL_PATH}/terraform/bin
-ln -s ${INSTALL_PATH}/terraform/bin/terraform ${INSTALL_PATH}/bin/.
+ln -sf ${INSTALL_PATH}/terraform/bin/terraform ${INSTALL_PATH}/bin/.
 
 echo "export PATH=\$PATH:${INSTALL_PATH}/bin" >> ~/.bashrc
 
