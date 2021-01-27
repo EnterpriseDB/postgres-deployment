@@ -58,9 +58,11 @@ Advanced Server, and EDB Tools in the Cloud.
     package_data={
         'edbdeploy': [
             'data/ansible/*.yml',
-            'data/terraform/*/*',
-            'data/terraform/*/*/*',
-            'data/terraform/*/*/*/*',
+            'data/terraform/*/*.tf.template',
+            'data/terraform/*/*.tf',
+            'data/terraform/*/*/*.tf',
+            'data/terraform/*/*/*/*.tf',
+            'data/terraform/*/*/*/*/*.tf',
         ]
     }
 )
