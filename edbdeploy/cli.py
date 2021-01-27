@@ -174,7 +174,7 @@ def aws_subcommands(aws_subparser):
         'list', help='List projects'
     )
     aws_specs = aws_subparser.add_parser(
-        'specs', help='Show Cloud default specifications.'
+        'specs', help='Show Cloud default specifications'
     )
     aws_logs = aws_subparser.add_parser(
         'logs', help='Show project logs'
@@ -330,7 +330,7 @@ def azure_subcommands(azure_subparser):
         'list', help='List projects'
     )
     azure_specs = azure_subparser.add_parser(
-        'specs', help='Show Cloud default specifications.'
+        'specs', help='Show Cloud default specifications'
     )
     azure_logs = azure_subparser.add_parser(
         'logs', help='Show project logs'
@@ -478,7 +478,7 @@ def gcloud_subcommands(gcloud_subparser):
         'list', help='List projects'
     )
     gcloud_specs = gcloud_subparser.add_parser(
-        'specs', help='Show Cloud default specifications.'
+        'specs', help='Show Cloud default specifications'
     )
     gcloud_logs = gcloud_subparser.add_parser(
         'logs', help='Show project logs'
@@ -573,6 +573,7 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_configure.add_argument(
         '-p', '--gcloud-project-id',
         dest='gcloud_project_id',
+        required=True,
         type=str,
         metavar='<gcloud-project-id>',
         help="GCloud project ID"
