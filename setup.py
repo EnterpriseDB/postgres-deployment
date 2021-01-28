@@ -61,11 +61,8 @@ Advanced Server, and EDB Tools in the Cloud.
             'data/terraform/*/*.tf.template',
             'data/terraform/*/*.tf',
             'data/terraform/*/*/*.tf',
-            'data/terraform/*/*/*.sh',
             'data/terraform/*/*/*/*.tf',
-            'data/terraform/*/*/*/*.sh',
             'data/terraform/*/*/*/*/*.tf',
-            'data/terraform/*/*/*/*/*.sh',
         ]
     }
 )
