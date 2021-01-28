@@ -48,7 +48,7 @@ Advanced Server, and EDB Tools in the Cloud.
     extras_require={},
     data_files=[
         (
-            'edb-deployment-scripts',
+            'share/edb-deployment/scripts',
             [
                 'scripts/install_requirements_linux_x64.sh',
                 'scripts/install_requirements_darwin_x64.sh',

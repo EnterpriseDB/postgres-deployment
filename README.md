@@ -49,13 +49,13 @@ downloaded, either by cloning the repository or downloading a release, go to
 the created folder and run the command `pip3 install`:
 ```shell
 $ cd postgres-deployment
-$ pip3 install . --upgrade --user
+$ sudo pip3 install . --upgrade
 ```
 
 ## From Pypi
 
 ```shell
-$ pip3 install edb-deployment --user
+$ sudo pip3 install edb-deployment
 ```
 
 Make sure the tool is well installed by running the command:
@@ -85,12 +85,12 @@ changed by setting the environment variable `INSTALL_PATH`.
 
 On Linux:
 ```shell
-$ ~/.local/edb-deployment-scripts/install_requirements_linux_x64.sh
+$ /usr/local/share/edb-deployment/scripts/install_requirements_linux_x64.sh
 ```
 
 On MacOS (Python 3.9 installed with `brew`):
 ```shell
-$ ~/Library/Python/3.9/edb-deployment-scripts/install_requirements_darwin_x64.sh
+$ /usr/local/share/edb-deployment/scripts/install_requirements_darwin_x64.sh
 ```
 
 The last action is to add the installation path to the `PATH` variable. If your
