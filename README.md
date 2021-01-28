@@ -42,12 +42,20 @@ Please refer to section [Pre-Requisites installation scripts](#pre-requisites-in
 
 # Installation
 
+## From source code
+
 Installation is done using the `pip3` command. Once the code has been
 downloaded, either by cloning the repository or downloading a release, go to
 the created folder and run the command `pip3 install`:
 ```shell
 $ cd postgres-deployment
-$ pip3 install . --upgrade
+$ pip3 install . --upgrade --user
+```
+
+## From Pypi
+
+```shell
+$ pip3 install edb-deployment --user
 ```
 
 Make sure the tool is well installed by running the command:
@@ -77,12 +85,12 @@ changed by setting the environment variable `INSTALL_PATH`.
 
 On Linux:
 ```shell
-$ ./scripts/install_requirements_linux_x64.sh
+$ ~/.local/edb-deployment-scripts/install_requirements_linux_x64.sh
 ```
 
-On MacOS:
+On MacOS (Python 3.9 installed with `brew`):
 ```shell
-$ ./scripts/install_requirements_darwin_x64.sh
+$ ~/Library/Python/3.9/edb-deployment-scripts/install_requirements_darwin_x64.sh
 ```
 
 The last action is to add the installation path to the `PATH` variable. If your
