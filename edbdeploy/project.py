@@ -684,8 +684,14 @@ class Project:
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
+        headers = ["Name", "Path", "Machines", "Resources", "Components"]
         rows = []
         try:
+            # Case when projects' path does not yet exist
+            if not os.path.exists(projects_path):
+                Project.display_table(headers, [])
+                return
+
             for project_name in os.listdir(projects_path):
                 project_path = os.path.join(projects_path, project_name)
                 if not os.path.isdir(project_path):
@@ -713,16 +719,13 @@ class Project:
                     states.get('ansible', 'UNKNOWN')
                 ])
 
-            Project.display_table(
-                ["Name", "Path", "Machines", "Resources", "Components"],
-                rows
-            )
+            Project.display_table(headers, rows)
 
         except OSError as e:
             msg = "Unable to list projects in %s" % projects_path
             logging.error(msg)
             logging.exception(str(e))
-            raise ProjectErro(msg)
+            raise ProjectError(msg)
 
     @staticmethod
     def display_table(headers, rows):
