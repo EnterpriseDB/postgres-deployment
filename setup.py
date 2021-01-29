@@ -44,7 +44,7 @@ Advanced Server, and EDB Tools in the Cloud.
     ],
     keywords="postgresql edb epas cli deploy cloud aws azure gcloud",
     python_requires=">=2.7",
-    install_requires=[],
+    install_requires=["argcomplete"],
     extras_require={},
     data_files=[
         (
