@@ -1,3 +1,4 @@
+import argcomplete
 import argparse
 import os
 import re
@@ -5,6 +6,7 @@ import sys
 import textwrap
 
 from . import __version__
+from .project import Project
 
 class ReferenceArchitectureOption:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3']
@@ -186,7 +188,7 @@ def aws_subcommands(aws_subparser):
     aws_configure.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     aws_configure.add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
@@ -202,7 +204,7 @@ def aws_subcommands(aws_subparser):
         type=EDBCredentialsType,
         metavar='"<username>:<password>"',
         help="EDB Packages repository credentials."
-    )
+    ).completer = edb_credentials_completer
     aws_configure.add_argument(
         '-o', '--os',
         dest='operating_system',
@@ -258,7 +260,7 @@ def aws_subcommands(aws_subparser):
         default=AWSIAMIDOption.default,
         metavar='<aws-ami-id>',
         help=AWSIAMIDOption.help
-    )
+    ).completer = aws_ami_id_completer
     aws_configure.add_argument(
         '-s', '--spec',
         dest='spec_file',
@@ -270,7 +272,7 @@ def aws_subcommands(aws_subparser):
     aws_logs.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     aws_logs.add_argument(
         '-t', '--tail',
         dest='tail',
@@ -281,27 +283,27 @@ def aws_subcommands(aws_subparser):
     aws_remove.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # aws show sub-command options
     aws_show.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # aws provision sub-command options
     aws_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # aws destroy sub-command options
     aws_destroy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # aws deploy sub-command options
     aws_deploy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     aws_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
@@ -342,7 +344,7 @@ def azure_subcommands(azure_subparser):
     azure_configure.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Terraform project name'
-    )
+    ).completer = project_name_completer
     azure_configure.add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
@@ -358,7 +360,7 @@ def azure_subcommands(azure_subparser):
         type=EDBCredentialsType,
         metavar='"<username>:<password>"',
         help="EDB Packages repository credentials."
-    )
+    ).completer = edb_credentials_completer
     azure_configure.add_argument(
         '-o', '--os',
         dest='operating_system',
@@ -418,7 +420,7 @@ def azure_subcommands(azure_subparser):
     azure_logs.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     azure_logs.add_argument(
         '-t', '--tail',
         dest='tail',
@@ -429,27 +431,27 @@ def azure_subcommands(azure_subparser):
     azure_remove.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # azure show sub-command options
     azure_show.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # azure provision sub-command options
     azure_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # azure destroy sub-command options
     azure_destroy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # azure deploy sub-command options
     azure_deploy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     azure_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
@@ -490,7 +492,7 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_configure.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Terraform project name'
-    )
+    ).completer = project_name_completer
     gcloud_configure.add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
@@ -506,7 +508,7 @@ def gcloud_subcommands(gcloud_subparser):
         type=EDBCredentialsType,
         metavar='"<username>:<password>"',
         help="EDB Packages repository credentials."
-    )
+    ).completer = edb_credentials_completer
     gcloud_configure.add_argument(
         '-o', '--os',
         dest='operating_system',
@@ -577,12 +579,12 @@ def gcloud_subcommands(gcloud_subparser):
         type=str,
         metavar='<gcloud-project-id>',
         help="GCloud project ID"
-    )
+    ).completer = gcloud_project_id_completer
     # gcloud logs sub-command options
     gcloud_logs.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     gcloud_logs.add_argument(
         '-t', '--tail',
         dest='tail',
@@ -593,33 +595,54 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_remove.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # gcloud show sub-command options
     gcloud_show.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # gcloud provision sub-command options
     gcloud_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # gcloud destroy sub-command options
     gcloud_destroy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     # gcloud deploy sub-command options
     gcloud_deploy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    )
+    ).completer = project_name_completer
     gcloud_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
         action='store_true',
         help="Do not install the Ansible collection."
     )
+
+# Argcomplete completer
+def project_name_completer(prefix, parsed_args, **kwargs):
+    cloud = parsed_args.cloud
+    sub_command = parsed_args.sub_command
+    if sub_command == 'configure':
+        return ("PROJECT_NAME",)
+    else:
+        projects_path = os.path.join(Project.projects_root_path, cloud)
+        if not os.path.exists(projects_path):
+            return ("PROJECT_NAME",)
+        return (pname for pname in os.listdir(projects_path))
+
+def edb_credentials_completer(prefix, parsed_args, **kwargs):
+    return ("USERNAME:PASSWORD",)
+
+def aws_ami_id_completer(prefix, parsed_args, **kwargs):
+    return ("AWS_AMI_ID",)
+
+def gcloud_project_id_completer(prefix, parsed_args, **kwargs):
+    return ("GCLOUD_PROJECT_ID",)
 
 def parse():
     parser = CLIParser(
@@ -658,6 +681,9 @@ def parse():
         metavar='<sub-command>'
     )
     gcloud_subcommands(gcloud_subparser)
+
+    # Autocompletion with argcomplete
+    argcomplete.autocomplete(parser)
 
     # Parse the arguments and options
     env = parser.parse_args()

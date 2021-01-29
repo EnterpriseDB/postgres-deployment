@@ -63,6 +63,22 @@ Make sure the tool is well installed by running the command:
 $ edb-deployment --version
 ```
 
+## Shell auto-completion
+
+`edb-deployment` supports command line auto-completion with the `tab` key.
+
+Supported shells are `bash` ans `zsh`.
+
+To enable auto-completion in current session, the following command must be
+ran:
+```shell
+$ eval "$(register-python-argcomplete edb-deployment)"
+```
+
+To enable auto-completion for all the sessions, the command above must be added
+at the end of your `~/.bashrc` file or `~/.zshrc` file, depending on the shell
+you use.
+
 ## Pre-Requisites installation scripts
 
 To ease installation of the third party pre-requisites tools like `aws`,
