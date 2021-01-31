@@ -39,6 +39,7 @@
   when: group_names | select('search','primary') | list | count > 0
 
 - name: Update pem server
-  import_tasks: pem_server_certs.yml
-  import_tasks: pem_server_probe_alert.yml
+  block:
+    - import_tasks: pem_server_certs.yml
+    - import_tasks: pem_server_probe_alert.yml
   when: group_names | select('search','pemserver') | list | count > 0
