@@ -1,4 +1,19 @@
 ---
+- name: Gather service facts
+  service_facts:
+
+- name: Open Postgres TCP port {{ pg_port }}
+  firewalld:
+    port: "80/tcp"
+    permanent: yes
+    state: enabled
+    immediate: true
+  when:
+    - ansible_facts.services['firewalld.service'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+    - ansible_facts.services['firewalld.service'].status == 'enabled'
+  become: yes
+
 - name: shutdown the httpd service
   systemd:
     name: httpd

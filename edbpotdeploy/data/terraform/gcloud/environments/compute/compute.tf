@@ -267,6 +267,7 @@ resource "google_compute_instance" "pem_server" {
 
   tags = [
     format("%s-%s", var.network_name, "firewall-ssh"),
+    format("%s-%s", var.network_name, "firewall-http"),
     format("%s-%s", var.network_name, "firewall-postgresql"),
     format("%s-%s", var.network_name, "firewall-epas"),
     format("%s-%s", var.network_name, "firewall-icmp"),
