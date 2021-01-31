@@ -2,7 +2,7 @@
 - name: Gather service facts
   service_facts:
 
-- name: Open Postgres TCP port {{ pg_port }}
+- name: Open Postgres TCP port 80
   firewalld:
     port: "80/tcp"
     permanent: yes
