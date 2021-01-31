@@ -6,8 +6,7 @@ for Proof Of Technology.
 
 Supported Cloud providers are **AWS**, **Azure** and **Google Cloud**.
 
-`edb-pot` helps user to deploy custom Postgres Reference Architectures tailored for showing functionalities of EDB Tech. List
-and details of the Reference Architecture can be find [here](https://github.com/EnterpriseDB/edb-ref-archs/blob/main/edb-reference-architecture-codes/README.md).
+`edb-pot` helps user to deploy custom Postgres Reference Architectures tailored for showing functionalities of EDB Tech.
 
 `edb-pot` is an open source tool and is not officially supported by EDB
 Support. It is maintained and supported by the GitHub members of this
