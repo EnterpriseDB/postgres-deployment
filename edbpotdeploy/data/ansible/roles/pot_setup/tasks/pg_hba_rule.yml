@@ -1,0 +1,12 @@
+---
+
+- name: Prepare the list
+  set_fact:
+    temp_list:
+       - users: "{{ pg_project_user }}, {{ pg_owner }}"
+         source: "{{ node.private_ip }}/32"
+         databases: edb
+
+- name: Prepare array of list
+  set_fact:
+    pg_allow_ip_addresses: "{{ pg_allow_ip_addresses + [temp_list] }}"

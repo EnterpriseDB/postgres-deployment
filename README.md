@@ -1,15 +1,14 @@
 # Getting Started
 
-`edb-deployment` tool is an easy way to provision Cloud resources and deploy
-PostgreSQL, EDB Postgres Advanced Server and tools (high availability,
-backup/recovery, monitoring, connection poolers).
+`edb-pot` tool is an easy way to provision Cloud resources and deploy
+PostgreSQL, EDB Postgres Advanced Server and tools (high availability and monitoring)
+for Proof Of Technology.
 
 Supported Cloud providers are **AWS**, **Azure** and **Google Cloud**.
 
-`edb-deployment` helps user to deploy Postgres Reference Architectures. List
-and details of the Reference Architecture can be find [here](https://github.com/EnterpriseDB/edb-ref-archs/blob/main/edb-reference-architecture-codes/README.md).
+`edb-pot` helps user to deploy custom Postgres Reference Architectures tailored for showing functionalities of EDB Tech.
 
-`edb-deployment` is an open source tool and is not officially supported by EDB
+`edb-pot` is an open source tool and is not officially supported by EDB
 Support. It is maintained and supported by the GitHub members of this
 repository. Please provide feedback by posting issues and providing pull
 requests.
@@ -20,7 +19,7 @@ Cloud).
 
 # Pre-Requisites
 
-`edb-deployment` is dependent on following components. Install the following
+`edb-pot` is dependent on following components. Install the following
 components before using it.
 
 1. Python 3
@@ -37,7 +36,7 @@ Third party pre-requisites:
 3. **Ansible** >= 2.9
 
 To help the installation of the third party pre-requisites listed above,
-`edb-deployment` provides installation scripts for Linux (x64) and MacOS (x64).
+`edb-pot` provides installation scripts for Linux (x64) and MacOS (x64).
 Please refer to section [Pre-Requisites installation scripts](#pre-requisites-installation-scripts).
 
 # Installation
@@ -55,24 +54,24 @@ $ sudo pip3 install . --upgrade
 ## From Pypi
 
 ```shell
-$ sudo pip3 install edb-deployment
+$ sudo pip3 install edb-pot
 ```
 
 Make sure the tool is well installed by running the command:
 ```shell
-$ edb-deployment --version
+$ edb-pot --version
 ```
 
 ## Shell auto-completion
 
-`edb-deployment` supports command line auto-completion with the `tab` key.
+`edb-pot` supports command line auto-completion with the `tab` key.
 
 Supported shells are `bash` ans `zsh`.
 
 To enable auto-completion in current session, the following command must be
 ran:
 ```shell
-$ eval "$(register-python-argcomplete edb-deployment)"
+$ eval "$(register-python-argcomplete edb-pot)"
 ```
 
 To enable auto-completion for all the sessions, the command above must be added
@@ -101,12 +100,12 @@ changed by setting the environment variable `INSTALL_PATH`.
 
 On Linux:
 ```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_linux_x64.sh
+$ /usr/local/share/edb-pot/scripts/install_requirements_linux_x64.sh
 ```
 
 On MacOS (Python 3.9 installed with `brew`):
 ```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_darwin_x64.sh
+$ /usr/local/share/edb-pot/scripts/install_requirements_darwin_x64.sh
 ```
 
 The last action is to add the installation path to the `PATH` variable. If your
@@ -128,10 +127,10 @@ You can now check if the tools are ready to use with the commands
 Each new deployment will be done under a dedicated name space, this the
 `<PROJECT_NAME>`.
 
-`edb-deployment` CLI features are implemented through sub-commands. Each
+`edb-pot` CLI features are implemented through sub-commands. Each
 sub-command can be executed like this:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
+$ edb-pot <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
 ```
 
 ## Cloud vendor list
@@ -146,6 +145,7 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `provision`: Cloud resources provisioning
   * `destroy`: Cloud resources destruction
   * `deploy`: Postgres and tools deployment
+  * `display`: Display the project information
   * `show`: Show configuration
   * `list`: List projects
   * `specs`: Show Cloud Vendor default specifications
@@ -210,7 +210,7 @@ $ gcloud iam service-accounts keys create ~/accounts.json --iam-account=<IAM_ACC
   ```
 
 The JSON file `$HOME/accounts.json` must be kept and will be required by
-`edb-deployment`.
+`edb-pot`.
 
 ## Project configuration
 
@@ -219,14 +219,14 @@ project configuration step.
 
 ### Cloud vendor specifications
 
-`edb-deployment` brings default configuration values for the Cloud resources
+`edb-pot` brings default configuration values for the Cloud resources
 to be provisioned, like **instance type**, **disk size**, **OS image**,
 **additional volumes**, etc..
 
 To change these configuration values, you need first to dump the default values
 with:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> specs > my_configuration.json
+$ edb-pot <CLOUD_VENDOR> specs > my_configuration.json
 ```
 
 Then, you can edit and update resources configuration stored in the JSON file.
@@ -236,40 +236,15 @@ Then, you can edit and update resources configuration stored in the JSON file.
 Project initialialization will done using the `configure` sub-command:
 ```shell
 $ edb-deploy <CLOUD_VENDOR> configure <PROJECT_NAME> \
-  -a <REFERENCE_ARCHITECTURE_CODE> \
-  -o <OPERATING_SYSTEM> \
-  -t <PG_ENGINE_TYPE> \
-  -v <PG_VERSION> \
+  --route53-access-key <route53-acccess-key> \
+  --route53-secret <route53-secret> \
+  --email-id <email-id> \
   -u "<EDB_REPO_USERNAME>:<EDB_REPO_PASSWORD>" \
   -r <CLOUD_REGION> \
   -s my_configuration.json
 ```
 
 Notes:
-  * `REFERENCE_ARCHITECTURE_CODE`
-
-    Reference architecture code name. Allowed values are: **EDB-RA-1** for a
-    single Postgres node deployment with one backup server and one PEM
-    monitoring server, **EDB-RA-2** for a 3 Postgres nodes deployment with
-    quorum base synchronous replication and automatic failover, one backup
-    server and one PEM monitoring server, and **EDB-RA-3** for extending
-    **EDB-RA-2** with 3 PgPoolII nodes. Default: **EDB-RA-1**
-
-  * `OPERATING_SYSTEM`
-
-    Operating system. Allowed values are: **CentOS7**, **CentOS8**, **RedHat7**
-    and **RedHat8**. Default: **CentOS8**
-
-  * `PG_ENGINE_TYPE`
-
-     Postgres engine type. Allowed values are: **PG** for PostgreSQL, **EPAS**
-     for EDB Postgres Advanced Server. Default: **PG**
-
-  * `PG_VERSION`
-
-    PostgreSQL or EPAS version. Allowed values are: **11**, **12** and **13**.
-    Default: **13**
-
   * `"EDB_REPO_USERNAME:EDB_REPO_PASSWORD"`
 
     EDB Packages repository credentials. **Required**.
@@ -280,38 +255,38 @@ Notes:
 
 For more details, please use:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> configure --help
+$ edb-pot <CLOUD_VENDOR> configure --help
 ```
 
 ## Cloud resources provisioning
 
 After project configuration, we can proceed to Cloud resources provisioning:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> provision <PROJECT_NAME>
+$ edb-pot <CLOUD_VENDOR> provision <PROJECT_NAME>
 ```
 
 ## Components deployment
 
 Finally, we can deploy the components with the `deploy` sub-command:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> deploy <PROJECT_NAME>
+$ edb-pot <CLOUD_VENDOR> deploy <PROJECT_NAME>
 ```
 
 ## Other features
 
 List of projects:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> list
+$ edb-pot <CLOUD_VENDOR> list
 ```
 
 Cloud resources destruction:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> destroy <PROJECT_NAME>
+$ edb-pot <CLOUD_VENDOR> destroy <PROJECT_NAME>
 ```
 
 Project tree deletion:
 ```shell
-$ edb-deployment <CLOUD_VENDOR> remove <PROJECT_NAME>
+$ edb-pot <CLOUD_VENDOR> remove <PROJECT_NAME>
 ```
 
 # License

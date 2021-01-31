@@ -6,7 +6,7 @@ from textwrap import dedent
 
 def get_version():
     cur_dir = os.path.dirname(__file__)
-    init_path = os.path.join(cur_dir, "edbdeploy", "__init__.py")
+    init_path = os.path.join(cur_dir, "edbpotdeploy", "__init__.py")
 
     with open(init_path) as f:
         for line in f:
@@ -20,12 +20,12 @@ def get_long_description():
         return f.read()
 
 setup(
-    name="edb-deployment",
+    name="edb-pot",
     version=get_version(),
     author="EDB",
     author_email="edb-devops@enterprisedb.com",
-    scripts=["edb-deployment"],
-    packages=["edbdeploy", "edbdeploy.spec"],
+    scripts=["edb-pot"],
+    packages=["edbpotdeploy", "edbpotdeploy.spec"],
     url="https://github.com/EnterpriseDB/postgres-deployment/",
     license="BSD",
     description=dedent("""
@@ -48,7 +48,7 @@ Advanced Server, and EDB Tools in the Cloud.
     extras_require={},
     data_files=[
         (
-            'share/edb-deployment/scripts',
+            'edb-pot-scripts',
             [
                 'scripts/install_requirements_linux_x64.sh',
                 'scripts/install_requirements_darwin_x64.sh',
@@ -56,8 +56,10 @@ Advanced Server, and EDB Tools in the Cloud.
         )
     ],
     package_data={
-        'edbdeploy': [
+        'edbpotdeploy': [
             'data/ansible/*.yml',
+            'data/ansible/*/*/*/*.yml',
+            'data/ansible/*/*/*/*.template',
             'data/terraform/*/*.tf.template',
             'data/terraform/*/*.tf',
             'data/terraform/*/*/*.tf',

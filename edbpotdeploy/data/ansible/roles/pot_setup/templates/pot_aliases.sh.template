@@ -1,0 +1,5 @@
+
+alias pg_ctl='sudo -u {{ pg_owner }} {{ pg_bin_path }}/pg_ctl'
+alias efm='sudo -u {{ pg_efm_user }} {{ efm_bin_path }}/efm'
+alias efm_reconfigure_node='sudo -u {{ pg_efm_user }} {{ efm_bin_path }}/efm_reconfigure_node.sh'
+alias pgbench='{{ pg_bin_path }}/pgbench'
