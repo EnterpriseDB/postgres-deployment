@@ -638,6 +638,19 @@ class Project:
         # Display inventory informations
         self.display_inventory(inventory_data)
 
+    def display_details(self):
+        try:
+            states = self.load_states()
+        except Exception as e:
+            states={}
+        status = states.get('ansible', 'UNKNOWN')
+        if status == 'DEPLOYED':
+            inventory_data = None
+            ansible = AnsibleCli(self.project_path)
+            with AM("Extracting data from the inventory file"):
+                inventory_data = ansible.list_inventory(self.ansible_inventory)
+            self.display_inventory(inventory_data)
+
     def display_inventory(self, inventory_data):
         if not self.ansible_vars:
             self._load_ansible_vars()

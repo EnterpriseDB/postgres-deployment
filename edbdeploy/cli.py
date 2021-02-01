@@ -172,6 +172,9 @@ def aws_subcommands(aws_subparser):
     aws_show = aws_subparser.add_parser(
         'show', help='Show configuration'
     )
+    aws_display = aws_subparser.add_parser(
+        'display', help='Display project details'
+    )
     aws_list = aws_subparser.add_parser(
         'list', help='List projects'
     )
@@ -289,6 +292,11 @@ def aws_subcommands(aws_subparser):
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     ).completer = project_name_completer
+    # aws display sub-command option
+    aws_display.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
     # aws provision sub-command options
     aws_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
@@ -327,6 +335,9 @@ def azure_subcommands(azure_subparser):
     )
     azure_show = azure_subparser.add_parser(
         'show', help='Show configuration'
+    )
+    azure_display = azure_subparser.add_parser(
+        'display', help='Display project details'
     )
     azure_list = azure_subparser.add_parser(
         'list', help='List projects'
@@ -437,6 +448,11 @@ def azure_subcommands(azure_subparser):
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     ).completer = project_name_completer
+    # azure display sub-command options
+    azure_display.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
     # azure provision sub-command options
     azure_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
@@ -475,6 +491,9 @@ def gcloud_subcommands(gcloud_subparser):
     )
     gcloud_show = gcloud_subparser.add_parser(
         'show', help='Show configuration'
+    )
+    gcloud_display = gcloud_subparser.add_parser(
+        'display', help='Display project details'
     )
     gcloud_list = gcloud_subparser.add_parser(
         'list', help='List projects'
@@ -598,6 +617,11 @@ def gcloud_subcommands(gcloud_subparser):
     ).completer = project_name_completer
     # gcloud show sub-command options
     gcloud_show.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # gcloud display sub-command options
+    gcloud_display.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     ).completer = project_name_completer
