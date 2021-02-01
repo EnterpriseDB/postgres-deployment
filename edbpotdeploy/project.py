@@ -668,7 +668,9 @@ class Project:
         except Exception as e:
             states={}
         status = states.get('ansible', 'UNKNOWN')
-        if status == 'DEPLOYED':
+        if status in ['DEPLOYED', 'DEPLOYING']:
+            if status == 'DEPLOYING':
+                print("WARNING: project is in deploying state")
             inventory_data = None
             ansible = AnsibleCli(self.project_path)
             with AM("Extracting data from the inventory file"):
