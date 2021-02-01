@@ -352,32 +352,32 @@ def azure_subcommands(azure_subparser):
     azure_remove.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # azure show sub-command options
     azure_show.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # azure display sub-command options
     azure_display.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # azure provision sub-command options
     azure_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # azure destroy sub-command options
     azure_destroy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # azure deploy sub-command options
     azure_deploy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     azure_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
@@ -497,7 +497,7 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_logs.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     gcloud_logs.add_argument(
         '-t', '--tail',
         dest='tail',
@@ -508,32 +508,32 @@ def gcloud_subcommands(gcloud_subparser):
     gcloud_remove.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # gcloud show sub-command options
     gcloud_show.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # gcloud display sub-command options
     gcloud_display.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # gcloud provision sub-command options
     gcloud_provision.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # gcloud destroy sub-command options
     gcloud_destroy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     # gcloud deploy sub-command options
     gcloud_deploy.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
-    ).completer = edb_credentials_completer
+    ).completer = project_name_completer
     gcloud_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
