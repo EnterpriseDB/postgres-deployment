@@ -639,8 +639,6 @@ class Project:
         self.display_inventory(inventory_data)
 
     def display_details(self):
-        def _p(s):
-            sys.stdout.write(s)
         try:
             states = self.load_states()
         except Exception as e:
@@ -648,7 +646,7 @@ class Project:
         status = states.get('ansible', 'UNKNOWN')
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
-              _p("WARNING: project is in deploying state")
+                print("WARNING: project is in deploying state")
             inventory_data = None
             ansible = AnsibleCli(self.project_path)
             with AM("Extracting data from the inventory file"):
