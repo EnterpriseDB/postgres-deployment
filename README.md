@@ -147,6 +147,7 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `destroy`: Cloud resources destruction
   * `deploy`: Postgres and tools deployment
   * `show`: Show configuration
+  * `display`: Display project inventory
   * `list`: List projects
   * `specs`: Show Cloud Vendor default specifications
   * `logs`: Show project logs
@@ -302,6 +303,11 @@ $ edb-deployment <CLOUD_VENDOR> deploy <PROJECT_NAME>
 List of projects:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> list
+```
+
+Display of projects inventory:
+```shell
+$ edb-deployment <CLOUD_VENDOR> display <PROJECT_NAME>
 ```
 
 Cloud resources destruction:
