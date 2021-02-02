@@ -110,10 +110,101 @@ resource "google_compute_firewall" "pgpool" {
 
   allow {
     protocol = "tcp"
-    ports    = ["9000"]
+    ports    = ["9999"]
   }
 
   target_tags = [format("%s-%s", var.network_name, "firewall-pgpool")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-pcp" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-pcp")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["9898"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-pcp")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-watchdog" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-watchdog")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["9000"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdog")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-watchdoghb" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-watchdoghb")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["9694"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghb")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-pcpudp" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-pcpudp")
+  network = var.network_name
+
+  allow {
+    protocol = "udp"
+    ports    = ["9898"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-pcpudp")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-watchdogudp" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-watchdogudp")
+  network = var.network_name
+
+  allow {
+    protocol = "udp"
+    ports    = ["9000"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdogudp")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgpool-watchdoghbudp" {
+  name    = format("%s-%s", var.network_name, "firewall-pgpool-watchdoghbudp")
+  network = var.network_name
+
+  allow {
+    protocol = "udp"
+    ports    = ["9694"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghbudp")]
+  source_ranges = [var.source_ranges]
+}
+
+resource "google_compute_firewall" "pgbouncer" {
+  name    = format("%s-%s", var.network_name, "firewall-pgbouncer")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["6432"]
+  }
+
+  target_tags = [format("%s-%s", var.network_name, "firewall-pgbouncer")]
   source_ranges = [var.source_ranges]
 }
 
