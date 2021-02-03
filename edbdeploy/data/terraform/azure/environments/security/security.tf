@@ -83,12 +83,103 @@ resource "azurerm_network_security_group" "main" {
   // PgPoolII default port
   security_rule {
     name                       = "EDB-PgPoolII"
+    priority                   = 800
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9999"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default pcp port
+  security_rule {
+    name                       = "EDB-PgPoolPCP"
+    priority                   = 801
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9898"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default watchdog port
+  security_rule {
+    name                       = "EDB-PoolWatchDog"
     priority                   = 700
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "9000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default watchdog heart beat port
+  security_rule {
+    name                       = "EDB-PgPoolWDH"
+    priority                   = 802
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9694"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default pcp udp port
+  security_rule {
+    name                       = "EDB-PgPoolPCPUDP"
+    priority                   = 801
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "9898"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default watchdog udp port
+  security_rule {
+    name                       = "EDB-PoolWatchDogUDP"
+    priority                   = 700
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "9000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgPoolII default watchdog heart udp beat port
+  security_rule {
+    name                       = "EDB-PgPoolWDHUDP"
+    priority                   = 802
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "9694"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  // PgBouncer default port
+  security_rule {
+    name                       = "EDB-PgBouncer"
+    priority                   = 900
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "6432"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }

@@ -267,6 +267,7 @@ resource "google_compute_instance" "pem_server" {
 
   tags = [
     format("%s-%s", var.network_name, "firewall-ssh"),
+    format("%s-%s", var.network_name, "firewall-http"),
     format("%s-%s", var.network_name, "firewall-postgresql"),
     format("%s-%s", var.network_name, "firewall-epas"),
     format("%s-%s", var.network_name, "firewall-icmp"),
@@ -313,6 +314,13 @@ resource "google_compute_instance" "pooler_server" {
     format("%s-%s", var.network_name, "firewall-ssh"),
     format("%s-%s", var.network_name, "firewall-icmp"),
     format("%s-%s", var.network_name, "firewall-pgpool"),
+    format("%s-%s", var.network_name, "firewall-pgpool-watchdog"),
+    format("%s-%s", var.network_name, "firewall-pgpool-watchdoghb"),
+    format("%s-%s", var.network_name, "firewall-pgpool-pcp"),
+    format("%s-%s", var.network_name, "firewall-pgpool-watchdogudp"),
+    format("%s-%s", var.network_name, "firewall-pgpool-watchdoghbudp"),
+    format("%s-%s", var.network_name, "firewall-pgpool-pcpudp"),
+    format("%s-%s", var.network_name, "firewall-pgbouncer"),
     format("%s-%s", var.network_name, "firewall-secure-forward"),
   ]
 
