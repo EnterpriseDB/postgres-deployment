@@ -638,6 +638,36 @@ class Project:
         # Display inventory informations
         self.display_inventory(inventory_data)
 
+    def display_passwords(self):
+        try:
+            states = self.load_states()
+        except Exception as e:
+            states={}
+        status = states.get('ansible', 'UNKNOWN')
+        if status in ['DEPLOYED', 'DEPLOYING']:
+            if status == 'DEPLOYING':
+                print("WARNING: project is in deploying state")
+            pass_dir=os.path.join(self.project_path, '.edbpass')
+            rows = []
+            for pass_file in os.listdir(pass_dir):
+                if pass_file.endswith("_pass"):
+                    user_name = pass_file.replace('_pass','')
+                    with open(
+                        os.path.join(
+                            pass_dir,
+                            pass_file
+                        )
+                    ) as f:
+                        user_password = f.read()
+                    rows.append([
+                        user_name,
+                        user_password.replace('\n','')
+                    ])
+            Project.display_table(
+                ['Username','Password'],
+                rows
+            )
+
     def display_details(self):
         try:
             states = self.load_states()
