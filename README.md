@@ -311,7 +311,7 @@ Display of projects inventory:
 $ edb-deployment <CLOUD_VENDOR> display <PROJECT_NAME>
 ```
 
-Display of projects' users passwords:
+Display of projects passwords:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> passwords <PROJECT_NAME>
 ```
