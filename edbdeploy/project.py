@@ -609,7 +609,7 @@ class Project:
         extra_vars=dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
-            efm_version=float(self.ansible_vars['efm_version']),
+            efm_version=self.ansible_vars['efm_version'],
             yum_username=self.ansible_vars['yum_username'],
             yum_password=self.ansible_vars['yum_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass')
