@@ -75,6 +75,11 @@ class Commander:
         logging.info("Desplaying project %s details", self.project.name)
         self.project.display_details()
 
+    def passwords(self):
+        self._check_project_exists()
+        logging.info("Display project %s passwords details", self.project.name)
+        self.project.display_passwords()
+
     def list(self):
         logging.info("Listing project for cloud %s", self.env.cloud)
         Project.list(self.env.cloud)

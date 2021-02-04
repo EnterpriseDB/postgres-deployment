@@ -146,6 +146,7 @@ $ edb-pot <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `destroy`: Cloud resources destruction
   * `deploy`: Postgres and tools deployment
   * `display`: Display the project information
+  * `passwords`: Display the project passwords
   * `show`: Show configuration
   * `list`: List projects
   * `specs`: Show Cloud Vendor default specifications
@@ -277,6 +278,16 @@ $ edb-pot <CLOUD_VENDOR> deploy <PROJECT_NAME>
 List of projects:
 ```shell
 $ edb-pot <CLOUD_VENDOR> list
+```
+
+Display of projects inventory:
+```shell
+$ edb-pot <CLOUD_VENDOR> display <PROJECT_NAME>
+```
+
+Display of projects passwords:
+```shell
+$ edb-pot <CLOUD_VENDOR> passwords <PROJECT_NAME>
 ```
 
 Cloud resources destruction:
