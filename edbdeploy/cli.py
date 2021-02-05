@@ -39,6 +39,15 @@ class PgVersionOption:
     """)
 
 
+class EFMVersionOption:
+    choices = ['3.10', '4.0', '4.1']
+    default = '4.1'
+    help = textwrap.dedent("""
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0 and 4.1.
+        Default: %(default)s
+    """)
+
+
 class PgTypeOption:
     choices = ['PG', 'EPAS']
     default = 'PG'
@@ -236,6 +245,14 @@ def aws_subcommands(aws_subparser):
         help=PgVersionOption.help
     )
     aws_configure.add_argument(
+        '-e', '--efm-version',
+        dest='efm_version',
+        choices=EFMVersionOption.choices,
+        default=EFMVersionOption.default,
+        metavar='<efm-version>',
+        help=EFMVersionOption.help
+    )
+    aws_configure.add_argument(
         '-k', '--ssh-pub-key',
         dest='ssh_pub_key',
         type=argparse.FileType('r'),
@@ -408,6 +425,14 @@ def azure_subcommands(azure_subparser):
         help=PgVersionOption.help
     )
     azure_configure.add_argument(
+        '-e', '--efm-version',
+        dest='efm_version',
+        choices=EFMVersionOption.choices,
+        default=EFMVersionOption.default,
+        metavar='<efm-version>',
+        help=EFMVersionOption.help
+    )
+    azure_configure.add_argument(
         '-k', '--ssh-pub-key',
         dest='ssh_pub_key',
         type=argparse.FileType('r'),
@@ -570,6 +595,14 @@ def gcloud_subcommands(gcloud_subparser):
         default=PgVersionOption.default,
         metavar='<postgres-version>',
         help=PgVersionOption.help
+    )
+    gcloud_configure.add_argument(
+        '-e', '--efm-version',
+        dest='efm_version',
+        choices=EFMVersionOption.choices,
+        default=EFMVersionOption.default,
+        metavar='<efm-version>',
+        help=EFMVersionOption.help
     )
     gcloud_configure.add_argument(
         '-k', '--ssh-pub-key',
