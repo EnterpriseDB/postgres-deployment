@@ -100,12 +100,12 @@ changed by setting the environment variable `INSTALL_PATH`.
 
 On Linux:
 ```shell
-$ /usr/local/share/edb-pot-scripts/install_requirements_linux_x64.sh
+$ /usr/local/share/edb-pot/scripts/install_requirements_linux_x64.sh
 ```
 
 On MacOS (Python 3.9 installed with `brew`):
 ```shell
-$ /usr/local/share/edb-pot-scripts/install_requirements_darwin_x64.sh
+$ /usr/local/share/edb-pot/scripts/install_requirements_darwin_x64.sh
 ```
 
 The last action is to add the installation path to the `PATH` variable. If your
