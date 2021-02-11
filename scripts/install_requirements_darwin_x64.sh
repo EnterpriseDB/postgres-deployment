@@ -28,7 +28,7 @@ deactivate
 ln -sf ${INSTALL_PATH}/azure/bin/az ${INSTALL_PATH}/bin/.
 
 # GCloud CLI
-wget ${GCLOUD_ARCHIVE} -O /tmp/google-cloud-sdk.tar.gz
+curl ${GCLOUD_ARCHIVE} --output /tmp/google-cloud-sdk.tar.gz
 tar xvzf /tmp/google-cloud-sdk.tar.gz -C ${INSTALL_PATH}
 rm /tmp/google-cloud-sdk.tar.gz
 ln -sf ${INSTALL_PATH}/google-cloud-sdk/bin/gcloud ${INSTALL_PATH}/bin/.
@@ -47,7 +47,7 @@ ln -sf ${INSTALL_PATH}/ansible/bin/ansible-inventory ${INSTALL_PATH}/bin/.
 
 # Terraform
 mkdir -p ${INSTALL_PATH}/terraform/bin
-wget ${TERRAFORM_ARCHIVE} -O /tmp/terraform.zip
+curl ${TERRAFORM_ARCHIVE} --output /tmp/terraform.zip
 unzip /tmp/terraform.zip -d ${INSTALL_PATH}/terraform/bin
 ln -sf ${INSTALL_PATH}/terraform/bin/terraform ${INSTALL_PATH}/bin/.
 
