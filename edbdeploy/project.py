@@ -455,6 +455,7 @@ class Project:
             cluster_name=self.name,
             pg_type=env.postgres_type,
             pg_version=env.postgres_version,
+            efm_version=env.efm_version,
             yum_username=edb_repo_username,
             yum_password=edb_repo_password,
             ssh_user=os_spec['ssh_user'],
@@ -608,6 +609,7 @@ class Project:
         extra_vars=dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
+            efm_version=self.ansible_vars['efm_version'],
             yum_username=self.ansible_vars['yum_username'],
             yum_password=self.ansible_vars['yum_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass')
