@@ -1,6 +1,9 @@
 variable "postgres_count" {
   type = number
 }
+variable "hammerdb_count" {
+  type = number
+}
 variable "pem_count" {
   type = number
 }
@@ -43,7 +46,7 @@ resource "aws_route_table" "edb-prereqs-postgres-customroutetable" {
 }
 
 resource "aws_route_table_association" "edb-prereqs-postgres-rtassociations" {
-  count          = var.postgres_count + var.pem_count + var.barman_count + var.pooler_count
+  count          = var.postgres_count + var.pem_count + var.barman_count + var.pooler_count + var.hammerdb_count
   subnet_id      = element(tolist(data.aws_subnet_ids.ids.ids), count.index)
   route_table_id = aws_route_table.edb-prereqs-postgres-customroutetable.id
 }

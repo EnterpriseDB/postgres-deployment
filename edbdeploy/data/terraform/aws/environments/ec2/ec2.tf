@@ -3,6 +3,7 @@ variable "pem_server" {}
 variable "postgres_server" {}
 variable "barman_server" {}
 variable "pooler_server" {}
+variable "hammerdb_server" {}
 variable "replication_type" {}
 variable "vpc_id" {}
 variable "ssh_user" {}
@@ -16,6 +17,7 @@ variable "add_hosts_filename" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
+variable "hammerdb" {}
 
 locals {
   lnx_ebs_device_names = [
@@ -152,6 +154,33 @@ resource "null_resource" "postgres_setup_volume" {
       host        = element(aws_instance.postgres_server.*.public_ip, count.index)
       private_key = file(var.ssh_priv_key)
     }
+  }
+}
+
+resource "aws_instance" "hammerdb_server" {
+  count = var.hammerdb_server["count"]
+
+  ami = var.aws_ami_id
+
+  instance_type          = var.hammerdb_server["instance_type"]
+  key_name               = aws_key_pair.key_pair.id
+  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
+  vpc_security_group_ids = [var.custom_security_group_id]
+
+  root_block_device {
+    delete_on_termination = "true"
+    volume_size           = var.hammerdb_server["volume"]["size"]
+    volume_type           = var.hammerdb_server["volume"]["type"]
+    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ?  var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
+  }
+
+  tags = {
+    Name       = format("%s-%s%s", var.cluster_name, "hammerdbserver", count.index + 1)
+    Created_By = var.created_by
+  }
+
+  connection {
+    private_key = file(var.ssh_pub_key)
   }
 }
 

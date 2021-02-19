@@ -18,6 +18,13 @@ all:
           ansible_host: ${aws_instance.barman_server[0].public_ip}
           private_ip: ${aws_instance.barman_server[0].private_ip}
 %{endif ~}
+%{if var.hammerdb_server["count"] > 0 ~}
+    hammerdbserver:
+      hosts:
+        hammerdbserver1:
+          ansible_host: ${aws_instance.hammerdb_server[0].public_ip}
+          private_ip: ${aws_instance.hammerdb_server[0].private_ip}
+%{endif ~}
 %{for postgres_count in range(var.postgres_server["count"]) ~}
 %{if postgres_count == 0 ~}
     primary:
@@ -37,6 +44,10 @@ all:
           barman: true
           barman_server_private_ip: ${aws_instance.barman_server[0].private_ip}
           barman_backup_method: postgres
+%{endif ~}
+%{if var.hammerdb == true ~}
+          hammerdb: true
+          hammerdb_server_private_ip: ${aws_instance.hammerdb_server[0].private_ip}
 %{endif ~}
 %{if var.pooler_local == true && var.pooler_type == "pgbouncer" ~}
           pgbouncer: true
