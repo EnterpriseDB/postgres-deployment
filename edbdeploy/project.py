@@ -590,7 +590,7 @@ class Project:
         self.update_state('terraform', 'DESTROYED')
         self.update_state('ansible', 'UNKNOWN')
 
-    def deploy(self, no_install_collection):
+    def deploy(self, no_install_collection, force_install, force_initdb):
         inventory_data = None
         ansible = AnsibleCli(self.project_path)
 
@@ -612,7 +612,9 @@ class Project:
             efm_version=self.ansible_vars['efm_version'],
             yum_username=self.ansible_vars['yum_username'],
             yum_password=self.ansible_vars['yum_password'],
-            pass_dir=os.path.join(self.project_path, '.edbpass')
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
+            force_install=force_install,
+            force_initdb=force_initdb,
         )
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(

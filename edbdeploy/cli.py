@@ -343,6 +343,18 @@ def aws_subcommands(aws_subparser):
         action='store_true',
         help="Do not install the Ansible collection."
     )
+    aws_deploy.add_argument(
+        '-f', '--force-install',
+        dest='force_install',
+        action='store_true',
+        help="Force components installation."
+    )
+    aws_deploy.add_argument(
+        '-i', '--force-initdb',
+        dest='force_initdb',
+        action='store_true',
+        help="Force Postgres data initialization."
+    )
 
 # Azure sub-commands and options
 def azure_subcommands(azure_subparser):
@@ -514,6 +526,18 @@ def azure_subcommands(azure_subparser):
         dest='no_install_collection',
         action='store_true',
         help="Do not install the Ansible collection."
+    )
+    azure_deploy.add_argument(
+        '-f', '--force-install',
+        dest='force_install',
+        action='store_true',
+        help="Force components installation."
+    )
+    azure_deploy.add_argument(
+        '-i', '--force-initdb',
+        dest='force_initdb',
+        action='store_true',
+        help="Force Postgres data initialization."
     )
 
 # GCloud sub-commands and options
@@ -702,6 +726,18 @@ def gcloud_subcommands(gcloud_subparser):
         dest='no_install_collection',
         action='store_true',
         help="Do not install the Ansible collection."
+    )
+    gcloud_deploy.add_argument(
+        '-f', '--force-install',
+        dest='force_install',
+        action='store_true',
+        help="Force components installation."
+    )
+    gcloud_deploy.add_argument(
+        '-i', '--force-initdb',
+        dest='force_initdb',
+        action='store_true',
+        help="Force Postgres data initialization."
     )
 
 # Argcomplete completer
