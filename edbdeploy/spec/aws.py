@@ -1,5 +1,8 @@
 from . import SpecValidator
 
+# These are instance types to make available to all architectures.
+global_instance_choices = ['t4g.nano', 't3.nano', 't3a.nano', 't2.nano']
+
 AWSSpec = {
     'available_os': {
         'CentOS7': {
@@ -54,7 +57,7 @@ AWSSpec = {
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
                 'c5.metal'
-            ],
+            ] + global_instance_choices,
             default='c5.2xlarge'
         ),
         'volume': {
@@ -114,7 +117,7 @@ AWSSpec = {
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
                 'c5.metal'
-            ],
+            ] + global_instance_choices,
             default='c5.xlarge'
         ),
         'volume': {
@@ -144,7 +147,7 @@ AWSSpec = {
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
                 'c5.metal'
-            ],
+            ] + global_instance_choices,
             default='c5.xlarge'
         ),
         'volume': {
@@ -174,7 +177,7 @@ AWSSpec = {
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
                 'c5.metal'
-            ],
+            ] + global_instance_choices,
             default='c5.2xlarge'
         ),
         'volume': {
