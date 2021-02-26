@@ -456,8 +456,8 @@ class Project:
             pg_type=env.postgres_type,
             pg_version=env.postgres_version,
             efm_version=env.efm_version,
-            yum_username=edb_repo_username,
-            yum_password=edb_repo_password,
+            repo_username=edb_repo_username,
+            repo_password=edb_repo_password,
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key
         )
@@ -610,8 +610,8 @@ class Project:
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
             efm_version=self.ansible_vars['efm_version'],
-            yum_username=self.ansible_vars['yum_username'],
-            yum_password=self.ansible_vars['yum_password'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['repo_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass')
         )
         if self.ansible_vars.get('pg_data'):
