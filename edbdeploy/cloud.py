@@ -87,7 +87,6 @@ class AWSCli:
         else:
             return binary
 
-
     def check_instance_type_availability(self, instance_type, region):
         try:
             output = exec_shell([
@@ -177,13 +176,83 @@ class AWSCli:
 
 
 class AzureCli:
-    def __init__(self):
-        pass
+    def __init__(self, bin_path=None):
+        # azure CLI supported versions interval
+        self.min_version = (0, 0, 0)
+        self.max_version = (2, 20, 0)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force azure CLI binary path if bin_path exists and contains
+        # az file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'az')):
+                self.bin_path = bin_path
+
+    def check_version(self):
+        """
+        Verify azure CLI version, based on the interval formed by min_version and
+        max_version.
+        azure CLI version is fetched using the command: az --version
+        """
+        try:
+            output = exec_shell([self.bin("az"), "--version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "azure CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^azure-cli\s+([0-9]+)\.([0-9]+)\.([0-9]+)$")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse azure CLI version")
+
+        logging.info("azure CLI version: %s", '.'.join(map(str, version)))
+
+        # Verify if the version fetched is supported
+        for i in range(0, 3):
+            min = self.min_version[i]
+            max = self.max_version[i]
+
+            if version[i] < max:
+                # If current digit is below the maximum value, no need to
+                # check others digits, we are good
+                break
+
+            if version[i] not in list(range(min, max + 1)):
+                raise Exception(
+                    ("azure CLI version %s not supported, must be between %s and"
+                     " %s") % (
+                        '.'.join(map(str, version)),
+                        '.'.join(map(str, self.min_version)),
+                        '.'.join(map(str, self.max_version)),
+                    )
+                )
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
 
     def check_instance_type_availability(self, instance_type, region):
         try:
             output = exec_shell([
-                "az",
+                self.bin("az"),
                 "vm",
                 "list-sizes",
                 "--location %s" % region,
@@ -216,7 +285,7 @@ class AzureCli:
     def check_image_availability(self, publisher, offer, sku, region):
         try:
             output = exec_shell([
-                "az",
+                self.bin("az"),
                 "vm",
                 "image",
                 "list",
@@ -255,12 +324,12 @@ class AzureCli:
     def check_instances_availability(self, project_name):
         try:
             output = exec_shell([
-                "az",
+                self.bin("az"),
                 "vm",
                 "wait",
                 "--ids",
-                "$(az vm list -g \"%s_edb_resource_group\" --query \"[].id\" -o tsv)"
-                % project_name,
+                "$(%s vm list -g \"%s_edb_resource_group\" --query \"[].id\" -o tsv)"
+                % (self.bin("az"), project_name),
                 "--created"
             ])
             logging.debug("Command output: %s", output.decode("utf-8"))
