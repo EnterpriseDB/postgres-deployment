@@ -345,13 +345,82 @@ class AzureCli:
 
 
 class GCloudCli:
-    def __init__(self):
-        pass
+    def __init__(self, bin_path=None):
+        # gcloud CLI supported versions interval
+        self.min_version = (0, 0, 0)
+        self.max_version = (329, 0, 0)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force gcloud CLI binary path if bin_path exists and contains
+        # gcloud file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'gcloud')):
+                self.bin_path = bin_path
+
+    def check_version(self):
+        """
+        Verify gcloud CLI version, based on the interval formed by min_version and
+        max_version.
+        gcloud CLI version is fetched using the command: gcloud --version
+        """
+        try:
+            output = exec_shell([self.bin("gcloud"), "--version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "gcloud CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^Google Cloud SDK ([0-9]+)\.([0-9]+)\.([0-9]+)")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse gcloud CLI version")
+
+        logging.info("gcloud CLI version: %s", '.'.join(map(str, version)))
+
+        # Verify if the version fetched is supported
+        for i in range(0, 3):
+            min = self.min_version[i]
+            max = self.max_version[i]
+
+            if version[i] < max:
+                # If current digit is below the maximum value, no need to
+                # check others digits, we are good
+                break
+
+            if version[i] not in list(range(min, max + 1)):
+                raise Exception(
+                    ("gcloud CLI version %s not supported, must be between %s and"
+                     " %s") % (
+                        '.'.join(map(str, version)),
+                        '.'.join(map(str, self.min_version)),
+                        '.'.join(map(str, self.max_version)),
+                    )
+                )
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
 
     def check_instance_type_availability(self, instance_type, region):
         try:
             output = exec_shell([
-                "gcloud",
+                self.bin("gcloud"),
                 "compute",
                 "machine-types",
                 "list",
@@ -384,7 +453,7 @@ class GCloudCli:
     def check_image_availability(self, image):
         try:
             output = exec_shell([
-                "gcloud",
+                self.bin("gcloud"),
                 "compute",
                 "images",
                 "list",
@@ -426,7 +495,7 @@ class GCloudCli:
 
             try:
                 output = exec_shell([
-                    "gcloud",
+                    self.bin("gcloud"),
                     "compute",
                     "instances",
                     "list",
