@@ -1,5 +1,4 @@
 ---
-
 - name: Generate the pg_project_user_password
   include_role:
     name: edb_devops.edb_postgres.manage_dbserver

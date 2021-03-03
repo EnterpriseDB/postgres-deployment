@@ -14,6 +14,7 @@ route53_secret: ""
 route53_zone: "edbpov.io"
 route53_record: "edbpov.io"
 domain: "edbpov.io"
+route_ip_addressess: []
 
 project: ""
 pg_customer_password: ""

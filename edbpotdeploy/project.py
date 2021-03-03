@@ -39,7 +39,8 @@ class Project:
         'ansible'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres:3.1.0'
+    ansible_collection_name = 'edb_devops.edb_postgres'
+    aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, cloud, name):
         self.name = name
@@ -469,8 +470,8 @@ class Project:
             cluster_name=self.name,
             pg_type=env.postgres_type,
             pg_version=env.postgres_version,
-            yum_username=edb_repo_username,
-            yum_password=edb_repo_password,
+            repo_username=edb_repo_username,
+            repo_password=edb_repo_password,
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.custom_ssh_keys[os_spec['ssh_user']]['ssh_priv_key'],
             email_id=env.email_id,
@@ -621,14 +622,19 @@ class Project:
                 % self.ansible_collection_name
             ):
                 ansible.install_collection(self.ansible_collection_name)
+            with AM(
+                "Installing AWS collection %s"
+                % self.aws_collection_name
+            ):
+                ansible.install_collection(self.aws_collection_name)
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
         extra_vars=dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
-            yum_username=self.ansible_vars['yum_username'],
-            yum_password=self.ansible_vars['yum_password'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['repo_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass'),
             email_id=self.ansible_vars['email_id'],
             route53_access_key=self.ansible_vars['route53_access_key'],

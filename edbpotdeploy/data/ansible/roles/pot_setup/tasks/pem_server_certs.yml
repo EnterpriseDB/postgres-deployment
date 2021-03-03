@@ -3,7 +3,7 @@
   service_facts:
 
 - name: Open Postgres TCP port 80
-  firewalld:
+  ansible.posix.firewalld:
     port: "80/tcp"
     permanent: yes
     state: enabled
@@ -21,7 +21,7 @@
   become: yes
 
 - name: install certbot on pem server
-  yum:
+  package:
     name: certbot
     state: present
   become: yes
