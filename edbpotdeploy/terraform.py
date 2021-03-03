@@ -27,63 +27,63 @@ class TerraformCli:
             if os.path.exists(os.path.join(bin_path, 'terraform')):
                 self.bin_path = bin_path
 
-     def check_version(self):
-        """
-        Verify terraform version, based on the interval formed by min_version
-        and max_version.
-        Terraform version is fetched using the command: terraform --version
-        """
-        # note: we do not raise any TerraformCliError from this function
-        # because TerraformCliError are used to trigger stuffs when they are
-        # catched. In this case, we do not want trigger anything if something
-        # fails.
-        try:
-            output = exec_shell([
-                self.bin("terraform"),
-                "--version"
-            ])
-        except CalledProcessError as e:
-            logging.error("Failed to execute the command: %s", e.cmd)
-            logging.error("Return code is: %s", e.returncode)
-            logging.error("Output: %s", e.output)
-            raise Exception(
-                "Terraform executable seems to be missing. Please install it "
-                "or check your PATH variable"
-            )
+    def check_version(self):
+       """
+       Verify terraform version, based on the interval formed by min_version
+       and max_version.
+       Terraform version is fetched using the command: terraform --version
+       """
+       # note: we do not raise any TerraformCliError from this function
+       # because TerraformCliError are used to trigger stuffs when they are
+       # catched. In this case, we do not want trigger anything if something
+       # fails.
+       try:
+           output = exec_shell([
+               self.bin("terraform"),
+               "--version"
+           ])
+       except CalledProcessError as e:
+           logging.error("Failed to execute the command: %s", e.cmd)
+           logging.error("Return code is: %s", e.returncode)
+           logging.error("Output: %s", e.output)
+           raise Exception(
+               "Terraform executable seems to be missing. Please install it "
+               "or check your PATH variable"
+           )
 
-        version = None
-        # Parse command output and extract the version number
-        pattern = re.compile(r"^Terraform v([0-9]+)\.([0-9]+)\.([0-9]+)$")
-        for line in output.decode("utf-8").split("\n"):
-            m = pattern.search(line)
-            if m:
-                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
-                break
+       version = None
+       # Parse command output and extract the version number
+       pattern = re.compile(r"^Terraform v([0-9]+)\.([0-9]+)\.([0-9]+)$")
+       for line in output.decode("utf-8").split("\n"):
+           m = pattern.search(line)
+           if m:
+               version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+               break
 
-        if version is None:
-            raise Exception("Unable to parse Terraform version")
+       if version is None:
+           raise Exception("Unable to parse Terraform version")
 
-        logging.info("Terraform version: %s", '.'.join(map(str, version)))
+       logging.info("Terraform version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
+       # Verify if the version fetched is supported
+       for i in range(0, 3):
+           min = self.min_version[i]
+           max = self.max_version[i]
 
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
+           if version[i] < max:
+               # If current digit is below the maximum value, no need to
+               # check others digits, we are good
+               break
 
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("Terraform version %s not supported, must be between %s "
-                     "and %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+           if version[i] not in list(range(min, max + 1)):
+               raise Exception(
+                   ("Terraform version %s not supported, must be between %s "
+                    "and %s") % (
+                       '.'.join(map(str, version)),
+                       '.'.join(map(str, self.min_version)),
+                       '.'.join(map(str, self.max_version)),
+                   )
+               )
 
     def bin(self, binary):
         """

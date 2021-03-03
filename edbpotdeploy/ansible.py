@@ -11,8 +11,9 @@ class AnsibleCliError(Exception):
 
 class AnsibleCli:
 
-    def __init__(self, dir, bin_path=None):nsible supported versions interval
+    def __init__(self, dir, bin_path=None):
         self.dir = dir
+        # Ansible supported versions interval
         self.min_version = (0, 0, 0)
         self.max_version = (2, 10, 6)
         # Path to look up for executable

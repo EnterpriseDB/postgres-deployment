@@ -77,14 +77,14 @@ class AWSCli:
                      )
                  )
 
-     def bin(self, binary):
-         """
-         Return binary's path
-         """
-         if self.bin_path is not None:
-             return os.path.join(self.bin_path, binary)
-         else:
-             return binary
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
 
     def check_instance_type_availability(self, instance_type, region):
         try:
