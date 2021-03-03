@@ -87,8 +87,12 @@ class Project:
 
     def check_versions(self):
         # Check Ansible version
-        ansible = AnsibleCli('dummy', bin_path = self.cloud_tools_bin_path)
+        ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
+        # Check Terraform version
+        terraform = TerraformCli('dummy', 'dummy',
+                                 bin_path=self.cloud_tools_bin_path)
+        terraform.check_version()
 
     def create_log_dir(self):
         try:
@@ -502,7 +506,8 @@ class Project:
 
     def remove(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
         # Prevent project deletion if some cloud resources are still present
         # for this project.
@@ -541,7 +546,8 @@ class Project:
 
     def provision(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
 
         self.update_state('terraform', 'INITIALIZATING')
@@ -593,7 +599,8 @@ class Project:
 
     def destroy(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
 
         self.update_state('terraform', 'DESTROYING')
@@ -767,7 +774,8 @@ class Project:
                 terraform_resource_count = 0
                 terraform = TerraformCli(
                     project.project_path,
-                    project.terraform_plugin_cache_path
+                    project.terraform_plugin_cache_path,
+                    bin_path=self.cloud_tools_bin_path
                 )
                 terraform_resource_count = terraform.count_resources()
 
