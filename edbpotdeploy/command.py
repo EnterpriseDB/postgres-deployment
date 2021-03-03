@@ -35,6 +35,9 @@ class Commander:
             logging.error(msg)
             raise CommanderError(msg)
 
+        # Check 3rd party SW versions
+        self.project.check_versions()
+
         logging.info("Project configuration...")
         self.project.create()
         self.project.configure(self.env)
@@ -57,21 +60,37 @@ class Commander:
 
     def provision(self):
         self._check_project_exists()
+
+        # Check 3rd party SW versions
+        self.project.check_versions()
+
         logging.info("Provisioning machines for project %s", self.project.name)
         self.project.provision()
 
     def destroy(self):
         self._check_project_exists()
+
+        # Check 3rd party SW versions
+        self.project.check_versions()
+
         logging.info("Destroying machines for project %s", self.project.name)
         self.project.destroy()
 
     def deploy(self):
         self._check_project_exists()
+
+        # Check 3rd party SW versions
+        self.project.check_versions()
+
         logging.info("Deploying components for project %s", self.project.name)
         self.project.deploy(self.env.no_install_collection)
 
     def display(self):
         self._check_project_exists()
+
+        # Check 3rd party SW versions
+        self.project.check_versions()
+
         logging.info("Desplaying project %s details", self.project.name)
         self.project.display_details()
 

@@ -22,8 +22,10 @@
         or email_id|length < 1
         or route53_access_key|length < 1
         or route53_secret|length < 1
+  run_once: true
 
 - name: check user_expire_date value
   set_fact:
     user_expiry_date: "{{ (lookup('pipe','date -d \"+ 14 day\" +\"%y-%m-%d\"') | to_datetime('%y-%m-%d')).strftime('%s') }}"
   when: user_expiry_date|length < 1
+  run_once: true

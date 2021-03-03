@@ -16,14 +16,11 @@
   loop_control:
     loop_var: node
   when:  node.node_type == 'pemserver'
+  run_once: true
   no_log: "{{ disable_logging }}"
 
 - name: Iterate over set_variable
   include_tasks: pg_hba_rule.yml
-  loop: "{{ lookup('edb_devops.edb_postgres.pg_sr_cluster_nodes', wantlist=True) }}"
-  loop_control:
-    loop_var: node
-  no_log: "{{ disable_logging }}"
 
 - name: Run script and create pg user
   block:
@@ -37,6 +34,7 @@
 - name: Update route53
   import_tasks: update_route53.yml
   when: group_names | select('search','primary') | list | count > 0
+  run_once: true
 
 - name: Update pem server
   block:

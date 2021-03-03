@@ -1,8 +1,7 @@
 ---
-
 # router update
 - name: get the route3 information
-  route53:
+  community.aws.route53:
     aws_access_key: "{{ route53_access_key }}"
     aws_secret_key: "{{ route53_secret }}"
     state: get
@@ -15,35 +14,40 @@
 
 - name: store the value of existsing ip address in a variable
   set_fact:
-    route_ip_addressess: "{{ rec.set.value }}"
+    route_ip_addressess: "{{ route_ip_addressess + [record.Value] }}"
+  with_items: "{{ rec.set.ResourceRecords }}"
+  when: rec.set.ResourceRecords|length > 0
+  loop_control:
+    loop_var: record
 
 - name: add the pem server ips in rec values
   set_fact:
-        route_ip_addressess: "{{ route_ip_addressess + ',' + ip_value }}"
-  when: ip_value not in route_ip_addressess
-  with_items:
-      - "{{ pem_server_public_ip }}"
-  loop_control:
-      loop_var: ip_value
+        route_ip_addressess: "{{ route_ip_addressess + [pem_server_public_ip] }}"
+  when:
+  - pem_server_public_ip not in route_ip_addressess
+  - rec.set.ResourceRecords|length > 0
   become: no
   delegate_to: localhost
 
 - name: update a route53 for customer dns
-  route53:
+  community.aws.route53:
     aws_access_key: "{{ route53_access_key }}"
     aws_secret_key: "{{ route53_secret }}"
     state: present
     zone: "{{ route53_zone }}"
     record: "{{ route53_record }}"
     type: A
-    value: "{{ route_ip_addressess }}"
+    value: "{{ route_ip_addressess|join(',') }}"
     overwrite: yes
     wait: yes
   become: no
+  when:
+  - pem_server_public_ip not in route_ip_addressess
+  - rec.set.ResourceRecords|length > 0
   delegate_to: localhost
 
 - name: create a url entry in route53
-  route53:
+  community.aws.route53:
     aws_access_key: "{{ route53_access_key }}"
     aws_secret_key: "{{ route53_secret }}"
     state: present
@@ -54,5 +58,8 @@
     overwrite: yes
     wait: yes
   become: no
+  when:
+  - pem_server_public_ip not in route_ip_addressess
+  - rec.set.ResourceRecords|length > 0
   delegate_to: localhost
 

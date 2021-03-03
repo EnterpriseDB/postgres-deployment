@@ -11,15 +11,90 @@ class AnsibleCliError(Exception):
 
 class AnsibleCli:
 
-    def __init__(self, dir):
+    def __init__(self, dir, bin_path=None):nsible supported versions interval
         self.dir = dir
+        self.min_version = (0, 0, 0)
+        self.max_version = (2, 10, 6)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force Ansible binary path if bin_path exists and contains
+        # ansible file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'ansible')):
+                self.bin_path = bin_path
+
+    def check_version(self):
+        """
+        Verify ansible version, based on the interval formed by min_version and
+        max_version.
+        Ansible version is fetched using the command: ansible --version
+        """
+        # note: we do not raise any AnsibleCliError from this function because
+        # AnsibleCliError are used to trigger stuffs when they are catched. In
+        # this case, we do not want trigger anything if something fails.
+        try:
+            output = exec_shell([
+                self.bin("ansible"),
+                "--version"
+            ])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "Ansible executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^ansible ([0-9]+)\.([0-9]+)\.([0-9]+)$")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse Ansible version")
+
+        logging.info("Ansible version: %s", '.'.join(map(str, version)))
+
+        # Verify if the version fetched is supported
+        for i in range(0, 3):
+            min = self.min_version[i]
+            max = self.max_version[i]
+
+            if version[i] < max:
+                # If current digit is below the maximum value, no need to
+                # check others digits, we are good
+                break
+
+            if version[i] not in list(range(min, max + 1)):
+                raise Exception(
+                    ("Ansible version %s not supported, must be between %s and"
+                     " %s") % (
+                        '.'.join(map(str, version)),
+                        '.'.join(map(str, self.min_version)),
+                        '.'.join(map(str, self.max_version)),
+                    )
+                )
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
 
     def install_collection(self, collection_name, version=None):
         if version:
             collection_name += ":%s" % version
         try:
             output = exec_shell([
-                "ansible-galaxy",
+                self.bin("ansible-galaxy"),
                 "collection",
                 "install",
                 "-f",
@@ -44,7 +119,7 @@ class AnsibleCli:
         try:
             rc = exec_shell_live(
                 [
-                    "ansible-playbook",
+                    self.bin("ansible-playbook"),
                     playbook,
                     "--ssh-common-args='-o StrictHostKeyChecking=no'",
                     "-i", inventory,
@@ -67,7 +142,7 @@ class AnsibleCli:
     def list_inventory(self, inventory):
         try:
             output = exec_shell([
-                "ansible-inventory",
+                self.bin("ansible-inventory"),
                 "--list",
                 "-i", inventory
             ])
