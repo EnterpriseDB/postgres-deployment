@@ -1,5 +1,7 @@
 import logging
 import json
+import os
+import re
 import time
 from subprocess import CalledProcessError
 
@@ -11,13 +13,85 @@ class CloudCliError(Exception):
 
 
 class AWSCli:
-    def __init__(self):
+    def __init__(self, bin_path=None):
+        # aws CLI supported versions interval
+        self.min_version = (0, 0, 0)
+        self.max_version = (1, 19, 18)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force aws CLI binary path if bin_path exists and contains
+        # aws file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'aws')):
+                self.bin_path = bin_path
+
         pass
+
+    def check_version(self):
+        """
+        Verify aws CLI version, based on the interval formed by min_version and
+        max_version.
+        aws CLI version is fetched using the command: aws --version
+        """
+        try:
+            output = exec_shell([self.bin("aws"), "--version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "aws CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^aws-cli\/([0-9]+)\.([0-9]+)\.([0-9]+) ")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse aws CLI version")
+
+        logging.info("aws CLI version: %s", '.'.join(map(str, version)))
+
+        # Verify if the version fetched is supported
+        for i in range(0, 3):
+            min = self.min_version[i]
+            max = self.max_version[i]
+
+            if version[i] < max:
+                # If current digit is below the maximum value, no need to
+                # check others digits, we are good
+                break
+
+            if version[i] not in list(range(min, max + 1)):
+                raise Exception(
+                    ("aws CLI version %s not supported, must be between %s and"
+                     " %s") % (
+                        '.'.join(map(str, version)),
+                        '.'.join(map(str, self.min_version)),
+                        '.'.join(map(str, self.max_version)),
+                    )
+                )
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
 
     def check_instance_type_availability(self, instance_type, region):
         try:
             output = exec_shell([
-                "aws",
+                self.bin("aws"),
                 "ec2",
                 "describe-instance-type-offerings",
                 "--location-type availability-zone",
@@ -51,7 +125,7 @@ class AWSCli:
     def get_image_id(self, image, region):
         try:
             output = exec_shell([
-                "aws",
+                self.bin("aws"),
                 "ec2",
                 "describe-images",
                 "--filters Name=name,Values=\"%s\"" % image,
@@ -84,7 +158,7 @@ class AWSCli:
     def check_instances_availability(self, region):
         try:
             output = exec_shell([
-                "aws",
+                self.bin("aws"),
                 "ec2",
                 "wait",
                 "instance-status-ok",
@@ -320,16 +394,19 @@ class GCloudCli:
 
 class CloudCli:
 
-    def __init__(self, cloud):
+    def __init__(self, cloud, bin_path):
         self.cloud = cloud
         if self.cloud == 'aws':
-            self.cli = AWSCli()
+            self.cli = AWSCli(bin_path)
         elif self.cloud == 'azure':
-            self.cli = AzureCli()
+            self.cli = AzureCli(bin_path)
         elif self.cloud == 'gcloud':
-            self.cli = GCloudCli()
+            self.cli = GCloudCli(bin_path)
         else:
             raise Exception("Unknown cloud %s", self.cloud)
 
     def check_instance_type_availability(self, instance_type, region):
         return self.cli.check_instance_type_availability(instance_type, region)
+
+    def check_version(self):
+        self.cli.check_version()

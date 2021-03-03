@@ -93,6 +93,9 @@ class Project:
         terraform = TerraformCli('dummy', 'dummy',
                                  bin_path=self.cloud_tools_bin_path)
         terraform.check_version()
+        # Check cloud vendor CLI/SDK version
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        cloud_cli.check_version()
 
     def create_log_dir(self):
         try:
@@ -231,7 +234,7 @@ class Project:
             )
 
         # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud)
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
 
         # Build a list of instance_type accordingly to the specs
         instance_types = []
@@ -561,7 +564,7 @@ class Project:
         self.update_state('terraform', 'PROVISIONED')
 
         # Checking instance availability
-        cloud_cli = CloudCli(self.cloud)
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         self._load_terraform_vars()
 
         # AWS case
