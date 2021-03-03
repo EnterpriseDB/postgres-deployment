@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from subprocess import CalledProcessError
 
 from .system import exec_shell_live, exec_shell
