@@ -169,6 +169,13 @@ class Project:
 
         # Copy SSH keys
         with AM("Copying SSH key pair into %s" % self.project_path):
+
+            # Ensure SSH keys have been defined
+            if env.ssh_priv_key is None:
+                raise ProjectError("SSH private key not defined")
+            if env.ssh_pub_key is None:
+                raise ProjectError("SSH public key not defined")
+
             shutil.copy(env.ssh_priv_key.name, self.ssh_priv_key)
             shutil.copy(env.ssh_pub_key.name, self.ssh_pub_key)
             os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
