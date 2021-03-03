@@ -26,6 +26,13 @@ class Project:
         'EDB_DEPLOY_DIR',
         os.path.join(os.path.expanduser("~"), ".edb-deployment")
     )
+    # Path that should contain 3rd party tools binaries when they are installed
+    # by the prerequisites installation script.
+    cloud_tools_bin_path = os.path.join(
+        os.path.expanduser("~"),
+        '.edb-cloud-tools',
+        'bin'
+    )
     terraform_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'data',
@@ -77,6 +84,11 @@ class Project:
             'inventory.yml'
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
+
+    def check_versions(self):
+        # Check Ansible version
+        ansible = AnsibleCli('dummy', bin_path = self.cloud_tools_bin_path)
+        ansible.check_version()
 
     def create_log_dir(self):
         try:
@@ -592,7 +604,10 @@ class Project:
 
     def deploy(self, no_install_collection):
         inventory_data = None
-        ansible = AnsibleCli(self.project_path)
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path = self.cloud_tools_bin_path
+        )
 
         # Load ansible vars
         self._load_ansible_vars()
@@ -680,7 +695,10 @@ class Project:
             if status == 'DEPLOYING':
                 print("WARNING: project is in deploying state")
             inventory_data = None
-            ansible = AnsibleCli(self.project_path)
+            ansible = AnsibleCli(
+                self.project_path,
+                bin_path = self.cloud_tools_bin_path
+            )
             with AM("Extracting data from the inventory file"):
                 inventory_data = ansible.list_inventory(self.ansible_inventory)
             self.display_inventory(inventory_data)
