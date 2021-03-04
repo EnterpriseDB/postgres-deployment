@@ -48,9 +48,6 @@
     value: "{{ route_ip_addressess|join(',') }}"
     overwrite: yes
     wait: yes
-  when:
-  - pem_server_public_ip not in route_ip_addressess
-  - rec.set.ResourceRecords|length > 0
   become: no
   delegate_to: localhost
 
@@ -65,8 +62,5 @@
     value: "{{ pem_server_public_ip }}"
     overwrite: yes
     wait: yes
-  when:
-  - pem_server_public_ip not in route_ip_addressess
-  - rec.set.ResourceRecords|length > 0
   become: no
   delegate_to: localhost
