@@ -1,4 +1,12 @@
 ---
+- name: Set pem_server_public_ip
+  set_fact:
+    pem_server_public_ip: "{{ node.ansible_host }}"
+  loop: "{{ lookup('edb_devops.edb_postgres.pem_server', wantlist=True) }}"
+  loop_control:
+    loop_var: node
+  no_log: "{{ disable_logging }}"
+
 # router update
 - name: get the route3 information
   community.aws.route53:
@@ -40,10 +48,10 @@
     value: "{{ route_ip_addressess|join(',') }}"
     overwrite: yes
     wait: yes
-  become: no
   when:
   - pem_server_public_ip not in route_ip_addressess
   - rec.set.ResourceRecords|length > 0
+  become: no
   delegate_to: localhost
 
 - name: create a url entry in route53
@@ -57,9 +65,8 @@
     value: "{{ pem_server_public_ip }}"
     overwrite: yes
     wait: yes
-  become: no
   when:
   - pem_server_public_ip not in route_ip_addressess
   - rec.set.ResourceRecords|length > 0
+  become: no
   delegate_to: localhost
-

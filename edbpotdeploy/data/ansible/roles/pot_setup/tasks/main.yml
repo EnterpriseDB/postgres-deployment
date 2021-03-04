@@ -7,17 +7,6 @@
 
 - name: Verify Variables
   import_tasks: verify_variables.yml
-  
-- name: Set pem_server_private_ip, pem_server_public_ip
-  set_fact:
-    pem_server_public_ip: "{{ node.ansible_host }}"
-    pem_server_private_ip: "{{ node.private_ip }}"
-  loop: "{{ lookup('edb_devops.edb_postgres.pem_server', wantlist=True) }}"
-  loop_control:
-    loop_var: node
-  when:  node.node_type == 'pemserver'
-  run_once: true
-  no_log: "{{ disable_logging }}"
 
 - name: Iterate over set_variable
   include_tasks: pg_hba_rule.yml
@@ -34,7 +23,6 @@
 - name: Update route53
   import_tasks: update_route53.yml
   when: group_names | select('search','primary') | list | count > 0
-  run_once: true
 
 - name: Update pem server
   block:
