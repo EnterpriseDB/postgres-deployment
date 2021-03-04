@@ -246,7 +246,7 @@ class Project:
         # Build a list of instance_type accordingly to the specs
         instance_types = []
         node_types = ['postgres_server', 'pem_server', 'barman_server',
-                      'pooler_server']
+                      'pooler_server', 'hammerdb_server']
         for node_type in node_types:
             node = self.terraform_vars.get(node_type)
             if not node:
@@ -398,7 +398,8 @@ class Project:
             ssh_pub_key=self.ssh_pub_key,
             barman=ra['barman'],
             pooler_local=ra['pooler_local'],
-            pooler_type=ra['pooler_type']
+            pooler_type=ra['pooler_type'],
+            hammerdb=ra['hammerdb']
         )
 
         # AWS case
@@ -465,6 +466,17 @@ class Project:
                 volume=pooler_server_spec['volume']
             )
         ))
+
+        # HammerDB server terraform_vars
+        hammerdb_server_spec = env.cloud_spec['hammerdb_server']
+        self.terraform_vars.update(dict(
+            hammerdb_server=dict(
+                count=1 if ra['hammerdb_server'] else 0,
+                instance_type=hammerdb_server_spec['instance_type'],
+                volume=hammerdb_server_spec['volume']
+            )
+        ))
+
 
     def _build_ansible_vars(self, env):
         # Fetch EDB repo. username and password
@@ -600,7 +612,8 @@ class Project:
                     (self.terraform_vars['postgres_server']['count']
                      + self.terraform_vars['barman_server']['count']
                      + self.terraform_vars['pem_server']['count']
-                     + self.terraform_vars['pooler_server']['count'])
+                     + self.terraform_vars['pooler_server']['count']
+                     + self.terraform_vars['hammerdb_server']['count'])
                 )
 
 
