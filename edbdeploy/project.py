@@ -785,7 +785,7 @@ class Project:
                 terraform = TerraformCli(
                     project.project_path,
                     project.terraform_plugin_cache_path,
-                    bin_path=self.cloud_tools_bin_path
+                    bin_path=Project.cloud_tools_bin_path
                 )
                 terraform_resource_count = terraform.count_resources()
 
