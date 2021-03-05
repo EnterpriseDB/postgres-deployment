@@ -1,6 +1,7 @@
 variable "barman" {}
 variable "barman_server" {}
 variable "cluster_name" {}
+variable "pg_version" {}
 variable "gcloud_credentials" {}
 variable "gcloud_image" {}
 variable "gcloud_project_id" {}

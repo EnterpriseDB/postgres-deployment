@@ -38,6 +38,19 @@ ReferenceArchitectureSpec = {
         'hammerdb': False,
         'hammerdb_server': False
     },
+    'HammerDB-DBaaS': {
+        'pg_count': 0,
+        'pem_server': False,
+        'barman': False,
+        'barman_server': False,
+        'pooler_count': 0,
+        'pooler_type': None,
+        'pooler_local': False,
+        'efm': False,
+        'replication_type': None,
+        'hammerdb': False,
+        'hammerdb_server': True
+    },
     'HammerDB-TPROC-C': {
         'pg_count': 1,
         'pem_server': False,
