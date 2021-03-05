@@ -8,7 +8,7 @@ import sys
 import stat
 import time
 
-from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
+from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, GCloudCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
@@ -284,6 +284,37 @@ class Project:
                 self.terraform_vars['aws_ami_id'] = aws_ami_id
                 self._save_terraform_vars()
 
+        # AWS RDS - Check instance type and image availability
+        if env.cloud == 'aws-rds' and not self.terraform_vars['aws_ami_id']:
+            for instance_type in instance_types:
+                with AM(
+                    "Checking instance type %s availability in %s"
+                    % (instance_type, env.aws_region)
+                ):
+                    cloud_cli.check_instance_type_availability(
+                        instance_type, env.aws_region
+                    )
+
+            # Check availability of image in target region and get its ID
+            with AM(
+                "Checking image '%s' availability in %s"
+                % (self.terraform_vars['aws_image'], env.aws_region)
+            ):
+                aws_ami_id = cloud_cli.cli.get_image_id(
+                    self.terraform_vars['aws_image'], env.aws_region
+                )
+                if not aws_ami_id:
+                    raise ProjectError(
+                        "Unable to get Image Id for image %s in region %s"
+                        % (self.terraform_vars['aws_image'], env.aws_region)
+                    )
+            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
+                # Useless variable for Terraform
+                del(self.terraform_vars['aws_image'])
+                self.terraform_vars['aws_ami_id'] = aws_ami_id
+                self._save_terraform_vars()
+
+
         # Azure - Check instance type and image availability
         if env.cloud == 'azure':
             for instance_type in instance_types:
@@ -392,6 +423,7 @@ class Project:
 
         self.terraform_vars = dict(
             cluster_name=self.name,
+            pg_version=env.postgres_version,
             replication_type=ra['replication_type'],
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key,
@@ -404,6 +436,13 @@ class Project:
 
         # AWS case
         if env.cloud == 'aws':
+            self.terraform_vars.update(dict(
+                aws_image=os_spec['image'],
+                aws_region=env.aws_region,
+                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
+            ))
+        # AWS RDS case
+        if env.cloud == 'aws-rds':
             self.terraform_vars.update(dict(
                 aws_image=os_spec['image'],
                 aws_region=env.aws_region,
@@ -588,6 +627,15 @@ class Project:
 
         # AWS case
         if self.cloud == 'aws':
+            with AM(
+                "Checking instances availability in region %s"
+                % self.terraform_vars['aws_region']
+            ):
+                cloud_cli.cli.check_instances_availability(
+                    self.terraform_vars['aws_region']
+                )
+        # AWS RDS case
+        if self.cloud == 'aws-rds':
             with AM(
                 "Checking instances availability in region %s"
                 % self.terraform_vars['aws_region']

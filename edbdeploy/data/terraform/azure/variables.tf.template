@@ -8,6 +8,7 @@ variable "pooler_server" {}
 variable "barman_server" {}
 variable "replication_type" {}
 variable "cluster_name" {}
+variable "pg_version" {}
 variable "ssh_pub_key" {}
 variable "ssh_priv_key" {}
 variable "ssh_user" {}
