@@ -26,6 +26,13 @@ class Project:
         'EDB_DEPLOY_DIR',
         os.path.join(os.path.expanduser("~"), ".edb-deployment")
     )
+    # Path that should contain 3rd party tools binaries when they are installed
+    # by the prerequisites installation script.
+    cloud_tools_bin_path = os.path.join(
+        os.path.expanduser("~"),
+        '.edb-cloud-tools',
+        'bin'
+    )
     terraform_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'data',
@@ -77,6 +84,18 @@ class Project:
             'inventory.yml'
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
+
+    def check_versions(self):
+        # Check Ansible version
+        ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
+        ansible.check_version()
+        # Check Terraform version
+        terraform = TerraformCli('dummy', 'dummy',
+                                 bin_path=self.cloud_tools_bin_path)
+        terraform.check_version()
+        # Check cloud vendor CLI/SDK version
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        cloud_cli.check_version()
 
     def create_log_dir(self):
         try:
@@ -169,6 +188,13 @@ class Project:
 
         # Copy SSH keys
         with AM("Copying SSH key pair into %s" % self.project_path):
+
+            # Ensure SSH keys have been defined
+            if env.ssh_priv_key is None:
+                raise ProjectError("SSH private key not defined")
+            if env.ssh_pub_key is None:
+                raise ProjectError("SSH public key not defined")
+
             shutil.copy(env.ssh_priv_key.name, self.ssh_priv_key)
             shutil.copy(env.ssh_pub_key.name, self.ssh_pub_key)
             os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
@@ -215,12 +241,12 @@ class Project:
             )
 
         # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud)
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
 
         # Build a list of instance_type accordingly to the specs
         instance_types = []
         node_types = ['postgres_server', 'pem_server', 'barman_server',
-                      'pooler_server']
+                      'pooler_server', 'hammerdb_server']
         for node_type in node_types:
             node = self.terraform_vars.get(node_type)
             if not node:
@@ -372,7 +398,8 @@ class Project:
             ssh_pub_key=self.ssh_pub_key,
             barman=ra['barman'],
             pooler_local=ra['pooler_local'],
-            pooler_type=ra['pooler_type']
+            pooler_type=ra['pooler_type'],
+            hammerdb=ra['hammerdb']
         )
 
         # AWS case
@@ -440,6 +467,17 @@ class Project:
             )
         ))
 
+        # HammerDB server terraform_vars
+        hammerdb_server_spec = env.cloud_spec['hammerdb_server']
+        self.terraform_vars.update(dict(
+            hammerdb_server=dict(
+                count=1 if ra['hammerdb_server'] else 0,
+                instance_type=hammerdb_server_spec['instance_type'],
+                volume=hammerdb_server_spec['volume']
+            )
+        ))
+
+
     def _build_ansible_vars(self, env):
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
@@ -456,8 +494,8 @@ class Project:
             pg_type=env.postgres_type,
             pg_version=env.postgres_version,
             efm_version=env.efm_version,
-            yum_username=edb_repo_username,
-            yum_password=edb_repo_password,
+            repo_username=edb_repo_username,
+            repo_password=edb_repo_password,
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key
         )
@@ -490,7 +528,8 @@ class Project:
 
     def remove(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
         # Prevent project deletion if some cloud resources are still present
         # for this project.
@@ -529,7 +568,8 @@ class Project:
 
     def provision(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
 
         self.update_state('terraform', 'INITIALIZATING')
@@ -543,7 +583,7 @@ class Project:
         self.update_state('terraform', 'PROVISIONED')
 
         # Checking instance availability
-        cloud_cli = CloudCli(self.cloud)
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         self._load_terraform_vars()
 
         # AWS case
@@ -572,7 +612,8 @@ class Project:
                     (self.terraform_vars['postgres_server']['count']
                      + self.terraform_vars['barman_server']['count']
                      + self.terraform_vars['pem_server']['count']
-                     + self.terraform_vars['pooler_server']['count'])
+                     + self.terraform_vars['pooler_server']['count']
+                     + self.terraform_vars['hammerdb_server']['count'])
                 )
 
 
@@ -581,7 +622,8 @@ class Project:
 
     def destroy(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
         )
 
         self.update_state('terraform', 'DESTROYING')
@@ -592,7 +634,10 @@ class Project:
 
     def deploy(self, no_install_collection, force_install, force_initdb):
         inventory_data = None
-        ansible = AnsibleCli(self.project_path)
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path = self.cloud_tools_bin_path
+        )
 
         # Load ansible vars
         self._load_ansible_vars()
@@ -610,11 +655,11 @@ class Project:
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
             efm_version=self.ansible_vars['efm_version'],
-            yum_username=self.ansible_vars['yum_username'],
-            yum_password=self.ansible_vars['yum_password'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['yum_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass'),
             force_install=force_install,
-            force_initdb=force_initdb,
+            force_initdb=force_initdb
         )
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(
@@ -682,7 +727,10 @@ class Project:
             if status == 'DEPLOYING':
                 print("WARNING: project is in deploying state")
             inventory_data = None
-            ansible = AnsibleCli(self.project_path)
+            ansible = AnsibleCli(
+                self.project_path,
+                bin_path = self.cloud_tools_bin_path
+            )
             with AM("Extracting data from the inventory file"):
                 inventory_data = ansible.list_inventory(self.ansible_inventory)
             self.display_inventory(inventory_data)
@@ -751,7 +799,8 @@ class Project:
                 terraform_resource_count = 0
                 terraform = TerraformCli(
                     project.project_path,
-                    project.terraform_plugin_cache_path
+                    project.terraform_plugin_cache_path,
+                    bin_path=Project.cloud_tools_bin_path
                 )
                 terraform_resource_count = terraform.count_resources()
 

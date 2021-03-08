@@ -40,6 +40,7 @@ module "routes" {
 
   postgres_count     = var.postgres_server["count"]
   pem_count          = var.pem_server["count"]
+  hammerdb_count     = var.hammerdb_server["count"]
   barman_count       = var.barman_server["count"]
   pooler_count       = var.pooler_server["count"]
   vpc_id             = module.vpc.vpc_id
@@ -68,6 +69,7 @@ module "edb-db-cluster" {
   vpc_id                              = module.vpc.vpc_id
   postgres_server                     = var.postgres_server
   pem_server                          = var.pem_server
+  hammerdb_server                     = var.hammerdb_server
   barman_server                       = var.barman_server
   pooler_server                       = var.pooler_server
   replication_type                    = var.replication_type
@@ -82,6 +84,7 @@ module "edb-db-cluster" {
   barman                              = var.barman
   pooler_type                         = var.pooler_type
   pooler_local                        = var.pooler_local
+  hammerdb                            = var.hammerdb
 
   depends_on = [module.routes]
 }
