@@ -671,6 +671,7 @@ class Project:
         self.update_state('ansible', 'DEPLOYING')
         with AM("Deploying components with Ansible"):
             ansible.run_playbook(
+                self.cloud,
                 self.ansible_vars['ssh_user'],
                 self.ansible_vars['ssh_priv_key'],
                 self.ansible_inventory,

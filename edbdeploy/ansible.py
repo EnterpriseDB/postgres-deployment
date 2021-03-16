@@ -117,11 +117,10 @@ class AnsibleCli:
             )
 
     def run_playbook(
-        self, ssh_user, ssh_priv_key, inventory, playbook, extra_vars
+        self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars
     ):
         try:
-            rc = exec_shell_live(
-                [
+            command = [
                     self.bin("ansible-playbook"),
                     playbook,
                     "--ssh-common-args='-o StrictHostKeyChecking=no'",
@@ -129,9 +128,11 @@ class AnsibleCli:
                     "-u", ssh_user,
                     "--private-key", ssh_priv_key,
                     "-e", "'%s'" % extra_vars
-                ],
-                cwd=self.dir
-            )
+                ]
+            if cloud in ['aws-rds', 'aws-rds-aurora']:
+                command.append('--limit')
+                command.append('!primary')
+            rc = exec_shell_live(command, cwd=self.dir)
             if rc != 0:
                 raise Exception("Return code not 0")
         except Exception as e:
