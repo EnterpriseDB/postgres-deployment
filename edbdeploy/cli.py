@@ -528,6 +528,186 @@ def aws_rds_subcommands(aws_rds_subparser):
         help="Do not install the Ansible collection."
     )
 
+# AWS RDS Aurora for sub-commands and options
+def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
+    aws_rds_aurora_configure = aws_rds_aurora_subparser.add_parser(
+        'configure', help='Project configuration'
+    )
+    aws_rds_aurora_provision = aws_rds_aurora_subparser.add_parser(
+        'provision', help='Machines provisioning'
+    )
+    aws_rds_aurora_destroy = aws_rds_aurora_subparser.add_parser(
+        'destroy', help='Machines destruction'
+    )
+    aws_rds_aurora_deploy = aws_rds_aurora_subparser.add_parser(
+        'deploy', help='Postgres deployment'
+    )
+    aws_rds_aurora_show = aws_rds_aurora_subparser.add_parser(
+        'show', help='Show configuration'
+    )
+    aws_rds_aurora_display = aws_rds_aurora_subparser.add_parser(
+        'display', help='Display project details'
+    )
+    aws_rds_aurora_passwords_aurora = aws_rds_aurora_subparser.add_parser(
+        'passwords_aurora', help='Display project password'
+    )
+    aws_rds_aurora_list = aws_rds_aurora_subparser.add_parser(
+        'list', help='List projects'
+    )
+    aws_rds_aurora_specs = aws_rds_aurora_subparser.add_parser(
+        'specs', help='Show Cloud default specifications'
+    )
+    aws_rds_aurora_logs = aws_rds_aurora_subparser.add_parser(
+        'logs', help='Show project logs'
+    )
+    aws_rds_aurora_remove = aws_rds_aurora_subparser.add_parser(
+        'remove', help='Remove project'
+    )
+    # aws-rds-aurora configure sub-command options
+    aws_rds_aurora_configure.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_configure.add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=ReferenceArchitectureOption.choices,
+        default=ReferenceArchitectureOption.default,
+        metavar='<ref-arch-code>',
+        help=ReferenceArchitectureOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-u', '--edb-credentials',
+        dest='edb_credentials',
+        required=True,
+        type=EDBCredentialsType,
+        metavar='"<username>:<password>"',
+        help="EDB Packages repository credentials."
+    ).completer = edb_credentials_completer
+    aws_rds_aurora_configure.add_argument(
+        '-o', '--os',
+        dest='operating_system',
+        choices=OSOption.choices,
+        default=OSOption.default,
+        metavar='<operating-system>',
+        help=OSOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-t', '--pg-type',
+        dest='postgres_type',
+        choices=PgTypeOption.choices,
+        default=PgTypeOption.default,
+        metavar='<postgres-engine-type>',
+        help=PgTypeOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-v', '--pg-version',
+        dest='postgres_version',
+        choices=PgVersionOption.choices,
+        default=PgVersionOption.default,
+        metavar='<postgres-version>',
+        help=PgVersionOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-e', '--efm-version',
+        dest='efm_version',
+        choices=EFMVersionOption.choices,
+        default=EFMVersionOption.default,
+        metavar='<efm-version>',
+        help=EFMVersionOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-k', '--ssh-pub-key',
+        dest='ssh_pub_key',
+        type=argparse.FileType('r'),
+        default=SSHPubKeyOption.default(),
+        metavar='<ssh-public-key-file>',
+        help=SSHPubKeyOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-K', '--ssh-private-key',
+        dest='ssh_priv_key',
+        type=argparse.FileType('r'),
+        default=SSHPrivKeyOption.default(),
+        metavar='<ssh-private-key-file>',
+        help=SSHPrivKeyOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-r', '--aws-rds-region',
+        dest='aws_region',
+        choices=AWSRegionOption.choices,
+        default=AWSRegionOption.default,
+        metavar='<cloud-region>',
+        help=AWSRegionOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-i', '--aws-rds-ami-id',
+        dest='aws_ami_id',
+        type=str,
+        default=AWSIAMIDOption.default,
+        metavar='<aws-rds-ami-id>',
+        help=AWSIAMIDOption.help
+    ).completer = aws_ami_id_completer
+    aws_rds_aurora_configure.add_argument(
+        '-s', '--spec',
+        dest='spec_file',
+        type=argparse.FileType('r'),
+        metavar='<aws-rds-spec-file>',
+        help="AWS instances specification file, in JSON."
+    )
+    # aws-rds-aurora logs sub-command options
+    aws_rds_aurora_logs.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_logs.add_argument(
+        '-t', '--tail',
+        dest='tail',
+        action='store_true',
+        help="Do not stop at the end of file."
+    )
+    # aws-rds remove sub-command options
+    aws_rds_aurora_remove.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora show sub-command options
+    aws_rds_aurora_show.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora display sub-command option
+    aws_rds_aurora_display.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora password sub-command option
+    aws_rds_aurora_passwords_aurora.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora provision sub-command options
+    aws_rds_aurora_provision.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora destroy sub-command options
+    aws_rds_aurora_destroy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora deploy sub-command options
+    aws_rds_aurora_deploy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_deploy.add_argument(
+        '-n', '--no-install-collection',
+        dest='no_install_collection',
+        action='store_true',
+        help="Do not install the Ansible collection."
+    )
+
 # Azure sub-commands and options
 def azure_subcommands(azure_subparser):
     azure_configure = azure_subparser.add_parser(
@@ -926,6 +1106,7 @@ def parse():
     # Cloud commands
     aws = subparsers.add_parser('aws', help='AWS Cloud')
     aws_rds = subparsers.add_parser('aws-rds', help='AWS RDS Cloud')
+    aws_rds_aurora = subparsers.add_parser('aws-rds-aurora', help='AWS RDS Aurora Cloud')
     azure = subparsers.add_parser('azure', help='Azure Cloud')
     gcloud = subparsers.add_parser('gcloud', help='Google Cloud')
 
@@ -940,6 +1121,11 @@ def parse():
         title='AWS RDS sub-commands', dest='sub_command', metavar='<sub-command>'
     )
     aws_rds_subcommands(aws_rds_subparser)
+    # AWS RDS Aurora
+    aws_rds_aurora_subparser = aws_rds_aurora.add_subparsers(
+        title='AWS RDS Aurora sub-commands', dest='sub_command', metavar='<sub-command>'
+    )
+    aws_rds_aurora_subcommands(aws_rds_aurora_subparser)
     # Azure
     azure_subparser = azure.add_subparsers(
         title='Azure sub-commands', dest='sub_command', metavar='<sub-command>'
@@ -976,6 +1162,8 @@ def parse():
             aws.print_help()
         elif env.cloud == 'aws-rds':
             aws_rds.print_help()
+        elif env.cloud == 'aws-rds-aurora':
+            aws_rds_aurora.print_help()
         elif env.cloud == 'azure':
             azure.print_help()
         elif env.cloud == 'gcloud':
