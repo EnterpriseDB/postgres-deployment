@@ -3,7 +3,7 @@ from . import SpecValidator
 # These are instance types to make available to all architectures.
 global_instance_choices = ['t4g.nano', 't3.nano', 't3a.nano', 't2.nano']
 
-AWSRDSSpec = {
+AWSRDSAuroraSpec = {
     'available_os': {
         'CentOS7': {
             'image': SpecValidator(
@@ -82,7 +82,7 @@ AWSRDSSpec = {
         'instance_type': SpecValidator(
             type='choice',
             choices=[
-                'db.t3.micro', 'db.r5.xlarge', 'db.r5.2xlarge',
+                'db.t3.medium', 'db.r5.xlarge', 'db.r5.2xlarge',
                 'db.r5.4xlarge', 'db.r5.8xlarge'
             ],
             default='db.r5.2xlarge'
@@ -90,20 +90,20 @@ AWSRDSSpec = {
         'volume': {
             'type': SpecValidator(
                 type='choice',
-                choices=['io1'],
-                default='io1'
+                choices=[''],
+                default=''
             ),
             'size': SpecValidator(
                 type='integer',
-                min=100,
-                max=16384,
-                default=1000
+                min=0,
+                max=0,
+                default=0
             ),
             'iops': SpecValidator(
                 type='integer',
-                min=1000,
-                max=80000,
-                default=10000
+                min=0,
+                max=0,
+                default=0
             )
         },
         'additional_volumes': {

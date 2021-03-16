@@ -314,6 +314,35 @@ class Project:
                 self.terraform_vars['aws_ami_id'] = aws_ami_id
                 self._save_terraform_vars()
 
+        # AWS RDS Aurora - Check instance type and image availability
+        if env.cloud == 'aws-rds-aurora' and not self.terraform_vars['aws_ami_id']:
+            for instance_type in instance_types:
+                with AM(
+                    "Checking instance type %s availability in %s"
+                    % (instance_type, env.aws_region)
+                ):
+                    cloud_cli.check_instance_type_availability(
+                        instance_type, env.aws_region
+                    )
+
+            # Check availability of image in target region and get its ID
+            with AM(
+                "Checking image '%s' availability in %s"
+                % (self.terraform_vars['aws_image'], env.aws_region)
+            ):
+                aws_ami_id = cloud_cli.cli.get_image_id(
+                    self.terraform_vars['aws_image'], env.aws_region
+                )
+                if not aws_ami_id:
+                    raise ProjectError(
+                        "Unable to get Image Id for image %s in region %s"
+                        % (self.terraform_vars['aws_image'], env.aws_region)
+                    )
+            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
+                # Useless variable for Terraform
+                del(self.terraform_vars['aws_image'])
+                self.terraform_vars['aws_ami_id'] = aws_ami_id
+                self._save_terraform_vars()
 
         # Azure - Check instance type and image availability
         if env.cloud == 'azure':
@@ -443,6 +472,13 @@ class Project:
             ))
         # AWS RDS case
         if env.cloud == 'aws-rds':
+            self.terraform_vars.update(dict(
+                aws_image=os_spec['image'],
+                aws_region=env.aws_region,
+                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
+            ))
+        # AWS RDS Aurora case
+        if env.cloud == 'aws-rds-aurora':
             self.terraform_vars.update(dict(
                 aws_image=os_spec['image'],
                 aws_region=env.aws_region,
