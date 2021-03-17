@@ -11,6 +11,7 @@ from .project import Project
 class ReferenceArchitectureOption:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-DBaaS',
                'HammerDB-TPROC-C']
+
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA-1 for a
