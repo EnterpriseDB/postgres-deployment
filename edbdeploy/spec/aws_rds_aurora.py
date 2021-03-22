@@ -1,7 +1,7 @@
 from . import SpecValidator
 
 # These are instance types to make available to all architectures.
-global_instance_choices = ['t4g.nano', 't3.nano', 't3a.nano', 't2.nano']
+global_instance_choices = ['t3.nano', 't3a.nano', 't2.nano']
 
 AWSRDSAuroraSpec = {
     'available_os': {
