@@ -56,7 +56,7 @@ AWSRDSSpec = {
             choices=[
                 'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
             ] + global_instance_choices,
-            default='m5n.xlarge'
+            default='r5n.xlarge'
         ),
         'volume': {
             'type': SpecValidator(
