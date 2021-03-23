@@ -56,7 +56,7 @@ AWSRDSSpec = {
             choices=[
                 'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
             ] + global_instance_choices,
-            default='r5n.xlarge'
+            default='m5n.xlarge'
         ),
         'volume': {
             'type': SpecValidator(
@@ -200,54 +200,50 @@ AWSRDSSpec = {
     'barman_server': {
         'instance_type': SpecValidator(
             type='choice',
-            choices=[
-                'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
-                'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
-                'c5.metal'
-            ] + global_instance_choices,
-            default='c5.2xlarge'
+            choices=[''],
+            default=''
         ),
         'volume': {
             'type': SpecValidator(
                 type='choice',
-                choices=['io1', 'io2', 'gp2', 'gp3', 'st1', 'sc1'],
-                default='gp2'
+                choices=[''],
+                default=''
             ),
             'size': SpecValidator(
                 type='integer',
-                min=10,
-                max=16000,
-                default=50
+                min=0,
+                max=0,
+                default=0
             ),
             'iops': SpecValidator(
                 type='integer',
-                min=100,
-                max=64000,
-                default=250
+                min=0,
+                max=0,
+                default=0
             )
         },
         'additional_volumes': {
             'count': SpecValidator(
                 type='integer',
                 min=0,
-                max=1,
-                default=1
+                max=0,
+                default=0
             ),
             'type': SpecValidator(
                 type='choice',
-                choices=['io1', 'io2', 'gp2', 'gp3', 'st1', 'sc1'],
-                default='gp2'
+                choices=[''],
+                default=''
             ),
             'size': SpecValidator(
                 type='integer',
-                min=10,
-                max=16000,
-                default=300
+                min=0,
+                max=0,
+                default=0
             ),
             'iops': SpecValidator(
                 type='integer',
-                min=100,
-                max=64000,
+                min=0,
+                max=0,
                 default=250
             ),
             'encrypted': SpecValidator(

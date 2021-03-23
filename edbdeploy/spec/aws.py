@@ -54,9 +54,9 @@ AWSSpec = {
         'instance_type': SpecValidator(
             type='choice',
             choices=[
-                'r5n.xlarge'
+                'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
             ] + global_instance_choices,
-            default='r5n.xlarge'
+            default='m5n.xlarge'
         ),
         'volume': {
             'type': SpecValidator(
