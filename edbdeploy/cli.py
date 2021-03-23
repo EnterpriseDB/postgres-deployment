@@ -9,8 +9,7 @@ from . import __version__
 from .project import Project
 
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-DBaaS',
-               'HammerDB-TPROC-C']
+    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA-1 for a
@@ -18,9 +17,20 @@ class ReferenceArchitectureOption:
         monitoring server, EDB-RA-2 for a 3 Postgres nodes deployment with
         quorum base synchronous replication and automatic failover, one backup
         server and one PEM monitoring server, EDB-RA-3 for extending EDB-RA-2
-        with 3 PgPoolII nodes, HammerDB-DBaaS for benchmarking any DBaaS
-        offering, and HammerDB-TPROC-C for benchmarking 2-tier client-server
-        architectures with and OLTP workload. Default: %(default)s
+        with 3 PgPoolII nodes, and HammerDB-TPROC-C for benchmarking 2-tier
+        client-server architectures with and OLTP workload. Default:
+        %(default)s
+    """)
+
+
+class ReferenceArchitectureOptionRDS:
+    choices = ['HammerDB-DBaaS']
+    default = 'HammerDB-DBaaS'
+    help = textwrap.dedent("""
+        Reference architecture code name. Allowed values are: HammerDB-DBaaS
+        for benchmarking any DBaaS offering for benchmarking 2-tier
+        client-server architectures with and OLTP workload. Default:
+        %(default)s
     """)
 
 
@@ -52,12 +62,21 @@ class EFMVersionOption:
 
 
 class PgTypeOption:
-    choices = ['PG', 'EPAS', 'RDS']
+    choices = ['PG', 'EPAS']
     default = 'PG'
     help = textwrap.dedent("""
         Postgres engine type. Allowed values are: PG for PostgreSQL, EPAS for
-        EDB Postgres Advanced Server, RDS for AWS RDS for PostgreSQL. Default:
+        EDB Postgres Advanced Server. Default:
         %(default)s
+    """)
+
+
+class PgTypeOptionRDS:
+    choices = ['RDS']
+    default = 'RDS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: RDS for AWS RDS for
+        PostgreSQL. Default: %(default)s
     """)
 
 
@@ -391,10 +410,10 @@ def aws_rds_subcommands(aws_rds_subparser):
     aws_rds_configure.add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOption.choices,
-        default=ReferenceArchitectureOption.default,
+        choices=ReferenceArchitectureOptionRDS.choices,
+        default=ReferenceArchitectureOptionRDS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOption.help
+        help=ReferenceArchitectureOptionRDS.help
     )
     aws_rds_configure.add_argument(
         '-u', '--edb-credentials',
@@ -415,10 +434,10 @@ def aws_rds_subcommands(aws_rds_subparser):
     aws_rds_configure.add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
-        choices=PgTypeOption.choices,
-        default=PgTypeOption.default,
+        choices=PgTypeOptionRDS.choices,
+        default=PgTypeOptionRDS.default,
         metavar='<postgres-engine-type>',
-        help=PgTypeOption.help
+        help=PgTypeOptionRDS.help
     )
     aws_rds_configure.add_argument(
         '-v', '--pg-version',
@@ -571,10 +590,10 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
     aws_rds_aurora_configure.add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOption.choices,
-        default=ReferenceArchitectureOption.default,
+        choices=ReferenceArchitectureOptionRDS.choices,
+        default=ReferenceArchitectureOptionRDS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOption.help
+        help=ReferenceArchitectureOptionRDS.help
     )
     aws_rds_aurora_configure.add_argument(
         '-u', '--edb-credentials',
@@ -595,10 +614,10 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
     aws_rds_aurora_configure.add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
-        choices=PgTypeOption.choices,
-        default=PgTypeOption.default,
+        choices=PgTypeOptionRDS.choices,
+        default=PgTypeOptionRDS.default,
         metavar='<postgres-engine-type>',
-        help=PgTypeOption.help
+        help=PgTypeOptionRDS.help
     )
     aws_rds_aurora_configure.add_argument(
         '-v', '--pg-version',
