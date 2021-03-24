@@ -46,7 +46,6 @@ module "aws" {
   vpc_id                              = module.vpc.vpc_id
   pem_server                          = var.pem_server
   hammerdb_server                     = var.hammerdb_server
-  replication_type                    = var.replication_type
   cluster_name                        = var.cluster_name
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
   add_hosts_filename                  = var.add_hosts_filename

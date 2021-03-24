@@ -1,7 +1,6 @@
 variable "aws_ami_id" {}
 variable "pem_server" {}
 variable "hammerdb_server" {}
-variable "replication_type" {}
 variable "vpc_id" {}
 variable "ssh_user" {}
 variable "ssh_pub_key" {}
@@ -10,6 +9,7 @@ variable "custom_security_group_id" {}
 variable "cluster_name" {}
 variable "created_by" {}
 variable "ansible_inventory_yaml_filename" {}
+variable "add_hosts_filename" {}
 variable "hammerdb" {}
 variable "public_cidrblock" {}
 variable "project_tag" {}

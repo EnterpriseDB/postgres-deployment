@@ -11,13 +11,6 @@ all:
           ansible_host: ${aws_instance.pem_server[0].public_ip}
           private_ip: ${aws_instance.pem_server[0].private_ip}
 %{endif ~}
-%{if var.barman_server["count"] > 0 ~}
-    barmanserver:
-      hosts:
-        barmanserver1:
-          ansible_host: ${aws_instance.barman_server[0].public_ip}
-          private_ip: ${aws_instance.barman_server[0].private_ip}
-%{endif ~}
 %{if var.hammerdb_server["count"] > 0 ~}
     hammerdbserver:
       hosts:
@@ -25,20 +18,6 @@ all:
           ansible_host: ${aws_instance.hammerdb_server[0].public_ip}
           private_ip: ${aws_instance.hammerdb_server[0].private_ip}
 %{endif ~}
-%{for pooler_count in range(var.pooler_server["count"]) ~}
-%{if pooler_count == 0 ~}
-%{if var.pooler_type == "pgpool2" ~}
-    pgpool2:
-%{endif ~}
-%{if var.pooler_type == "pgbouncer" ~}
-    pgbouncer:
-%{endif ~}
-      hosts:
-%{endif ~}
-        pooler${pooler_count + 1}:
-          ansible_host: ${aws_instance.pooler_server[pooler_count].public_ip}
-          private_ip: ${aws_instance.pooler_server[pooler_count].private_ip}
-%{endfor ~}
     primary:
       hosts:
         primary1:
@@ -57,13 +36,5 @@ echo "Adding IPs"
 ssh-keyscan -H ${aws_instance.pem_server[0].public_ip} >> ~/.ssh/known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pem_server[0].public_dns}
 %{endif ~}
-%{if var.barman_server["count"] > 0 ~}
-ssh-keyscan -H ${aws_instance.barman_server[0].public_ip} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.barman_server[0].public_dns}
-%{endif ~}
-%{for count in range(var.pooler_server["count"]) ~}
-ssh-keyscan -H ${aws_instance.pooler_server[count].public_ip} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pooler_server[count].public_dns}
-%{endfor ~}
     EOT
 }
