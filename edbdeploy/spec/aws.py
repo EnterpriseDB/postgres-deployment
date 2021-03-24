@@ -84,7 +84,8 @@ AWSSpec = {
             choices=[
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
-                'c5.metal', 'r5n.xlarge', 'r5n.2xlarge'
+                'c5.metal', 'r5n.xlarge', 'r5n.2xlarge', 'r5n.4xlarge',
+                'r5n.8xlarge'
             ] + global_instance_choices,
             default='c5.2xlarge'
         ),
