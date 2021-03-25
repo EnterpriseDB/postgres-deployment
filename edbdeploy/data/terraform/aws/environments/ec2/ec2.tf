@@ -3,7 +3,6 @@ variable "pem_server" {}
 variable "postgres_server" {}
 variable "barman_server" {}
 variable "pooler_server" {}
-variable "hammerdb_server" {}
 variable "replication_type" {}
 variable "vpc_id" {}
 variable "ssh_user" {}
@@ -17,7 +16,6 @@ variable "add_hosts_filename" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
-variable "hammerdb" {}
 
 locals {
   lnx_ebs_device_names = [
@@ -126,7 +124,6 @@ resource "null_resource" "postgres_copy_setup_volume_script" {
   }
 }
 
-
 resource "aws_volume_attachment" "postgres_attached_vol" {
   count = var.postgres_server["count"] * var.postgres_server["additional_volumes"]["count"]
 
@@ -154,33 +151,6 @@ resource "null_resource" "postgres_setup_volume" {
       host        = element(aws_instance.postgres_server.*.public_ip, count.index)
       private_key = file(var.ssh_priv_key)
     }
-  }
-}
-
-resource "aws_instance" "hammerdb_server" {
-  count = var.hammerdb_server["count"]
-
-  ami = var.aws_ami_id
-
-  instance_type          = var.hammerdb_server["instance_type"]
-  key_name               = aws_key_pair.key_pair.id
-  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
-  vpc_security_group_ids = [var.custom_security_group_id]
-
-  root_block_device {
-    delete_on_termination = "true"
-    volume_size           = var.hammerdb_server["volume"]["size"]
-    volume_type           = var.hammerdb_server["volume"]["type"]
-    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ?  var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
-  }
-
-  tags = {
-    Name       = format("%s-%s%s", var.cluster_name, "hammerdbserver", count.index + 1)
-    Created_By = var.created_by
-  }
-
-  connection {
-    private_key = file(var.ssh_pub_key)
   }
 }
 
@@ -327,5 +297,185 @@ resource "aws_instance" "pooler_server" {
 
   connection {
     private_key = file(var.ssh_pub_key)
+  }
+}
+
+resource "null_resource" "pem_copy_hostname_script" {
+  count = var.pem_server["count"]
+
+  depends_on = [
+    aws_instance.pem_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
+    destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pem_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "postgres_copy_hostname_script" {
+  count = var.postgres_server["count"]
+
+  depends_on = [
+    aws_instance.postgres_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
+    destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.postgres_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "barman_copy_hostname_script" {
+  count = var.barman_server["count"]
+
+  depends_on = [
+    aws_instance.barman_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
+    destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.barman_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "pooler_copy_hostname_script" {
+  count = var.pooler_server["count"]
+
+  depends_on = [
+    aws_instance.pooler_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
+    destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pooler_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "pem-set-hostname" {
+  count = var.pem_server["count"]
+
+  depends_on = [
+    null_resource.pem_copy_hostname_script
+  ]
+
+  provisioner "remote-exec" {
+    inline = [
+        "chmod a+x /tmp/add_ips_to_hosts.sh",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pem_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "pg-set-hostname" {
+  count = var.postgres_server["count"]
+
+  depends_on = [
+    null_resource.postgres_copy_hostname_script
+  ]
+
+  provisioner "remote-exec" {
+    inline = [
+        "chmod a+x /tmp/add_ips_to_hosts.sh",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.postgres_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "barman-set-hostname" {
+  count = var.barman_server["count"]
+
+  depends_on = [
+    null_resource.barman_copy_hostname_script
+  ]
+
+  provisioner "remote-exec" {
+    inline = [
+        "chmod a+x /tmp/add_ips_to_hosts.sh",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.barman_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "pooler-set-hostname" {
+  count = var.pooler_server["count"]
+
+  depends_on = [
+    null_resource.pooler_copy_hostname_script
+  ]
+
+  provisioner "remote-exec" {
+    inline = [
+        "chmod a+x /tmp/add_ips_to_hosts.sh",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pooler_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
   }
 }

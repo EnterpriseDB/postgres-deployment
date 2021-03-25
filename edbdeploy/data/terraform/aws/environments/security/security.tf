@@ -55,6 +55,14 @@ resource "aws_security_group" "edb-prereqs-rules" {
     protocol    = "tcp"
     cidr_blocks = [var.public_cidrblock]
   }
+  
+  // Ping within VPC
+  ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = [var.public_cidrblock]
+  } 
 
   // PgPoolII default port for user connections
   ingress {
