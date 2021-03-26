@@ -15,6 +15,9 @@ variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
 variable "hammerdb" {}
+variable "guc_effective_cache_size" {}
+variable "guc_shared_buffers" {}
+variable "guc_max_wal_size" {}
 
 # Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {

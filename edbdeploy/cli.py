@@ -110,6 +110,17 @@ class SSHPrivKeyOption:
             return priv_key_path
 
 
+# HammerDB specific options
+
+class ShirtSizeOption:
+    choices = ['small', 'medium', 'large', 'xl']
+    default = 'small'
+    help = textwrap.dedent("""
+        T-shirt sized system to provision.  Allowed values are small, medium,
+        large, and xl.  Default : %(default)s
+    """)
+
+
 # Cloud specific options
 class AWSRegionOption:
     choices = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2']
@@ -496,6 +507,14 @@ def aws_rds_subcommands(aws_rds_subparser):
         metavar='<aws-rds-spec-file>',
         help="AWS instances specification file, in JSON."
     )
+    aws_rds_configure.add_argument(
+        '-T', '--t-shirt',
+        dest='shirt',
+        choices=ShirtSizeOption.choices,
+        default=ShirtSizeOption.default,
+        metavar='<shirt-size>',
+        help=ShirtSizeOption.help
+    )
     # aws-rds logs sub-command options
     aws_rds_logs.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
@@ -675,6 +694,14 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
         type=argparse.FileType('r'),
         metavar='<aws-rds-spec-file>',
         help="AWS instances specification file, in JSON."
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-T', '--t-shirt',
+        dest='shirt',
+        choices=ShirtSizeOption.choices,
+        default=ShirtSizeOption.default,
+        metavar='<shirt-size>',
+        help=ShirtSizeOption.help
     )
     # aws-rds-aurora logs sub-command options
     aws_rds_aurora_logs.add_argument(

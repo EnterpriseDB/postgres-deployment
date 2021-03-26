@@ -477,6 +477,31 @@ class Project:
                 aws_region=env.aws_region,
                 aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
             ))
+
+            if env.shirt == 'small':
+                self.terraform_vars.update(dict(
+                    guc_effective_cache_size='524288',
+                    guc_shared_buffers='3145728',
+                    guc_max_wal_size='51200',
+                ))
+            elif env.shirt == 'medium':
+                self.terraform_vars.update(dict(
+                    guc_effective_cache_size='4718592',
+                    guc_shared_buffers='3145728',
+                    guc_max_wal_size='102400',
+                ))
+            elif env.shirt == 'large':
+                self.terraform_vars.update(dict(
+                    guc_effective_cache_size='13107200',
+                    guc_shared_buffers='3145728',
+                    guc_max_wal_size='204800',
+                ))
+            elif env.shirt == 'xl':
+                self.terraform_vars.update(dict(
+                    guc_effective_cache_size='29884416',
+                    guc_shared_buffers='3145728',
+                    guc_max_wal_size='409600',
+                ))
         # AWS RDS Aurora case
         if env.cloud == 'aws-rds-aurora':
             self.terraform_vars.update(dict(

@@ -16,6 +16,9 @@ variable "project_tag" {}
 variable "pg_version" {}
 variable "postgres_server" {}
 variable "rds_security_group_id" {}
+variable "guc_effective_cache_size" {}
+variable "guc_shared_buffers" {}
+variable "guc_max_wal_size" {}
 
 data "aws_subnet_ids" "selected" {
   vpc_id = var.vpc_id
@@ -100,7 +103,7 @@ resource "aws_db_instance" "rds_server" {
   instance_class           = var.postgres_server["instance_type"]
   multi_az                 = false
   name                     = var.cluster_name
-  parameter_group_name     = format("default.postgres%s", var.pg_version)
+  parameter_group_name     = aws_db_parameter_group.edb_rds_db_params.name
   password                 = "postgres"
   port                     = 5432
   publicly_accessible      = true
@@ -110,6 +113,58 @@ resource "aws_db_instance" "rds_server" {
   username                 = "postgres"
   vpc_security_group_ids   = [var.rds_security_group_id]
   skip_final_snapshot      = true
+
+  tags = {
+    Name       = format("%s-%s", var.cluster_name, "rds")
+    Created_By = var.created_by
+  }
+}
+
+resource "aws_db_parameter_group" "edb_rds_db_params" {
+  name   = format("edb-%s", var.cluster_name)
+  family = format("postgres%s", var.pg_version)
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "checkpoint_timeout"
+    value        = "900"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "effective_cache_size"
+    value        = var.guc_effective_cache_size
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "max_connections"
+    value        = "300"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "max_wal_size"
+    value        = var.guc_max_wal_size
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "random_page_cost"
+    value        = "1.25"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "shared_buffers"
+    value        = var.guc_shared_buffers
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "work_mem"
+    value        = "65536"
+  }
 
   tags = {
     Name       = format("%s-%s", var.cluster_name, "rds")
