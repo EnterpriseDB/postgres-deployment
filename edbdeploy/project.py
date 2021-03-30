@@ -783,11 +783,14 @@ class Project:
         extra_vars=dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
-            efm_version=self.ansible_vars['efm_version'],
             repo_username=self.ansible_vars['repo_username'],
             repo_password=self.ansible_vars['repo_password'],
             pass_dir=os.path.join(self.project_path, '.edbpass')
         )
+        if self.ansible_vars.get('efm_version'):
+            extra_vars.update(dict(
+                efm_version=self.ansible_vars['efm_version'],
+            ))
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(
                 pg_data=self.ansible_vars['pg_data']
