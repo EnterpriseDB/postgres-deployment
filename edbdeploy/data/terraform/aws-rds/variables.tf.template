@@ -2,8 +2,6 @@ variable "aws_region" {}
 variable "postgres_server" {}
 variable "pem_server" {}
 variable "hammerdb_server" {}
-variable "pooler_server" {}
-variable "barman_server" {}
 variable "aws_ami_id" {}
 variable "replication_type" {}
 variable "cluster_name" {}
@@ -11,9 +9,6 @@ variable "pg_version" {}
 variable "ssh_pub_key" {}
 variable "ssh_priv_key" {}
 variable "ssh_user" {}
-variable "barman" {}
-variable "pooler_type" {}
-variable "pooler_local" {}
 variable "hammerdb" {}
 variable "guc_effective_cache_size" {}
 variable "guc_shared_buffers" {}

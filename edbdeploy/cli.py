@@ -77,8 +77,8 @@ class PgTypeOptionRDS:
     choices = ['RDS']
     default = 'RDS'
     help = textwrap.dedent("""
-        Postgres engine type. Allowed values are: RDS for AWS RDS for
-        PostgreSQL. Default: %(default)s
+        Postgres engine type. Allowed values are: RDS for AWS RDS.  Default:
+        %(default)s
     """)
 
 
@@ -461,14 +461,6 @@ def aws_rds_subcommands(aws_rds_subparser):
         help=PgVersionOption.help
     )
     aws_rds_configure.add_argument(
-        '-e', '--efm-version',
-        dest='efm_version',
-        choices=EFMVersionOption.choices,
-        default=EFMVersionOption.default,
-        metavar='<efm-version>',
-        help=EFMVersionOption.help
-    )
-    aws_rds_configure.add_argument(
         '-k', '--ssh-pub-key',
         dest='ssh_pub_key',
         type=argparse.FileType('r'),
@@ -647,14 +639,6 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
         default=PgVersionOption.default,
         metavar='<postgres-version>',
         help=PgVersionOption.help
-    )
-    aws_rds_aurora_configure.add_argument(
-        '-e', '--efm-version',
-        dest='efm_version',
-        choices=EFMVersionOption.choices,
-        default=EFMVersionOption.default,
-        metavar='<efm-version>',
-        help=EFMVersionOption.help
     )
     aws_rds_aurora_configure.add_argument(
         '-k', '--ssh-pub-key',

@@ -105,36 +105,6 @@ AWSRDSSpec = {
                 max=80000,
                 default=10000
             )
-        },
-        'additional_volumes': {
-            'count': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'type': SpecValidator(
-                type='choice',
-                choices=[''],
-                default=''
-            ),
-            'size': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'iops': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'encrypted': SpecValidator(
-                type='choice',
-                choices=[True, False],
-                default=False
-            )
         }
     },
     'pem_server': {
@@ -164,92 +134,6 @@ AWSRDSSpec = {
                 min=100,
                 max=64000,
                 default=250
-            )
-        }
-    },
-    'pooler_server': {
-        'instance_type': SpecValidator(
-            type='choice',
-            choices=[
-                'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
-                'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
-                'c5.metal'
-            ] + global_instance_choices,
-            default='c5.xlarge'
-        ),
-        'volume': {
-            'type': SpecValidator(
-                type='choice',
-                choices=['io1', 'io2', 'gp2', 'gp3', 'st1', 'sc1'],
-                default='gp2'
-            ),
-            'size': SpecValidator(
-                type='integer',
-                min=10,
-                max=16000,
-                default=30
-            ),
-            'iops': SpecValidator(
-                type='integer',
-                min=100,
-                max=64000,
-                default=250
-            )
-        }
-    },
-    'barman_server': {
-        'instance_type': SpecValidator(
-            type='choice',
-            choices=[''],
-            default=''
-        ),
-        'volume': {
-            'type': SpecValidator(
-                type='choice',
-                choices=[''],
-                default=''
-            ),
-            'size': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'iops': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            )
-        },
-        'additional_volumes': {
-            'count': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'type': SpecValidator(
-                type='choice',
-                choices=[''],
-                default=''
-            ),
-            'size': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=0
-            ),
-            'iops': SpecValidator(
-                type='integer',
-                min=0,
-                max=0,
-                default=250
-            ),
-            'encrypted': SpecValidator(
-                type='choice',
-                choices=[True, False],
-                default=False
             )
         }
     }

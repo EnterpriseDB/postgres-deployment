@@ -245,8 +245,9 @@ class Project:
 
         # Build a list of instance_type accordingly to the specs
         instance_types = []
-        node_types = ['postgres_server', 'pem_server', 'barman_server',
-                      'pooler_server', 'hammerdb_server']
+        node_types = ['postgres_server', 'pem_server', 'hammerdb_server']
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            node_types.extend(['barman_server', 'pooler_server'])
         for node_type in node_types:
             node = self.terraform_vars.get(node_type)
             if not node:
@@ -531,10 +532,17 @@ class Project:
             postgres_server=dict(
                 count=ra['pg_count'],
                 instance_type=pg_spec['instance_type'],
-                volume=pg_spec['volume'],
-                additional_volumes=pg_spec['additional_volumes']
             )
         ))
+        if env.cloud != 'aws-rds-aurora':
+            self.terraform_vars['postgres_server'].update(dict(
+                volume=pg_spec['volume'],
+            ))
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            self.terraform_vars['postgres_server'].update(dict(
+                additional_volumes=pg_spec['additional_volumes'],
+            ))
+
 
         # PEM server terraform_vars
         pem_server_spec = env.cloud_spec['pem_server']
@@ -547,25 +555,27 @@ class Project:
         ))
 
         # Barman server terraform_vars
-        barman_server_spec = env.cloud_spec['barman_server']
-        self.terraform_vars.update(dict(
-            barman_server=dict(
-                count=1 if ra['barman_server'] else 0,
-                instance_type=barman_server_spec['instance_type'],
-                volume=barman_server_spec['volume'],
-                additional_volumes=barman_server_spec['additional_volumes']
-            )
-        ))
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            barman_server_spec = env.cloud_spec['barman_server']
+            self.terraform_vars.update(dict(
+                barman_server=dict(
+                    count=1 if ra['barman_server'] else 0,
+                    instance_type=barman_server_spec['instance_type'],
+                    volume=barman_server_spec['volume'],
+                    additional_volumes=barman_server_spec['additional_volumes']
+                )
+            ))
 
         # Pooler servers terraform_vars
-        pooler_server_spec = env.cloud_spec['pooler_server']
-        self.terraform_vars.update(dict(
-            pooler_server=dict(
-                count=ra['pooler_count'],
-                instance_type=pooler_server_spec['instance_type'],
-                volume=pooler_server_spec['volume']
-            )
-        ))
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            pooler_server_spec = env.cloud_spec['pooler_server']
+            self.terraform_vars.update(dict(
+                pooler_server=dict(
+                    count=ra['pooler_count'],
+                    instance_type=pooler_server_spec['instance_type'],
+                    volume=pooler_server_spec['volume']
+                )
+            ))
 
         # HammerDB server terraform_vars
         hammerdb_server_spec = env.cloud_spec['hammerdb_server']
@@ -576,7 +586,6 @@ class Project:
                 volume=hammerdb_server_spec['volume']
             )
         ))
-
 
     def _build_ansible_vars(self, env):
         # Fetch EDB repo. username and password
@@ -593,18 +602,22 @@ class Project:
             cluster_name=self.name,
             pg_type=env.postgres_type,
             pg_version=env.postgres_version,
-            efm_version=env.efm_version,
             repo_username=edb_repo_username,
             repo_password=edb_repo_password,
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key
         )
-        # Add configuration for pg_data and pg_wal accordingly to the number
-        # of additional volumes
-        if pg_spec['additional_volumes']['count'] > 0:
-            self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
-        if pg_spec['additional_volumes']['count'] > 1:
-            self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            self.ansible_vars.update(dict(
+                efm_version=env.efm_version,
+            ))
+
+            # Add configuration for pg_data and pg_wal accordingly to the
+            # number of additional volumes
+            if pg_spec['additional_volumes']['count'] > 0:
+                self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
+            if pg_spec['additional_volumes']['count'] > 1:
+                self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
 
     def show_logs(self, tail):
         if not os.path.exists(self.log_file):
