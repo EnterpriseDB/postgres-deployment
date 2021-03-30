@@ -242,6 +242,8 @@ class Project:
 
         # Instanciate a new CloudCli
         cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
+        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
+            cloud_cli_2 = CloudCli('aws', bin_path=self.cloud_tools_bin_path)
 
         # Build a list of instance_type accordingly to the specs
         instance_types = []
@@ -287,14 +289,24 @@ class Project:
 
         # AWS RDS - Check instance type and image availability
         if env.cloud == 'aws-rds' and not self.terraform_vars['aws_ami_id']:
+            pattern = re.compile("^db\.")
             for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.aws_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.aws_region
-                    )
+                if pattern.match(instance_type):
+                    with AM(
+                        "Checking instance type %s availability in %s"
+                        % (instance_type, env.aws_region)
+                    ):
+                        cloud_cli.check_instance_type_availability(
+                            instance_type, env.aws_region
+                        )
+                else:
+                    with AM(
+                        "Checking instance type %s availability in %s"
+                        % (instance_type, env.aws_region)
+                    ):
+                        cloud_cli_2.check_instance_type_availability(
+                            instance_type, env.aws_region
+                        )
 
             # Check availability of image in target region and get its ID
             with AM(
@@ -317,14 +329,24 @@ class Project:
 
         # AWS RDS Aurora - Check instance type and image availability
         if env.cloud == 'aws-rds-aurora' and not self.terraform_vars['aws_ami_id']:
+            pattern = re.compile("^db\.")
             for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.aws_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.aws_region
-                    )
+                if pattern.match(instance_type):
+                    with AM(
+                        "Checking instance type %s availability in %s"
+                        % (instance_type, env.aws_region)
+                    ):
+                        cloud_cli.check_instance_type_availability(
+                            instance_type, env.aws_region
+                        )
+                else:
+                    with AM(
+                        "Checking instance type %s availability in %s"
+                        % (instance_type, env.aws_region)
+                    ):
+                        cloud_cli_2.check_instance_type_availability(
+                            instance_type, env.aws_region
+                        )
 
             # Check availability of image in target region and get its ID
             with AM(

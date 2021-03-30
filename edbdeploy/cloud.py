@@ -184,6 +184,7 @@ class AWSRDSCli(AWSCli):
                 "describe-reserved-db-instances-offerings",
                 "--product-description postgresql",
                 "--region %s" % region,
+                "--db-instance-class %s" % instance_type,
                 "--output json"
             ])
             result = json.loads(output.decode("utf-8"))
