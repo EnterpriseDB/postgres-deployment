@@ -15,6 +15,8 @@ from .action import ActionManager as AM
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
 
+from .spec.aws_rds import TPROCC_GUC
+
 
 class ProjectError(Exception):
     pass
@@ -503,31 +505,11 @@ class Project:
                 aws_region=env.aws_region,
                 aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
             ))
-
-            if env.shirt == 'small':
-                self.terraform_vars.update(dict(
-                    guc_effective_cache_size='524288',
-                    guc_shared_buffers='3145728',
-                    guc_max_wal_size='51200',
-                ))
-            elif env.shirt == 'medium':
-                self.terraform_vars.update(dict(
-                    guc_effective_cache_size='4718592',
-                    guc_shared_buffers='3145728',
-                    guc_max_wal_size='102400',
-                ))
-            elif env.shirt == 'large':
-                self.terraform_vars.update(dict(
-                    guc_effective_cache_size='13107200',
-                    guc_shared_buffers='3145728',
-                    guc_max_wal_size='204800',
-                ))
-            elif env.shirt == 'xl':
-                self.terraform_vars.update(dict(
-                    guc_effective_cache_size='29884416',
-                    guc_shared_buffers='3145728',
-                    guc_max_wal_size='409600',
-                ))
+            self.terraform_vars.update(dict(
+                guc_effective_cache_size=TPROCC_GUC[env.shirt]['effective_cache_size'],
+                guc_shared_buffers=TPROCC_GUC[env.shirt]['shared_buffers'],
+                guc_max_wal_size=TPROCC_GUC[env.shirt]['max_wal_size'],
+            ))
         # AWS RDS Aurora case
         if env.cloud == 'aws-rds-aurora':
             self.terraform_vars.update(dict(

@@ -138,3 +138,26 @@ AWSRDSSpec = {
         }
     }
 }
+
+TPROCC_GUC = {
+    'small': {
+        'effective_cache_size': '524288',
+        'shared_buffers': '3145728',
+        'max_wal_size': '51200',
+    },
+    'medium': {
+        'effective_cache_size': '4718592',
+        'shared_buffers': '3145728',
+        'max_wal_size': '102400',
+    },
+    'large': {
+        'effective_cache_size': '13107200',
+        'shared_buffers': '3145728',
+        'max_wal_size': '204800',
+    },
+    'xl': {
+        'effective_cache_size': '29884416',
+        'shared_buffers': '3145728',
+        'max_wal_size': '409600',
+    },
+}
