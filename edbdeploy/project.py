@@ -476,15 +476,18 @@ class Project:
         self.terraform_vars = dict(
             cluster_name=self.name,
             pg_version=env.postgres_version,
-            replication_type=ra['replication_type'],
             ssh_user=os_spec['ssh_user'],
             ssh_priv_key=self.ssh_priv_key,
             ssh_pub_key=self.ssh_pub_key,
-            barman=ra['barman'],
-            pooler_local=ra['pooler_local'],
-            pooler_type=ra['pooler_type'],
             hammerdb=ra['hammerdb']
         )
+        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
+            self.terraform_vars.update(dict(
+                replication_type=ra['replication_type'],
+                barman=ra['barman'],
+                pooler_local=ra['pooler_local'],
+                pooler_type=ra['pooler_type'],
+            ))
 
         # AWS case
         if env.cloud == 'aws':

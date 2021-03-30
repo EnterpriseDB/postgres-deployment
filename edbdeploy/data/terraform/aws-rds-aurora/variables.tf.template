@@ -3,7 +3,6 @@ variable "postgres_server" {}
 variable "pem_server" {}
 variable "hammerdb_server" {}
 variable "aws_ami_id" {}
-variable "replication_type" {}
 variable "cluster_name" {}
 variable "pg_version" {}
 variable "ssh_pub_key" {}
