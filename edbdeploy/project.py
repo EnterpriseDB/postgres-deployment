@@ -897,11 +897,18 @@ class Project:
         # Build the nodes table
         rows = []
         for name, vars in inventory_data['_meta']['hostvars'].items():
+
+            # Handle special case of managed DB instances: no SSH and no
+            # private IP
+            managed = False
+            if vars['ansible_host'].endswith('.rds.amazonaws.com'):
+                managed = True
+
             rows.append([
                 name,
                 vars['ansible_host'],
-                self.ansible_vars['ssh_user'],
-                vars['private_ip']
+                self.ansible_vars['ssh_user'] if not managed else '',
+                vars['private_ip'] if not managed else '',
             ])
 
         Project.display_table(
