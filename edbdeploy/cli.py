@@ -9,15 +9,30 @@ from . import __version__
 from .project import Project
 
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
+    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-DBaaS',
+               'HammerDB-TPROC-C']
+
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA-1 for a
         single Postgres node deployment with one backup server and one PEM
         monitoring server, EDB-RA-2 for a 3 Postgres nodes deployment with
         quorum base synchronous replication and automatic failover, one backup
-        server and one PEM monitoring server, and EDB-RA-3 for extending
-        EDB-RA-2 with 3 PgPoolII nodes. Default: %(default)s
+        server and one PEM monitoring server, EDB-RA-3 for extending EDB-RA-2
+        with 3 PgPoolII nodes, and HammerDB-TPROC-C for benchmarking 2-tier
+        client-server architectures with and OLTP workload. Default:
+        %(default)s
+    """)
+
+
+class ReferenceArchitectureOptionRDS:
+    choices = ['HammerDB-DBaaS']
+    default = 'HammerDB-DBaaS'
+    help = textwrap.dedent("""
+        Reference architecture code name. Allowed values are: HammerDB-DBaaS
+        for benchmarking any DBaaS offering for benchmarking 2-tier
+        client-server architectures with and OLTP workload. Default:
+        %(default)s
     """)
 
 
@@ -53,7 +68,17 @@ class PgTypeOption:
     default = 'PG'
     help = textwrap.dedent("""
         Postgres engine type. Allowed values are: PG for PostgreSQL, EPAS for
-        EDB Postgres Advanced Server. Default: %(default)s
+        EDB Postgres Advanced Server. Default:
+        %(default)s
+    """)
+
+
+class PgTypeOptionRDS:
+    choices = ['RDS']
+    default = 'RDS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: RDS for AWS RDS.  Default:
+        %(default)s
     """)
 
 
@@ -83,6 +108,17 @@ class SSHPrivKeyOption:
         priv_key_path = os.path.join(home, '.ssh', 'id_rsa')
         if os.path.exists(priv_key_path):
             return priv_key_path
+
+
+# HammerDB specific options
+
+class ShirtSizeOption:
+    choices = ['small', 'medium', 'large', 'xl']
+    default = 'small'
+    help = textwrap.dedent("""
+        T-shirt sized system to provision.  Allowed values are small, medium,
+        large, and xl.  Default : %(default)s
+    """)
 
 
 # Cloud specific options
@@ -338,6 +374,366 @@ def aws_subcommands(aws_subparser):
         help='Project name'
     ).completer = project_name_completer
     aws_deploy.add_argument(
+        '-n', '--no-install-collection',
+        dest='no_install_collection',
+        action='store_true',
+        help="Do not install the Ansible collection."
+    )
+
+# AWS RDS for sub-commands and options
+def aws_rds_subcommands(aws_rds_subparser):
+    aws_rds_configure = aws_rds_subparser.add_parser(
+        'configure', help='Project configuration'
+    )
+    aws_rds_provision = aws_rds_subparser.add_parser(
+        'provision', help='Machines provisioning'
+    )
+    aws_rds_destroy = aws_rds_subparser.add_parser(
+        'destroy', help='Machines destruction'
+    )
+    aws_rds_deploy = aws_rds_subparser.add_parser(
+        'deploy', help='Postgres deployment'
+    )
+    aws_rds_show = aws_rds_subparser.add_parser(
+        'show', help='Show configuration'
+    )
+    aws_rds_display = aws_rds_subparser.add_parser(
+        'display', help='Display project details'
+    )
+    aws_rds_passwords = aws_rds_subparser.add_parser(
+        'passwords', help='Display project password'
+    )
+    aws_rds_list = aws_rds_subparser.add_parser(
+        'list', help='List projects'
+    )
+    aws_rds_specs = aws_rds_subparser.add_parser(
+        'specs', help='Show Cloud default specifications'
+    )
+    aws_rds_logs = aws_rds_subparser.add_parser(
+        'logs', help='Show project logs'
+    )
+    aws_rds_remove = aws_rds_subparser.add_parser(
+        'remove', help='Remove project'
+    )
+    # aws-rds configure sub-command options
+    aws_rds_configure.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_configure.add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=ReferenceArchitectureOptionRDS.choices,
+        default=ReferenceArchitectureOptionRDS.default,
+        metavar='<ref-arch-code>',
+        help=ReferenceArchitectureOptionRDS.help
+    )
+    aws_rds_configure.add_argument(
+        '-u', '--edb-credentials',
+        dest='edb_credentials',
+        required=True,
+        type=EDBCredentialsType,
+        metavar='"<username>:<password>"',
+        help="EDB Packages repository credentials."
+    ).completer = edb_credentials_completer
+    aws_rds_configure.add_argument(
+        '-o', '--os',
+        dest='operating_system',
+        choices=OSOption.choices,
+        default=OSOption.default,
+        metavar='<operating-system>',
+        help=OSOption.help
+    )
+    aws_rds_configure.add_argument(
+        '-t', '--pg-type',
+        dest='postgres_type',
+        choices=PgTypeOptionRDS.choices,
+        default=PgTypeOptionRDS.default,
+        metavar='<postgres-engine-type>',
+        help=PgTypeOptionRDS.help
+    )
+    aws_rds_configure.add_argument(
+        '-v', '--pg-version',
+        dest='postgres_version',
+        choices=PgVersionOption.choices,
+        default=PgVersionOption.default,
+        metavar='<postgres-version>',
+        help=PgVersionOption.help
+    )
+    aws_rds_configure.add_argument(
+        '-k', '--ssh-pub-key',
+        dest='ssh_pub_key',
+        type=argparse.FileType('r'),
+        default=SSHPubKeyOption.default(),
+        metavar='<ssh-public-key-file>',
+        help=SSHPubKeyOption.help
+    )
+    aws_rds_configure.add_argument(
+        '-K', '--ssh-private-key',
+        dest='ssh_priv_key',
+        type=argparse.FileType('r'),
+        default=SSHPrivKeyOption.default(),
+        metavar='<ssh-private-key-file>',
+        help=SSHPrivKeyOption.help
+    )
+    aws_rds_configure.add_argument(
+        '-r', '--aws-rds-region',
+        dest='aws_region',
+        choices=AWSRegionOption.choices,
+        default=AWSRegionOption.default,
+        metavar='<cloud-region>',
+        help=AWSRegionOption.help
+    )
+    aws_rds_configure.add_argument(
+        '-i', '--aws-rds-ami-id',
+        dest='aws_ami_id',
+        type=str,
+        default=AWSIAMIDOption.default,
+        metavar='<aws-rds-ami-id>',
+        help=AWSIAMIDOption.help
+    ).completer = aws_ami_id_completer
+    aws_rds_configure.add_argument(
+        '-s', '--spec',
+        dest='spec_file',
+        type=argparse.FileType('r'),
+        metavar='<aws-rds-spec-file>',
+        help="AWS instances specification file, in JSON."
+    )
+    aws_rds_configure.add_argument(
+        '-T', '--t-shirt',
+        dest='shirt',
+        choices=ShirtSizeOption.choices,
+        default=ShirtSizeOption.default,
+        metavar='<shirt-size>',
+        help=ShirtSizeOption.help
+    )
+    # aws-rds logs sub-command options
+    aws_rds_logs.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_logs.add_argument(
+        '-t', '--tail',
+        dest='tail',
+        action='store_true',
+        help="Do not stop at the end of file."
+    )
+    # aws-rds remove sub-command options
+    aws_rds_remove.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds show sub-command options
+    aws_rds_show.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds display sub-command option
+    aws_rds_display.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds password sub-command option
+    aws_rds_passwords.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds provision sub-command options
+    aws_rds_provision.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds destroy sub-command options
+    aws_rds_destroy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds deploy sub-command options
+    aws_rds_deploy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_deploy.add_argument(
+        '-n', '--no-install-collection',
+        dest='no_install_collection',
+        action='store_true',
+        help="Do not install the Ansible collection."
+    )
+
+# AWS RDS Aurora for sub-commands and options
+def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
+    aws_rds_aurora_configure = aws_rds_aurora_subparser.add_parser(
+        'configure', help='Project configuration'
+    )
+    aws_rds_aurora_provision = aws_rds_aurora_subparser.add_parser(
+        'provision', help='Machines provisioning'
+    )
+    aws_rds_aurora_destroy = aws_rds_aurora_subparser.add_parser(
+        'destroy', help='Machines destruction'
+    )
+    aws_rds_aurora_deploy = aws_rds_aurora_subparser.add_parser(
+        'deploy', help='Postgres deployment'
+    )
+    aws_rds_aurora_show = aws_rds_aurora_subparser.add_parser(
+        'show', help='Show configuration'
+    )
+    aws_rds_aurora_display = aws_rds_aurora_subparser.add_parser(
+        'display', help='Display project details'
+    )
+    aws_rds_aurora_passwords_aurora = aws_rds_aurora_subparser.add_parser(
+        'passwords_aurora', help='Display project password'
+    )
+    aws_rds_aurora_list = aws_rds_aurora_subparser.add_parser(
+        'list', help='List projects'
+    )
+    aws_rds_aurora_specs = aws_rds_aurora_subparser.add_parser(
+        'specs', help='Show Cloud default specifications'
+    )
+    aws_rds_aurora_logs = aws_rds_aurora_subparser.add_parser(
+        'logs', help='Show project logs'
+    )
+    aws_rds_aurora_remove = aws_rds_aurora_subparser.add_parser(
+        'remove', help='Remove project'
+    )
+    # aws-rds-aurora configure sub-command options
+    aws_rds_aurora_configure.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_configure.add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=ReferenceArchitectureOptionRDS.choices,
+        default=ReferenceArchitectureOptionRDS.default,
+        metavar='<ref-arch-code>',
+        help=ReferenceArchitectureOptionRDS.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-u', '--edb-credentials',
+        dest='edb_credentials',
+        required=True,
+        type=EDBCredentialsType,
+        metavar='"<username>:<password>"',
+        help="EDB Packages repository credentials."
+    ).completer = edb_credentials_completer
+    aws_rds_aurora_configure.add_argument(
+        '-o', '--os',
+        dest='operating_system',
+        choices=OSOption.choices,
+        default=OSOption.default,
+        metavar='<operating-system>',
+        help=OSOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-t', '--pg-type',
+        dest='postgres_type',
+        choices=PgTypeOptionRDS.choices,
+        default=PgTypeOptionRDS.default,
+        metavar='<postgres-engine-type>',
+        help=PgTypeOptionRDS.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-v', '--pg-version',
+        dest='postgres_version',
+        choices=PgVersionOption.choices,
+        default=PgVersionOption.default,
+        metavar='<postgres-version>',
+        help=PgVersionOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-k', '--ssh-pub-key',
+        dest='ssh_pub_key',
+        type=argparse.FileType('r'),
+        default=SSHPubKeyOption.default(),
+        metavar='<ssh-public-key-file>',
+        help=SSHPubKeyOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-K', '--ssh-private-key',
+        dest='ssh_priv_key',
+        type=argparse.FileType('r'),
+        default=SSHPrivKeyOption.default(),
+        metavar='<ssh-private-key-file>',
+        help=SSHPrivKeyOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-r', '--aws-rds-region',
+        dest='aws_region',
+        choices=AWSRegionOption.choices,
+        default=AWSRegionOption.default,
+        metavar='<cloud-region>',
+        help=AWSRegionOption.help
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-i', '--aws-rds-ami-id',
+        dest='aws_ami_id',
+        type=str,
+        default=AWSIAMIDOption.default,
+        metavar='<aws-rds-ami-id>',
+        help=AWSIAMIDOption.help
+    ).completer = aws_ami_id_completer
+    aws_rds_aurora_configure.add_argument(
+        '-s', '--spec',
+        dest='spec_file',
+        type=argparse.FileType('r'),
+        metavar='<aws-rds-spec-file>',
+        help="AWS instances specification file, in JSON."
+    )
+    aws_rds_aurora_configure.add_argument(
+        '-T', '--t-shirt',
+        dest='shirt',
+        choices=ShirtSizeOption.choices,
+        default=ShirtSizeOption.default,
+        metavar='<shirt-size>',
+        help=ShirtSizeOption.help
+    )
+    # aws-rds-aurora logs sub-command options
+    aws_rds_aurora_logs.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_logs.add_argument(
+        '-t', '--tail',
+        dest='tail',
+        action='store_true',
+        help="Do not stop at the end of file."
+    )
+    # aws-rds remove sub-command options
+    aws_rds_aurora_remove.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora show sub-command options
+    aws_rds_aurora_show.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora display sub-command option
+    aws_rds_aurora_display.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora password sub-command option
+    aws_rds_aurora_passwords_aurora.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora provision sub-command options
+    aws_rds_aurora_provision.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora destroy sub-command options
+    aws_rds_aurora_destroy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    # aws-rds-aurora deploy sub-command options
+    aws_rds_aurora_deploy.add_argument(
+        'project', type=ProjectType, metavar='<project-name>',
+        help='Project name'
+    ).completer = project_name_completer
+    aws_rds_aurora_deploy.add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
         action='store_true',
@@ -727,7 +1123,7 @@ def gcloud_project_id_completer(prefix, parsed_args, **kwargs):
 
 def parse():
     parser = CLIParser(
-        description='EDB deployment script for aws, azure and gcloud'
+        description='EDB deployment script for aws, aws-rds, azure and gcloud'
     )
     parser.add_argument(
         '-v', '--version',
@@ -741,6 +1137,8 @@ def parse():
 
     # Cloud commands
     aws = subparsers.add_parser('aws', help='AWS Cloud')
+    aws_rds = subparsers.add_parser('aws-rds', help='AWS RDS Cloud')
+    aws_rds_aurora = subparsers.add_parser('aws-rds-aurora', help='AWS RDS Aurora Cloud')
     azure = subparsers.add_parser('azure', help='Azure Cloud')
     gcloud = subparsers.add_parser('gcloud', help='Google Cloud')
 
@@ -750,6 +1148,16 @@ def parse():
         title='AWS sub-commands', dest='sub_command', metavar='<sub-command>'
     )
     aws_subcommands(aws_subparser)
+    # AWS RDS
+    aws_rds_subparser = aws_rds.add_subparsers(
+        title='AWS RDS sub-commands', dest='sub_command', metavar='<sub-command>'
+    )
+    aws_rds_subcommands(aws_rds_subparser)
+    # AWS RDS Aurora
+    aws_rds_aurora_subparser = aws_rds_aurora.add_subparsers(
+        title='AWS RDS Aurora sub-commands', dest='sub_command', metavar='<sub-command>'
+    )
+    aws_rds_aurora_subcommands(aws_rds_aurora_subparser)
     # Azure
     azure_subparser = azure.add_subparsers(
         title='Azure sub-commands', dest='sub_command', metavar='<sub-command>'
@@ -784,6 +1192,10 @@ def parse():
     if not getattr(env, 'sub_command'):
         if env.cloud == 'aws':
             aws.print_help()
+        elif env.cloud == 'aws-rds':
+            aws_rds.print_help()
+        elif env.cloud == 'aws-rds-aurora':
+            aws_rds_aurora.print_help()
         elif env.cloud == 'azure':
             azure.print_help()
         elif env.cloud == 'gcloud':

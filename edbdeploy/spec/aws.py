@@ -1,7 +1,7 @@
 from . import SpecValidator
 
 # These are instance types to make available to all architectures.
-global_instance_choices = ['t4g.nano', 't3.nano', 't3a.nano', 't2.nano']
+global_instance_choices = ['t3.nano', 't3a.nano', 't2.nano']
 
 AWSSpec = {
     'available_os': {
@@ -54,9 +54,9 @@ AWSSpec = {
         'instance_type': SpecValidator(
             type='choice',
             choices=[
-                'r5n.xlarge'
+                'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
             ] + global_instance_choices,
-            default='r5n.xlarge'
+            default='m5n.xlarge'
         ),
         'volume': {
             'type': SpecValidator(
@@ -84,7 +84,8 @@ AWSSpec = {
             choices=[
                 'c5.large', 'c5.xlarge', 'c5.2xlarge', 'c5.4xlarge',
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
-                'c5.metal', 'r5n.xlarge', 'r5n.2xlarge'
+                'c5.metal', 'r5n.xlarge', 'r5n.2xlarge', 'r5n.4xlarge',
+                'r5n.8xlarge'
             ] + global_instance_choices,
             default='c5.2xlarge'
         ),

@@ -175,6 +175,46 @@ class AWSCli:
             )
 
 
+class AWSRDSCli(AWSCli):
+    def check_instance_type_availability(self, instance_type, region):
+        try:
+            output = exec_shell([
+                self.bin("aws"),
+                "rds",
+                "describe-reserved-db-instances-offerings",
+                "--product-description postgresql",
+                "--region %s" % region,
+                "--db-instance-class %s" % instance_type,
+                "--output json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result["ReservedDBInstancesOfferings"]) == 0:
+                raise CloudCliError(
+                    "Instance type %s not available in region %s"
+                    % (instance_type, region)
+                )
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+
+class AWSRDSAuroraCli(AWSRDSCli):
+    pass
+
+
 class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
@@ -536,6 +576,10 @@ class CloudCli:
         self.cloud = cloud
         if self.cloud == 'aws':
             self.cli = AWSCli(bin_path)
+        elif self.cloud == 'aws-rds':
+            self.cli = AWSRDSCli(bin_path)
+        elif self.cloud == 'aws-rds-aurora':
+            self.cli = AWSRDSAuroraCli(bin_path)
         elif self.cloud == 'azure':
             self.cli = AzureCli(bin_path)
         elif self.cloud == 'gcloud':
