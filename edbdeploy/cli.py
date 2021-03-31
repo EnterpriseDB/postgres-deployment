@@ -221,7 +221,7 @@ def aws_subcommands(aws_subparser):
         'display', help='Display project details'
     )
     aws_passwords = aws_subparser.add_parser(
-        'passwords', help='Display project password'
+        'passwords', help='Display project passwords'
     )
     aws_list = aws_subparser.add_parser(
         'list', help='List projects'
@@ -533,7 +533,7 @@ def aws_rds_subcommands(aws_rds_subparser):
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     ).completer = project_name_completer
-    # aws-rds password sub-command option
+    # aws-rds passwords sub-command option
     aws_rds_passwords.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
@@ -580,8 +580,8 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
     aws_rds_aurora_display = aws_rds_aurora_subparser.add_parser(
         'display', help='Display project details'
     )
-    aws_rds_aurora_passwords_aurora = aws_rds_aurora_subparser.add_parser(
-        'passwords_aurora', help='Display project password'
+    aws_rds_aurora_passwords = aws_rds_aurora_subparser.add_parser(
+        'passwords', help='Display project passwords'
     )
     aws_rds_aurora_list = aws_rds_aurora_subparser.add_parser(
         'list', help='List projects'
@@ -714,7 +714,7 @@ def aws_rds_aurora_subcommands(aws_rds_aurora_subparser):
         help='Project name'
     ).completer = project_name_completer
     # aws-rds-aurora password sub-command option
-    aws_rds_aurora_passwords_aurora.add_argument(
+    aws_rds_aurora_passwords.add_argument(
         'project', type=ProjectType, metavar='<project-name>',
         help='Project name'
     ).completer = project_name_completer
