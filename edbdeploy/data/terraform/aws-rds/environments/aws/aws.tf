@@ -14,6 +14,7 @@ variable "hammerdb" {}
 variable "public_cidrblock" {}
 variable "project_tag" {}
 variable "pg_version" {}
+variable "pg_password" {}
 variable "postgres_server" {}
 variable "rds_security_group_id" {}
 variable "guc_effective_cache_size" {}
@@ -104,7 +105,7 @@ resource "aws_db_instance" "rds_server" {
   multi_az                 = false
   name                     = var.cluster_name
   parameter_group_name     = aws_db_parameter_group.edb_rds_db_params.name
-  password                 = "postgres"
+  password                 = var.pg_password
   port                     = 5432
   publicly_accessible      = true
   storage_encrypted        = false

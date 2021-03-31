@@ -5,6 +5,7 @@ variable "hammerdb_server" {}
 variable "aws_ami_id" {}
 variable "cluster_name" {}
 variable "pg_version" {}
+variable "pg_password" {}
 variable "ssh_pub_key" {}
 variable "ssh_priv_key" {}
 variable "ssh_user" {}

@@ -14,6 +14,12 @@ from .ansible import AnsibleCli
 from .action import ActionManager as AM
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
+from .password import (
+    get_password,
+    list_passwords,
+    random_password,
+    save_password,
+)
 
 from .spec.aws_rds import TPROCC_GUC
 
@@ -219,6 +225,11 @@ class Project:
                         for l in f.readlines():
                             d.write(l.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
+
+        # RDS/Aurora: Build master user random password
+        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
+            with AM("Building master user password"):
+                save_password(self.project_path, 'postgres', random_password())
 
         # Build the vars files for Terraform and Ansible
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
@@ -504,6 +515,7 @@ class Project:
                 aws_image=os_spec['image'],
                 aws_region=env.aws_region,
                 aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
+                pg_password=get_password(self.project_path, 'postgres'),
             ))
             self.terraform_vars.update(dict(
                 guc_effective_cache_size=TPROCC_GUC[env.shirt]['effective_cache_size'],
@@ -516,6 +528,7 @@ class Project:
                 aws_image=os_spec['image'],
                 aws_region=env.aws_region,
                 aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
+                pg_password=get_password(self.project_path, 'postgres'),
             ))
         # Azure case
         if env.cloud == 'azure':
@@ -827,25 +840,10 @@ class Project:
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
                 print("WARNING: project is in deploying state")
-            pass_dir=os.path.join(self.project_path, '.edbpass')
-            rows = []
-            for pass_file in os.listdir(pass_dir):
-                if pass_file.endswith("_pass"):
-                    user_name = pass_file.replace('_pass','')
-                    with open(
-                        os.path.join(
-                            pass_dir,
-                            pass_file
-                        )
-                    ) as f:
-                        user_password = f.read()
-                    rows.append([
-                        user_name,
-                        user_password.replace('\n','')
-                    ])
+
             Project.display_table(
                 ['Username','Password'],
-                rows
+                list_passwords(self.project_path)
             )
 
     def display_details(self):
@@ -880,12 +878,7 @@ class Project:
             pem_user = 'pemadmin'
             pem_name = inventory_data['pemserver']['hosts'][0]
             pem_hostvars = inventory_data['_meta']['hostvars'][pem_name]
-            with open(
-                os.path.join(
-                    self.project_path, '.edbpass', '%s_pass' % pem_user
-                )
-            ) as f:
-                pem_password = f.read()
+            pem_password = get_password(self.project_path, pem_user)
 
             _p(
                 "PEM Server: https://%s:8443/pem\n"

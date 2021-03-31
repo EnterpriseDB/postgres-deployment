@@ -60,6 +60,7 @@ module "aws" {
   rds_security_group_id               = module.security.aws_security_group_id
   postgres_server                     = var.postgres_server
   pg_version                          = var.pg_version
+  pg_password                         = var.pg_password
 
   depends_on = [module.routes]
 }

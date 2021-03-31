@@ -16,6 +16,7 @@ variable "project_tag" {}
 variable "rds_security_group_id" {}
 variable "postgres_server" {}
 variable "pg_version" {}
+variable "pg_password" {}
 
 data "aws_subnet_ids" "selected" {
   vpc_id = var.vpc_id
@@ -96,7 +97,7 @@ resource "aws_rds_cluster" "rds_server" {
   engine                   = "aurora-postgresql"
   engine_version           = var.pg_version
   master_username          = "postgres"
-  master_password          = "postgres"
+  master_password          = var.pg_password
   backup_retention_period  = 1
   skip_final_snapshot      = true
   db_subnet_group_name     = "${aws_db_subnet_group.rds.name}"

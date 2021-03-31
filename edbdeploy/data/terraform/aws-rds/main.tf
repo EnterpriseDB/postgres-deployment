@@ -60,6 +60,7 @@ module "aws" {
   rds_security_group_id               = module.security.aws_security_group_id
   postgres_server                     = var.postgres_server
   pg_version                          = var.pg_version
+  pg_password                         = var.pg_password
   guc_effective_cache_size            = var.guc_effective_cache_size
   guc_shared_buffers                  = var.guc_shared_buffers
   guc_max_wal_size                    = var.guc_max_wal_size
