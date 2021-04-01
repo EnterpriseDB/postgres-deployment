@@ -247,7 +247,7 @@ class AzureCli:
 
         version = None
         # Parse command output and extract the version number
-        pattern = re.compile(r"^azure-cli\s+([0-9]+)\.([0-9]+)\.([0-9]+)$")
+        pattern = re.compile(r"^azure-cli\s+([0-9]+)\.([0-9]+)\.([0-9]+)")
         for line in output.decode("utf-8").split("\n"):
             m = pattern.search(line)
             if m:
