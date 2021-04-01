@@ -25,7 +25,7 @@ setup(
     author="EDB",
     author_email="edb-devops@enterprisedb.com",
     scripts=["edb-deployment"],
-    packages=["edbdeploy", "edbdeploy.spec"],
+    packages=["edbdeploy", "edbdeploy.spec", "edbdeploy.commands"],
     url="https://github.com/EnterpriseDB/postgres-deployment/",
     license="BSD",
     description=dedent("""
