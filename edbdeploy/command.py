@@ -83,7 +83,10 @@ class Commander:
         self.project.check_versions()
 
         logging.info("Deploying components for project %s", self.project.name)
-        self.project.deploy(self.env.no_install_collection)
+        self.project.deploy(self.env.no_install_collection,
+                            self.env.pre_deploy_ansible,
+                            self.env.post_deploy_ansible,
+                            self.env.skip_main_playbook)
 
     def display(self):
         self._check_project_exists()

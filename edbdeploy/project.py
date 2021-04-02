@@ -774,7 +774,11 @@ class Project:
         self.update_state('terraform', 'DESTROYED')
         self.update_state('ansible', 'UNKNOWN')
 
-    def deploy(self, no_install_collection):
+    def deploy(self, no_install_collection,
+               pre_deploy_ansible=None,
+               post_deploy_ansible=None,
+               skip_main_playbook=False):
+
         inventory_data = None
         ansible = AnsibleCli(
             self.project_path,
@@ -813,23 +817,48 @@ class Project:
                 pg_wal=self.ansible_vars['pg_wal']
             ))
 
-        self.update_state('ansible', 'DEPLOYING')
-        with AM("Deploying components with Ansible"):
-            ansible.run_playbook(
-                self.cloud,
-                self.ansible_vars['ssh_user'],
-                self.ansible_vars['ssh_priv_key'],
-                self.ansible_inventory,
-                self.ansible_playbook,
-                json.dumps(extra_vars)
-            )
-        self.update_state('ansible', 'DEPLOYED')
+        if pre_deploy_ansible:
 
-        with AM("Extracting data from the inventory file"):
-            inventory_data = ansible.list_inventory(self.ansible_inventory)
+          with AM("Executing pre deploy playbook using Ansible"):
+              ansible.run_playbook(
+                  self.cloud,
+                  self.ansible_vars['ssh_user'],
+                  self.ansible_vars['ssh_priv_key'],
+                  self.ansible_inventory,
+                  pre_deploy_ansible.name,
+                  json.dumps(extra_vars)
+              )
 
-        # Display inventory informations
-        self.display_inventory(inventory_data)
+        if not skip_main_playbook: 
+          self.update_state('ansible', 'DEPLOYING')
+          with AM("Deploying components with Ansible"):
+              ansible.run_playbook(
+                  self.cloud,
+                  self.ansible_vars['ssh_user'],
+                  self.ansible_vars['ssh_priv_key'],
+                  self.ansible_inventory,
+                  self.ansible_playbook,
+                  json.dumps(extra_vars)
+              )
+          self.update_state('ansible', 'DEPLOYED')
+
+          with AM("Extracting data from the inventory file"):
+              inventory_data = ansible.list_inventory(self.ansible_inventory)
+
+        if post_deploy_ansible:
+          with AM("Executing post deploy playbook using Ansible"):
+              ansible.run_playbook(
+                  self.cloud,
+                  self.ansible_vars['ssh_user'],
+                  self.ansible_vars['ssh_priv_key'],
+                  self.ansible_inventory,
+                  post_deploy_ansible.name,
+                  json.dumps(extra_vars)
+              )
+
+        if not skip_main_playbook: 
+          # Display inventory informations
+          self.display_inventory(inventory_data)
 
     def display_passwords(self):
         try:
