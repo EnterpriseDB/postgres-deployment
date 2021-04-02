@@ -1,5 +1,7 @@
 from .spec import SpecValidator
 from .spec.aws import AWSSpec
+from .spec.aws_rds import AWSRDSSpec
+from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
 from .spec.gcloud import GCloudSpec
 
@@ -86,6 +88,10 @@ def default_spec(cloud):
     """
     if cloud == 'aws':
         return default(AWSSpec)
+    elif cloud == 'aws-rds':
+        return default(AWSRDSSpec)
+    elif cloud == 'aws-rds-aurora':
+        return default(AWSRDSAuroraSpec)
     elif cloud == 'azure':
         return default(AzureSpec)
     elif cloud == 'gcloud':
@@ -99,6 +105,10 @@ def merge_user_spec(cloud, user_spec):
     """
     if cloud == 'aws':
         cloud_spec = AWSSpec
+    elif cloud == 'aws-rds':
+        cloud_spec = AWSRDSSpec
+    elif cloud == 'aws-rds-aurora':
+        cloud_spec = AWSRDSAuroraSpec
     elif cloud == 'azure':
         cloud_spec = AzureSpec
     elif cloud == 'gcloud':

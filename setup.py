@@ -25,7 +25,7 @@ setup(
     author="EDB",
     author_email="edb-devops@enterprisedb.com",
     scripts=["edb-deployment"],
-    packages=["edbdeploy", "edbdeploy.spec"],
+    packages=["edbdeploy", "edbdeploy.spec", "edbdeploy.commands"],
     url="https://github.com/EnterpriseDB/postgres-deployment/",
     license="BSD",
     description=dedent("""
@@ -42,7 +42,7 @@ Advanced Server, and EDB Tools in the Cloud.
         "Programming Language :: Python :: 3",
         "Topic :: Database",
     ],
-    keywords="postgresql edb epas cli deploy cloud aws azure gcloud",
+    keywords="postgresql edb epas cli deploy cloud aws rds aurora azure gcloud",
     python_requires=">=2.7",
     install_requires=["argcomplete"],
     extras_require={},

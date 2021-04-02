@@ -1,0 +1,20 @@
+---
+- hosts: all
+  name: Amazon RDS for PostgreSQL deployment playbook for reference architecture HammerDB-RDS
+  become: yes
+  gather_facts: yes
+
+  collections:
+    - edb_devops.edb_postgres
+
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        disable_logging: false
+
+  roles:
+    - role: setup_repo
+      when: "'setup_repo' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+
+    - role: setup_hammerdbserver
+      when: "'setup_hammerdbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
