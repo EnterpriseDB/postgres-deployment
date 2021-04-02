@@ -310,6 +310,16 @@ List of projects:
 $ edb-deployment <CLOUD_VENDOR> list
 ```
 
+Execute Ansible pre deployment playbook
+```shell
+$ edb-deployment <CLOUD_VENDOR> deploy --pre-deploy-ansible pre_deploy_playbook.yml <PROJECT_NAME>
+```
+
+Execute Ansible post deployment playbook
+```shell
+$ edb-deployment <CLOUD_VENDOR> deploy --post-deploy-ansible post_deploy_playbook.yml <PROJECT_NAME>
+```
+
 Display of projects inventory:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> display <PROJECT_NAME>
