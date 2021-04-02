@@ -183,20 +183,27 @@ class Project:
             except Exception as e:
                 raise ProjectError(str(e))
 
-    def configure(self, env):
-        # Load specifications
+    def _load_cloud_specs(self, env):
+        """
+        Load Cloud Vendor specifications based on the merge of default and user
+        defined specs, passed with the help of the -s option.
+        """
+        cloud_spec = None
         with AM("Loading Cloud specifications"):
             if getattr(env, 'spec_file', False):
                 user_spec = self._load_spec_file(env.spec_file.name)
-                env.cloud_spec = merge_user_spec(env.cloud, user_spec)
+                cloud_spec = merge_user_spec(env.cloud, user_spec)
             else:
-                env.cloud_spec = default_spec(env.cloud)
+                cloud_spec = default_spec(env.cloud)
 
-            logging.debug("env.cloud_specs=%s", env.cloud_spec)
+        logging.debug("cloud_specs=%s", cloud_spec)
+        return cloud_spec
 
-        # Copy SSH keys
+    def _copy_ssh_keys(self, env):
+        """
+        Copy SSH keys pair into project directory.
+        """
         with AM("Copying SSH key pair into %s" % self.project_path):
-
             # Ensure SSH keys have been defined
             if env.ssh_priv_key is None:
                 raise ProjectError("SSH private key not defined")
@@ -208,7 +215,11 @@ class Project:
             os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
             os.chmod(self.ssh_pub_key, stat.S_IREAD | stat.S_IWRITE)
 
-        # Transform templates
+    def _transform_terraform_tpl(self):
+        """
+        Transform project's Terraform templates into .tf files by replacing the
+        %PROJECT_NAME% placeholder by project name.
+        """
         for template in self.terraform_templates:
             template_path = os.path.join(self.project_path, template)
             if not os.path.exists(template_path):
@@ -226,24 +237,30 @@ class Project:
                             d.write(l.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
-        # RDS/Aurora: Build master user random password
-        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
-            with AM("Building master user password"):
-                save_password(self.project_path, 'postgres', random_password())
-
-        # Build the vars files for Terraform and Ansible
+    def _build_terraform_vars_file(self, env):
+        """
+        Build and save the file that contains Terraform variables.
+        """
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
             self._build_terraform_vars(env)
             logging.debug("terraform_vars=%s", self.terraform_vars)
             # Save Terraform vars
             self._save_terraform_vars()
 
+    def _build_ansible_vars_file(self, env):
+        """
+        Build and save the file that contains Ansible variables.
+        """
         with AM("Building Ansible vars file %s" % self.ansible_vars_file):
             self._build_ansible_vars(env)
             logging.debug("ansible_vars=%s", self.ansible_vars)
             # Save Ansible vars
             self._save_ansible_vars()
 
+    def _copy_ansible_playbook(self):
+        """
+        Copy reference architecture Ansible playbook into project directory.
+        """
         with AM("Copying Ansible playbook file %s" % self.ansible_playbook):
             shutil.copy(
                 os.path.join(
@@ -253,16 +270,12 @@ class Project:
                 self.ansible_playbook
             )
 
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
-            cloud_cli_2 = CloudCli('aws', bin_path=self.cloud_tools_bin_path)
-
-        # Build a list of instance_type accordingly to the specs
+    def _get_instance_types(self, node_types):
+        """
+        Get the list of instance type from Terraform vars, based on node type.
+        """
         instance_types = []
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server']
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            node_types.extend(['barman_server', 'pooler_server'])
+
         for node_type in node_types:
             node = self.terraform_vars.get(node_type)
             if not node:
@@ -270,9 +283,22 @@ class Project:
             if node['instance_type'] not in instance_types:
                 instance_types.append(node['instance_type'])
 
-        # AWS - Check instance type and image availability
-        if env.cloud == 'aws' and not self.terraform_vars['aws_ami_id']:
-            for instance_type in instance_types:
+        return instance_types
+
+    def _aws_check_instance_image(self, env):
+        """
+        Check AWS instance type and image id availability in specified region.
+        """
+        # Instanciate a new CloudCli
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
+
+        # Node types list available for this Cloud vendor
+        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
+                      'barman_server', 'pooler_server']
+
+        # Check instance type and image availability
+        if not self.terraform_vars['aws_ami_id']:
+            for instance_type in self._get_instance_types(node_types):
                 with AM(
                     "Checking instance type %s availability in %s"
                     % (instance_type, env.aws_region)
@@ -300,13 +326,25 @@ class Project:
                 self.terraform_vars['aws_ami_id'] = aws_ami_id
                 self._save_terraform_vars()
 
-        # AWS RDS - Check instance type and image availability
-        if env.cloud == 'aws-rds' and not self.terraform_vars['aws_ami_id']:
+    def _awsrds_check_instance_image(self, env):
+        """
+        Check AWS RDS DB class instance, EC2 instance type and EC2 image id
+        availability in specified region.
+        """
+        # Instanciate new CloudClis
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
+        aws_cli = CloudCli('aws', bin_path=self.cloud_tools_bin_path)
+
+        # Node types list available for this Cloud vendor
+        node_types = ['postgres_server', 'pem_server', 'hammerdb_server']
+
+        # Check instance type and image availability
+        if not self.terraform_vars['aws_ami_id']:
             pattern = re.compile("^db\.")
-            for instance_type in instance_types:
+            for instance_type in self._get_instance_types(node_types):
                 if pattern.match(instance_type):
                     with AM(
-                        "Checking instance type %s availability in %s"
+                        "Checking DB class type %s availability in %s"
                         % (instance_type, env.aws_region)
                     ):
                         cloud_cli.check_instance_type_availability(
@@ -317,7 +355,7 @@ class Project:
                         "Checking instance type %s availability in %s"
                         % (instance_type, env.aws_region)
                     ):
-                        cloud_cli_2.check_instance_type_availability(
+                        aws_cli.check_instance_type_availability(
                             instance_type, env.aws_region
                         )
 
@@ -326,7 +364,7 @@ class Project:
                 "Checking image '%s' availability in %s"
                 % (self.terraform_vars['aws_image'], env.aws_region)
             ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
+                aws_ami_id = aws_cli.cli.get_image_id(
                     self.terraform_vars['aws_image'], env.aws_region
                 )
                 if not aws_ami_id:
@@ -340,91 +378,113 @@ class Project:
                 self.terraform_vars['aws_ami_id'] = aws_ami_id
                 self._save_terraform_vars()
 
-        # AWS RDS Aurora - Check instance type and image availability
-        if env.cloud == 'aws-rds-aurora' and not self.terraform_vars['aws_ami_id']:
-            pattern = re.compile("^db\.")
-            for instance_type in instance_types:
-                if pattern.match(instance_type):
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-                else:
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli_2.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
+    def _awsrdsaurora_check_instance_image(self, env):
+        """
+        Check AWS RDS Aurora DB class instance, EC2 instance type and EC2 image
+        id availability in specified region.
+        """
+        # RDS and RDS Aurora checks are similar
+        self._awsrds_check_instance_image(env)
 
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
+    def _azure_check_instance_image(self, env):
+        """
+        Check Azure instance type and image id availability in specified
+        region.
+        """
+        # Instanciate a new CloudCli
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
 
-        # Azure - Check instance type and image availability
-        if env.cloud == 'azure':
-            for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.azure_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.azure_region
-                    )
-            # Check availability of image in target region
-            with AM(
-                "Checking image %s:%s:%s availability in %s"
-                % (
-                    self.terraform_vars['azure_publisher'],
-                    self.terraform_vars['azure_offer'],
-                    self.terraform_vars['azure_sku'],
-                    env.azure_region
-                  )
-            ):
-                cloud_cli.cli.check_image_availability(
-                    self.terraform_vars['azure_publisher'],
-                    self.terraform_vars['azure_offer'],
-                    self.terraform_vars['azure_sku'],
-                    env.azure_region
-                )
+        # Node types list available for this Cloud vendor
+        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
+                      'barman_server', 'pooler_server']
 
-        # GCloud - Check instance type and image availability
-        if env.cloud == 'gcloud':
-            for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.gcloud_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.gcloud_region
-                    )
-            # Check availability of the image
+        # Check instance type and image availability
+        for instance_type in self._get_instance_types(node_types):
             with AM(
-                "Checking image %s availability"
-                % self.terraform_vars['gcloud_image']
+                "Checking instance type %s availability in %s"
+                % (instance_type, env.azure_region)
             ):
-                cloud_cli.cli.check_image_availability(
-                    self.terraform_vars['gcloud_image']
+                cloud_cli.check_instance_type_availability(
+                    instance_type, env.azure_region
                 )
+        # Check availability of image in target region
+        with AM(
+            "Checking image %s:%s:%s availability in %s"
+            % (
+                self.terraform_vars['azure_publisher'],
+                self.terraform_vars['azure_offer'],
+                self.terraform_vars['azure_sku'],
+                env.azure_region
+              )
+        ):
+            cloud_cli.cli.check_image_availability(
+                self.terraform_vars['azure_publisher'],
+                self.terraform_vars['azure_offer'],
+                self.terraform_vars['azure_sku'],
+                env.azure_region
+            )
+
+    def _gcloud_check_instance_image(self, env):
+        """
+        Check GCloud instance type and image id availability in specified
+        region.
+        """
+        # Instanciate a new CloudCli
+        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
+
+        # Build a list of instance_type accordingly to the specs
+        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
+                      'barman_server', 'pooler_server']
+
+        # Check instance type and image availability
+        for instance_type in self._get_instance_types(node_types):
+            with AM(
+                "Checking instance type %s availability in %s"
+                % (instance_type, env.gcloud_region)
+            ):
+                cloud_cli.check_instance_type_availability(
+                    instance_type, env.gcloud_region
+                )
+        # Check availability of the image
+        with AM(
+            "Checking image %s availability"
+            % self.terraform_vars['gcloud_image']
+        ):
+            cloud_cli.cli.check_image_availability(
+                self.terraform_vars['gcloud_image']
+            )
+
+    def configure(self, env):
+        """
+        configure sub-command
+        """
+        # Load specifications
+        env.cloud_spec = self._load_cloud_specs(env)
+
+        # Copy SSH keys
+        self._copy_ssh_keys(env)
+
+        # Transform Terraform templates
+        self._transform_terraform_tpl()
+
+        # RDS/Aurora: Build master user random password
+        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
+            with AM("Building master user password"):
+                save_password(self.project_path, 'postgres', random_password())
+
+        # Build the vars files for Terraform and Ansible
+        self._build_terraform_vars_file(env)
+        self._build_ansible_vars_file(env)
+
+        # Copy Ansible playbook into project dir.
+        self._copy_ansible_playbook()
+
+        # Check Cloud Instance type and Image availability. This is achieved by
+        # executing the _<cloud-vendor>_check_instance_image method, if this
+        # attribute exists.
+        m = "_%s_check_instance_image" % env.cloud.replace('-', '')
+        if getattr(self, m):
+            getattr(self, m)(env)
 
     def _load_spec_file(self, spec_file_path):
         try:
@@ -481,131 +541,249 @@ class Project:
             logging.error(str(e))
             raise ProjectError(msg)
 
-    def _build_terraform_vars(self, env):
+    def _aws_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for AWS provisioning
+        """
         ra = self.reference_architecture[env.reference_architecture]
-        pg_spec = env.cloud_spec['postgres_server']
-        os_spec = env.cloud_spec['available_os'][env.operating_system]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        barman = env.cloud_spec['barman_server']
+        pooler = env.cloud_spec['pooler_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
 
-        self.terraform_vars = dict(
-            cluster_name=self.name,
-            pg_version=env.postgres_version,
-            ssh_user=os_spec['ssh_user'],
-            ssh_priv_key=self.ssh_priv_key,
-            ssh_pub_key=self.ssh_pub_key,
-            hammerdb=ra['hammerdb']
-        )
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.terraform_vars.update(dict(
-                replication_type=ra['replication_type'],
-                barman=ra['barman'],
-                pooler_local=ra['pooler_local'],
-                pooler_type=ra['pooler_type'],
-            ))
+        self.terraform_vars = {
+            'aws_ami_id': getattr(env, 'aws_ami_id', None),
+            'aws_image': os['image'],
+            'aws_region': env.aws_region,
+            'barman': ra['barman'],
+            'barman_server': {
+                'count': 1 if ra['barman_server'] else 0,
+                'instance_type': barman['instance_type'],
+                'volume': barman['volume'],
+                'additional_volumes': barman['additional_volumes'],
+            },
+            'cluster_name': self.name,
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'pooler_local': ra['pooler_local'],
+            'pooler_server': {
+                'count': ra['pooler_count'],
+                'instance_type': pooler['instance_type'],
+                'volume': pooler['volume'],
+            },
+            'pooler_type': ra['pooler_type'],
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+                'additional_volumes': pg['additional_volumes'],
+            },
+            'replication_type': ra['replication_type'],
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
 
-        # AWS case
-        if env.cloud == 'aws':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-            ))
-        # AWS RDS case
-        if env.cloud == 'aws-rds':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-                pg_password=get_password(self.project_path, 'postgres'),
-            ))
-            self.terraform_vars.update(dict(
-                guc_effective_cache_size=TPROCC_GUC[env.shirt]['effective_cache_size'],
-                guc_shared_buffers=TPROCC_GUC[env.shirt]['shared_buffers'],
-                guc_max_wal_size=TPROCC_GUC[env.shirt]['max_wal_size'],
-            ))
-        # AWS RDS Aurora case
-        if env.cloud == 'aws-rds-aurora':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-                pg_password=get_password(self.project_path, 'postgres'),
-            ))
-        # Azure case
-        if env.cloud == 'azure':
-            self.terraform_vars.update(dict(
-                azure_region=env.azure_region,
-                azure_publisher=os_spec['publisher'],
-                azure_offer=os_spec['offer'],
-                azure_sku=os_spec['sku']
-            ))
-        # GCloud case
-        if env.cloud == 'gcloud':
-            self.terraform_vars.update(dict(
-                gcloud_image=os_spec['image'],
-                gcloud_region=env.gcloud_region,
-                gcloud_credentials=env.gcloud_credentials.name,
-                gcloud_project_id=env.gcloud_project_id
-            ))
+    def _gcloud_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for GCloud provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        barman = env.cloud_spec['barman_server']
+        pooler = env.cloud_spec['pooler_server']
 
-        # Postgres servers terraform_vars
-        self.terraform_vars.update(dict(
-            postgres_server=dict(
-                count=ra['pg_count'],
-                instance_type=pg_spec['instance_type'],
-            )
-        ))
-        if env.cloud != 'aws-rds-aurora':
-            self.terraform_vars['postgres_server'].update(dict(
-                volume=pg_spec['volume'],
-            ))
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.terraform_vars['postgres_server'].update(dict(
-                additional_volumes=pg_spec['additional_volumes'],
-            ))
+        self.terraform_vars = {
+            'barman': ra['barman'],
+            'barman_server': {
+                'count': 1 if ra['barman_server'] else 0,
+                'instance_type': barman['instance_type'],
+                'volume': barman['volume'],
+                'additional_volumes': barman['additional_volumes'],
+            },
+            'cluster_name': self.name,
+            'gcloud_image': os['image'],
+            'gcloud_region': env.gcloud_region,
+            'gcloud_credentials': env.gcloud_credentials.name,
+            'gcloud_project_id': env.gcloud_project_id,
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'pooler_local': ra['pooler_local'],
+            'pooler_server': {
+                'count': ra['pooler_count'],
+                'instance_type': pooler['instance_type'],
+                'volume': pooler['volume'],
+            },
+            'pooler_type': ra['pooler_type'],
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+                'additional_volumes': pg['additional_volumes'],
+            },
+            'replication_type': ra['replication_type'],
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
+    def _azure_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for Azure provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        barman = env.cloud_spec['barman_server']
+        pooler = env.cloud_spec['pooler_server']
+
+        self.terraform_vars = {
+            'azure_offer': os['offer'],
+            'azure_publisher': os['publisher'],
+            'azure_sku': os['sku'],
+            'azure_region': env.azure_region,
+            'barman': ra['barman'],
+            'barman_server': {
+                'count': 1 if ra['barman_server'] else 0,
+                'instance_type': barman['instance_type'],
+                'volume': barman['volume'],
+                'additional_volumes': barman['additional_volumes'],
+            },
+            'cluster_name': self.name,
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'pooler_local': ra['pooler_local'],
+            'pooler_server': {
+                'count': ra['pooler_count'],
+                'instance_type': pooler['instance_type'],
+                'volume': pooler['volume'],
+            },
+            'pooler_type': ra['pooler_type'],
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+                'additional_volumes': pg['additional_volumes'],
+            },
+            'replication_type': ra['replication_type'],
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
+    def _awsrds_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for AWS RDS provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
+        guc = TPROCC_GUC
+
+        self.terraform_vars = {
+            'aws_ami_id': getattr(env, 'aws_ami_id', None),
+            'aws_image': os['image'],
+            'aws_region': env.aws_region,
+            'cluster_name': self.name,
+            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
+            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
+            'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_password': get_password(self.project_path, 'postgres'),
+            'pg_version': env.postgres_version,
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+            },
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
 
 
-        # PEM server terraform_vars
-        pem_server_spec = env.cloud_spec['pem_server']
-        self.terraform_vars.update(dict(
-            pem_server=dict(
-                count=1 if ra['pem_server'] else 0,
-                instance_type=pem_server_spec['instance_type'],
-                volume=pem_server_spec['volume']
-            )
-        ))
+    def _awsrdsaurora_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for AWS RDS Aurora provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
 
-        # Barman server terraform_vars
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            barman_server_spec = env.cloud_spec['barman_server']
-            self.terraform_vars.update(dict(
-                barman_server=dict(
-                    count=1 if ra['barman_server'] else 0,
-                    instance_type=barman_server_spec['instance_type'],
-                    volume=barman_server_spec['volume'],
-                    additional_volumes=barman_server_spec['additional_volumes']
-                )
-            ))
+        self.terraform_vars = {
+            'aws_ami_id': getattr(env, 'aws_ami_id', None),
+            'aws_image': os['image'],
+            'aws_region': env.aws_region,
+            'cluster_name': self.name,
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_password': get_password(self.project_path, 'postgres'),
+            'pg_version': env.postgres_version,
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+            },
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
 
-        # Pooler servers terraform_vars
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            pooler_server_spec = env.cloud_spec['pooler_server']
-            self.terraform_vars.update(dict(
-                pooler_server=dict(
-                    count=ra['pooler_count'],
-                    instance_type=pooler_server_spec['instance_type'],
-                    volume=pooler_server_spec['volume']
-                )
-            ))
+    def _build_terraform_vars(self, env):
+        """
+        Build Terraform variables based on the environment.
+        """
 
-        # HammerDB server terraform_vars
-        hammerdb_server_spec = env.cloud_spec['hammerdb_server']
-        self.terraform_vars.update(dict(
-            hammerdb_server=dict(
-                count=1 if ra['hammerdb_server'] else 0,
-                instance_type=hammerdb_server_spec['instance_type'],
-                volume=hammerdb_server_spec['volume']
-            )
-        ))
+        # Calling the Cloud Vendor dedicated method:
+        # _<cloud-vendor>_build_terraform_vars()
+        m = "_%s_build_terraform_vars" % env.cloud.replace('-', '')
+        if getattr(self, m):
+            getattr(self, m)(env)
 
     def _build_ansible_vars(self, env):
         # Fetch EDB repo. username and password
