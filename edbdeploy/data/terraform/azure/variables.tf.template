@@ -4,6 +4,7 @@ variable "azure_offer" {}
 variable "azure_sku" {}
 variable "postgres_server" {}
 variable "pem_server" {}
+variable "hammerdb_server" {}
 variable "pooler_server" {}
 variable "barman_server" {}
 variable "replication_type" {}
@@ -15,6 +16,7 @@ variable "ssh_user" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
+variable "hammerdb" {}
 
 variable "vnet_cidr_block" {
   description = "CIDR Block for the VNet"
