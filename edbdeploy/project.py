@@ -192,9 +192,15 @@ class Project:
         with AM("Loading Cloud specifications"):
             if getattr(env, 'spec_file', False):
                 user_spec = self._load_spec_file(env.spec_file.name)
-                cloud_spec = merge_user_spec(env.cloud, user_spec)
+                cloud_spec = merge_user_spec(
+                    env.cloud,
+                    user_spec,
+                    getattr(env, 'reference_architecture', None)
+                )
             else:
-                cloud_spec = default_spec(env.cloud)
+                cloud_spec = default_spec(
+                    env.cloud, getattr(env, 'reference_architecture', None)
+                )
 
         logging.debug("cloud_specs=%s", cloud_spec)
         return cloud_spec
@@ -736,7 +742,6 @@ class Project:
             'ssh_user': os['ssh_user'],
         }
 
-
     def _awsrdsaurora_build_terraform_vars(self, env):
         """
         Build Terraform variable for AWS RDS Aurora provisioning
@@ -1195,6 +1200,8 @@ class Project:
         sys.stdout.flush()
 
     @staticmethod
-    def show_specs(cloud):
-        sys.stdout.write(json.dumps(default_spec(cloud), indent=2))
+    def show_specs(cloud, reference_architecture=None):
+        sys.stdout.write(
+            json.dumps(default_spec(cloud, reference_architecture), indent=2)
+        )
         sys.stdout.flush()
