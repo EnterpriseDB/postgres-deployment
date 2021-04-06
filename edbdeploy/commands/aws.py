@@ -20,10 +20,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOption.choices,
-        default=ReferenceArchitectureOption.default,
+        choices=ReferenceArchitectureOptionAWS.choices,
+        default=ReferenceArchitectureOptionAWS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOption.help
+        help=ReferenceArchitectureOptionAWS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',
