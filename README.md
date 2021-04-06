@@ -2,7 +2,9 @@
 
 `edb-deployment` tool is an easy way to provision Cloud resources and deploy
 PostgreSQL, EDB Postgres Advanced Server and tools (high availability,
-backup/recovery, monitoring, connection poolers).
+backup/recovery, monitoring, connection poolers). `edb-deployment` can also be
+used to deploy Postgres architectures on existing infrastructure like physical
+servers (baremetal) or local Virtual Machines.
 
 Supported Cloud providers are **AWS**, **Azure** and **Google Cloud**.
 
@@ -231,6 +233,37 @@ To change these configuration values, you need first to dump the default values
 with:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> specs > my_configuration.json
+```
+
+When deploying on baremetal servers, IP address and SSH user configuration must
+be done through the specifications:
+
+```shell
+$ edb-deployment baremetal specs --reference-architecture EDB-RA-1 > baremetal-edb-ra-1.json
+```
+
+The `baremetal-edb-ra-1.json` file will contain:
+```json
+{
+  "ssh_user": null,
+  "pg_data": null,
+  "pg_wal": null,
+  "postgres_server_1": {
+    "name": "pg1",
+    "public_ip": null,
+    "private_ip": null
+  },
+  "pem_server_1": {
+    "name": "pem1",
+    "public_ip": null,
+    "private_ip": null
+  },
+  "backup_server_1": {
+    "name": "backup1",
+    "public_ip": null,
+    "private_ip": null
+  }
+}
 ```
 
 Then, you can edit and update resources configuration stored in the JSON file.
