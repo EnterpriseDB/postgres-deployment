@@ -108,4 +108,7 @@ class Commander:
 
     def specs(self):
         logging.info("Showing default specs. for cloud %s", self.env.cloud)
-        Project.show_specs(self.env.cloud)
+        Project.show_specs(
+            self.env.cloud,
+            getattr(self.env, 'reference_architecture', None)
+        )

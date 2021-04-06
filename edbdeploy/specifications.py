@@ -1,9 +1,12 @@
+import socket
+
 from .spec import SpecValidator
 from .spec.aws import AWSSpec
 from .spec.aws_rds import AWSRDSSpec
 from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
 from .spec.gcloud import GCloudSpec
+from .spec.baremetal import BaremetalSpec
 
 class SpecValidatorError(Exception):
     pass
@@ -58,8 +61,16 @@ def validate(value, validator, path):
                 % ('.'.join(path), value, validator.min, validator.max)
             )
 
+    elif validator.type == 'ipv4':
+        try:
+            socket.inet_aton(value)
+        except socket.error:
+            raise SpecValidatorError(
+                "%s: invalid IPv4 address format %s" % ('.'.join(path), value)
+            )
+
     elif validator.type == 'string':
-        value = str(value)
+        value = str(value) if value is not None else None
 
     return value
 
@@ -82,7 +93,7 @@ def default(element):
 
     return result
 
-def default_spec(cloud):
+def default_spec(cloud, reference_architecture=None):
     """
     Wrapper for the default function
     """
@@ -96,10 +107,12 @@ def default_spec(cloud):
         return default(AzureSpec)
     elif cloud == 'gcloud':
         return default(GCloudSpec)
+    elif cloud == 'baremetal':
+        return default(BaremetalSpec.get(reference_architecture))
     else:
         return {}
 
-def merge_user_spec(cloud, user_spec):
+def merge_user_spec(cloud, user_spec, reference_architecture=None):
     """
     Wrapper function for merging user specs. and default specs.
     """
@@ -113,6 +126,8 @@ def merge_user_spec(cloud, user_spec):
         cloud_spec = AzureSpec
     elif cloud == 'gcloud':
         cloud_spec = GCloudSpec
+    elif cloud == 'baremetal':
+        cloud_spec = BaremetalSpec.get(reference_architecture)
 
     defaults = default(cloud_spec)
 

@@ -3,12 +3,13 @@ import argparse
 from ..options import *
 from .default import default_subcommand_parsers
 
-# AWS sub-commands and options
+# Baremetal sub-commands and options
 def subcommands(subparser):
-    # List of the sub-commands we want to be available for the aws command
+    # List of the sub-commands we want to be available for the baremetal
+    # command
     available_subcommands = [
-        'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'remove'
+        'configure', 'deploy', 'display', 'list', 'logs', 'passwords', 'show',
+        'specs', 'remove'
     ]
 
     # Get sub-commands parsers
@@ -16,14 +17,14 @@ def subcommands(subparser):
         subparser, available_subcommands
     )
 
-    # aws configure sub-command options
+    # baremetal configure sub-command options
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOptionAWS.choices,
-        default=ReferenceArchitectureOptionAWS.default,
+        choices=ReferenceArchitectureOption.choices,
+        default=ReferenceArchitectureOption.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionAWS.help
+        help=ReferenceArchitectureOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',
@@ -33,14 +34,6 @@ def subcommands(subparser):
         metavar='"<username>:<password>"',
         help="EDB Packages repository credentials."
     ).completer = edb_credentials_completer
-    subcommand_parsers['configure'].add_argument(
-        '-o', '--os',
-        dest='operating_system',
-        choices=OSOption.choices,
-        default=OSOption.default,
-        metavar='<operating-system>',
-        help=OSOption.help
-    )
     subcommand_parsers['configure'].add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
@@ -82,36 +75,20 @@ def subcommands(subparser):
         help=SSHPrivKeyOption.help
     )
     subcommand_parsers['configure'].add_argument(
-        '-r', '--aws-region',
-        dest='aws_region',
-        choices=AWSRegionOption.choices,
-        default=AWSRegionOption.default,
-        metavar='<cloud-region>',
-        help=AWSRegionOption.help
-    )
-    subcommand_parsers['configure'].add_argument(
-        '-i', '--aws-ami-id',
-        dest='aws_ami_id',
-        type=str,
-        default=AWSIAMIDOption.default,
-        metavar='<aws-ami-id>',
-        help=AWSIAMIDOption.help
-    ).completer = aws_ami_id_completer
-    subcommand_parsers['configure'].add_argument(
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        metavar='<aws-spec-file>',
-        help="AWS instances specification file, in JSON."
+        metavar='<baremetal-spec-file>',
+        help="Baremetal servers specification file, in JSON."
     )
-    # aws logs sub-command options
+    # baremetal logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
         dest='tail',
         action='store_true',
         help="Do not stop at the end of file."
     )
-    # aws deploy sub-command options
+    # baremetal deploy sub-command options
     subcommand_parsers['deploy'].add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
@@ -137,4 +114,13 @@ def subcommands(subparser):
         dest='skip_main_playbook',
         action='store_true',
         help="Skip main playbook of the reference architecture."
+    )
+    # baremetal specs sub-command options
+    subcommand_parsers['specs'].add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=ReferenceArchitectureOption.choices,
+        default=ReferenceArchitectureOption.default,
+        metavar='<ref-arch-code>',
+        help=ReferenceArchitectureOption.help
     )
