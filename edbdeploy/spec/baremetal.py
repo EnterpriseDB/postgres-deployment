@@ -2,6 +2,9 @@ from . import SpecValidator
 
 BaremetalSpec = {
     'EDB-RA-1': {
+        'ssh_user': SpecValidator(type='string', default=None),
+        'pg_data': SpecValidator(type='string', default=None),
+        'pg_wal': SpecValidator(type='string', default=None),
         'postgres_server_1': {
             'name': SpecValidator(type='string', default='pg1'),
             'public_ip': SpecValidator(type='ipv4', default=None),
@@ -19,6 +22,9 @@ BaremetalSpec = {
         }
     },
     'EDB-RA-2': {
+        'ssh_user': SpecValidator(type='string', default=None),
+        'pg_data': SpecValidator(type='string', default=None),
+        'pg_wal': SpecValidator(type='string', default=None),
         'postgres_server_1': {
             'name': SpecValidator(type='string', default='pg1'),
             'public_ip': SpecValidator(type='ipv4', default=None),
@@ -46,6 +52,9 @@ BaremetalSpec = {
         }
     },
     'EDB-RA-3': {
+        'ssh_user': SpecValidator(type='string', default=None),
+        'pg_data': SpecValidator(type='string', default=None),
+        'pg_wal': SpecValidator(type='string', default=None),
         'postgres_server_1': {
             'name': SpecValidator(type='string', default='pg1'),
             'public_ip': SpecValidator(type='ipv4', default=None),

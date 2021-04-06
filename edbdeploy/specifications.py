@@ -70,7 +70,7 @@ def validate(value, validator, path):
             )
 
     elif validator.type == 'string':
-        value = str(value)
+        value = str(value) if value is not None else None
 
     return value
 

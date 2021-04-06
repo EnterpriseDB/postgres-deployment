@@ -1,4 +1,5 @@
 import errno
+import getpass
 import json
 import logging
 import os
@@ -7,6 +8,7 @@ import shutil
 import sys
 import stat
 import time
+import yaml
 
 from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, GCloudCli
 from .terraform import TerraformCli
@@ -97,6 +99,11 @@ class Project:
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
+
+        # Check only Ansible version when working with baremetal deployment
+        if self.cloud == 'baremetal':
+            return
+
         # Check Terraform version
         terraform = TerraformCli('dummy', 'dummy',
                                  bin_path=self.cloud_tools_bin_path)
@@ -160,6 +167,13 @@ class Project:
             raise ProjectError(msg)
 
     def create(self):
+        if self.cloud == 'baremetal':
+            # Create only project directory when working with baremetal
+            # deployment.
+            with AM("Creating project directory %s" % self.project_path):
+                os.makedirs(self.project_path)
+            return
+
         # Copy terraform code
         with AM("Copying Terraform code from into %s" % self.project_path):
             try:
@@ -262,6 +276,83 @@ class Project:
             logging.debug("ansible_vars=%s", self.ansible_vars)
             # Save Ansible vars
             self._save_ansible_vars()
+
+    def _build_ansible_inventory(self, env):
+        """
+        Build Ansible inventory file for baremetal deployment.
+        """
+        inventory = {
+            'all': {
+                'children': {
+                    'pemserver': {
+                        'hosts': {
+                            env.cloud_spec['pem_server_1']['name']: {
+                                'ansible_host': env.cloud_spec['pem_server_1']['public_ip'],
+                                'private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                            }
+                        }
+                    },
+                    'barmanserver': {
+                        'hosts': {
+                            env.cloud_spec['backup_server_1']['name']: {
+                                'ansible_host': env.cloud_spec['backup_server_1']['public_ip'],
+                                'private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                            }
+                        }
+                    },
+                    'primary': {
+                        'hosts': {
+                            env.cloud_spec['postgres_server_1']['name']: {
+                                'ansible_host': env.cloud_spec['postgres_server_1']['public_ip'],
+                                'private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                                'pem_agent': True,
+                                'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                                'barman': True,
+                                'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                                'barman_backup_method': 'postgres',
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
+            inventory['all']['children'].update({
+                'standby': {
+                    'hosts': {}
+                }
+            })
+            for i in range(2, 4):
+                inventory['all']['children']['standby']['hosts'].update({
+                    env.cloud_spec['postgres_server_%s' % i]['name']: {
+                        'ansible_host': env.cloud_spec['postgres_server_%s' % i]['public_ip'],
+                        'private_ip': env.cloud_spec['postgres_server_%s' % i]['private_ip'],
+                        'pem_agent': True,
+                        'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                        'barman': True,
+                        'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                        'barman_backup_method': 'postgres',
+                        'upstream_node_private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                        'replication_type': 'synchronous' if i == 2 else 'asynchronous',
+                    }
+                })
+        if env.reference_architecture == 'EDB-RA-3':
+            inventory['all']['children'].update({
+                'pgpool2': {
+                    'hosts': {}
+                }
+            })
+            for i in range(1, 4):
+                inventory['all']['children']['pgpool2']['hosts'].update({
+                    env.cloud_spec['pooler_server_%s' % i]['name']: {
+                        'ansible_host': env.cloud_spec['pooler_server_%s' % i]['public_ip'],
+                        'private_ip': env.cloud_spec['pooler_server_%s' % i]['private_ip'],
+                        'primary_node_private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                    }
+                })
+
+        with open(self.ansible_inventory, 'w') as f:
+            f.write(yaml.dump(inventory, default_flow_style=False))
 
     def _copy_ansible_playbook(self):
         """
@@ -471,7 +562,8 @@ class Project:
         self._copy_ssh_keys(env)
 
         # Transform Terraform templates
-        self._transform_terraform_tpl()
+        if env.cloud != 'baremetal':
+            self._transform_terraform_tpl()
 
         # RDS/Aurora: Build master user random password
         if env.cloud in ['aws-rds', 'aws-rds-aurora']:
@@ -479,17 +571,25 @@ class Project:
                 save_password(self.project_path, 'postgres', random_password())
 
         # Build the vars files for Terraform and Ansible
-        self._build_terraform_vars_file(env)
+        if env.cloud != 'baremetal':
+            self._build_terraform_vars_file(env)
         self._build_ansible_vars_file(env)
 
         # Copy Ansible playbook into project dir.
         self._copy_ansible_playbook()
 
+        # Build inventory file for baremetal deployment
+        if env.cloud == 'baremetal':
+            with AM(
+                "Build Ansible inventory file %s" % self.ansible_inventory
+            ):
+                self._build_ansible_inventory(env)
+
         # Check Cloud Instance type and Image availability. This is achieved by
         # executing the _<cloud-vendor>_check_instance_image method, if this
         # attribute exists.
         m = "_%s_check_instance_image" % env.cloud.replace('-', '')
-        if getattr(self, m):
+        if getattr(self, m, None):
             getattr(self, m)(env)
 
     def _load_spec_file(self, spec_file_path):
@@ -787,10 +887,14 @@ class Project:
         # Calling the Cloud Vendor dedicated method:
         # _<cloud-vendor>_build_terraform_vars()
         m = "_%s_build_terraform_vars" % env.cloud.replace('-', '')
-        if getattr(self, m):
+        if getattr(self, m, None):
             getattr(self, m)(env)
 
-    def _build_ansible_vars(self, env):
+    def _iaas_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for the IaaS cloud vendors: aws, gcloud and
+        azure.
+        """
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
@@ -800,27 +904,107 @@ class Project:
         os_spec = env.cloud_spec['available_os'][env.operating_system]
         pg_spec = env.cloud_spec['postgres_server']
 
-        self.ansible_vars = dict(
-            reference_architecture=env.reference_architecture,
-            cluster_name=self.name,
-            pg_type=env.postgres_type,
-            pg_version=env.postgres_version,
-            repo_username=edb_repo_username,
-            repo_password=edb_repo_password,
-            ssh_user=os_spec['ssh_user'],
-            ssh_priv_key=self.ssh_priv_key
-        )
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.ansible_vars.update(dict(
-                efm_version=env.efm_version,
-            ))
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': os_spec['ssh_user'],
+            'ssh_priv_key': self.ssh_priv_key,
+            'efm_version': env.efm_version,
+        }
 
-            # Add configuration for pg_data and pg_wal accordingly to the
-            # number of additional volumes
-            if pg_spec['additional_volumes']['count'] > 0:
-                self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
-            if pg_spec['additional_volumes']['count'] > 1:
-                self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+        # Add configuration for pg_data and pg_wal accordingly to the
+        # number of additional volumes
+        if pg_spec['additional_volumes']['count'] > 0:
+            self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
+        if pg_spec['additional_volumes']['count'] > 1:
+            self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+
+    def _dbaas_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for the DBaaS cloud vendors: aws-rds and
+        aws-rds-aurora.
+        """
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+
+        os_spec = env.cloud_spec['available_os'][env.operating_system]
+
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': os_spec['ssh_user'],
+            'ssh_priv_key': self.ssh_priv_key,
+        }
+
+    def _aws_build_ansible_vars(self, env):
+        return self._iaas_build_ansible_vars(env)
+
+    def _azure_build_ansible_vars(self, env):
+        return self._iaas_build_ansible_vars(env)
+
+    def _gcloud_build_ansible_vars(self, env):
+        return self._iaas_build_ansible_vars(env)
+
+    def _awsrds_build_ansible_vars(self, env):
+        return self._dbaas_build_ansible_vars(env)
+
+    def _awsrdsaurora_build_ansible_vars(self, env):
+        return self._dbaas_build_ansible_vars(env)
+
+    def _baremetal_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for baremetal deployment.
+        """
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+
+        if env.cloud_spec['ssh_user'] is not None:
+            ssh_user = env.cloud_spec['ssh_user']
+        else:
+            # Use current username for SSH connection if not set
+            ssh_user = getpass.getuser()
+
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': ssh_user,
+            'ssh_priv_key': self.ssh_priv_key,
+            'efm_version': env.efm_version,
+        }
+
+        # Add configuration for pg_data and pg_wal
+        if env.cloud_spec['pg_data'] is not None:
+            self.ansible_vars.update(dict(pg_data=env.cloud_spec['pg_data']))
+        if env.cloud_spec['pg_wal'] is not None:
+            self.ansible_vars.update(dict(pg_wal=env.cloud_spec['pg_wal']))
+
+    def _build_ansible_vars(self, env):
+        """
+        Build Ansible variables based on the environment.
+        """
+        # Calling the Cloud Vendor dedicated method:
+        # _<cloud-vendor>_build_ansible_vars()
+        m = "_%s_build_ansible_vars" % env.cloud.replace('-', '')
+        if getattr(self, m, None):
+            getattr(self, m)(env)
 
     def show_logs(self, tail):
         if not os.path.exists(self.log_file):
@@ -862,17 +1046,15 @@ class Project:
             shutil.rmtree(self.project_path)
 
     def show_configuration(self):
-        self._load_terraform_vars()
         self._load_ansible_vars()
+        output = dict(ansible=self.ansible_vars)
+
+        if self.cloud != 'baremetal':
+            self._load_terraform_vars()
+            output.update(terraform=self.terraform_vars)
 
         try:
-            json_output = json.dumps(
-                dict(
-                    ansible=self.ansible_vars,
-                    terraform=self.terraform_vars
-                ),
-                indent=2
-            )
+            json_output = json.dumps(output, indent=2)
         except Exception as e:
             msg = "Unable to convert the configuration to JSON"
             logging.error(msg)
