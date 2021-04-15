@@ -39,8 +39,9 @@ Third party pre-requisites:
 3. **Ansible** >= 2.9
 
 To help the installation of the third party pre-requisites listed above,
-`edb-deployment` provides installation scripts for Linux (x64) and MacOS (x64).
-Please refer to section [Pre-Requisites installation scripts](#pre-requisites-installation-scripts).
+`edb-deployment` provides the `setup` sub-command working for Linux and Darwin
+(macOS).
+Please refer to section [Pre-Requisites installation](#pre-requisites-installation).
 
 # Installation
 
@@ -81,15 +82,16 @@ To enable auto-completion for all the sessions, the command above must be added
 at the end of your `~/.bashrc` file or `~/.zshrc` file, depending on the shell
 you use.
 
-## Pre-Requisites installation scripts
+## Pre-Requisites installation
 
 To ease installation of the third party pre-requisites tools like `aws`,
-`terraform`, `ansible`, etc.. some bash installation scripts are provided for
-Linux (x64) and MacOS (x64). They are located in the `script/` folder.
+`terraform`, `ansible`, etc.. `edb-deployment` provides the `setup`
+sub-command.
 
-The following packages are required in order to execute the installation
-script: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
-`tar`. These packages should be installed through usual package manager (`dnf`,
+The following packages are required in order to execute the `setup`
+sub-command: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
+`tar`.
+These packages should be installed through usual package manager (`dnf`,
 `apt`, `brew`, etc..).
 
 Finally, Python `virtualenv` must be installed with `root` privileges:
@@ -97,33 +99,10 @@ Finally, Python `virtualenv` must be installed with `root` privileges:
 $ sudo pip3 install virtualenv
 ```
 
-The pre-requisites installation script can now be run. By default, third party
-tools are installed into the folder `$HOME/.edb-cloud-tools`, this path can be
-changed by setting the environment variable `INSTALL_PATH`.
-
-On Linux:
+Pre-requisites automated installation:
 ```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_linux_x64.sh
+$ edb-deployment <CLOUD_VENDOR> setup
 ```
-
-On MacOS (Python 3.9 installed with `brew`):
-```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_darwin_x64.sh
-```
-
-The last action is to add the installation path to the `PATH` variable. If your
-shell is `bash`, just enter:
-```shell
-$ source ~/.bashrc
-```
-For other shells, you have to re-export the environment variable `PATH` this
-way:
-```shell
-$ export PATH=$PATH:$HOME/.edb-cloud-tools/bin
-```
-
-You can now check if the tools are ready to use with the commands
-`aws --version`, `ansible --version`, etc..
 
 # Usage
 
@@ -170,6 +149,13 @@ Deployment of new project should follow the work flow below:
 ## Configure Cloud credentials
 
 This step depends on the target Cloud vendor.
+
+If the Cloud tools have been installed with the help of the `setup`
+sub-command, it's recommended to update the value of the `PATH` environment
+variable to include tools binary location:
+```shell
+$ export PATH=$PATH:$HOME/.edb-cloud-tools/bin
+```
 
 ### AWS credentials configuration
 
