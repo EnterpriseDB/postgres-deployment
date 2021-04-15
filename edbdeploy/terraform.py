@@ -4,10 +4,7 @@ import re
 from subprocess import CalledProcessError
 
 from .system import exec_shell_live, exec_shell
-
-
-class TerraformCliError(Exception):
-    pass
+from .errors import TerraformCliError
 
 
 class TerraformCli:

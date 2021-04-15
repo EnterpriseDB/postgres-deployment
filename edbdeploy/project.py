@@ -22,12 +22,9 @@ from .password import (
     random_password,
     save_password,
 )
+from .errors import ProjectError
 
 from .spec.aws_rds import TPROCC_GUC
-
-
-class ProjectError(Exception):
-    pass
 
 
 class Project:

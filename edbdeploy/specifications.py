@@ -7,9 +7,8 @@ from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
 from .spec.gcloud import GCloudSpec
 from .spec.baremetal import BaremetalSpec
+from .errors import SpecValidatorError
 
-class SpecValidatorError(Exception):
-    pass
 
 def merge(data, spec, defaults, path = []):
     """

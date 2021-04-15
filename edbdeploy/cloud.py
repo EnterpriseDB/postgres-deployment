@@ -6,10 +6,7 @@ import time
 from subprocess import CalledProcessError
 
 from .system import exec_shell
-
-
-class CloudCliError(Exception):
-    pass
+from .errors import CloudCliError
 
 
 class AWSCli:
