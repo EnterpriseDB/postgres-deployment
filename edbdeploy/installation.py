@@ -33,6 +33,7 @@ def execute_install_script(script_name):
     try:
         output = exec_shell([script_name])
         result = output.decode("utf-8")
+        os.unlink(script_name)
         logging.debug("Command output: %s", result)
     except CalledProcessError as e:
         logging.error("Failed to execute the command: %s", e.cmd)
