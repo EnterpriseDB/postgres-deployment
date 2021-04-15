@@ -4,26 +4,24 @@ CLUSTERNAME=$1
 NODETYPE=$2
 
 if [ "$#" -lt 3 ]; then
-   echo "You must enter at least 23command line arguments"
+   echo "You must enter at least 3 command line arguments"
 else
    ARGSCOUNTER=0
    COUNTER=0
+   CURRENTIP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
    for ip in "$@"
    do
       if [ "$ARGSCOUNTER" -gt 1 ]; then
-         echo "$ip" "$NODETYPE""$COUNTER"."$CLUSTERNAME".internal | sudo tee -a /etc/hosts
-         # Configure shell prompt
-         echo "export NICKNAME=""$NODETYPE""$COUNTER"."$CLUSTERNAME".internal | sudo tee -a /etc/profile.d/prompt.sh
-         sudo sed -i "s/\\h \\W/$NODETYPE$COUNTER \\W/g" /etc/bashrc
-         if [ -f /etc/bash.bashrc ]; then
-            sudo sed -i "s/\\h \\W/$NODETYPE$COUNTER \\W/g" /etc/bash.bashrc
+         if [ "$CURRENTIP" == "$ip" ]; then
+            NICKNAME="$NODETYPE$COUNTER"
+            # Configure shell prompt
+            echo "export NICKNAME=$NICKNAME.$CLUSTERNAME.internal" | sudo tee -a /etc/profile.d/prompt.sh
+            sudo sed -i "s%\\\\h %$NICKNAME %" /etc/bashrc
+            if [ -f /etc/bash.bashrc ]; then
+               sudo sed -i "s%\\\\h %$NICKNAME %" /etc/bash.bashrc
+            fi
          fi
-         # Remove extra characters in shell prompt
-         sudo sed -i "s/ WW//" /etc/bashrc
-         if [ -f /etc/bash.bashrc ]; then
-            sudo sed -i "s/ WW//" /etc/bash.bashrc              
-         fi         
-         ((COUNTER++))
+         ((COUNTER++))         
       fi
       ((ARGSCOUNTER++))
    done
