@@ -2,9 +2,14 @@ import logging
 import json
 import os
 import re
+import textwrap
 import time
 from subprocess import CalledProcessError
 
+from .installation import (
+    build_tmp_install_script,
+    execute_install_script,
+)
 from .system import exec_shell
 from .errors import CloudCliError
 
@@ -170,6 +175,35 @@ class AWSCli:
                 "Failed to execute the following command, please check the "
                 "logs for details: %s" % e.cmd
             )
+
+    def install(self, installation_path):
+        """
+        AWS CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/aws
+            python3 -m venv {path}/aws
+            sed -i.bak 's/$1/${{1:-}}/' {path}/aws/bin/activate
+            source {path}/aws/bin/activate
+            python3 -m pip install "awscli=={version}"
+            deactivate
+            ln -sf {path}/aws/bin/aws {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
 
 
 class AWSRDSCli(AWSCli):

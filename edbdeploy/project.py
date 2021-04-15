@@ -1422,6 +1422,11 @@ class Project:
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud'
                 ]
             },
+            {
+                'name': 'AWS Cli',
+                'cli': AWSCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['aws', 'aws-rds', 'aws-rds-aurora']
+            },
         ]
 
         for tool in tools:
