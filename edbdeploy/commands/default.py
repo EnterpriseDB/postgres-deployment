@@ -35,6 +35,10 @@ DEFAULT_SUBCOMMANDS = {
         'help': 'List projects',
         'project_argument': False,
     },
+    'setup': {
+        'help': 'Install prerequisites',
+        'project_argument': False,
+    },
     'specs': {
         'help': 'Show Cloud default specifications',
         'project_argument': False,

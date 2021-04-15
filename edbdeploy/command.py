@@ -112,3 +112,10 @@ class Commander:
             self.env.cloud,
             getattr(self.env, 'reference_architecture', None)
         )
+
+    def setup(self):
+        logging.info(
+            "Executing the setup command for the %s cloud", self.env.cloud
+        )
+        Project.create_cloud_tools_bin_dir()
+        Project.setup_tools(self.env.cloud)

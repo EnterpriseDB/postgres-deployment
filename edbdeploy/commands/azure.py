@@ -8,7 +8,7 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the azure command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'remove'
+        'passwords', 'provision', 'setup', 'show', 'specs', 'remove'
     ]
 
     # Get sub-commands parsers
