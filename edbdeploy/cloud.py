@@ -414,6 +414,40 @@ class AzureCli:
                 "logs for details: %s" % e.cmd
             )
 
+    def install(self, installation_path):
+        """
+        Azure CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/azure
+            python3 -m venv {path}/azure
+            sed -i.bak 's/$1/${{1:-}}/' {path}/azure/bin/activate
+            source {path}/azure/bin/activate
+            # cryptography should be pinned to 3.3.2 because the next
+            # version introduces rust as a dependency for building it and
+            # breaks compatiblity with some pip versions.
+            # ref: https://github.com/Azure/azure-cli/issues/16858
+            python3 -m pip install "cryptography==3.3.2"
+            python3 -m pip install "azure-cli=={version}"
+            deactivate
+            ln -sf {path}/azure/bin/az {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
 
 class GCloudCli:
     def __init__(self, bin_path=None):
