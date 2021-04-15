@@ -19,17 +19,17 @@ class Spinner(threading.Thread):
     """
     def __init__(self, *args, **kwargs):
         super(Spinner, self).__init__(*args, **kwargs)
-        self._stop = threading.Event()
+        self._stopper = threading.Event()
 
     def stop(self):
-        self._stop.set()
+        self._stopper.set()
         sys.stdout.flush()
 
     def run(self):
         cursor = spinning_cursor()
         while True:
             time.sleep(0.1)
-            if self._stop.isSet():
+            if self._stopper.isSet():
                 return
             sys.stdout.write(next(cursor))
             sys.stdout.flush()
