@@ -43,3 +43,22 @@ def execute_install_script(script_name):
             "Failed to execute the following command, please check the "
             "logs for details: %s" % e.cmd
         )
+
+
+def uname():
+    """
+    Execute the uname Unix command
+    """
+    try:
+        output = exec_shell(['uname'])
+        result = output.decode("utf-8")
+        logging.debug("Command output: %s", result)
+        return str(result).strip()
+    except CalledProcessError as e:
+        logging.error("Failed to execute the command: %s", e.cmd)
+        logging.error("Return code is: %s", e.returncode)
+        logging.error("Output: %s", e.output)
+        raise CliError(
+            "Failed to execute the following command, please check the "
+            "logs for details: %s" % e.cmd
+        )

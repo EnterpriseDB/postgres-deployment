@@ -1398,6 +1398,7 @@ class Project:
 
     @staticmethod
     def setup_tools(cloud):
+        # Ansible installation
         ansible = AnsibleCli('dummy', bin_path=Project.cloud_tools_bin_path)
         try:
             ansible.check_version()
@@ -1405,3 +1406,19 @@ class Project:
         except Exception as e:
             with AM("Ansible installation"):
                 ansible.install(os.path.dirname(Project.cloud_tools_bin_path))
+
+        # Terraform installation for all cloud vendors excepting baremetal
+        if cloud not in ['baremetal']:
+            terraform = TerraformCli(
+                'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
+            )
+            try:
+                terraform.check_version()
+                print(
+                    "INFO: Terraform is already installed in supported version"
+                )
+            except Exception as e:
+                with AM("Terraform installation"):
+                    terraform.install(
+                        os.path.dirname(Project.cloud_tools_bin_path)
+                    )

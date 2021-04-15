@@ -2,7 +2,13 @@ import logging
 import os
 import re
 from subprocess import CalledProcessError
+import textwrap
 
+from .installation import (
+    execute_install_script,
+    build_tmp_install_script,
+    uname,
+)
 from .system import exec_shell_live, exec_shell
 from .errors import TerraformCliError
 
@@ -91,7 +97,6 @@ class TerraformCli:
             return os.path.join(self.bin_path, binary)
         else:
             return binary
-
 
     def init(self):
         try:
@@ -203,3 +208,31 @@ class TerraformCli:
                 "Failed to execute the following command, please check the "
                 "logs for details: %s" % e.cmd
             )
+
+    def install(self, installation_path):
+        """
+        Terraform installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/terraform/bin
+            wget -q https://releases.hashicorp.com/terraform/{version}/terraform_{version}_{os_flavor}_amd64.zip -O /tmp/terraform.zip
+            unzip /tmp/terraform.zip -d {path}/terraform/bin
+            rm -f /tmp/terraform.zip
+            ln -sf {path}/terraform/bin/terraform {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
