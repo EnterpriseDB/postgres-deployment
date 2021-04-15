@@ -1432,6 +1432,11 @@ class Project:
                 'cli': AzureCli(bin_path=Project.cloud_tools_bin_path),
                 'cloud_vendors': ['azure']
             },
+            {
+                'name': 'GCloud Cli',
+                'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['gcloud']
+            },
         ]
 
         for tool in tools:

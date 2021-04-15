@@ -9,6 +9,7 @@ from subprocess import CalledProcessError
 from .installation import (
     build_tmp_install_script,
     execute_install_script,
+    uname,
 )
 from .system import exec_shell
 from .errors import CloudCliError
@@ -633,6 +634,34 @@ class GCloudCli:
                     "Failed to execute the following command, please check the"
                     " logs for details: %s" % e.cmd
                 )
+
+    def install(self, installation_path):
+        """
+        GCloud CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/gcloud
+            wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-{version}-{os_flavor}-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
+            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud
+            rm /tmp/google-cloud-sdk.tar.gz
+            ln -sf {path}/gcloud/google-cloud-sdk/bin/gcloud {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
 
 
 class CloudCli:
