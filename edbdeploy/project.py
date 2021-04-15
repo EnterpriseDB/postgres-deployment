@@ -1398,27 +1398,46 @@ class Project:
 
     @staticmethod
     def setup_tools(cloud):
-        # Ansible installation
-        ansible = AnsibleCli('dummy', bin_path=Project.cloud_tools_bin_path)
-        try:
-            ansible.check_version()
-            print("INFO: Ansible is already installed in supported version")
-        except Exception as e:
-            with AM("Ansible installation"):
-                ansible.install(os.path.dirname(Project.cloud_tools_bin_path))
+        """
+        Prerequisites installation
+        """
+        # List of the tools and their supported cloud vendors
+        tools = [
+            {
+                'name': 'Ansible',
+                'cli': AnsibleCli(
+                    'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
+                    'baremetal'
+                ]
+            },
+            {
+                'name': 'Terraform',
+                'cli': TerraformCli(
+                    'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud'
+                ]
+            },
+        ]
 
-        # Terraform installation for all cloud vendors excepting baremetal
-        if cloud not in ['baremetal']:
-            terraform = TerraformCli(
-                'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
-            )
+        for tool in tools:
+            # Install the tool only for appropriated cloud vendors
+            if cloud not in tool['cloud_vendors']:
+                continue
+
             try:
-                terraform.check_version()
-                print(
-                    "INFO: Terraform is already installed in supported version"
-                )
+                # Check if the tool is already installed and in supported
+                # version
+                tool['cli'].check_version()
+                print("INFO: %s is already installed in supported version"
+                      % tool['name'])
             except Exception as e:
-                with AM("Terraform installation"):
-                    terraform.install(
+                # Proceed with the installation
+                with AM("%s installation" % tool['name']):
+                    tool['cli'].install(
                         os.path.dirname(Project.cloud_tools_bin_path)
                     )
