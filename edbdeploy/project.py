@@ -1395,3 +1395,13 @@ class Project:
             json.dumps(default_spec(cloud, reference_architecture), indent=2)
         )
         sys.stdout.flush()
+
+    @staticmethod
+    def setup_tools(cloud):
+        ansible = AnsibleCli('dummy', bin_path=Project.cloud_tools_bin_path)
+        try:
+            ansible.check_version()
+            print("INFO: Ansible is already installed in supported version")
+        except Exception as e:
+            with AM("Ansible installation"):
+                ansible.install(os.path.dirname(Project.cloud_tools_bin_path))

@@ -3,12 +3,11 @@ import logging
 import os
 import re
 from subprocess import CalledProcessError
+import textwrap
 
+from .errors import AnsibleCliError, CliError
+from .installation import build_tmp_install_script, execute_install_script
 from .system import exec_shell_live, exec_shell
-
-
-class AnsibleCliError(Exception):
-    pass
 
 
 class AnsibleCli:
@@ -44,7 +43,7 @@ class AnsibleCli:
             logging.error("Failed to execute the command: %s", e.cmd)
             logging.error("Return code is: %s", e.returncode)
             logging.error("Output: %s", e.output)
-            raise Exception(
+            raise CliError(
                 "Ansible executable seems to be missing. Please install it or "
                 "check your PATH variable"
             )
@@ -59,7 +58,7 @@ class AnsibleCli:
                 break
 
         if version is None:
-            raise Exception("Unable to parse Ansible version")
+            raise CliError("Unable to parse Ansible version")
 
         logging.info("Ansible version: %s", '.'.join(map(str, version)))
 
@@ -74,7 +73,7 @@ class AnsibleCli:
                 break
 
             if version[i] not in list(range(min, max + 1)):
-                raise Exception(
+                raise CliError(
                     ("Ansible version %s not supported, must be between %s and"
                      " %s") % (
                         '.'.join(map(str, version)),
@@ -168,3 +167,37 @@ class AnsibleCli:
                 "Failed to execute the following command, please check the "
                 "logs for details: %s" % e.cmd
             )
+
+    def install(self, installation_path):
+        """
+        Ansible installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/ansible
+            python3 -m venv {path}/ansible
+            sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/bin/activate
+            source {path}/ansible/bin/activate
+            python3 -m pip install "cryptography==3.3.2"
+            python3 -m pip install "ansible-base=={version}"
+            python3 -m pip install "ansible=={version}"
+            deactivate
+            ln -sf {path}/ansible/bin/ansible {path}/bin/.
+            ln -sf {path}/ansible/bin/ansible-galaxy {path}/bin/.
+            ln -sf {path}/ansible/bin/ansible-playbook {path}/bin/.
+            ln -sf {path}/ansible/bin/ansible-inventory {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version)
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
