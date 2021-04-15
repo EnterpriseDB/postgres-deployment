@@ -128,6 +128,17 @@ class Project:
         except Exception as e:
             raise ProjectError(str(e))
 
+    @staticmethod
+    def create_cloud_tools_bin_dir():
+        try:
+            os.makedirs(Project.cloud_tools_bin_path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise ProjectError(str(e))
+        except Exception as e:
+            raise ProjectError(str(e))
+
+
     def exists(self):
         return os.path.exists(self.project_path)
 
