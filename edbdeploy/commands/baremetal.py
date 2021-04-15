@@ -8,8 +8,8 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the baremetal
     # command
     available_subcommands = [
-        'configure', 'deploy', 'display', 'list', 'logs', 'passwords', 'show',
-        'specs', 'remove'
+        'configure', 'deploy', 'display', 'list', 'logs', 'passwords', 'setup',
+        'show', 'specs', 'remove'
     ]
 
     # Get sub-commands parsers

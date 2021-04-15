@@ -2,14 +2,17 @@ import logging
 import json
 import os
 import re
+import textwrap
 import time
 from subprocess import CalledProcessError
 
+from .installation import (
+    build_tmp_install_script,
+    execute_install_script,
+    uname,
+)
 from .system import exec_shell
-
-
-class CloudCliError(Exception):
-    pass
+from .errors import CloudCliError
 
 
 class AWSCli:
@@ -173,6 +176,36 @@ class AWSCli:
                 "Failed to execute the following command, please check the "
                 "logs for details: %s" % e.cmd
             )
+
+    def install(self, installation_path):
+        """
+        AWS CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/aws/{version}
+            python3 -m venv {path}/aws/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/aws/{version}/bin/activate
+            source {path}/aws/{version}/bin/activate
+            python3 -m pip install "awscli=={version}"
+            deactivate
+            rm -f {path}/bin/aws
+            ln -sf {path}/aws/{version}/bin/aws {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
 
 
 class AWSRDSCli(AWSCli):
@@ -383,6 +416,41 @@ class AzureCli:
                 "logs for details: %s" % e.cmd
             )
 
+    def install(self, installation_path):
+        """
+        Azure CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/azure/{version}
+            python3 -m venv {path}/azure/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/azure/{version}/bin/activate
+            source {path}/azure/{version}/bin/activate
+            # cryptography should be pinned to 3.3.2 because the next
+            # version introduces rust as a dependency for building it and
+            # breaks compatiblity with some pip versions.
+            # ref: https://github.com/Azure/azure-cli/issues/16858
+            python3 -m pip install "cryptography==3.3.2"
+            python3 -m pip install "azure-cli=={version}"
+            deactivate
+            rm -f {path}/bin/az
+            ln -sf {path}/azure/{version}/bin/az {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
 
 class GCloudCli:
     def __init__(self, bin_path=None):
@@ -568,6 +636,35 @@ class GCloudCli:
                     "Failed to execute the following command, please check the"
                     " logs for details: %s" % e.cmd
                 )
+
+    def install(self, installation_path):
+        """
+        GCloud CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/gcloud/{version}
+            wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-{version}-{os_flavor}-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
+            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud/{version}
+            rm /tmp/google-cloud-sdk.tar.gz
+            rm -f {path}/bin/gcloud
+            ln -sf {path}/gcloud/{version}/google-cloud-sdk/bin/gcloud {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
 
 
 class CloudCli:

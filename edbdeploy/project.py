@@ -22,12 +22,9 @@ from .password import (
     random_password,
     save_password,
 )
+from .errors import ProjectError
 
 from .spec.aws_rds import TPROCC_GUC
-
-
-class ProjectError(Exception):
-    pass
 
 
 class Project:
@@ -130,6 +127,17 @@ class Project:
                 raise ProjectError(str(e))
         except Exception as e:
             raise ProjectError(str(e))
+
+    @staticmethod
+    def create_cloud_tools_bin_dir():
+        try:
+            os.makedirs(Project.cloud_tools_bin_path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise ProjectError(str(e))
+        except Exception as e:
+            raise ProjectError(str(e))
+
 
     def exists(self):
         return os.path.exists(self.project_path)
@@ -1387,3 +1395,64 @@ class Project:
             json.dumps(default_spec(cloud, reference_architecture), indent=2)
         )
         sys.stdout.flush()
+
+    @staticmethod
+    def setup_tools(cloud):
+        """
+        Prerequisites installation
+        """
+        # List of the tools and their supported cloud vendors
+        tools = [
+            {
+                'name': 'Ansible',
+                'cli': AnsibleCli(
+                    'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
+                    'baremetal'
+                ]
+            },
+            {
+                'name': 'Terraform',
+                'cli': TerraformCli(
+                    'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud'
+                ]
+            },
+            {
+                'name': 'AWS Cli',
+                'cli': AWSCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['aws', 'aws-rds', 'aws-rds-aurora']
+            },
+            {
+                'name': 'Azure Cli',
+                'cli': AzureCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['azure']
+            },
+            {
+                'name': 'GCloud Cli',
+                'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['gcloud']
+            },
+        ]
+
+        for tool in tools:
+            # Install the tool only for appropriated cloud vendors
+            if cloud not in tool['cloud_vendors']:
+                continue
+
+            try:
+                # Check if the tool is already installed and in supported
+                # version
+                tool['cli'].check_version()
+                print("INFO: %s is already installed in supported version"
+                      % tool['name'])
+            except Exception as e:
+                # Proceed with the installation
+                with AM("%s installation" % tool['name']):
+                    tool['cli'].install(
+                        os.path.dirname(Project.cloud_tools_bin_path)
+                    )

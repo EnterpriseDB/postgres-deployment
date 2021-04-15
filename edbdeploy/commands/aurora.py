@@ -9,7 +9,7 @@ def subcommands(subparser):
     # command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'remove'
+        'passwords', 'provision', 'setup', 'show', 'specs', 'remove'
     ]
 
     # Get sub-commands parsers
