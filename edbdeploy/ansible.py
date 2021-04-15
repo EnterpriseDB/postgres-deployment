@@ -177,18 +177,22 @@ class AnsibleCli:
             #!/bin/bash
             set -eu
 
-            mkdir -p {path}/ansible
-            python3 -m venv {path}/ansible
-            sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/bin/activate
-            source {path}/ansible/bin/activate
+            mkdir -p {path}/ansible/{version}
+            python3 -m venv {path}/ansible/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/{version}/bin/activate
+            source {path}/ansible/{version}/bin/activate
             python3 -m pip install "cryptography==3.3.2"
             python3 -m pip install "ansible-base=={version}"
             python3 -m pip install "ansible=={version}"
             deactivate
-            ln -sf {path}/ansible/bin/ansible {path}/bin/.
-            ln -sf {path}/ansible/bin/ansible-galaxy {path}/bin/.
-            ln -sf {path}/ansible/bin/ansible-playbook {path}/bin/.
-            ln -sf {path}/ansible/bin/ansible-inventory {path}/bin/.
+            rm -f {path}/bin/ansible
+            ln -sf {path}/ansible/{version}/bin/ansible {path}/bin/.
+            rm -f {path}/bin/ansible-galaxy
+            ln -sf {path}/ansible/{version}/bin/ansible-galaxy {path}/bin/.
+            rm -f {path}/bin/ansible-playbook
+            ln -sf {path}/ansible/{version}/bin/ansible-playbook {path}/bin/.
+            rm -f {path}/bin/ansible-inventory
+            ln -sf {path}/ansible/{version}/bin/ansible-inventory {path}/bin/.
         """)
 
         # Generate the installation script as an executable tempfile

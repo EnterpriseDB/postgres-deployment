@@ -186,13 +186,14 @@ class AWSCli:
             #!/bin/bash
             set -eu
 
-            mkdir -p {path}/aws
-            python3 -m venv {path}/aws
-            sed -i.bak 's/$1/${{1:-}}/' {path}/aws/bin/activate
-            source {path}/aws/bin/activate
+            mkdir -p {path}/aws/{version}
+            python3 -m venv {path}/aws/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/aws/{version}/bin/activate
+            source {path}/aws/{version}/bin/activate
             python3 -m pip install "awscli=={version}"
             deactivate
-            ln -sf {path}/aws/bin/aws {path}/bin/.
+            rm -f {path}/bin/aws
+            ln -sf {path}/aws/{version}/bin/aws {path}/bin/.
         """)
 
         # Generate the installation script as an executable tempfile
@@ -424,10 +425,10 @@ class AzureCli:
             #!/bin/bash
             set -eu
 
-            mkdir -p {path}/azure
-            python3 -m venv {path}/azure
-            sed -i.bak 's/$1/${{1:-}}/' {path}/azure/bin/activate
-            source {path}/azure/bin/activate
+            mkdir -p {path}/azure/{version}
+            python3 -m venv {path}/azure/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/azure/{version}/bin/activate
+            source {path}/azure/{version}/bin/activate
             # cryptography should be pinned to 3.3.2 because the next
             # version introduces rust as a dependency for building it and
             # breaks compatiblity with some pip versions.
@@ -435,7 +436,8 @@ class AzureCli:
             python3 -m pip install "cryptography==3.3.2"
             python3 -m pip install "azure-cli=={version}"
             deactivate
-            ln -sf {path}/azure/bin/az {path}/bin/.
+            rm -f {path}/bin/az
+            ln -sf {path}/azure/{version}/bin/az {path}/bin/.
         """)
 
         # Generate the installation script as an executable tempfile
@@ -644,11 +646,12 @@ class GCloudCli:
             #!/bin/bash
             set -eu
 
-            mkdir -p {path}/gcloud
+            mkdir -p {path}/gcloud/{version}
             wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-{version}-{os_flavor}-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
-            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud
+            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud/{version}
             rm /tmp/google-cloud-sdk.tar.gz
-            ln -sf {path}/gcloud/google-cloud-sdk/bin/gcloud {path}/bin/.
+            rm -f {path}/bin/gcloud
+            ln -sf {path}/gcloud/{version}/google-cloud-sdk/bin/gcloud {path}/bin/.
         """)
 
         # Generate the installation script as an executable tempfile

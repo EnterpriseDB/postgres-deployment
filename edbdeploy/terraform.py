@@ -218,11 +218,12 @@ class TerraformCli:
             #!/bin/bash
             set -eu
 
-            mkdir -p {path}/terraform/bin
+            mkdir -p {path}/terraform/{version}/bin
             wget -q https://releases.hashicorp.com/terraform/{version}/terraform_{version}_{os_flavor}_amd64.zip -O /tmp/terraform.zip
-            unzip /tmp/terraform.zip -d {path}/terraform/bin
+            unzip /tmp/terraform.zip -d {path}/terraform/{version}/bin
             rm -f /tmp/terraform.zip
-            ln -sf {path}/terraform/bin/terraform {path}/bin/.
+            rm -f {path}/bin/terraform
+            ln -sf {path}/terraform/{version}/bin/terraform {path}/bin/.
         """)
 
         # Generate the installation script as an executable tempfile
