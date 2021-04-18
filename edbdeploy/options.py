@@ -46,6 +46,10 @@ class ReferenceArchitectureOptionRDS:
     """)
 
 
+class ReferenceArchitectureOptionAzure(ReferenceArchitectureOptionAWS):
+    pass
+
+
 class OSOption:
     choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8']
     default = 'CentOS8'

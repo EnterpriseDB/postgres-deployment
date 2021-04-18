@@ -769,6 +769,7 @@ class Project:
         pem = env.cloud_spec['pem_server']
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
 
         self.terraform_vars = {
             'azure_offer': os['offer'],
@@ -783,6 +784,12 @@ class Project:
                 'additional_volumes': barman['additional_volumes'],
             },
             'cluster_name': self.name,
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
             'pem_server': {
                 'count': 1 if ra['pem_server'] else 0,
                 'instance_type': pem['instance_type'],
