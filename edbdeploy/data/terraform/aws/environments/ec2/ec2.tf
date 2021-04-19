@@ -350,6 +350,26 @@ resource "null_resource" "pem_copy_hostname_script" {
   }
 }
 
+resource "null_resource" "pem_copy_nickname_script" {
+  count = var.pem_server["count"]
+
+  depends_on = [
+    aws_instance.pem_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_nickname_to_shell.sh")
+    destination = "/tmp/add_nickname_to_shell.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pem_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
 resource "null_resource" "postgres_copy_hostname_script" {
   count = var.postgres_server["count"]
 
@@ -360,6 +380,26 @@ resource "null_resource" "postgres_copy_hostname_script" {
   provisioner "file" {
     content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
     destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.postgres_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "postgres_copy_nickname_script" {
+  count = var.postgres_server["count"]
+
+  depends_on = [
+    aws_instance.postgres_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_nickname_to_shell.sh")
+    destination = "/tmp/add_nickname_to_shell.sh"
 
     connection {
       type        = "ssh"
@@ -390,6 +430,26 @@ resource "null_resource" "barman_copy_hostname_script" {
   }
 }
 
+resource "null_resource" "barman_copy_nickname_script" {
+  count = var.barman_server["count"]
+
+  depends_on = [
+    aws_instance.barman_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_nickname_to_shell.sh")
+    destination = "/tmp/add_nickname_to_shell.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.barman_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
 resource "null_resource" "pooler_copy_hostname_script" {
   count = var.pooler_server["count"]
 
@@ -400,6 +460,26 @@ resource "null_resource" "pooler_copy_hostname_script" {
   provisioner "file" {
     content     = file("${abspath(path.module)}/add_ips_to_hosts.sh")
     destination = "/tmp/add_ips_to_hosts.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(aws_instance.pooler_server.*.public_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "pooler_copy_nickname_script" {
+  count = var.pooler_server["count"]
+
+  depends_on = [
+    aws_instance.pooler_server
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/add_nickname_to_shell.sh")
+    destination = "/tmp/add_nickname_to_shell.sh"
 
     connection {
       type        = "ssh"
@@ -423,7 +503,9 @@ resource "null_resource" "pem-set-hostname" {
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
-        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1",
+        "chmod a+x /tmp/add_nickname_to_shell.sh",        
+        "/tmp/add_nickname_to_shell.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_nicknames.log 2>&1"
     ]
 
     connection {
@@ -448,7 +530,9 @@ resource "null_resource" "pg-set-hostname" {
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
-        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1",
+        "chmod a+x /tmp/add_nickname_to_shell.sh",        
+        "/tmp/add_nickname_to_shell.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_nicknames.log 2>&1"
     ]
 
     connection {
@@ -473,7 +557,9 @@ resource "null_resource" "barman-set-hostname" {
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
-        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1",
+        "chmod a+x /tmp/add_nickname_to_shell.sh",        
+        "/tmp/add_nickname_to_shell.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_nicknames.log 2>&1"
     ]
 
     connection {
@@ -498,7 +584,9 @@ resource "null_resource" "pooler-set-hostname" {
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pem ${join(" ", aws_instance.pem_server.*.private_ip)} >> /tmp/pem_hostnames.log 2>&1",
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} postgres ${join(" ", aws_instance.postgres_server.*.private_ip)} >> /tmp/postgres_hostnames.log 2>&1",        
         "/tmp/add_ips_to_hosts.sh ${var.cluster_name} barman ${join(" ", aws_instance.barman_server.*.private_ip)} >> /tmp/barman_hostnames.log 2>&1",
-        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1"        
+        "/tmp/add_ips_to_hosts.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_hostnames.log 2>&1",
+        "chmod a+x /tmp/add_nickname_to_shell.sh",        
+        "/tmp/add_nickname_to_shell.sh ${var.cluster_name} pooler ${join(" ", aws_instance.pooler_server.*.private_ip)} >> /tmp/pooler_nicknames.log 2>&1"
     ]
 
     connection {

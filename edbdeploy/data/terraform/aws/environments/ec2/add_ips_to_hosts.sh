@@ -11,8 +11,7 @@ else
    for ip in "$@"
    do
       if [ "$ARGSCOUNTER" -gt 1 ]; then
-         #echo "$ip"
-         echo "$ip" "$CLUSTERNAME"."$NODETYPE".node."$COUNTER" | sudo tee -a /etc/hosts
+         echo "$ip" "$NODETYPE""$COUNTER"."$CLUSTERNAME".internal | sudo tee -a /etc/hosts
          ((COUNTER++))
       fi
       ((ARGSCOUNTER++))
