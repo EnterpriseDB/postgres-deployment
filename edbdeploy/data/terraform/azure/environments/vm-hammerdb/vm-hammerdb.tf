@@ -10,8 +10,10 @@ variable "cluster_name" {}
 variable "network_count" {}
 variable "pem_server" {}
 variable "pooler_server" {}
+variable "hammerdb_server" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
+variable "hammerdb" {}
 variable "postgres_server" {}
 variable "project_tags" {}
 variable "replication_type" {}
@@ -76,6 +78,29 @@ resource "azurerm_network_interface" "postgres_public_nic" {
 
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.postgres_public_ip.*.id, count.index)
+  }
+}
+
+resource "azurerm_public_ip" "hammerdb_public_ip" {
+  count               = var.hammerdb_server["count"]
+  name                = format("hammerdb-%s-%s-%s", var.cluster_name, "edb_public_ip", count.index)
+  location            = var.azure_region
+  resource_group_name = var.resourcegroup_name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "hammerdb_public_nic" {
+  count               = var.hammerdb_server["count"]
+  name                = format("hammerdb-%s-%s-%s", var.cluster_name, "edb_public_nic", count.index)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  ip_configuration {
+    name      = "HammerDB_Private_Nic_${count.index}"
+    subnet_id = element(azurerm_subnet.all_subnet.*.id, count.index)
+
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = element(azurerm_public_ip.hammerdb_public_ip.*.id, count.index)
   }
 }
 
@@ -182,6 +207,10 @@ resource "azurerm_linux_virtual_machine" "postgres_server" {
     caching              = "ReadWrite"
   }
 
+  additional_capabilities {
+    ultra_ssd_enabled = true
+  }
+
   tags = var.project_tags
 }
 
@@ -201,7 +230,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "postgres_managed_disk_a
   managed_disk_id    = azurerm_managed_disk.postgres_managed_disk.*.id[count.index]
   virtual_machine_id = element(azurerm_linux_virtual_machine.postgres_server.*.id, count.index)
   lun                = count.index + 10
-  caching            = "ReadWrite"
+  caching            = "None"
 }
 
 resource "null_resource" "postgres_copy_setup_volume_script" {
@@ -245,6 +274,43 @@ resource "null_resource" "postgres_setup_volume" {
       private_key = file(var.ssh_priv_key)
     }
   }
+}
+
+resource "azurerm_linux_virtual_machine" "hammerdb_server" {
+  count               = var.hammerdb_server["count"]
+  name                = format("%s-%s%s", var.cluster_name, "hammerdbserver", count.index + 1)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  size           = var.hammerdb_server["instance_type"]
+  admin_username = var.ssh_user
+
+  network_interface_ids = [element(azurerm_network_interface.hammerdb_public_nic.*.id, count.index)]
+
+  admin_ssh_key {
+    username   = var.ssh_user
+    public_key = file(var.ssh_pub_key)
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  source_image_reference {
+    publisher = var.azure_publisher
+    offer     = var.azure_offer
+    sku       = var.azure_sku
+
+    version = "latest"
+  }
+
+  os_disk {
+    name                 = format("hammerdb-%s-%s-%s", var.cluster_name, "EDB-VM-OS-Disk", count.index)
+    storage_account_type = var.hammerdb_server["volume"]["storage_account_type"]
+    caching              = "ReadWrite"
+  }
+
+  tags = var.project_tags
 }
 
 resource "azurerm_linux_virtual_machine" "pem_server" {
