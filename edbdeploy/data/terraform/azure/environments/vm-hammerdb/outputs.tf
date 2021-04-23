@@ -18,6 +18,13 @@ all:
           ansible_host: ${azurerm_public_ip.barman_public_ip[0].ip_address}
           private_ip: ${azurerm_network_interface.barman_public_nic[0].private_ip_address}
 %{endif ~}
+%{if var.hammerdb_server["count"] > 0 ~}
+    hammerdbserver:
+      hosts:
+        hammerdbserver1:
+          ansible_host: ${azurerm_public_ip.hammerdb_public_ip[0].ip_address}
+          private_ip: ${azurerm_network_interface.hammerdb_public_nic[0].private_ip_address}
+%{endif ~}
 %{for postgres_count in range(var.postgres_server["count"]) ~}
 %{if postgres_count == 0 ~}
     primary:
@@ -37,6 +44,10 @@ all:
           barman: true
           barman_server_private_ip: ${azurerm_network_interface.barman_public_nic[0].private_ip_address}
           barman_backup_method: postgres
+%{endif ~}
+%{if var.hammerdb == true ~}
+          hammerdb: true
+          hammerdb_server_private_ip: ${azurerm_network_interface.hammerdb_public_nic[0].private_ip_address}
 %{endif ~}
 %{if var.pooler_local == true && var.pooler_type == "pgbouncer" ~}
           pgbouncer: true

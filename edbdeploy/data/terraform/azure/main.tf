@@ -46,12 +46,44 @@ module "storagecontainer" {
 
   storageaccount_name   = var.storageaccount_name
   storagecontainer_name = var.storagecontainer_name
+  hammerdb              = var.hammerdb
 
   depends_on = [module.storageaccount]
 }
 
 module "vm" {
+  count = var.hammerdb ? 0 : 1
   source = "./environments/vm"
+
+  barman                              = var.barman
+  postgres_server                     = var.postgres_server
+  pem_server                          = var.pem_server
+  barman_server                       = var.barman_server
+  pooler_server                       = var.pooler_server
+  replication_type                    = var.replication_type
+  cluster_name                        = var.cluster_name
+  vnet_name                           = var.vnet_name
+  resourcegroup_name                  = var.resourcegroup_name
+  securitygroup_name                  = var.securitygroup_name
+  azure_region                        = var.azure_region
+  ssh_pub_key                         = var.ssh_pub_key
+  ssh_priv_key                        = var.ssh_priv_key
+  project_tags                        = var.project_tags
+  azure_publisher                     = var.azure_publisher
+  azure_offer                         = var.azure_offer
+  azure_sku                           = var.azure_sku
+  ssh_user                            = var.ssh_user
+  ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
+  add_hosts_filename                  = var.add_hosts_filename
+  pooler_type                         = var.pooler_type
+  pooler_local                        = var.pooler_local
+  network_count                       = var.pooler_server["count"] > var.postgres_server["count"] ? var.pooler_server["count"] : var.postgres_server["count"]
+  depends_on = [module.network]
+}
+
+module "vm-hammerdb" {
+  count = var.hammerdb ? 1 : 0
+  source = "./environments/vm-hammerdb"
 
   barman                              = var.barman
   postgres_server                     = var.postgres_server
