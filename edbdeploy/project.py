@@ -1134,8 +1134,7 @@ class Project:
                     (self.terraform_vars['postgres_server']['count']
                      + self.terraform_vars['barman_server']['count']
                      + self.terraform_vars['pem_server']['count']
-                     + self.terraform_vars['pooler_server']['count']
-                     + self.terraform_vars['hammerdb_server']['count'])
+                     + self.terraform_vars['pooler_server']['count'])
                 )
 
 
