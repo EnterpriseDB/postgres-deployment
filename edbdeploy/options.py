@@ -50,6 +50,10 @@ class ReferenceArchitectureOptionAzure(ReferenceArchitectureOptionAWS):
     pass
 
 
+class ReferenceArchitectureOptionAzureDB(ReferenceArchitectureOptionRDS):
+    pass
+
+
 class OSOption:
     choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8']
     default = 'CentOS8'
@@ -64,6 +68,15 @@ class PgVersionOption:
     default = '13'
     help = textwrap.dedent("""
         PostgreSQL or EPAS version. Allowed values are: 11, 12 and 13.
+        Default: %(default)s
+    """)
+
+
+class PgVersionOptionAzureDB:
+    choices = ['11']
+    default = '11'
+    help = textwrap.dedent("""
+        Azure Database for PostgreSQL version. Allowed values are: 11.
         Default: %(default)s
     """)
 
@@ -88,11 +101,20 @@ class PgTypeOption:
 
 
 class PgTypeOptionRDS:
-    choices = ['RDS']
-    default = 'RDS'
+    choices = ['DBaaS']
+    default = 'DBaaS'
     help = textwrap.dedent("""
-        Postgres engine type. Allowed values are: RDS for AWS RDS.  Default:
+        Postgres engine type. Allowed values are: DBaaS for AWS RDS.  Default:
         %(default)s
+    """)
+
+
+class PgTypeOptionAzureDB:
+    choices = ['DBaaS']
+    default = 'DBaaS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: DBaaS for Azure Database.
+        Default: %(default)s
     """)
 
 

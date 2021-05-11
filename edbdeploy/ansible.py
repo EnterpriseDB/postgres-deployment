@@ -119,6 +119,9 @@ class AnsibleCli:
         self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars
     ):
         try:
+            # TODO: extra_vars needs to be escaped for the shell or maybe dump
+            # it to a file and pass that filename to ansible-playbook without
+            # parsing.
             command = [
                     self.bin("ansible-playbook"),
                     playbook,
@@ -128,7 +131,7 @@ class AnsibleCli:
                     "--private-key", ssh_priv_key,
                     "-e", "'%s'" % extra_vars
                 ]
-            if cloud in ['aws-rds', 'aws-rds-aurora']:
+            if cloud in ['aws-rds', 'aws-rds-aurora', 'azure-db']:
                 command.append('--limit')
                 command.append('!primary')
             rc = exec_shell_live(command, cwd=self.dir)
