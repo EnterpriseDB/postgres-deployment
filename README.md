@@ -35,8 +35,11 @@ Third party pre-requisites:
    Depending on the cloud provider, install the **latest version** for: AWS
    CLI, Azure CLI or Google Cloud SDK on the system.
 
-2. **Terraform** >= 0.13
-3. **Ansible** >= 2.9
+2. **Terraform** >= 0.15.1
+3. **Ansible** >= 2.10.8
+4. **AWS CLI** >= 2.0.45
+5. **Azure CLI** >= 2.23.0
+6. **Google Cloud CLI** >= 329.0.0
 
 To help the installation of the third party pre-requisites listed above,
 `edb-deployment` provides the `setup` sub-command working for Linux and Darwin
