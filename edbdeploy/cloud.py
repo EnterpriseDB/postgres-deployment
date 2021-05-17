@@ -66,9 +66,10 @@ class AWSCli:
             min = self.min_version[i]
             max = self.max_version[i]
 
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
+            if version[i] > min and version[i] < max:
+                # If current digit is below the maximum value and strictly
+                # greater than the minimum value, no need to check others
+                # digits, we are good
                 break
 
             if version[i] not in list(range(min, max + 1)):
@@ -297,9 +298,10 @@ class AzureCli:
             min = self.min_version[i]
             max = self.max_version[i]
 
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
+            if version[i] > min and version[i] < max:
+                # If current digit is below the maximum value and strictly
+                # greater than the minimum value, no need to check others
+                # digits, we are good
                 break
 
             if version[i] not in list(range(min, max + 1)):
@@ -501,9 +503,10 @@ class GCloudCli:
             min = self.min_version[i]
             max = self.max_version[i]
 
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
+            if version[i] > min and version[i] < max:
+                # If current digit is below the maximum value and strictly
+                # greater than the minimum value, no need to check others
+                # digits, we are good
                 break
 
             if version[i] not in list(range(min, max + 1)):
