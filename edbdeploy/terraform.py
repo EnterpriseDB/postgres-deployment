@@ -20,9 +20,10 @@ class TerraformCli:
         self.plugin_cache_dir = plugin_cache_dir
         self.environ = os.environ
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
+        self.environ['TF_DATA_DIR'] = self.dir
         # Terraform supported version interval
         self.min_version = (0, 15, 1)
-        self.max_version = (9, 9, 9)
+        self.max_version = (0, 15, 1)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -101,13 +102,13 @@ class TerraformCli:
     def init(self):
         try:
             # Added step for Terraform >= 0.15.1
-            rc0 = exec_shell_live(
-                [self.bin("export"), "TF_DATA_DIR=%s" % self.dir],
-                environ=self.environ,
-                cwd=self.dir
-            )
-            if rc0 != 0:
-                raise Exception("Return code not 0")
+            #rc0 = exec_shell_live(
+            #    [self.bin("export"), "TF_DATA_DIR=%s" % self.dir],
+            #    environ=self.environ,
+            #    cwd=self.dir
+            #)
+            #if rc0 != 0:
+            #    raise Exception("Return code not 0")
             # Before Terraform 0.15.0                                 
             rc1 = exec_shell_live(
                 #[self.bin("terraform"), "init", "-no-color", self.dir],
@@ -163,7 +164,7 @@ class TerraformCli:
                 raise Exception("Return code not 0")
             # Added after Terraform 0.15.1                
             rc1 = exec_shell_live(
-                [self.bin("terraform"), "init", "-no-color"],                
+                [self.bin("terraform"), "init", "-no-color"],
                 environ=self.environ,
                 cwd=self.dir
             )
