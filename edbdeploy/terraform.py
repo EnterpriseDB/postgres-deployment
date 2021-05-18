@@ -189,7 +189,7 @@ class TerraformCli:
                 cwd=self.dir
             )
             if rc2 != 0:
-                raise Exception("Return code not 0")                                
+                raise Exception("Return code not 0")
         except Exception as e:
             logging.error("Failed to execute the command")
             logging.error(e)
