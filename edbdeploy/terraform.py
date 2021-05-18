@@ -20,10 +20,11 @@ class TerraformCli:
         self.plugin_cache_dir = plugin_cache_dir
         self.environ = os.environ
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
-        self.environ['TF_DATA_DIR'] = self.dir
+        # Causes failure with Terraform >= 0.15.1 destroy 
+        #self.environ['TF_DATA_DIR'] = self.dir
         # Terraform supported version interval
         self.min_version = (0, 15, 1)
-        self.max_version = (0, 15, 1)
+        self.max_version = (0, 15, 3)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -103,6 +104,7 @@ class TerraformCli:
     def init(self):
         try:
             # Added step for Terraform >= 0.15.1
+            # Should work but causes terraform destroy to fail
             #rc0 = exec_shell_live(
             #    [self.bin("export"), "TF_DATA_DIR=%s" % self.dir],
             #    environ=self.environ,
