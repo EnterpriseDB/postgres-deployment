@@ -182,6 +182,11 @@ class Project:
                 os.makedirs(self.project_path)
             return
 
+        if self.cloud == 'azure-db':
+            self.postgres_passwd = \
+                    getpass.getpass(
+                            "Set Initial Database Super User Password:")
+
         # Copy terraform code
         with AM("Copying Terraform code from into %s" % self.project_path):
             try:
@@ -909,6 +914,7 @@ class Project:
             'azure_offer': os['offer'],
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
+            'azuredb_passwd': self.postgres_passwd,
             'azuredb_sku': env.cloud_spec['postgres_server']['sku'],
             'azure_region': env.azure_region,
             'cluster_name': self.name,

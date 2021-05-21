@@ -47,6 +47,7 @@ module "vm" {
   azure_publisher                     = var.azure_publisher
   azure_offer                         = var.azure_offer
   azure_sku                           = var.azure_sku
+  azuredb_passwd                      = var.azuredb_passwd
   azuredb_sku                         = var.azuredb_sku
   ssh_user                            = var.ssh_user
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename

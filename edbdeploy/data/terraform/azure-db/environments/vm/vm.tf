@@ -4,6 +4,7 @@ variable "azure_region" {}
 variable "azure_offer" {}
 variable "azure_publisher" {}
 variable "azure_sku" {}
+variable "azuredb_passwd" {}
 variable "azuredb_sku" {}
 variable "cluster_name" {}
 variable "network_count" {}
@@ -220,7 +221,7 @@ resource "azurerm_postgresql_server" "postgresql_server" {
   resource_group_name = var.resourcegroup_name
  
   administrator_login          = "postgres"
-  administrator_login_password = "Ahb0uL!eerahmiT4ShooF6teepie2eu6"
+  administrator_login_password = var.azuredb_passwd
  
   sku_name   = var.azuredb_sku
   version    = var.pg_version
