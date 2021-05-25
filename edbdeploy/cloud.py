@@ -19,7 +19,7 @@ class AWSCli:
     def __init__(self, bin_path=None):
         # aws CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (1, 19, 18)
+        self.max_version = (2, 0, 45)
         # Path to look up for executable
         self.bin_path = None
         # Force aws CLI binary path if bin_path exists and contains
@@ -253,7 +253,7 @@ class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 20, 0)
+        self.max_version = (2, 23, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force azure CLI binary path if bin_path exists and contains

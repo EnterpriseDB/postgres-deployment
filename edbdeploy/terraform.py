@@ -20,9 +20,11 @@ class TerraformCli:
         self.plugin_cache_dir = plugin_cache_dir
         self.environ = os.environ
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
+        # Causes failure with Terraform >= 0.15.1 destroy 
+        #self.environ['TF_DATA_DIR'] = self.dir
         # Terraform supported version interval
-        self.min_version = (0, 0, 0)
-        self.max_version = (0, 14, 7)
+        self.min_version = (0, 15, 1)
+        self.max_version = (0, 15, 3)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -101,12 +103,23 @@ class TerraformCli:
 
     def init(self):
         try:
-            rc = exec_shell_live(
-                [self.bin("terraform"), "init", "-no-color", self.dir],
+            # Added step for Terraform >= 0.15.1
+            # Should work but causes terraform destroy to fail
+            #rc0 = exec_shell_live(
+            #    [self.bin("export"), "TF_DATA_DIR=%s" % self.dir],
+            #    environ=self.environ,
+            #    cwd=self.dir
+            #)
+            #if rc0 != 0:
+            #    raise Exception("Return code not 0")
+            # Before Terraform 0.15.0                                 
+            rc1 = exec_shell_live(
+                #[self.bin("terraform"), "init", "-no-color", self.dir],
+                [self.bin("terraform"), "init", "-no-color"],
                 environ=self.environ,
                 cwd=self.dir
             )
-            if rc != 0:
+            if rc1 != 0:
                 raise Exception("Return code not 0")
         except Exception as e:
             logging.error("Failed to execute the command")
@@ -125,8 +138,10 @@ class TerraformCli:
                     "-auto-approve",
                     "-var-file",
                     vars_file,
-                    "-no-color",
-                    self.dir
+                    "-no-color"
+                    # Before Terraform 0.15.1
+                    #,
+                    #self.dir
                 ],
                 environ=self.environ,
                 cwd=self.dir
@@ -142,20 +157,38 @@ class TerraformCli:
 
     def destroy(self, vars_file):
         try:
-            rc = exec_shell_live(
+            # Added after Terraform 0.15.1
+            rc0 = exec_shell_live(
+                [self.bin("cd"), "%s" % self.dir],
+                environ=self.environ,
+                cwd=self.dir
+            )
+            if rc0 != 0:
+                raise Exception("Return code not 0")
+            # Added after Terraform 0.15.1                
+            rc1 = exec_shell_live(
+                [self.bin("terraform"), "init", "-no-color"],
+                environ=self.environ,
+                cwd=self.dir
+            )
+            if rc1 != 0:
+                raise Exception("Return code not 0")
+            rc2 = exec_shell_live(
                 [
                     self.bin("terraform"),
                     "destroy",
                     "-auto-approve",
                     "-var-file",
                     vars_file,
-                    "-no-color",
-                    self.dir
+                    "-no-color"
+                    # Before Terraform 0.15.1
+                    #,
+                    #self.dir
                 ],
                 environ=self.environ,
                 cwd=self.dir
             )
-            if rc != 0:
+            if rc2 != 0:
                 raise Exception("Return code not 0")
         except Exception as e:
             logging.error("Failed to execute the command")
