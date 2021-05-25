@@ -1,0 +1,33 @@
+variable "azure_region" {}
+variable "azure_publisher" {}
+variable "azure_offer" {}
+variable "azure_sku" {}
+variable "azuredb_passwd" {}
+variable "azuredb_sku" {}
+variable "postgres_server" {}
+variable "pem_server" {}
+variable "hammerdb_server" {}
+variable "cluster_name" {}
+variable "pg_version" {}
+variable "ssh_pub_key" {}
+variable "ssh_priv_key" {}
+variable "ssh_user" {}
+variable "hammerdb" {}
+variable "guc_effective_cache_size" {}
+variable "guc_max_wal_size" {}
+
+variable "vnet_cidr_block" {
+  description = "CIDR Block for the VNet"
+  default     = "10.0.0.0/16"
+}
+
+# Ansible Yaml Inventory Filename
+variable "ansible_inventory_yaml_filename" {
+  default = "inventory.yml"
+}
+
+# Ansible Add Hosts Filename
+variable "add_hosts_filename" {
+  type    = string
+  default = "add_host.sh"
+}

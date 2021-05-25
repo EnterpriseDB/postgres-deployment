@@ -5,6 +5,7 @@ from .spec.aws import AWSSpec
 from .spec.aws_rds import AWSRDSSpec
 from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
+from .spec.azure_db import AzureDBSpec
 from .spec.gcloud import GCloudSpec
 from .spec.baremetal import BaremetalSpec
 from .errors import SpecValidatorError
@@ -104,6 +105,8 @@ def default_spec(cloud, reference_architecture=None):
         return default(AWSRDSAuroraSpec)
     elif cloud == 'azure':
         return default(AzureSpec)
+    elif cloud == 'azure-db':
+        return default(AzureDBSpec)
     elif cloud == 'gcloud':
         return default(GCloudSpec)
     elif cloud == 'baremetal':
@@ -123,6 +126,8 @@ def merge_user_spec(cloud, user_spec, reference_architecture=None):
         cloud_spec = AWSRDSAuroraSpec
     elif cloud == 'azure':
         cloud_spec = AzureSpec
+    elif cloud == 'azure-db':
+        cloud_spec = AzureDBSpec
     elif cloud == 'gcloud':
         cloud_spec = GCloudSpec
     elif cloud == 'baremetal':

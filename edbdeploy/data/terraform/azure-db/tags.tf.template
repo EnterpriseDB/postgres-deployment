@@ -1,0 +1,55 @@
+# Tags
+variable "project_tags" {
+  description = "A map of tags to add to all resources."
+  type        = map(string)
+  default = {
+    key = "%PROJECT_NAME%_edb_azure"
+  }
+}
+
+variable "project_tag" {
+  type    = string
+  default = "%PROJECT_NAME%_edb_azure_deployment"
+}
+
+# Storage
+variable "storageaccount_name" {
+  description = "Name of the bucket for storing related data of deployment"
+  type        = string
+  default     = "%PROJECT_NAME%edbpostgres"
+}
+
+variable "storagecontainer_name" {
+  description = "Name of the bucket for storing related data of deployment"
+  type        = string
+  default     = "%PROJECT_NAME%edbstoragecontainer"
+}
+
+# VNet
+variable "vnet_name" {
+  type    = string
+  default = "%PROJECT_NAME%_edb_vnet"
+}
+
+# Resource Group
+variable "resourcegroup_tag" {
+  default = "%PROJECT_NAME%_edb_resource_group"
+}
+
+variable "resourcegroup_name" {
+  default = "%PROJECT_NAME%_edb_resource_group"
+}
+
+# Subnets
+variable "subnet_name" {
+  default = "%PROJECT_NAME%_edb_public_subnet"
+}
+
+variable "subnet_tag" {
+  default = "%PROJECT_NAME%_edb_public_subnet"
+}
+
+# Security Group
+variable "securitygroup_name" {
+  default = "%PROJECT_NAME%_edb_security_group"
+}

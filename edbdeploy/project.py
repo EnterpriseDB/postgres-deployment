@@ -10,7 +10,7 @@ import stat
 import time
 import yaml
 
-from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, GCloudCli
+from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, AzureDBCli, GCloudCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
 from .action import ActionManager as AM
@@ -181,6 +181,11 @@ class Project:
             with AM("Creating project directory %s" % self.project_path):
                 os.makedirs(self.project_path)
             return
+
+        if self.cloud == 'azure-db':
+            self.postgres_passwd = \
+                    getpass.getpass(
+                            "Set Initial Database Super User Password:")
 
         # Copy terraform code
         with AM("Copying Terraform code from into %s" % self.project_path):
@@ -894,6 +899,49 @@ class Project:
             'ssh_user': os['ssh_user'],
         }
 
+    def _azuredb_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for Azure Database provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
+        guc = TPROCC_GUC
+
+        self.terraform_vars = {
+            'azure_offer': os['offer'],
+            'azure_publisher': os['publisher'],
+            'azure_sku': os['sku'],
+            'azuredb_passwd': self.postgres_passwd,
+            'azuredb_sku': pg['sku'],
+            'azure_region': env.azure_region,
+            'cluster_name': self.name,
+            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
+            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+            },
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
     def _build_terraform_vars(self, env):
         """
         Build Terraform variables based on the environment.
@@ -975,6 +1023,9 @@ class Project:
         return self._dbaas_build_ansible_vars(env)
 
     def _awsrdsaurora_build_ansible_vars(self, env):
+        return self._dbaas_build_ansible_vars(env)
+
+    def _azuredb_build_ansible_vars(self, env):
         return self._dbaas_build_ansible_vars(env)
 
     def _baremetal_build_ansible_vars(self, env):
@@ -1195,6 +1246,19 @@ class Project:
             extra_vars.update(dict(
                 pg_wal=self.ansible_vars['pg_wal']
             ))
+
+        # A separate YAML file is created with the for the DBaaS options with
+        # database credentials that need to be passed to the Ansible playbooks.
+        postgres_file = os.path.join(self.project_path, 'postgresql.yml')
+        if os.path.isfile(postgres_file):
+            with open(postgres_file, 'r') as file:
+                yaml_in = yaml.safe_load(file)
+                extra_vars.update(yaml_in)
+
+        # Until this is resolved:
+        # https://github.com/TPC-Council/HammerDB/issues/163
+        if self.cloud == 'azure-db':
+            extra_vars.update(dict(azure_db_hackery=True))
 
         if pre_deploy_ansible:
 

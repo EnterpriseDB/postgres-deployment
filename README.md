@@ -124,6 +124,7 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `aws-rds`: Amazon Web Services RDS for PostgreSQL
   * `aws-rds-aurora`: Amazon Aurora
   * `azure`: Microsoft Azure Cloud
+  * `azure-db`: Microsoft Azure Database
   * `gcloud`: Google Cloud
 
 ## Sub-commands

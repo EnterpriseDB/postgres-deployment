@@ -454,6 +454,10 @@ class AzureCli:
         execute_install_script(script_name)
 
 
+class AzureDBCli(AzureCli):
+    pass
+
+
 class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
@@ -682,6 +686,8 @@ class CloudCli:
             self.cli = AWSRDSAuroraCli(bin_path)
         elif self.cloud == 'azure':
             self.cli = AzureCli(bin_path)
+        elif self.cloud == 'azure-db':
+            self.cli = AzureDBCli(bin_path)
         elif self.cloud == 'gcloud':
             self.cli = GCloudCli(bin_path)
         else:
