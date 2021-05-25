@@ -15,8 +15,8 @@ class AnsibleCli:
     def __init__(self, dir, bin_path=None):
         self.dir = dir
         # Ansible supported versions interval
-        self.min_version = (2, 10, 8)
-        self.max_version = (2, 10, 9)
+        self.min_version = (2, 10, 7)
+        self.max_version = (2, 10, 10)
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains
@@ -187,7 +187,6 @@ class AnsibleCli:
             source {path}/ansible/{version}/bin/activate
             python3 -m pip install "cryptography==3.3.2"
             python3 -m pip install "ansible-base=={version}"
-            python3 -m pip install "ansible=={version}"
             deactivate
             rm -f {path}/bin/ansible
             ln -sf {path}/ansible/{version}/bin/ansible {path}/bin/.
