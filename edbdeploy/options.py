@@ -63,6 +63,14 @@ class OSOption:
     """)
 
 
+class VMWareOSOption:
+    choices = ['CentOS8']
+    default = 'CentOS8'
+    help = textwrap.dedent("""
+        Operating system. Allowed values are: CentOS8. Default: %(default)s
+    """)
+
+
 class PgVersionOption:
     choices = ['11', '12', '13']
     default = '13'
