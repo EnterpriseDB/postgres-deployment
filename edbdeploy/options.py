@@ -5,21 +5,6 @@ from .project import Project
 
 
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3']
-
-    default = 'EDB-RA-1'
-    help = textwrap.dedent("""
-        Reference architecture code name. Allowed values are: EDB-RA-1 for a
-        single Postgres node deployment with one backup server and one PEM
-        monitoring server, EDB-RA-2 for a 3 Postgres nodes deployment with
-        quorum base synchronous replication and automatic failover, one backup
-        server and one PEM monitoring server, EDB-RA-3 for extending EDB-RA-2
-        with 3 PgPoolII nodes. Default:
-        %(default)s
-    """)
-
-
-class ReferenceArchitectureOptionAWS:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
 
     default = 'EDB-RA-1'
@@ -46,7 +31,7 @@ class ReferenceArchitectureOptionRDS:
     """)
 
 
-class ReferenceArchitectureOptionAzure(ReferenceArchitectureOptionAWS):
+class ReferenceArchitectureOptionAzure(ReferenceArchitectureOption):
     pass
 
 

@@ -18,6 +18,15 @@ all:
           ansible_host: ${google_compute_instance.barman_server[0].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.barman_server[0].network_interface.0.network_ip}
 %{endif ~}
+%{for hammerdb_count in range(var.hammerdb_server["count"]) ~}
+%{if hammerdb_count == 0 ~}
+    hammerdbserver:
+      hosts:
+        hammerdbserver1:
+          ansible_host: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.network_ip}
+%{endif ~}
+%{endfor ~}
 %{for postgres_count in range(var.postgres_server["count"]) ~}
 %{if postgres_count == 0 ~}
     primary:
@@ -38,6 +47,12 @@ all:
           barman_server_private_ip: ${google_compute_instance.barman_server[0].network_interface.0.network_ip}
           barman_backup_method: postgres
 %{endif ~}
+%{for hammerdb_count in range(var.hammerdb_server["count"]) ~}
+%{if var.hammerdb == true ~}
+          hammerdb: true
+          hammerdb_server_private_ip: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.network_ip}
+%{endif ~}
+%{endfor ~}
 %{if var.pooler_local == true && var.pooler_type == "pgbouncer" ~}
           pgbouncer: true
 %{endif ~}
