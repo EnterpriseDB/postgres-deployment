@@ -753,7 +753,10 @@ class Project:
 
         # Display PEM server informations
         if 'pemserver' in inventory_data['all']['children']:
-            pem_user = 'enterprisedb'
+            if self.ansible_vars['pg_type'] == 'epas':
+                pem_user = 'enterprisedb'
+            else:
+                pem_user = 'postgres'
             pem_name = inventory_data['pemserver']['hosts'][0]
             pem_hostvars = inventory_data['_meta']['hostvars'][pem_name]
 
