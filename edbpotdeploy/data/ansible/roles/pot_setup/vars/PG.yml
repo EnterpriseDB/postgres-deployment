@@ -7,4 +7,4 @@ pg_database: "postgres"
 pg_port: 5432
 pg_service: "postgresql-{{ pg_version }}"
 pg_unix_socket_directories: 
-  - "/var/run/postgres"
+  - "/var/run/postgresql"
