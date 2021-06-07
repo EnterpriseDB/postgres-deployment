@@ -9,7 +9,7 @@ class Commander:
         self.env = env
         self.project = None
         if getattr(self.env, 'project', False):
-            self.project = Project(self.env.cloud, self.env.project)
+            self.project = Project(self.env.cloud, self.env.project, self.env)
 
     def _check_project_exists(self):
         if not self.project.exists():
@@ -65,7 +65,7 @@ class Commander:
         self.project.check_versions()
 
         logging.info("Provisioning machines for project %s", self.project.name)
-        self.project.provision()
+        self.project.provision(self.env)
 
     def destroy(self):
         self._check_project_exists()
@@ -90,7 +90,7 @@ class Commander:
 
     def display(self):
         self._check_project_exists()
-        logging.info("Desplaying project %s details", self.project.name)
+        logging.info("Displaying project %s details", self.project.name)
 
         # Check 3rd party SW versions
         self.project.check_versions()

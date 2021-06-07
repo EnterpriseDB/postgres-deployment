@@ -20,3 +20,6 @@ class TerraformCliError(Exception):
 
 class CliError(Exception):
     pass
+
+class VMWareCliError(Exception):
+    pass

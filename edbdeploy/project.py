@@ -13,6 +13,7 @@ import yaml
 from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, AzureDBCli, GCloudCli
 from .terraform import TerraformCli
 from .ansible import AnsibleCli
+from .vmware import VMWareCli
 from .action import ActionManager as AM
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
@@ -22,10 +23,13 @@ from .password import (
     random_password,
     save_password,
 )
-from .errors import ProjectError
+from .errors import ProjectError, VMWareCliError, CliError
 
 from .spec.aws_rds import TPROCC_GUC
 
+from .system import exec_shell_live, exec_shell
+
+from subprocess import CalledProcessError
 
 class Project:
 
@@ -50,10 +54,17 @@ class Project:
         'data',
         'ansible'
     )
+    vmware_share_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'vmware-wkstn',
+        'centos8'
+    )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres'
 
-    def __init__(self, cloud, name):
+    def __init__(self, cloud, name, env, bin_path=None):
+        self.env = env
         self.name = name
         self.cloud = cloud
         self.project_path = os.path.join(
@@ -92,10 +103,39 @@ class Project:
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
 
+        # Path to look up for executable
+        self.bin_path = None
+        # Force Ansible binary path if bin_path exists and contains
+        # ansible file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'python')):
+                self.bin_path = bin_path
+
+        self.environ = os.environ
+
     def check_versions(self):
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
+
+        # Update before committing with
+        # projects_root_path
+        self.mech_project_path = os.path.join(
+            self.projects_root_path,
+            #self.vmware_share_path
+            'vmware/',
+            self.name,
+            'centos8/',
+            "%s" % getattr(self.env, 'reference_architecture', None)
+        )
+
+        # Check only Python3 version when working with vmware deployment
+        if self.cloud == 'vmware':
+            vm = VMWareCli('dummy', self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            vm.python_check_version()
+            vm.vagrant_check_version()
+            vm.mech_check_version()
+            return
 
         # Check only Ansible version when working with baremetal deployment
         if self.cloud == 'baremetal':
@@ -175,7 +215,7 @@ class Project:
             raise ProjectError(msg)
 
     def create(self):
-        if self.cloud == 'baremetal':
+        if self.cloud == 'baremetal' or self.cloud == 'vmware':
             # Create only project directory when working with baremetal
             # deployment.
             with AM("Creating project directory %s" % self.project_path):
@@ -188,27 +228,29 @@ class Project:
                             "Set Initial Database Super User Password:")
 
         # Copy terraform code
-        with AM("Copying Terraform code from into %s" % self.project_path):
-            try:
-                shutil.copytree(self.terraform_path, self.project_path)
-            except Exception as e:
-                raise ProjectError(str(e))
-
-        with AM("Initialzing state file"):
-            self.init_state()
+        if self.cloud != 'vmware':
+            with AM("Copying Terraform code from into %s" % self.project_path):
+                try:
+                    shutil.copytree(self.terraform_path, self.project_path)
+                except Exception as e:
+                    raise ProjectError(str(e))
+        if self.cloud != 'vmware':
+            with AM("Initializing state file"):
+                self.init_state()
 
         # Create Terraform plugin cache
-        with AM(
-            "Creating Terraform plugin cache dir. %s"
-            % self.terraform_plugin_cache_path
-        ):
-            try:
-                os.makedirs(self.terraform_plugin_cache_path)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
+        if self.cloud != 'vmware':
+            with AM(
+                "Creating Terraform plugin cache dir. %s"
+                % self.terraform_plugin_cache_path
+            ):
+                try:
+                    os.makedirs(self.terraform_plugin_cache_path)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise ProjectError(str(e))
+                except Exception as e:
                     raise ProjectError(str(e))
-            except Exception as e:
-                raise ProjectError(str(e))
 
     def _load_cloud_specs(self, env):
         """
@@ -367,11 +409,180 @@ class Project:
         with open(self.ansible_inventory, 'w') as f:
             f.write(yaml.dump(inventory, default_flow_style=False))
 
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
+    def _build_vmware_ips(self, env):
+        """
+        Build IP Address list for vmware deployment.
+        """
+        # Load specifications
+        env.cloud_spec = self._load_cloud_specs(env)
+
+        try:
+            output = exec_shell(
+                [
+                    self.bin("mech"),
+                    "ip",
+                    "%s" % env.cloud_spec['pem_server_1']['name']
+                ],
+                environ=self.environ,
+                cwd=self.mech_project_path
+            )
+            result = output.decode("utf-8").split('\n')
+            env.cloud_spec['pem_server_1']['public_ip'] = result[0]
+            env.cloud_spec['pem_server_1']['private_ip'] = result[0]
+        except Exception as e:
+            logging.error("Failed to execute the command")
+            logging.error(e)
+            raise CliError(
+                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
+                    % env.cloud_spec['pem_server_1']['name']
+            )
+
+        try:
+            output = exec_shell(
+                [
+                    self.bin("mech"),
+                    "ip",
+                    "%s" % env.cloud_spec['backup_server_1']['name']
+                ],
+                environ=self.environ,
+                cwd=self.mech_project_path
+            )
+            result = output.decode("utf-8").split('\n')
+            env.cloud_spec['backup_server_1']['public_ip'] = result[0]
+            env.cloud_spec['backup_server_1']['private_ip'] = result[0]
+        except Exception as e:
+            logging.error("Failed to execute the command")
+            logging.error(e)
+            raise CliError(
+                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
+                    % env.cloud_spec['backup_server_1']['name']
+            )
+
+        try:
+            output = exec_shell(
+                [
+                    self.bin("mech"),
+                    "ip",
+                    "%s" % env.cloud_spec['postgres_server_1']['name']
+                ],
+                environ=self.environ,
+                cwd=self.mech_project_path
+            )
+            result = output.decode("utf-8").split('\n')
+            env.cloud_spec['postgres_server_1']['public_ip'] = result[0]
+            env.cloud_spec['postgres_server_1']['private_ip'] = result[0]
+        except Exception as e:
+            logging.error("Failed to execute the command")
+            logging.error(e)
+            raise CliError(
+                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
+                    % env.cloud_spec['postgres_server_1']['name']
+            )
+
+        if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
+            inventory = {
+                'all': {
+                    'children': {
+                        'pemserver': {
+                            'hosts': {
+                                env.cloud_spec['pem_server_1']['name']: {
+                                    'ansible_host': env.cloud_spec['pem_server_1']['public_ip'],
+                                    'private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                                }
+                            }
+                        },
+                        'barmanserver': {
+                            'hosts': {
+                                env.cloud_spec['backup_server_1']['name']: {
+                                    'ansible_host': env.cloud_spec['backup_server_1']['public_ip'],
+                                    'private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                                }
+                            }
+                        },
+                        'primary': {
+                            'hosts': {
+                                env.cloud_spec['postgres_server_1']['name']: {
+                                    'ansible_host': env.cloud_spec['postgres_server_1']['public_ip'],
+                                    'private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                                    'pem_agent': True,
+                                    'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                                    'barman': True,
+                                    'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                                    'barman_backup_method': 'postgres',
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            inventory['all']['children'].update({
+                'standby': {
+                    'hosts': {}
+                }
+            })
+            for i in range(2, 4):
+                try:
+                    output = exec_shell(
+                        [
+                            self.bin("mech"),
+                            "ip",
+                            "%s" % env.cloud_spec['postgres_server_%s' % i]['name']
+                        ],
+                        environ=self.environ,
+                        cwd=self.mech_project_path
+                    )
+                    result = output.decode("utf-8").split('\n')
+                    env.cloud_spec['postgres_server_%s' % i]['public_ip'] = result[0]
+                    env.cloud_spec['postgres_server_%s' % i]['private_ip'] = result[0]
+                except Exception as e:
+                    logging.error("Failed to execute the command")
+                    logging.error(e)
+                    raise CliError(
+                        "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
+                            % env.cloud_spec['postgres_server_%s' % i]['name']
+                    )
+        if env.reference_architecture == 'EDB-RA-3':
+            inventory['all']['children'].update({
+                'pgpool2': {
+                    'hosts': {}
+                }
+            })
+            for i in range(1, 4):
+                try:
+                    output = exec_shell(
+                        [
+                            self.bin("mech"),
+                            "ip",
+                            "%s" % env.cloud_spec['pooler_server_%s' % i]['name']
+                        ],
+                        environ=self.environ,
+                        cwd=self.mech_project_path
+                    )
+                    result = output.decode("utf-8").split('\n')
+                    env.cloud_spec['pooler_server_%s' % i]['public_ip'] = result[0]
+                    env.cloud_spec['pooler_server_%s' % i]['private_ip'] = result[0]
+                except Exception as e:
+                    logging.error("Failed to execute the command")
+                    logging.error(e)
+                    raise CliError(
+                        "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
+                            % env.cloud_spec['pooler_server_%s' % i]['name']
+                    )
+
     def _copy_ansible_playbook(self):
         """
         Copy reference architecture Ansible playbook into project directory.
         """
-        with AM("Copying Ansible playbook file %s" % self.ansible_playbook):
+        with AM("Copying Ansible playbook file into %s" % self.ansible_playbook):
             shutil.copy(
                 os.path.join(
                     self.ansible_share_path,
@@ -379,6 +590,59 @@ class Project:
                 ),
                 self.ansible_playbook
             )
+
+    def _copy_vmware_configfiles(self):
+        """
+        Copy reference architecture Mech Config file into project directory.
+        """
+        # Un-comment the self.vmware_share_path once the entire commit has been completed
+        frommechfile = os.path.join(
+                    self.vmware_share_path,
+                    "%s/Mechfile" % self.ansible_vars['reference_architecture']
+        )
+        self.mechfile = os.path.join(
+            self.project_path,
+            'centos8',
+            "%s" % self.ansible_vars['reference_architecture'],
+            "%s" % 'Mechfile'
+        )
+        fromplaybookfile = os.path.join(
+                    self.vmware_share_path,
+                    "%s/playbook.yml" % self.ansible_vars['reference_architecture']
+        )
+        playbookfile = os.path.join(
+            self.project_path,
+            "%s" % 'playbook.yml'
+        )
+        with AM("Copying Mech Config files into %s" % self.mechfile):
+            # Mechfile
+            try:
+                shutil.copy(
+                    frommechfile,
+                    self.mechfile
+                    )
+            except IOError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+                os.makedirs(os.path.dirname(self.mechfile))
+                shutil.copy(
+                    frommechfile,
+                    self.mechfile
+                    )
+            # Playbook File
+            try:
+                shutil.copy(
+                    fromplaybookfile,
+                    playbookfile
+                    )
+            except IOError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+                os.makedirs(os.path.dirname(self.mechfile))
+                shutil.copy(
+                    fromplaybookfile,
+                    playbookfile
+                    )
 
     def _get_instance_types(self, node_types):
         """
@@ -575,7 +839,7 @@ class Project:
         self._copy_ssh_keys(env)
 
         # Transform Terraform templates
-        if env.cloud != 'baremetal':
+        if env.cloud != 'baremetal' and env.cloud != 'vmware':
             self._transform_terraform_tpl()
 
         # RDS/Aurora: Build master user random password
@@ -583,13 +847,19 @@ class Project:
             with AM("Building master user password"):
                 save_password(self.project_path, 'postgres', random_password())
 
-        # Build the vars files for Terraform and Ansible
-        if env.cloud != 'baremetal':
+        # Build the vars files for Terraform and Ansiblev
+        if env.cloud != 'baremetal' and env.cloud != 'vmware':
             self._build_terraform_vars_file(env)
+
         self._build_ansible_vars_file(env)
 
         # Copy Ansible playbook into project dir.
-        self._copy_ansible_playbook()
+        if env.cloud != 'vmware':
+            self._copy_ansible_playbook()
+
+        # Copy VMWare Mech Config File into project dir.
+        if env.cloud == 'vmware':
+            self._copy_vmware_configfiles()
 
         # Build inventory file for baremetal deployment
         if env.cloud == 'baremetal':
@@ -1069,6 +1339,32 @@ class Project:
         if env.cloud_spec['pg_wal'] is not None:
             self.ansible_vars.update(dict(pg_wal=env.cloud_spec['pg_wal']))
 
+    def _vmware_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for vmware deployment.
+        """
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+        # VMWare and Vagrant ssh_user and ssh_pass is: 'vagrant'
+        ssh_user = 'vagrant'
+        ssh_pass = 'vagrant'
+
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': ssh_user,
+            'ssh_pass': ssh_pass,
+            'ssh_priv_key': self.ssh_priv_key,
+            'efm_version': env.efm_version,
+        }
+
     def _build_ansible_vars(self, env):
         """
         Build Ansible variables based on the environment.
@@ -1137,25 +1433,28 @@ class Project:
         sys.stdout.write(json_output)
         sys.stdout.flush()
 
-    def provision(self):
-        terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
-            bin_path=self.cloud_tools_bin_path
-        )
+    def provision(self, env):
+        self._load_ansible_vars()
 
-        self.update_state('terraform', 'INITIALIZATING')
-        with AM("Terraform project initialization"):
-            terraform.init()
-        self.update_state('terraform', 'INITIALIZATED')
+        if self.cloud != 'vmware':
+            terraform = TerraformCli(
+                self.project_path, self.terraform_plugin_cache_path,
+                bin_path=self.cloud_tools_bin_path
+                )
 
-        self.update_state('terraform', 'PROVISIONING')
-        with AM("Applying cloud resources creation"):
-            terraform.apply(self.terraform_vars_file)
-        self.update_state('terraform', 'PROVISIONED')
+            self.update_state('terraform', 'INITIALIZATING')
+            with AM("Terraform project initialization"):
+                terraform.init()
+            self.update_state('terraform', 'INITIALIZATED')
 
-        # Checking instance availability
-        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-        self._load_terraform_vars()
+            self.update_state('terraform', 'PROVISIONING')
+            with AM("Applying cloud resources creation"):
+                terraform.apply(self.terraform_vars_file)
+            self.update_state('terraform', 'PROVISIONED')
+
+            # Checking instance availability
+            cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+            self._load_terraform_vars()
 
         # AWS case
         if self.cloud == 'aws':
@@ -1166,6 +1465,7 @@ class Project:
                 cloud_cli.cli.check_instances_availability(
                     self.terraform_vars['aws_region']
                 )
+
         # AWS RDS case
         if self.cloud == 'aws-rds':
             with AM(
@@ -1175,10 +1475,12 @@ class Project:
                 cloud_cli.cli.check_instances_availability(
                     self.terraform_vars['aws_region']
                 )
+
         # Azure case
         if self.cloud == 'azure':
             with AM("Checking instances availability"):
                 cloud_cli.cli.check_instances_availability(self.name)
+
         # GCloud case
         if self.cloud == 'gcloud':
             with AM(
@@ -1195,21 +1497,73 @@ class Project:
                      + self.terraform_vars['pooler_server']['count'])
                 )
 
+        # VMWare case
+        if self.cloud == 'vmware':
+            # Update before committing with
+            # projects_root_path
+            self.mech_project_path = os.path.join(
+                self.projects_root_path,
+                'vmware/',
+                self.name,
+                'centos8/',
+                "%s" % self.ansible_vars['reference_architecture']
+            )
 
-        with AM("SSH configuration"):
-            terraform.exec_add_host_sh()
+            mech = VMWareCli(self.cloud, self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            with AM("Checking instances availability"):
+                mech.up()
+
+            # Build ip address list for vmware deployment
+            with AM(
+                "Build VMWare Ansible IP addresses"
+            ):
+                # Assigning Reference Architecture
+                env.reference_architecture = self.ansible_vars['reference_architecture']
+
+                # Load specifications
+                env.cloud_spec = self._load_cloud_specs(env)
+
+                # Build VMWare Ansible IP addresses
+                self._build_vmware_ips(env)
+
+            # Build inventory file for vmware deployment
+            with AM(
+                "Build Ansible inventory file %s" % self.ansible_inventory
+            ):
+                self._build_ansible_inventory(env)
+
+        if self.cloud != 'vmware':
+            with AM("SSH configuration"):
+                terraform.exec_add_host_sh()
 
     def destroy(self):
-        terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
-            bin_path=self.cloud_tools_bin_path
-        )
+        if self.cloud != 'vmware':
+            terraform = TerraformCli(
+                self.project_path, self.terraform_plugin_cache_path,
+                bin_path=self.cloud_tools_bin_path
+                )
 
-        self.update_state('terraform', 'DESTROYING')
-        with AM("Destroying cloud resources"):
-            terraform.destroy(self.terraform_vars_file)
-        self.update_state('terraform', 'DESTROYED')
-        self.update_state('ansible', 'UNKNOWN')
+            self.update_state('terraform', 'DESTROYING')
+            with AM("Destroying cloud resources"):
+                terraform.destroy(self.terraform_vars_file)
+                self.update_state('terraform', 'DESTROYED')
+                self.update_state('ansible', 'UNKNOWN')
+
+        # VMWare case
+        if self.cloud == 'vmware':
+            self._load_ansible_vars()
+            # Update before committing with
+            # projects_root_path
+            self.mech_project_path = os.path.join(
+                self.projects_root_path,
+                'vmware/',
+                self.name,
+                'centos8/',
+                "%s" % self.ansible_vars['reference_architecture']
+            )
+            mech = VMWareCli(self.cloud, self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            with AM("Destroying cloud resources"):
+                mech.destroy()
 
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
@@ -1239,7 +1593,8 @@ class Project:
             pg_version=self.ansible_vars['pg_version'],
             repo_username=self.ansible_vars['repo_username'],
             repo_password=self.ansible_vars['repo_password'],
-            pass_dir=os.path.join(self.project_path, '.edbpass')
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
+            ansible_ssh_pass='vagrant'
         )
         if self.ansible_vars.get('efm_version'):
             extra_vars.update(dict(
@@ -1279,7 +1634,7 @@ class Project:
                   json.dumps(extra_vars)
               )
 
-        if not skip_main_playbook: 
+        if not skip_main_playbook:
           self.update_state('ansible', 'DEPLOYING')
           with AM("Deploying components with Ansible"):
               ansible.run_playbook(
@@ -1306,7 +1661,7 @@ class Project:
                   json.dumps(extra_vars)
               )
 
-        if not skip_main_playbook: 
+        if not skip_main_playbook:
           # Display inventory informations
           self.display_inventory(inventory_data)
 
@@ -1388,6 +1743,21 @@ class Project:
             rows
         )
 
+    def display_vmware_projects(self, rows):
+        if not self.ansible_vars:
+            self._load_ansible_vars()
+
+        def _p(s):
+            sys.stdout.write(s)
+
+        sys.stdout.flush()
+        _p("\n")
+
+        Project.display_table(
+            ['Name', 'Path'],
+            rows
+        )
+
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
@@ -1404,7 +1774,7 @@ class Project:
                 if not os.path.isdir(project_path):
                     continue
 
-                project = Project(cloud, project_name)
+                project = Project(cloud, project_name, {})
 
                 terraform_resource_count = 0
                 terraform = TerraformCli(

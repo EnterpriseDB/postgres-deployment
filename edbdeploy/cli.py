@@ -11,6 +11,7 @@ from .commands import (
     baremetal,
     rds as aws_rds,
     gcloud,
+    vmware,
 )
 
 
@@ -49,6 +50,7 @@ def parse():
     baremetal_parser = subparsers.add_parser(
         'baremetal', help='Baremetal servers and VMs'
     )
+    vmware_parser = subparsers.add_parser('vmware', help='VMWare Workstation')
 
     # Sub-commands parsers
     aws_subparser = aws_parser.add_subparsers(
@@ -76,6 +78,10 @@ def parse():
         title='Baremetal sub-commands', dest='sub_command',
         metavar='<sub-command>'
     )
+    vmware_subparser = vmware_parser.add_subparsers(
+        title='VMWare sub-commands', dest='sub_command',
+        metavar='<sub-command>'
+    )
 
     # Attach sub-commands options to the sub-parsers
     aws.subcommands(aws_subparser)
@@ -85,6 +91,7 @@ def parse():
     azure_db.subcommands(azure_db_subparser)
     gcloud.subcommands(gcloud_subparser)
     baremetal.subcommands(baremetal_subparser)
+    vmware.subcommands(vmware_subparser)
 
     # Autocompletion with argcomplete
     argcomplete.autocomplete(parser)
@@ -119,6 +126,8 @@ def parse():
             gcloud_parser.print_help()
         elif env.cloud == 'baremetal':
             baremetal_parser.print_help()
+        elif env.cloud == 'vmware':
+            vmware_parser.print_help()
         sys.stderr.write('error: too few arguments\n')
         sys.exit(2)
 
