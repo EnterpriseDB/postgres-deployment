@@ -227,7 +227,7 @@ resource "azurerm_postgresql_server" "postgresql_server" {
   version    = var.pg_version
 
   storage_profile {
-    storage_mb = var.postgres_server["volume"]["size"]
+    storage_mb = var.postgres_server["size"]
     backup_retention_days        = 7
     geo_redundant_backup  = "Disabled"
   }
@@ -242,7 +242,7 @@ resource "azurerm_postgresql_database" "postgresql_db" {
   resource_group_name = var.resourcegroup_name
   server_name         = azurerm_postgresql_server.postgresql_server.name
   charset             = "utf8"
-  collation           = "English_United States.1252"
+  collation           = "C"
 }
 
 resource "azurerm_postgresql_firewall_rule" "postgresql-fw-rule" {
