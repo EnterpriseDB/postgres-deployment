@@ -22,7 +22,7 @@ class TerraformCli:
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Terraform supported version interval
         self.min_version = (0, 15, 3)
-        self.max_version = (0, 15, 4)
+        self.max_version = (1, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -74,13 +74,13 @@ class TerraformCli:
             min = self.min_version[i]
             max = self.max_version[i]
 
-            if version[i] > min and version[i] < max:
+            if version[i] > min and version[i] <= max:
                 # If current digit is below the maximum value and strictly
                 # greater than the minimum value, no need to check others
                 # digits, we are good
                 break
-
-            if version[i] not in list(range(min, max + 1)):
+            else:
+            #if version[i] not in list(range(min, max + 1)):
                 raise Exception(
                     ("Terraform version %s not supported, must be between %s "
                      "and %s") % (

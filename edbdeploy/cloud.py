@@ -253,7 +253,7 @@ class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 24, 0)
+        self.max_version = (2, 24, 2)
         # Path to look up for executable
         self.bin_path = None
         # Force azure CLI binary path if bin_path exists and contains
@@ -289,9 +289,9 @@ class AzureCli:
                 break
 
         if version is None:
-            raise Exception("Unable to parse azure CLI version")
+            raise Exception("Unable to parse Azure CLI version")
 
-        logging.info("azure CLI version: %s", '.'.join(map(str, version)))
+        logging.info("Azure CLI version: %s", '.'.join(map(str, version)))
 
         # Verify if the version fetched is supported
         for i in range(0, 3):
@@ -306,7 +306,7 @@ class AzureCli:
 
             if version[i] not in list(range(min, max + 1)):
                 raise Exception(
-                    ("azure CLI version %s not supported, must be between %s and"
+                    ("Azure CLI version %s not supported, must be between %s and"
                      " %s") % (
                         '.'.join(map(str, version)),
                         '.'.join(map(str, self.min_version)),
