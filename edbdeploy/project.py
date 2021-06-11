@@ -1211,8 +1211,8 @@ class Project:
             'pg_version': env.postgres_version,
             'postgres_server': {
                 'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
+                'size': pg['size'],
+                'sku': pg['sku'],
             },
             'ssh_pub_key': self.ssh_pub_key,
             'ssh_priv_key': self.ssh_priv_key,
