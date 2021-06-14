@@ -44,3 +44,11 @@
     group: root
     mode: 0755
   become: yes
+  
+- name: Install EFM and dependencies
+  package:
+    name: "net-tools"
+    state: present
+  when: ansible_os_family == 'RedHat'
+  become: yes
+  
