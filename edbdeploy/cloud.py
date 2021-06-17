@@ -239,7 +239,7 @@ class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 24, 0)
+        self.max_version = (2, 25, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force azure CLI binary path if bin_path exists and contains
