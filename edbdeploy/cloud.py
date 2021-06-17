@@ -13,6 +13,7 @@ from .installation import (
 )
 from .system import exec_shell
 from .errors import CloudCliError
+from . import check_version, to_str
 
 
 class AWSCli:
@@ -61,26 +62,11 @@ class AWSCli:
 
         logging.info("aws CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] > min and version[i] < max:
-                # If current digit is below the maximum value and strictly
-                # greater than the minimum value, no need to check others
-                # digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("aws CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "aws CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -293,26 +279,11 @@ class AzureCli:
 
         logging.info("azure CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] > min and version[i] < max:
-                # If current digit is below the maximum value and strictly
-                # greater than the minimum value, no need to check others
-                # digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("azure CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "azure CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -322,7 +293,6 @@ class AzureCli:
             return os.path.join(self.bin_path, binary)
         else:
             return binary
-
 
     def check_instance_type_availability(self, instance_type, region):
         try:
@@ -502,26 +472,11 @@ class GCloudCli:
 
         logging.info("gcloud CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] > min and version[i] < max:
-                # If current digit is below the maximum value and strictly
-                # greater than the minimum value, no need to check others
-                # digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("gcloud CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "gcloud CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """

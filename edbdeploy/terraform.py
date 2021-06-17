@@ -11,6 +11,7 @@ from .installation import (
 )
 from .system import exec_shell_live, exec_shell
 from .errors import TerraformCliError
+from . import check_version, to_str
 
 
 class TerraformCli:
@@ -69,26 +70,11 @@ class TerraformCli:
 
         logging.info("Terraform version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] > min and version[i] < max:
-                # If current digit is below the maximum value and strictly
-                # greater than the minimum value, no need to check others
-                # digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("Terraform version %s not supported, must be between %s "
-                     "and %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                ("Terraform version %s not supported, must be between %s and"
+                 "%s") % (to_str(version), to_str(self.min_version),
+                          to_str(self.max_version)))
 
     def bin(self, binary):
         """
