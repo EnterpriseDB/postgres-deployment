@@ -113,14 +113,22 @@ class AnsibleCli:
 
     def list_inventory(self, inventory):
         try:
-            output = exec_shell([
-                self.bin("ansible-inventory"),
-                "--list",
-                "-i", inventory
-            ])
+            # Set the env. variable ANSIBLE_DEPRECATION_WARNINGS to false
+            # because without this, warning messages are displayed when the
+            # python version is < 3.8 making the output not JSON compatible.
+            environ = os.environ.copy()
+            environ['ANSIBLE_DEPRECATION_WARNINGS'] = 'false'
+            output = exec_shell(
+                [
+                    self.bin("ansible-inventory"),
+                    "--list",
+                    "-i", inventory
+                ],
+                environ=environ
+            )
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
-            return result 
+            return result
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
