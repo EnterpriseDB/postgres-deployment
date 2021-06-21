@@ -29,16 +29,36 @@ class AnsibleCli:
         """
         Verify ansible version, based on the interval formed by min_version and
         max_version.
-        Ansible version is fetched by importing the __version__ var from
-        ansible python module.
+        Ansible version is fetched using the command: ansible --version
         """
         try:
+            output = exec_shell([
+                self.bin("ansible"),
+                "--version"
+            ])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
             from ansible import __version__ as ansible_version
-        except ImportError as e:
             raise CliError(
                 "Ansible does not look to be installed. Please install it."
             )
-        version = [int(i) for i in ansible_version.split('.')]
+
+        version = None
+        # Parse command output and extract the version number
+        # Output can be:
+        # - ansible 1.2.3
+        # - ansible [core 1.2.3]
+        pattern = re.compile(r"^ansible\D*(\d+)\.(\d+)\.(\d+)\D*$")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise CliError("Unable to parse Ansible version")
 
         logging.info("Ansible version: %s", '.'.join(map(str, version)))
 
@@ -151,7 +171,7 @@ class AnsibleCli:
             sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/{version}/bin/activate
             source {path}/ansible/{version}/bin/activate
             python3 -m pip install "cryptography==3.3.2"
-            python3 -m pip install "ansible-base=={version}"
+            python3 -m pip install "ansible-core=={version}"
             deactivate
             rm -f {path}/bin/ansible
             ln -sf {path}/ansible/{version}/bin/ansible {path}/bin/.
