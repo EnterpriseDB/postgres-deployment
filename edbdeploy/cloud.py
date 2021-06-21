@@ -20,7 +20,7 @@ class AWSCli:
     def __init__(self, bin_path=None):
         # aws CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 0, 45)
+        self.max_version = (1, 19, 97)
         # Path to look up for executable
         self.bin_path = None
         # Force aws CLI binary path if bin_path exists and contains
