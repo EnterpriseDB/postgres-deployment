@@ -19,7 +19,7 @@ class TerraformCli:
     def __init__(self, dir, plugin_cache_dir, bin_path=None):
         self.dir = dir
         self.plugin_cache_dir = plugin_cache_dir
-        self.environ = os.environ
+        self.environ = os.environ.copy()
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Terraform supported version interval
         self.min_version = (1, 0, 0)
@@ -31,6 +31,13 @@ class TerraformCli:
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'terraform')):
                 self.bin_path = bin_path
+                # Add terraform bin path to the PATH env. variable. This is
+                # needed to cover the case when binaries are localted in
+                # ~/.edb-cloud-tools/bin and terraform needs to execute the az
+                # command.
+                self.environ['PATH'] = "%s:%s" % (
+                    self.environ['PATH'], self.bin_path
+                )
 
     def check_version(self):
         """
@@ -43,10 +50,10 @@ class TerraformCli:
         # catched. In this case, we do not want trigger anything if something
         # fails.
         try:
-            output = exec_shell([
-                self.bin("terraform"),
-                "--version"
-            ])
+            output = exec_shell(
+                [self.bin("terraform"), "--version"],
+                environ=self.environ
+            )
         except CalledProcessError as e:
             logging.error("Failed to execute the command: %s", e.cmd)
             logging.error("Return code is: %s", e.returncode)
