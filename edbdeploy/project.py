@@ -1,35 +1,29 @@
 import errno
-import getpass
 import json
 import logging
 import os
 import re
 import shutil
-import sys
 import stat
+import sys
 import time
 import yaml
 
-from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, AzureDBCli, GCloudCli
-from .terraform import TerraformCli
-from .ansible import AnsibleCli
-from .vmware import VMWareCli
 from .action import ActionManager as AM
+from .ansible import AnsibleCli
+from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
+from .errors import ProjectError
+from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
-from .password import (
-    get_password,
-    list_passwords,
-    random_password,
-    save_password,
-)
-from .errors import ProjectError, VMWareCliError, CliError
+from .terraform import TerraformCli
 
-from .spec.aws_rds import TPROCC_GUC
 
-from .system import exec_shell_live, exec_shell
+def exec_hook(obj, name, *args, **kwargs):
+    # Inject specific method call.
+    if getattr(obj, name, False):
+        return getattr(obj, name)(*args, **kwargs)
 
-from subprocess import CalledProcessError
 
 class Project:
 
@@ -115,33 +109,13 @@ class Project:
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
-        # Update before committing with
-        # projects_root_path
-        self.mech_project_path = os.path.join(
-            self.projects_root_path,
-            'vmware/',
-            self.name
-        )
-        # Check only Python3 version when working with vmware deployment
-        if self.cloud == 'vmware':
-            vm = VMWareCli('dummy', self.name, self.cloud, 0, 0, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
-            vm.python_check_version()
-            vm.vagrant_check_version()
-            vm.mech_check_version()
-            return
-
-        # Check only Ansible version when working with baremetal deployment
-        if self.cloud == 'baremetal':
-            return
-
         # Check Terraform version
-        if self.cloud not in ['vmware', 'baremetal']:
-            terraform = TerraformCli('dummy', 'dummy',
-                                    bin_path=self.cloud_tools_bin_path)
-            terraform.check_version()
-            # Check cloud vendor CLI/SDK version
-            cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-            cloud_cli.check_version()
+        terraform = TerraformCli('dummy', 'dummy',
+                                 bin_path=self.cloud_tools_bin_path)
+        terraform.check_version()
+        # Check cloud vendor CLI/SDK version
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        cloud_cli.check_version()
 
     def create_log_dir(self):
         try:
@@ -171,7 +145,6 @@ class Project:
                 raise ProjectError(str(e))
         except Exception as e:
             raise ProjectError(str(e))
-
 
     def exists(self):
         return os.path.exists(self.project_path)
@@ -209,42 +182,30 @@ class Project:
             raise ProjectError(msg)
 
     def create(self):
-        if self.cloud == 'baremetal' or self.cloud == 'vmware':
-            # Create only project directory when working with baremetal
-            # or vmware deployment.
-            with AM("Creating project directory %s" % self.project_path):
-                os.makedirs(self.project_path)
-            return
-
-        if self.cloud == 'azure-db':
-            self.postgres_passwd = \
-                    getpass.getpass(
-                            "Set Initial Database Super User Password:")
+        # Pre-create hook
+        exec_hook(self, 'hook_pre_create')
 
         # Copy terraform code
-        if self.cloud != 'vmware':
-            with AM("Copying Terraform code from into %s" % self.project_path):
-                try:
-                    shutil.copytree(self.terraform_path, self.project_path)
-                except Exception as e:
-                    raise ProjectError(str(e))
-        if self.cloud != 'vmware':
-            with AM("Initializing state file"):
-                self.init_state()
+        with AM("Copying Terraform code from into %s" % self.project_path):
+            try:
+                shutil.copytree(self.terraform_path, self.project_path)
+            except Exception as e:
+                raise ProjectError(str(e))
+        with AM("Initializing state file"):
+            self.init_state()
 
         # Create Terraform plugin cache
-        if self.cloud != 'vmware':
-            with AM(
-                "Creating Terraform plugin cache dir. %s"
-                % self.terraform_plugin_cache_path
-            ):
-                try:
-                    os.makedirs(self.terraform_plugin_cache_path)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise ProjectError(str(e))
-                except Exception as e:
+        with AM(
+            "Creating Terraform plugin cache dir. %s"
+            % self.terraform_plugin_cache_path
+        ):
+            try:
+                os.makedirs(self.terraform_plugin_cache_path)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
                     raise ProjectError(str(e))
+            except Exception as e:
+                raise ProjectError(str(e))
 
     def _load_cloud_specs(self, env):
         """
@@ -302,8 +263,8 @@ class Project:
             ):
                 with open(template_path, 'r') as f:
                     with open(dest_path, 'w') as d:
-                        for l in f.readlines():
-                            d.write(l.replace("%PROJECT_NAME%", self.name))
+                        for line in f.readlines():
+                            d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
     def _build_terraform_vars_file(self, env):
@@ -328,36 +289,39 @@ class Project:
 
     def _build_ansible_inventory(self, env):
         """
-        Build Ansible inventory file for baremetal deployment.
+        Build Ansible inventory file for baremetal and vmware deployments.
         """
+        pem1 = env.cloud_spec['pem_server_1']
+        backup1 = env.cloud_spec['backup_server_1']
+        pg1 = env.cloud_spec['postgres_server_1']
         inventory = {
             'all': {
                 'children': {
                     'pemserver': {
                         'hosts': {
-                            env.cloud_spec['pem_server_1']['name']: {
-                                'ansible_host': env.cloud_spec['pem_server_1']['public_ip'],
-                                'private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                            pem1['name']: {
+                                'ansible_host': pem1['public_ip'],
+                                'private_ip': pem1['private_ip'],
                             }
                         }
                     },
                     'barmanserver': {
                         'hosts': {
-                            env.cloud_spec['backup_server_1']['name']: {
-                                'ansible_host': env.cloud_spec['backup_server_1']['public_ip'],
-                                'private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                            backup1['name']: {
+                                'ansible_host': backup1['public_ip'],
+                                'private_ip': backup1['private_ip'],
                             }
                         }
                     },
                     'primary': {
                         'hosts': {
-                            env.cloud_spec['postgres_server_1']['name']: {
-                                'ansible_host': env.cloud_spec['postgres_server_1']['public_ip'],
-                                'private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                            pg1['name']: {
+                                'ansible_host': pg1['public_ip'],
+                                'private_ip': pg1['private_ip'],
                                 'pem_agent': True,
-                                'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                                'pem_server_private_ip': pem1['private_ip'],
                                 'barman': True,
-                                'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                                'barman_server_private_ip': backup1['private_ip'],  # noqa
                                 'barman_backup_method': 'postgres',
                             }
                         }
@@ -372,17 +336,18 @@ class Project:
                 }
             })
             for i in range(2, 4):
+                pgi = env.cloud_spec['postgres_server_%s' % i]
                 inventory['all']['children']['standby']['hosts'].update({
-                    env.cloud_spec['postgres_server_%s' % i]['name']: {
-                        'ansible_host': env.cloud_spec['postgres_server_%s' % i]['public_ip'],
-                        'private_ip': env.cloud_spec['postgres_server_%s' % i]['private_ip'],
+                    pgi['name']: {
+                        'ansible_host': pgi['public_ip'],
+                        'private_ip': pgi['private_ip'],
                         'pem_agent': True,
-                        'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
+                        'pem_server_private_ip': pem1['private_ip'],
                         'barman': True,
-                        'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
+                        'barman_server_private_ip': backup1['private_ip'],
                         'barman_backup_method': 'postgres',
-                        'upstream_node_private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
-                        'replication_type': 'synchronous' if i == 2 else 'asynchronous',
+                        'upstream_node_private_ip': pg1['private_ip'],
+                        'replication_type': 'synchronous' if i == 2 else 'asynchronous',  # noqa
                     }
                 })
         if env.reference_architecture == 'EDB-RA-3':
@@ -392,11 +357,12 @@ class Project:
                 }
             })
             for i in range(1, 4):
+                pooleri = env.cloud_spec['pooler_server_%s' % i]
                 inventory['all']['children']['pgpool2']['hosts'].update({
-                    env.cloud_spec['pooler_server_%s' % i]['name']: {
-                        'ansible_host': env.cloud_spec['pooler_server_%s' % i]['public_ip'],
-                        'private_ip': env.cloud_spec['pooler_server_%s' % i]['private_ip'],
-                        'primary_node_private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
+                    pooleri['name']: {
+                        'ansible_host': pooleri['public_ip'],
+                        'private_ip': pooleri['private_ip'],
+                        'primary_node_private_ip': pg1['private_ip'],
                     }
                 })
 
@@ -412,171 +378,13 @@ class Project:
         else:
             return binary
 
-    def _build_vmware_ips(self, env):
-        """
-        Build IP Address list for vmware deployment.
-        """
-        # Load specifications
-        env.cloud_spec = self._load_cloud_specs(env)
-
-        try:
-            output = exec_shell(
-                [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['pem_server_1']['name']
-                ],
-                environ=self.environ,
-                cwd=self.mech_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            env.cloud_spec['pem_server_1']['public_ip'] = result[0]
-            env.cloud_spec['pem_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
-                    % env.cloud_spec['pem_server_1']['name']
-            )
-
-        try:
-            output = exec_shell(
-                [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['backup_server_1']['name']
-                ],
-                environ=self.environ,
-                cwd=self.mech_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            env.cloud_spec['backup_server_1']['public_ip'] = result[0]
-            env.cloud_spec['backup_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
-                    % env.cloud_spec['backup_server_1']['name']
-            )
-
-        try:
-            output = exec_shell(
-                [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['postgres_server_1']['name']
-                ],
-                environ=self.environ,
-                cwd=self.mech_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            env.cloud_spec['postgres_server_1']['public_ip'] = result[0]
-            env.cloud_spec['postgres_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
-                    % env.cloud_spec['postgres_server_1']['name']
-            )
-
-        if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
-            inventory = {
-                'all': {
-                    'children': {
-                        'pemserver': {
-                            'hosts': {
-                                env.cloud_spec['pem_server_1']['name']: {
-                                    'ansible_host': env.cloud_spec['pem_server_1']['public_ip'],
-                                    'private_ip': env.cloud_spec['pem_server_1']['private_ip'],
-                                }
-                            }
-                        },
-                        'barmanserver': {
-                            'hosts': {
-                                env.cloud_spec['backup_server_1']['name']: {
-                                    'ansible_host': env.cloud_spec['backup_server_1']['public_ip'],
-                                    'private_ip': env.cloud_spec['backup_server_1']['private_ip'],
-                                }
-                            }
-                        },
-                        'primary': {
-                            'hosts': {
-                                env.cloud_spec['postgres_server_1']['name']: {
-                                    'ansible_host': env.cloud_spec['postgres_server_1']['public_ip'],
-                                    'private_ip': env.cloud_spec['postgres_server_1']['private_ip'],
-                                    'pem_agent': True,
-                                    'pem_server_private_ip': env.cloud_spec['pem_server_1']['private_ip'],
-                                    'barman': True,
-                                    'barman_server_private_ip': env.cloud_spec['backup_server_1']['private_ip'],
-                                    'barman_backup_method': 'postgres',
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            inventory['all']['children'].update({
-                'standby': {
-                    'hosts': {}
-                }
-            })
-            for i in range(2, 4):
-                try:
-                    output = exec_shell(
-                        [
-                            self.bin("mech"),
-                            "ip",
-                            "%s" % env.cloud_spec['postgres_server_%s' % i]['name']
-                        ],
-                        environ=self.environ,
-                        cwd=self.mech_project_path
-                    )
-                    result = output.decode("utf-8").split('\n')
-                    env.cloud_spec['postgres_server_%s' % i]['public_ip'] = result[0]
-                    env.cloud_spec['postgres_server_%s' % i]['private_ip'] = result[0]
-                except Exception as e:
-                    logging.error("Failed to execute the command")
-                    logging.error(e)
-                    raise CliError(
-                        "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
-                            % env.cloud_spec['postgres_server_%s' % i]['name']
-                    )
-        if env.reference_architecture == 'EDB-RA-3':
-            inventory['all']['children'].update({
-                'pgpool2': {
-                    'hosts': {}
-                }
-            })
-            for i in range(1, 4):
-                try:
-                    output = exec_shell(
-                        [
-                            self.bin("mech"),
-                            "ip",
-                            "%s" % env.cloud_spec['pooler_server_%s' % i]['name']
-                        ],
-                        environ=self.environ,
-                        cwd=self.mech_project_path
-                    )
-                    result = output.decode("utf-8").split('\n')
-                    env.cloud_spec['pooler_server_%s' % i]['public_ip'] = result[0]
-                    env.cloud_spec['pooler_server_%s' % i]['private_ip'] = result[0]
-                except Exception as e:
-                    logging.error("Failed to execute the command")
-                    logging.error(e)
-                    raise CliError(
-                        "Failed to obtain VMWare Instance IP Address for: %s, please check the logs for details."
-                            % env.cloud_spec['pooler_server_%s' % i]['name']
-                    )
-
     def _copy_ansible_playbook(self):
         """
         Copy reference architecture Ansible playbook into project directory.
         """
-        with AM("Copying Ansible playbook file into %s" % self.ansible_playbook):
+        with AM(
+            "Copying Ansible playbook file into %s" % self.ansible_playbook
+        ):
             shutil.copy(
                 os.path.join(
                     self.ansible_share_path,
@@ -584,55 +392,6 @@ class Project:
                 ),
                 self.ansible_playbook
             )
-
-    def _copy_vmware_configfiles(self):
-        """
-        Copy reference architecture Mech Config file into project directory.
-        """
-        # Un-comment the self.vmware_share_path once the entire commit has been completed
-        frommechfile = os.path.join(
-                    self.vmware_share_path + "/%s-%s" % (self.ansible_vars['operating_system'],self.ansible_vars['reference_architecture'])
-        )
-        self.mechfile = os.path.join(
-            self.project_path,
-            "%s" % "Mechfile"
-        )
-        fromplaybookfile = os.path.join(
-                    self.vmware_share_path + "/%s" % "playbook.yml" 
-        )
-        playbookfile = os.path.join(
-            self.project_path,
-            "%s" % 'playbook.yml'
-        )
-        with AM("Copying Mech Config files into %s" % self.mechfile):
-            # Mechfile
-            try:
-                shutil.copy(
-                    frommechfile,
-                    self.mechfile
-                    )
-            except IOError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-                os.makedirs(os.path.dirname(self.mechfile))
-                shutil.copy(
-                    frommechfile,
-                    self.mechfile
-                    )
-            # Playbook File
-            try:
-                shutil.copy(
-                    fromplaybookfile,
-                    playbookfile
-                    )
-            except IOError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-                os.makedirs(os.path.dirname(self.mechfile))
-                shutil.copy(
-                    fromplaybookfile,
-                    playbookfile
-                    )
 
     def _get_instance_types(self, node_types):
         """
@@ -649,175 +408,6 @@ class Project:
 
         return instance_types
 
-    def _aws_check_instance_image(self, env):
-        """
-        Check AWS instance type and image id availability in specified region.
-        """
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-
-        # Node types list available for this Cloud vendor
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
-                      'barman_server', 'pooler_server']
-
-        # Check instance type and image availability
-        if not self.terraform_vars['aws_ami_id']:
-            for instance_type in self._get_instance_types(node_types):
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.aws_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.aws_region
-                    )
-
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
-
-    def _awsrds_check_instance_image(self, env):
-        """
-        Check AWS RDS DB class instance, EC2 instance type and EC2 image id
-        availability in specified region.
-        """
-        # Instanciate new CloudClis
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-        aws_cli = CloudCli('aws', bin_path=self.cloud_tools_bin_path)
-
-        # Node types list available for this Cloud vendor
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server']
-
-        # Check instance type and image availability
-        if not self.terraform_vars['aws_ami_id']:
-            pattern = re.compile("^db\.")
-            for instance_type in self._get_instance_types(node_types):
-                if pattern.match(instance_type):
-                    with AM(
-                        "Checking DB class type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-                else:
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        aws_cli.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = aws_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
-
-    def _awsrdsaurora_check_instance_image(self, env):
-        """
-        Check AWS RDS Aurora DB class instance, EC2 instance type and EC2 image
-        id availability in specified region.
-        """
-        # RDS and RDS Aurora checks are similar
-        self._awsrds_check_instance_image(env)
-
-    def _azure_check_instance_image(self, env):
-        """
-        Check Azure instance type and image id availability in specified
-        region.
-        """
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-
-        # Node types list available for this Cloud vendor
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
-                      'barman_server', 'pooler_server']
-
-        # Check instance type and image availability
-        for instance_type in self._get_instance_types(node_types):
-            with AM(
-                "Checking instance type %s availability in %s"
-                % (instance_type, env.azure_region)
-            ):
-                cloud_cli.check_instance_type_availability(
-                    instance_type, env.azure_region
-                )
-        # Check availability of image in target region
-        with AM(
-            "Checking image %s:%s:%s availability in %s"
-            % (
-                self.terraform_vars['azure_publisher'],
-                self.terraform_vars['azure_offer'],
-                self.terraform_vars['azure_sku'],
-                env.azure_region
-              )
-        ):
-            cloud_cli.cli.check_image_availability(
-                self.terraform_vars['azure_publisher'],
-                self.terraform_vars['azure_offer'],
-                self.terraform_vars['azure_sku'],
-                env.azure_region
-            )
-
-    def _gcloud_check_instance_image(self, env):
-        """
-        Check GCloud instance type and image id availability in specified
-        region.
-        """
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-
-        # Build a list of instance_type accordingly to the specs
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
-                      'barman_server', 'pooler_server']
-
-        # Check instance type and image availability
-        for instance_type in self._get_instance_types(node_types):
-            with AM(
-                "Checking instance type %s availability in %s"
-                % (instance_type, env.gcloud_region)
-            ):
-                cloud_cli.check_instance_type_availability(
-                    instance_type, env.gcloud_region
-                )
-        # Check availability of the image
-        with AM(
-            "Checking image %s availability"
-            % self.terraform_vars['gcloud_image']
-        ):
-            cloud_cli.cli.check_image_availability(
-                self.terraform_vars['gcloud_image']
-            )
-
     def configure(self, env):
         """
         configure sub-command
@@ -827,42 +417,8 @@ class Project:
         # Copy SSH keys
         self._copy_ssh_keys(env)
 
-        # Transform Terraform templates
-        if env.cloud != 'baremetal' and env.cloud != 'vmware':
-            self._transform_terraform_tpl()
-
-        # RDS/Aurora: Build master user random password
-        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
-            with AM("Building master user password"):
-                save_password(self.project_path, 'postgres', random_password())
-
-        # Build the vars files for Terraform and Ansiblev
-        if env.cloud != 'baremetal' and env.cloud != 'vmware':
-            self._build_terraform_vars_file(env)
-
-        self._build_ansible_vars_file(env)
-
-        # Copy Ansible playbook into project dir.
-        if env.cloud != 'vmware':
-            self._copy_ansible_playbook()
-
-        # Copy VMWare Mech Config File into project dir.
-        if env.cloud == 'vmware':
-            self._copy_vmware_configfiles()
-
-        # Build inventory file for baremetal deployment
-        if env.cloud == 'baremetal':
-            with AM(
-                "Build Ansible inventory file %s" % self.ansible_inventory
-            ):
-                self._build_ansible_inventory(env)
-
-        # Check Cloud Instance type and Image availability. This is achieved by
-        # executing the _<cloud-vendor>_check_instance_image method, if this
-        # attribute exists.
-        m = "_%s_check_instance_image" % env.cloud.replace('-', '')
-        if getattr(self, m, None):
-            getattr(self, m)(env)
+        # Post-configure hook
+        exec_hook(self, 'hook_post_configure', env)
 
     def _load_spec_file(self, spec_file_path):
         try:
@@ -892,7 +448,7 @@ class Project:
                 json_file.write(json.dumps(self.terraform_vars, indent=2))
         except Exception as e:
             msg = ("Unable to save the Terraform vars file %s"
-                    % self.terraform_vars_file)
+                   % self.terraform_vars_file)
             logging.error(msg)
             logging.error(str(e))
             raise ProjectError(msg)
@@ -914,355 +470,10 @@ class Project:
                 json_file.write(json.dumps(self.ansible_vars, indent=2))
         except Exception as e:
             msg = ("Unable to save the Ansible vars file %s"
-                    % self.ansible_vars_file)
+                   % self.ansible_vars_file)
             logging.error(msg)
             logging.error(str(e))
             raise ProjectError(msg)
-
-    def _aws_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for AWS provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-
-        self.terraform_vars = {
-            'aws_ami_id': getattr(env, 'aws_ami_id', None),
-            'aws_image': os['image'],
-            'aws_region': env.aws_region,
-            'barman': ra['barman'],
-            'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
-                'instance_type': barman['instance_type'],
-                'volume': barman['volume'],
-                'additional_volumes': barman['additional_volumes'],
-            },
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'pooler_local': ra['pooler_local'],
-            'pooler_server': {
-                'count': ra['pooler_count'],
-                'instance_type': pooler['instance_type'],
-                'volume': pooler['volume'],
-            },
-            'pooler_type': ra['pooler_type'],
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            },
-            'pg_type': env.postgres_type,
-            'replication_type': ra['replication_type'],
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _gcloud_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for GCloud provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-
-        self.terraform_vars = {
-            'barman': ra['barman'],
-            'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
-                'instance_type': barman['instance_type'],
-                'volume': barman['volume'],
-                'additional_volumes': barman['additional_volumes'],
-            },
-            'cluster_name': self.name,
-            'gcloud_image': os['image'],
-            'gcloud_region': env.gcloud_region,
-            'gcloud_credentials': env.gcloud_credentials.name,
-            'gcloud_project_id': env.gcloud_project_id,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'pooler_local': ra['pooler_local'],
-            'pooler_server': {
-                'count': ra['pooler_count'],
-                'instance_type': pooler['instance_type'],
-                'volume': pooler['volume'],
-            },
-            'pooler_type': ra['pooler_type'],
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            },
-            'pg_type': env.postgres_type,
-            'replication_type': ra['replication_type'],
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _gcloudsql_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for GCloud provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        guc = TPROCC_GUC
-
-        self.terraform_vars = {
-            'gcloud_image': os['image'],
-            'gcloud_region': env.gcloud_region,
-            'gcloud_credentials': env.gcloud_credentials.name,
-            'gcloud_project_id': env.gcloud_project_id,
-            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
-            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
-            'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _azure_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for Azure provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-
-        self.terraform_vars = {
-            'azure_offer': os['offer'],
-            'azure_publisher': os['publisher'],
-            'azure_sku': os['sku'],
-            'azure_region': env.azure_region,
-            'barman': ra['barman'],
-            'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
-                'instance_type': barman['instance_type'],
-                'volume': barman['volume'],
-                'additional_volumes': barman['additional_volumes'],
-            },
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'pooler_local': ra['pooler_local'],
-            'pooler_server': {
-                'count': ra['pooler_count'],
-                'instance_type': pooler['instance_type'],
-                'volume': pooler['volume'],
-            },
-            'pooler_type': ra['pooler_type'],
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            },
-            'pg_type': env.postgres_type,
-            'replication_type': ra['replication_type'],
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _awsrds_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for AWS RDS provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        guc = TPROCC_GUC
-
-        self.terraform_vars = {
-            'aws_ami_id': getattr(env, 'aws_ami_id', None),
-            'aws_image': os['image'],
-            'aws_region': env.aws_region,
-            'cluster_name': self.name,
-            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
-            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
-            'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_password': get_password(self.project_path, 'postgres'),
-            'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _awsrdsaurora_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for AWS RDS Aurora provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-
-        self.terraform_vars = {
-            'aws_ami_id': getattr(env, 'aws_ami_id', None),
-            'aws_image': os['image'],
-            'aws_region': env.aws_region,
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_password': get_password(self.project_path, 'postgres'),
-            'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _azuredb_build_terraform_vars(self, env):
-        """
-        Build Terraform variable for Azure Database provisioning
-        """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        guc = TPROCC_GUC
-
-        self.terraform_vars = {
-            'azure_offer': os['offer'],
-            'azure_publisher': os['publisher'],
-            'azure_sku': os['sku'],
-            'azuredb_passwd': self.postgres_passwd,
-            'azuredb_sku': pg['sku'],
-            'azure_region': env.azure_region,
-            'cluster_name': self.name,
-            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
-            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'size': pg['size'],
-                'sku': pg['sku'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
-
-    def _build_terraform_vars(self, env):
-        """
-        Build Terraform variables based on the environment.
-        """
-
-        # Calling the Cloud Vendor dedicated method:
-        # _<cloud-vendor>_build_terraform_vars()
-        m = "_%s_build_terraform_vars" % env.cloud.replace('-', '')
-        if getattr(self, m, None):
-            getattr(self, m)(env)
 
     def _iaas_build_ansible_vars(self, env):
         """
@@ -1322,105 +533,6 @@ class Project:
             'ssh_priv_key': self.ssh_priv_key,
         }
 
-    def _aws_build_ansible_vars(self, env):
-        return self._iaas_build_ansible_vars(env)
-
-    def _azure_build_ansible_vars(self, env):
-        return self._iaas_build_ansible_vars(env)
-
-    def _gcloud_build_ansible_vars(self, env):
-        return self._iaas_build_ansible_vars(env)
-
-    def _gcloudsql_build_ansible_vars(self, env):
-        return self._dbaas_build_ansible_vars(env)
-
-    def _awsrds_build_ansible_vars(self, env):
-        return self._dbaas_build_ansible_vars(env)
-
-    def _awsrdsaurora_build_ansible_vars(self, env):
-        return self._dbaas_build_ansible_vars(env)
-
-    def _azuredb_build_ansible_vars(self, env):
-        return self._dbaas_build_ansible_vars(env)
-
-    def _baremetal_build_ansible_vars(self, env):
-        """
-        Build Ansible variables for baremetal deployment.
-        """
-        # Fetch EDB repo. username and password
-        r = re.compile(r"^([^:]+):(.+)$")
-        m = r.search(env.edb_credentials)
-        edb_repo_username = m.group(1)
-        edb_repo_password = m.group(2)
-
-        if env.cloud_spec['ssh_user'] is not None:
-            ssh_user = env.cloud_spec['ssh_user']
-        else:
-            # Use current username for SSH connection if not set
-            ssh_user = getpass.getuser()
-
-        self.ansible_vars = {
-            'reference_architecture': env.reference_architecture,
-            'cluster_name': self.name,
-            'pg_type': env.postgres_type,
-            'pg_version': env.postgres_version,
-            'repo_username': edb_repo_username,
-            'repo_password': edb_repo_password,
-            'ssh_user': ssh_user,
-            'ssh_priv_key': self.ssh_priv_key,
-            'efm_version': env.efm_version,
-            'use_hostname': env.use_hostname,
-        }
-
-        # Add configuration for pg_data and pg_wal
-        if env.cloud_spec['pg_data'] is not None:
-            self.ansible_vars.update(dict(pg_data=env.cloud_spec['pg_data']))
-        if env.cloud_spec['pg_wal'] is not None:
-            self.ansible_vars.update(dict(pg_wal=env.cloud_spec['pg_wal']))
-
-    def _vmware_build_ansible_vars(self, env):
-        """
-        Build Ansible variables for vmware deployment.
-        """
-        # Fetch EDB repo. username and password
-        r = re.compile(r"^([^:]+):(.+)$")
-        m = r.search(env.edb_credentials)
-        edb_repo_username = m.group(1)
-        edb_repo_password = m.group(2)
-        # VMWare and Vagrant ssh_user and ssh_pass is: 'vagrant'
-        ssh_user = 'vagrant'
-        ssh_pass = 'vagrant'
-        operating_system = ''
-        if env.operating_system == 'CentOS8':
-            operating_system = 'c8'
-
-        self.ansible_vars = {
-            'reference_architecture': env.reference_architecture,
-            'cluster_name': self.name,
-            'pg_type': env.postgres_type,
-            'pg_version': env.postgres_version,
-            'repo_username': edb_repo_username,
-            'repo_password': edb_repo_password,
-            'mem_size': env.mem_size,
-            'cpu_count': env.cpu_count,
-            'operating_system': operating_system,
-            'ssh_user': ssh_user,
-            'ssh_pass': ssh_pass,
-            'ssh_priv_key': self.ssh_priv_key,
-            'efm_version': env.efm_version,
-            'use_hostname': env.use_hostname,
-        }
-
-    def _build_ansible_vars(self, env):
-        """
-        Build Ansible variables based on the environment.
-        """
-        # Calling the Cloud Vendor dedicated method:
-        # _<cloud-vendor>_build_ansible_vars()
-        m = "_%s_build_ansible_vars" % env.cloud.replace('-', '')
-        if getattr(self, m, None):
-            getattr(self, m)(env)
-
     def show_logs(self, tail):
         if not os.path.exists(self.log_file):
             raise ProjectError("Log file %s not found" % self.log_file)
@@ -1428,48 +540,28 @@ class Project:
         if not tail:
             # Read the whole file and write its content to stdout
             with open(self.log_file, "r") as f:
-                for l in f.readlines():
-                    sys.stdout.write(l)
+                for line in f.readlines():
+                    sys.stdout.write(line)
         else:
             with open(self.log_file, "r") as f:
                 # Go to the end of the file
                 f.seek(0, 2)
                 while True:
-                    l = f.readline()
-                    if not l:
+                    line = f.readline()
+                    if not line:
                         time.sleep(0.1)
                         continue
-                    sys.stdout.write(l)
+                    sys.stdout.write(line)
 
     def remove(self):
-        if self.cloud not in ['vmware', 'baremetal']:
-            terraform = TerraformCli(
-                self.project_path, self.terraform_plugin_cache_path,
-                bin_path=self.cloud_tools_bin_path
-            )
-            # Prevent project deletion if some cloud resources are still present
-            # for this project.
-            if terraform.count_resources() > 0:
-                raise ProjectError(
-                    "Some cloud resources seem to be still present for this "
-                    "project, please destroy them with the 'destroy' sub-command"
-            )
-    
-        if self.cloud == 'vmware':
-            self._load_ansible_vars()
-            # Update before committing with
-            # projects_root_path
-            self.mech_project_path = os.path.join(
-                self.projects_root_path,
-                'vmware/',
-                self.name
-            )
-            mem_size = self.ansible_vars['mem_size']
-            cpu_count = self.ansible_vars['cpu_count']
-            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
-            #Counts images currently running in project folder
-            if mech.count_resources() > 0:
-                raise ProjectError(
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+        # Prevent project deletion if some cloud resources are still present
+        # for this project.
+        if terraform.count_resources() > 0:
+            raise ProjectError(
                 "Some cloud resources seem to be still present for this "
                 "project, please destroy them with the 'destroy' sub-command"
             )
@@ -1484,9 +576,8 @@ class Project:
         self._load_ansible_vars()
         output = dict(ansible=self.ansible_vars)
 
-        if self.cloud != 'baremetal':
-            self._load_terraform_vars()
-            output.update(terraform=self.terraform_vars)
+        self._load_terraform_vars()
+        output.update(terraform=self.terraform_vars)
 
         try:
             json_output = json.dumps(output, indent=2)
@@ -1502,146 +593,43 @@ class Project:
     def provision(self, env):
         self._load_ansible_vars()
 
-        if self.cloud not in ['vmware', 'baremetal']:
-            terraform = TerraformCli(
-                self.project_path, self.terraform_plugin_cache_path,
-                bin_path=self.cloud_tools_bin_path
-                )
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
 
+        with AM("Terraform project initialization"):
             self.update_state('terraform', 'INITIALIZATING')
-            with AM("Terraform project initialization"):
-                terraform.init()
+            terraform.init()
             self.update_state('terraform', 'INITIALIZATED')
 
+        with AM("Applying cloud resources creation"):
             self.update_state('terraform', 'PROVISIONING')
-            with AM("Applying cloud resources creation"):
-                terraform.apply(self.terraform_vars_file)
+            terraform.apply(self.terraform_vars_file)
             self.update_state('terraform', 'PROVISIONED')
 
-            # Checking instance availability
-            cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-            self._load_terraform_vars()
+        # Checking instance availability
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        # Load terraform variables
+        self._load_terraform_vars()
 
-        # AWS case
-        if self.cloud == 'aws':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['aws_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.terraform_vars['aws_region']
-                )
+        # Instances availability checking hook
+        exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
-        # AWS RDS case
-        if self.cloud == 'aws-rds':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['aws_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.terraform_vars['aws_region']
-                )
-
-        # Azure case
-        if self.cloud == 'azure':
-            with AM("Checking instances availability"):
-                cloud_cli.cli.check_instances_availability(self.name)
-
-        # GCloud case
-        if self.cloud == 'gcloud':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['gcloud_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.name,
-                    self.terraform_vars['gcloud_region'],
-                    # Total number of nodes
-                    (self.terraform_vars['postgres_server']['count']
-                     + self.terraform_vars['barman_server']['count']
-                     + self.terraform_vars['pem_server']['count']
-                     + self.terraform_vars['pooler_server']['count'])
-                )
-
-        # GCloud SQL case
-        if self.cloud == 'gcloud-sql':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['gcloud_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.name,
-                    self.terraform_vars['gcloud_region'],
-                    # Total number of nodes
-                    (self.terraform_vars['postgres_server']['count']
-                     + self.terraform_vars['pem_server']['count'])
-                )
-
-        # VMWare case
-        if self.cloud == 'vmware':
-            # Update before committing with
-            # projects_root_path
-            self.mech_project_path = os.path.join(
-                self.projects_root_path,
-                'vmware/',
-                self.name
-            )
-            mem_size = self.ansible_vars['mem_size']
-            cpu_count = self.ansible_vars['cpu_count']
-            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
-            with AM("Checking instances availability"):
-                mech.up()
-            # Build ip address list for vmware deployment
-            with AM(
-                "Build VMWare Ansible IP addresses"
-            ):
-                # Assigning Reference Architecture
-                env.reference_architecture = self.ansible_vars['reference_architecture']
-
-                # Load specifications
-                env.cloud_spec = self._load_cloud_specs(env)
-
-                # Build VMWare Ansible IP addresses
-                self._build_vmware_ips(env)
-
-            # Build inventory file for vmware deployment
-            with AM(
-                "Build Ansible inventory file %s" % self.ansible_inventory
-            ):
-                self._build_ansible_inventory(env)
-
-        if self.cloud != 'vmware':
-            with AM("SSH configuration"):
-                terraform.exec_add_host_sh()
+        with AM("SSH configuration"):
+            terraform.exec_add_host_sh()
 
     def destroy(self):
-        if self.cloud not in ['vmware', 'baremetal']:
-            terraform = TerraformCli(
-                self.project_path, self.terraform_plugin_cache_path,
-                bin_path=self.cloud_tools_bin_path
-                )
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
 
+        with AM("Destroying cloud resources"):
             self.update_state('terraform', 'DESTROYING')
-            with AM("Destroying cloud resources"):
-                terraform.destroy(self.terraform_vars_file)
-                self.update_state('terraform', 'DESTROYED')
-                self.update_state('ansible', 'UNKNOWN')
-
-        # VMWare case
-        if self.cloud == 'vmware':
-            self._load_ansible_vars()
-            # Update before committing with
-            # projects_root_path
-            self.mech_project_path = os.path.join(
-                self.projects_root_path,
-                'vmware/',
-                self.name
-            )
-            mem_size = self.ansible_vars['mem_size']
-            cpu_count = self.ansible_vars['cpu_count']
-            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
-            with AM("Destroying cloud resources"):
-                mech.destroy()
+            terraform.destroy(self.terraform_vars_file)
+            self.update_state('terraform', 'DESTROYED')
+            self.update_state('ansible', 'UNKNOWN')
 
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
@@ -1651,7 +639,7 @@ class Project:
         inventory_data = None
         ansible = AnsibleCli(
             self.project_path,
-            bin_path = self.cloud_tools_bin_path
+            bin_path=self.cloud_tools_bin_path
         )
 
         # Load ansible vars
@@ -1666,7 +654,7 @@ class Project:
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
-        extra_vars=dict(
+        extra_vars = dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
             repo_username=self.ansible_vars['repo_username'],
@@ -1703,73 +691,68 @@ class Project:
         if self.cloud == 'azure-db':
             extra_vars.update(dict(azure_db_hackery=True))
 
-        if self.cloud == 'vmware':
-            # Set SSH password
-            extra_vars.update(dict(ansible_ssh_pass='vagrant'))
-
         if pre_deploy_ansible:
-
-          with AM("Executing pre deploy playbook using Ansible"):
-              ansible.run_playbook(
-                  self.cloud,
-                  self.ansible_vars['ssh_user'],
-                  self.ansible_vars['ssh_priv_key'],
-                  self.ansible_inventory,
-                  pre_deploy_ansible.name,
-                  json.dumps(extra_vars)
-              )
+            with AM("Executing pre deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    pre_deploy_ansible.name,
+                    json.dumps(extra_vars)
+                )
 
         if not skip_main_playbook:
-          self.update_state('ansible', 'DEPLOYING')
-          with AM("Deploying components with Ansible"):
-              ansible.run_playbook(
-                  self.cloud,
-                  self.ansible_vars['ssh_user'],
-                  self.ansible_vars['ssh_priv_key'],
-                  self.ansible_inventory,
-                  self.ansible_playbook,
-                  json.dumps(extra_vars)
-              )
-          self.update_state('ansible', 'DEPLOYED')
+            self.update_state('ansible', 'DEPLOYING')
+            with AM("Deploying components with Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    self.ansible_playbook,
+                    json.dumps(extra_vars)
+                )
+            self.update_state('ansible', 'DEPLOYED')
 
-          with AM("Extracting data from the inventory file"):
-              inventory_data = ansible.list_inventory(self.ansible_inventory)
+            with AM("Extracting data from the inventory file"):
+                inventory_data = ansible.list_inventory(self.ansible_inventory)
 
         if post_deploy_ansible:
-          with AM("Executing post deploy playbook using Ansible"):
-              ansible.run_playbook(
-                  self.cloud,
-                  self.ansible_vars['ssh_user'],
-                  self.ansible_vars['ssh_priv_key'],
-                  self.ansible_inventory,
-                  post_deploy_ansible.name,
-                  json.dumps(extra_vars)
-              )
+            with AM("Executing post deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    post_deploy_ansible.name,
+                    json.dumps(extra_vars)
+                )
 
         if not skip_main_playbook:
-          # Display inventory informations
-          self.display_inventory(inventory_data)
+            # Display inventory informations
+            self.display_inventory(inventory_data)
 
     def display_passwords(self):
         try:
             states = self.load_states()
-        except Exception as e:
-            states={}
+        except Exception:
+            states = {}
         status = states.get('ansible', 'UNKNOWN')
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
                 print("WARNING: project is in deploying state")
 
             Project.display_table(
-                ['Username','Password'],
+                ['Username', 'Password'],
                 list_passwords(self.project_path)
             )
 
     def display_details(self):
         try:
             states = self.load_states()
-        except Exception as e:
-            states={}
+        except Exception:
+            states = {}
         status = states.get('ansible', 'UNKNOWN')
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
@@ -1777,7 +760,7 @@ class Project:
             inventory_data = None
             ansible = AnsibleCli(
                 self.project_path,
-                bin_path = self.cloud_tools_bin_path
+                bin_path=self.cloud_tools_bin_path
             )
             with AM("Extracting data from the inventory file"):
                 inventory_data = ansible.list_inventory(self.ansible_inventory)
@@ -1828,21 +811,6 @@ class Project:
             rows
         )
 
-    def display_vmware_projects(self, rows):
-        if not self.ansible_vars:
-            self._load_ansible_vars()
-
-        def _p(s):
-            sys.stdout.write(s)
-
-        sys.stdout.flush()
-        _p("\n")
-
-        Project.display_table(
-            ['Name', 'Path'],
-            rows
-        )
-
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
@@ -1861,50 +829,26 @@ class Project:
 
                 project = Project(cloud, project_name, {})
 
-                if cloud not in ['vmware', 'baremetal']:
-                    terraform_resource_count = 0
-                    terraform = TerraformCli(
-                        project.project_path,
-                        project.terraform_plugin_cache_path,
-                        bin_path=Project.cloud_tools_bin_path
-                    )
-                    terraform_resource_count = terraform.count_resources()
+                terraform_resource_count = 0
+                terraform = TerraformCli(
+                    project.project_path,
+                    project.terraform_plugin_cache_path,
+                    bin_path=Project.cloud_tools_bin_path
+                )
+                terraform_resource_count = terraform.count_resources()
 
-                    try:
-                        states = project.load_states()
-                    except Exception as e:
-                        states={}
+                try:
+                    states = project.load_states()
+                except Exception:
+                    states = {}
 
-                    rows.append([
-                        project.name,
-                        project.project_path,
-                        states.get('terraform', 'UNKNOWN'),
-                        str(terraform_resource_count),
-                        states.get('ansible', 'UNKNOWN')
-                    ])
-
-                if cloud == 'vmware':
-                    data = open(project.project_path + "/ansible_vars.json", "r")
-                    ansible_vars = json.load(data)
-                    mech_project_path = os.path.join(
-                    project.project_path
-                    )
-                    mech = VMWareCli(cloud, project.name, cloud, ansible_vars['mem_size'], ansible_vars['cpu_count'], mech_project_path, bin_path=project.cloud_tools_bin_path)
-
-                    try:
-                        states = project.load_states()
-                    except Exception as e:
-                        states={}
-
-                    rows.append([
-                        project.name,
-                        project.project_path,
-                        #Counts the number of machines running in the project, if it is greater than 0 than it is PROVISIONED otherwise it is destroyed
-                        mech.mech_machine_status(),
-                        #Returns an integer of the number of images running in the project
-                        str(mech.count_resources()),
-                        states.get('ansible', 'UNKNOWN')
-                    ])
+                rows.append([
+                    project.name,
+                    project.project_path,
+                    states.get('terraform', 'UNKNOWN'),
+                    str(terraform_resource_count),
+                    states.get('ansible', 'UNKNOWN')
+                ])
 
             Project.display_table(headers, rows)
 
@@ -2012,7 +956,7 @@ class Project:
                 tool['cli'].check_version()
                 print("INFO: %s is already installed in supported version"
                       % tool['name'])
-            except Exception as e:
+            except Exception:
                 # Proceed with the installation
                 with AM("%s installation" % tool['name']):
                     tool['cli'].install(

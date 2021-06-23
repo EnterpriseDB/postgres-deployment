@@ -1,5 +1,14 @@
 import logging
 from .project import Project
+from .projects.aws import AWSProject
+from .projects.aws_rds import AWSRDSProject
+from .projects.aws_rds_aurora import AWSRDSAuroraProject
+from .projects.azure import AzureProject
+from .projects.azure_db import AzureDBProject
+from .projects.gcloud import GCloudProject
+from .projects.gcloud_sql import GCloudSQLProject
+from .projects.baremetal import BaremetalProject
+from .projects.vmware import VMwareProject
 
 class CommanderError(Exception):
     pass
@@ -9,7 +18,28 @@ class Commander:
         self.env = env
         self.project = None
         if getattr(self.env, 'project', False):
-            self.project = Project(self.env.cloud, self.env.project, self.env)
+            if self.env.cloud == 'aws':
+                self.project = AWSProject(self.env.project, self.env)
+            elif self.env.cloud == 'azure':
+                self.project = AzureProject(self.env.project, self.env)
+            elif self.env.cloud == 'gcloud':
+                self.project = GCloudProject(self.env.project, self.env)
+            elif self.env.cloud == 'gcloud-sql':
+                self.project = GCloudSQLProject(self.env.project, self.env)
+            elif self.env.cloud == 'baremetal':
+                self.project = BaremetalProject(self.env.project, self.env)
+            elif self.env.cloud == 'vmware':
+                self.project = VMwareProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-rds':
+                self.project = AWSRDSProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-rds-aurora':
+                self.project = AWSRDSAuroraProject(self.env.project, self.env)
+            elif self.env.cloud == 'azure-db':
+                self.project = AzureDBProject(self.env.project, self.env)
+            else:
+                self.project = Project(
+                    self.env.cloud, self.env.project, self.env
+                )
 
     def _check_project_exists(self):
         if not self.project.exists():
