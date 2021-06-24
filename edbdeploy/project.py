@@ -58,7 +58,6 @@ class Project:
         os.path.dirname(os.path.realpath(__file__)),
         'data',
         'vmware-wkstn'
-        # 'centos8'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres'
@@ -112,7 +111,7 @@ class Project:
                 self.bin_path = bin_path
 
         self.environ = os.environ
-    #add env to change
+   
     def check_versions(self):
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
@@ -588,7 +587,7 @@ class Project:
                 ),
                 self.ansible_playbook
             )
-    #gotta redo this function
+    
     def _copy_vmware_configfiles(self):
         """
         Copy reference architecture Mech Config file into project directory.
@@ -626,7 +625,7 @@ class Project:
                     frommechfile,
                     self.mechfile
                     )
-            #Playbook File
+            # Playbook File
             try:
                 shutil.copy(
                     fromplaybookfile,
@@ -829,13 +828,9 @@ class Project:
         """
         configure sub-command
         """
-        
-        
-        
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
         
-
         # Copy SSH keys
         self._copy_ssh_keys(env)
 
