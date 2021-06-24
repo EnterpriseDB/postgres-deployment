@@ -8,6 +8,7 @@ import textwrap
 from .errors import VMWareCliError, CliError
 from .installation import build_tmp_install_script, execute_install_script
 from .system import exec_shell_live, exec_shell
+from . import check_version, to_str
 
 
 class VMWareCli:
@@ -75,25 +76,12 @@ class VMWareCli:
 
         logging.info("Python3 version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.python_min_version[i]
-            max = self.python_max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise CliError(
-                    ("Python3 version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.python_min_version)),
-                        '.'.join(map(str, self.python_max_version)),
-                    )
-                )
+        if not check_version(version, self.python_min_version,
+                             self.python_max_version):
+            raise CliError(
+                "Python3 version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.python_min_version),
+                   to_str(self.python_max_version)))
 
     def vagrant_check_version(self):
         """
@@ -132,25 +120,12 @@ class VMWareCli:
 
         logging.info("Vagrant version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.vagrant_min_version[i]
-            max = self.vagrant_max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise CliError(
-                    ("Vagrant version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.vagrant_min_version)),
-                        '.'.join(map(str, self.vagrant_max_version)),
-                    )
-                )
+        if not check_version(version, self.vagrant_min_version,
+                             self.vagrant_max_version):
+            raise CliError(
+                "Vagrant version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.vagrant_min_version),
+                   to_str(self.vagrant_max_version)))
 
     def mech_check_version(self):
         """
@@ -189,25 +164,12 @@ class VMWareCli:
 
         logging.info("Mech version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.mech_min_version[i]
-            max = self.mech_max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise CliError(
-                    ("Mech version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.mech_min_version)),
-                        '.'.join(map(str, self.mech_max_version)),
-                    )
-                )
+        if not check_version(version, self.mech_min_version,
+                             self.mech_max_version):
+            raise CliError(
+                "Mech version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.mech_min_version),
+                   to_str(self.mech_max_version)))
 
     def bin(self, binary):
         """
@@ -383,6 +345,3 @@ class VMWareCli:
 
     def install(self, installation_path):
         pass
-
-        # Execute the installation script
-        execute_install_script(script_name)

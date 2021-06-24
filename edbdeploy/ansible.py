@@ -8,7 +8,7 @@ import textwrap
 from .errors import AnsibleCliError, CliError
 from .installation import build_tmp_install_script, execute_install_script
 from .system import exec_shell_live, exec_shell
-
+from . import check_version, to_str
 
 class AnsibleCli:
 
@@ -16,7 +16,7 @@ class AnsibleCli:
         self.dir = dir
         # Ansible supported versions interval
         self.min_version = (2, 10, 7)
-        self.max_version = (2, 10, 10)
+        self.max_version = (2, 11, 1)
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains
@@ -31,9 +31,6 @@ class AnsibleCli:
         max_version.
         Ansible version is fetched using the command: ansible --version
         """
-        # note: we do not raise any AnsibleCliError from this function because
-        # AnsibleCliError are used to trigger stuffs when they are catched. In
-        # this case, we do not want trigger anything if something fails.
         try:
             output = exec_shell([
                 self.bin("ansible"),
@@ -43,14 +40,17 @@ class AnsibleCli:
             logging.error("Failed to execute the command: %s", e.cmd)
             logging.error("Return code is: %s", e.returncode)
             logging.error("Output: %s", e.output)
+            from ansible import __version__ as ansible_version
             raise CliError(
-                "Ansible executable seems to be missing. Please install it or "
-                "check your PATH variable"
+                "Ansible does not look to be installed. Please install it."
             )
 
         version = None
         # Parse command output and extract the version number
-        pattern = re.compile(r"^ansible ([0-9]+)\.([0-9]+)\.([0-9]+)$")
+        # Output can be:
+        # - ansible 1.2.3
+        # - ansible [core 1.2.3]
+        pattern = re.compile(r"^ansible\D*(\d+)\.(\d+)\.(\d+)\D*$")
         for line in output.decode("utf-8").split("\n"):
             m = pattern.search(line)
             if m:
@@ -62,26 +62,11 @@ class AnsibleCli:
 
         logging.info("Ansible version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] > min and version[i] < max:
-                # If current digit is below the maximum value and strictly
-                # greater than the minimum value, no need to check others
-                # digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise CliError(
-                    ("Ansible version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise CliError(
+                "Ansible version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -148,14 +133,22 @@ class AnsibleCli:
 
     def list_inventory(self, inventory):
         try:
-            output = exec_shell([
-                self.bin("ansible-inventory"),
-                "--list",
-                "-i", inventory
-            ])
+            # Set the env. variable ANSIBLE_DEPRECATION_WARNINGS to false
+            # because without this, warning messages are displayed when the
+            # python version is < 3.8 making the output not JSON compatible.
+            environ = os.environ.copy()
+            environ['ANSIBLE_DEPRECATION_WARNINGS'] = 'false'
+            output = exec_shell(
+                [
+                    self.bin("ansible-inventory"),
+                    "--list",
+                    "-i", inventory
+                ],
+                environ=environ
+            )
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
-            return result 
+            return result
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -186,7 +179,7 @@ class AnsibleCli:
             sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/{version}/bin/activate
             source {path}/ansible/{version}/bin/activate
             python3 -m pip install "cryptography==3.3.2"
-            python3 -m pip install "ansible-base=={version}"
+            python3 -m pip install "ansible-core=={version}"
             deactivate
             rm -f {path}/bin/ansible
             ln -sf {path}/ansible/{version}/bin/ansible {path}/bin/.
