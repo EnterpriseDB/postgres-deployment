@@ -110,6 +110,21 @@ class PgTypeOptionAzureDB:
         Default: %(default)s
     """)
 
+class MemSizeOptionsVMWare:
+    choices = ['2048', '3072', '4096']
+    default = '2048'
+    help = textwrap.dedent("""
+        Memory size options. Allowed values are: 2048, 3072, 4096 for VMWare.
+        Default: %(default)s
+    """)
+
+class CPUCountOptionsVMWare:
+    choices = ['1', '2']
+    default = '1'
+    help = textwrap.dedent("""
+        CPU Count options. Allowed values are: 1, 2 for VMWare.
+        Default: %(default)s
+    """)
 
 class SSHPubKeyOption:
 

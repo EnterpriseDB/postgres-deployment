@@ -1373,6 +1373,7 @@ class Project:
             'ssh_priv_key': self.ssh_priv_key,
             'efm_version': env.efm_version,
         }
+        
 
     def _build_ansible_vars(self, env):
         """
@@ -1418,6 +1419,7 @@ class Project:
                     "Some cloud resources seem to be still present for this "
                     "project, please destroy them with the 'destroy' sub-command"
             )
+    
         if self.cloud == 'vmware':
             self._load_ansible_vars()
             # Update before committing with
@@ -1430,7 +1432,6 @@ class Project:
 
             mem_size = self.ansible_vars['mem_size']
             cpu_count = self.ansible_vars['cpu_count']
-            print(self.mech_project_path)
             mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
             #Counts images currently running in project folder
             if mech.count_resources() > 0:
@@ -1438,7 +1439,6 @@ class Project:
                 "Some cloud resources seem to be still present for this "
                 "project, please destroy them with the 'destroy' sub-command"
             )
-            print("goes through")
 
         if os.path.exists(self.log_file):
             with AM("Removing log file %s" % self.log_file):
