@@ -49,10 +49,10 @@ class OSOption:
 
 
 class VMWareOSOption:
-    choices = ['CentOS8']
+    choices = ['CentOS8', 'Redhat8']
     default = 'CentOS8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS8. Default: %(default)s
+        Operating system. Allowed values are: CentOS8, Redhat8. Default: %(default)s
     """)
 
 

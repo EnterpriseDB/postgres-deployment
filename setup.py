@@ -59,13 +59,7 @@ Advanced Server, and EDB Tools in the Cloud.
             'data/terraform/*/*/*/*/*.tf',
             'data/terraform/*/*/*/*/*.sh',
             'data/vmware-wkstn/*.*',
-            'data/vmware-wkstn/centos8/*.*',
-            'data/vmware-wkstn/centos8/EDB-RA-1/Mechfile',
-            'data/vmware-wkstn/centos8/EDB-RA-1/playbook.yml',
-            'data/vmware-wkstn/centos8/EDB-RA-2/Mechfile',
-            'data/vmware-wkstn/centos8/EDB-RA-2/playbook.yml',
-            'data/vmware-wkstn/centos8/EDB-RA-3/Mechfile',
-            'data/vmware-wkstn/centos8/EDB-RA-3/playbook.yml',            
+            'data/vmware-wkstn/*'           
         ]
     }
 )
