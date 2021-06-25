@@ -1348,9 +1348,7 @@ class Project:
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
         operating_system = ''
-        if env.operating_system == 'Redhat8':
-            operating_system = 'rh8'
-        elif env.operating_system == 'CentOS8':
+        if env.operating_system == 'CentOS8':
             operating_system = 'c8'
 
         self.ansible_vars = {
