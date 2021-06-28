@@ -210,7 +210,7 @@ class Project:
     def create(self):
         if self.cloud == 'baremetal' or self.cloud == 'vmware':
             # Create only project directory when working with baremetal
-            # deployment.
+            # or vmware deployment.
             with AM("Creating project directory %s" % self.project_path):
                 os.makedirs(self.project_path)
             return
@@ -592,12 +592,10 @@ class Project:
         frommechfile = os.path.join(
                     self.vmware_share_path + "/%s-%s" % (self.ansible_vars['operating_system'],self.ansible_vars['reference_architecture'])
         )
-       
         self.mechfile = os.path.join(
             self.project_path,
             "%s" % "Mechfile"
         )
-        
         fromplaybookfile = os.path.join(
                     self.vmware_share_path + "/%s" % "playbook.yml" 
         )
@@ -605,7 +603,6 @@ class Project:
             self.project_path,
             "%s" % 'playbook.yml'
         )
-        
         with AM("Copying Mech Config files into %s" % self.mechfile):
             # Mechfile
             try:
@@ -1416,7 +1413,6 @@ class Project:
                 'vmware/',
                 self.name
             )
-
             mem_size = self.ansible_vars['mem_size']
             cpu_count = self.ansible_vars['cpu_count']
             mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
@@ -1525,13 +1521,11 @@ class Project:
                 'vmware/',
                 self.name
             )
-            
             mem_size = self.ansible_vars['mem_size']
             cpu_count = self.ansible_vars['cpu_count']
             mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
             with AM("Checking instances availability"):
                 mech.up()
-
             # Build ip address list for vmware deployment
             with AM(
                 "Build VMWare Ansible IP addresses"
@@ -1578,7 +1572,6 @@ class Project:
                 'vmware/',
                 self.name
             )
-
             mem_size = self.ansible_vars['mem_size']
             cpu_count = self.ansible_vars['cpu_count']
             mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
@@ -1793,7 +1786,7 @@ class Project:
                 return
 
             for project_name in os.listdir(projects_path):
-                project_path = os.path.join(projects_path, project_name)     
+                project_path = os.path.join(projects_path, project_name)    
                 if not os.path.isdir(project_path):
                     continue  
                 project = Project(cloud, project_name, {})
