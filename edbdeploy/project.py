@@ -1358,7 +1358,6 @@ class Project:
             'ssh_priv_key': self.ssh_priv_key,
             'efm_version': env.efm_version,
         }
-        
 
     def _build_ansible_vars(self, env):
         """
