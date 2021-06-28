@@ -67,6 +67,7 @@ module "edb-db-cluster" {
 
   aws_ami_id                          = var.aws_ami_id
   vpc_id                              = module.vpc.vpc_id
+  pg_type                             = var.pg_type
   postgres_server                     = var.postgres_server
   pem_server                          = var.pem_server
   hammerdb_server                     = var.hammerdb_server

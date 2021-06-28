@@ -50,3 +50,10 @@ variable "subnetwork_name" {
   # Must have network_name tag as a prefix
   default = "%PROJECT_NAME%-edb-network-subnetwork"
 }
+
+# pg_type variable
+variable "pg_type" {
+  description = "Postgres Type"
+  type        = string
+  default     = "PG"
+}

@@ -979,6 +979,7 @@ class Project:
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
             },
+            'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
             'ssh_pub_key': self.ssh_pub_key,
             'ssh_priv_key': self.ssh_priv_key,
@@ -1035,6 +1036,7 @@ class Project:
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
             },
+            'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
             'ssh_pub_key': self.ssh_pub_key,
             'ssh_priv_key': self.ssh_priv_key,
@@ -1091,6 +1093,7 @@ class Project:
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
             },
+            'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
             'ssh_pub_key': self.ssh_pub_key,
             'ssh_priv_key': self.ssh_priv_key,
@@ -1254,6 +1257,7 @@ class Project:
             'ssh_user': os_spec['ssh_user'],
             'ssh_priv_key': self.ssh_priv_key,
             'efm_version': env.efm_version,
+            'use_hostname': env.use_hostname,
         }
 
         # Add configuration for pg_data and pg_wal accordingly to the
@@ -1331,6 +1335,7 @@ class Project:
             'ssh_user': ssh_user,
             'ssh_priv_key': self.ssh_priv_key,
             'efm_version': env.efm_version,
+            'use_hostname': env.use_hostname,
         }
 
         # Add configuration for pg_data and pg_wal
@@ -1363,6 +1368,7 @@ class Project:
             'ssh_pass': ssh_pass,
             'ssh_priv_key': self.ssh_priv_key,
             'efm_version': env.efm_version,
+            'use_hostname': env.use_hostname,
         }
 
     def _build_ansible_vars(self, env):
@@ -1598,6 +1604,10 @@ class Project:
         if self.ansible_vars.get('efm_version'):
             extra_vars.update(dict(
                 efm_version=self.ansible_vars['efm_version'],
+            ))
+        if self.ansible_vars.get('use_hostname'):
+            extra_vars.update(dict(
+                use_hostname=self.ansible_vars['use_hostname'],
             ))
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(

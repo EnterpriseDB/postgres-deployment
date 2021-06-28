@@ -20,6 +20,7 @@ module "compute" {
   source = "./environments/compute"
 
   postgres_server                     = var.postgres_server
+  pg_type                             = var.pg_type
   pem_server                          = var.pem_server
   barman_server                       = var.barman_server
   pooler_server                       = var.pooler_server
