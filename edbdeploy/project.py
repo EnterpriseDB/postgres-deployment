@@ -101,7 +101,6 @@ class Project:
             'inventory.yml'
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
-        
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains
@@ -109,23 +108,19 @@ class Project:
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'python')):
                 self.bin_path = bin_path
-
         self.environ = os.environ
    
     def check_versions(self):
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
-        
         # Update before committing with
         # projects_root_path
         self.mech_project_path = os.path.join(
             self.projects_root_path,
-            #self.vmware_share_path
             'vmware/',
             self.name
         )
-        
         # Check only Python3 version when working with vmware deployment
         if self.cloud == 'vmware':
             vm = VMWareCli('dummy', self.name, self.cloud, 0, 0, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
@@ -139,12 +134,13 @@ class Project:
             return
 
         # Check Terraform version
-        terraform = TerraformCli('dummy', 'dummy',
-                                 bin_path=self.cloud_tools_bin_path)
-        terraform.check_version()
-        # Check cloud vendor CLI/SDK version
-        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-        cloud_cli.check_version()
+        if self.cloud not in ['vmware', 'baremetal']:
+            terraform = TerraformCli('dummy', 'dummy',
+                                    bin_path=self.cloud_tools_bin_path)
+            terraform.check_version()
+            # Check cloud vendor CLI/SDK version
+            cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+            cloud_cli.check_version()
 
     def create_log_dir(self):
         try:
@@ -587,7 +583,7 @@ class Project:
                 ),
                 self.ansible_playbook
             )
-    
+
     def _copy_vmware_configfiles(self):
         """
         Copy reference architecture Mech Config file into project directory.
@@ -830,7 +826,6 @@ class Project:
         """
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
-        
         # Copy SSH keys
         self._copy_ssh_keys(env)
 
@@ -1399,8 +1394,7 @@ class Project:
                     sys.stdout.write(l)
 
     def remove(self):
-        
-        if self.cloud == 'terraform':
+        if self.cloud not in ['vmware', 'baremetal']:
             terraform = TerraformCli(
                 self.project_path, self.terraform_plugin_cache_path,
                 bin_path=self.cloud_tools_bin_path
@@ -1461,7 +1455,7 @@ class Project:
     def provision(self, env):
         self._load_ansible_vars()
 
-        if self.cloud != 'vmware':
+        if self.cloud not in ['vmware', 'baremetal']:
             terraform = TerraformCli(
                 self.project_path, self.terraform_plugin_cache_path,
                 bin_path=self.cloud_tools_bin_path
@@ -1562,7 +1556,7 @@ class Project:
                 terraform.exec_add_host_sh()
 
     def destroy(self):
-        if self.cloud != 'vmware':
+        if self.cloud not in ['vmware', 'baremetal']:
             terraform = TerraformCli(
                 self.project_path, self.terraform_plugin_cache_path,
                 bin_path=self.cloud_tools_bin_path
@@ -1790,7 +1784,7 @@ class Project:
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
-        headers = ["Name", "Path", "Machines", "Resources", "Instance Names"]
+        headers = ["Name", "Path", "Machines", "Resources", "Ansible State"]
         rows = []
         try:
             # Case when projects' path does not yet exist
@@ -1798,16 +1792,12 @@ class Project:
                 Project.display_table(headers, [])
                 return
 
-           
             for project_name in os.listdir(projects_path):
-                project_path = os.path.join(projects_path, project_name)
-                
+                project_path = os.path.join(projects_path, project_name)     
                 if not os.path.isdir(project_path):
-                    continue
-            
+                    continue  
                 project = Project(cloud, project_name, {})
-                
-                if cloud == 'terraform':
+                if cloud not in ['vmware', 'baremetal']:
                     terraform_resource_count = 0
                     terraform = TerraformCli(
                         project.project_path,
@@ -1835,18 +1825,21 @@ class Project:
                     mech_project_path = os.path.join(
                     project.project_path
                     )
-                    
                     mech = VMWareCli(cloud, project.name, cloud, ansible_vars['mem_size'], ansible_vars['cpu_count'], mech_project_path, bin_path=project.cloud_tools_bin_path)
-                   
+
+                    try:
+                        states = project.load_states()
+                    except Exception as e:
+                        states={}
+
                     rows.append([
                         project.name,
                         project.project_path,
-                        #counts the number of machines running in the project, if it is greater than 0 than it is PROVISIONED otherwise it is destroyed
+                        #Counts the number of machines running in the project, if it is greater than 0 than it is PROVISIONED otherwise it is destroyed
                         mech.mech_machine_status(),
-                        #returns an integer of the number of images running in the project
+                        #Returns an integer of the number of images running in the project
                         str(mech.count_resources()),
-                        #lists all instances (filenames in .mech file) excluding boxes and DS_Store File
-                        mech.list_instances()
+                        states.get('ansible', 'UNKNOWN')
                     ])
 
             Project.display_table(headers, rows)

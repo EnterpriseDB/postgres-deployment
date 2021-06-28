@@ -146,7 +146,7 @@ class VMWareCli:
             logging.error("Return code is: %s", e.returncode)
             logging.error("Output: %s", e.output)
             raise CliError(
-                "Mech  executable seems to be missing. Please install it or "
+                "Mech executable seems to be missing. Please install it or "
                 "check your PATH variable"
             )
 
@@ -219,8 +219,7 @@ class VMWareCli:
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                "Failed to destroy VMWare Instances, please check the logs for "
-                "details."
+                "Failed to destroy VMWare Instances, please check the logs for details."
             )
 
     def count_resources(self):
@@ -257,17 +256,6 @@ class VMWareCli:
             return "PROVISIONED"
         else:
             return "DESTROYED"
-    
-    def list_instances(self):
-        mech_file = self.mech_project_path + "/.mech"
-        if os.path.isdir(mech_file):
-            instances = os.listdir(mech_file)
-            instances.remove('boxes')
-            instances_str = ' '.join([file for file in instances if not file.endswith('Store')])
-            return instances_str
-            
-        else:
-            return 'UNKNOWN'
 
     def install_collection(self, collection_name, version=None):
         if version:
