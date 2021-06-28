@@ -1041,6 +1041,48 @@ class Project:
             'ssh_user': os['ssh_user'],
         }
 
+    def _gcloudsql_build_terraform_vars(self, env):
+        """
+        Build Terraform variable for GCloud provisioning
+        """
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        hammerdb = env.cloud_spec['hammerdb_server']
+        guc = TPROCC_GUC
+
+        self.terraform_vars = {
+            'gcloud_image': os['image'],
+            'gcloud_region': env.gcloud_region,
+            'gcloud_credentials': env.gcloud_credentials.name,
+            'gcloud_project_id': env.gcloud_project_id,
+            'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
+            'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
+            'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
+            'cluster_name': self.name,
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+                'volume': pg['volume'],
+            },
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
     def _azure_build_terraform_vars(self, env):
         """
         Build Terraform variable for Azure provisioning
@@ -1279,7 +1321,7 @@ class Project:
         self.ansible_vars = {
             'reference_architecture': env.reference_architecture,
             'cluster_name': self.name,
-            'pg_type': env.postgres_type,
+            'pg_type': "DBaaS",
             'pg_version': env.postgres_version,
             'repo_username': edb_repo_username,
             'repo_password': edb_repo_password,
@@ -1295,6 +1337,9 @@ class Project:
 
     def _gcloud_build_ansible_vars(self, env):
         return self._iaas_build_ansible_vars(env)
+
+    def _gcloudsql_build_ansible_vars(self, env):
+        return self._dbaas_build_ansible_vars(env)
 
     def _awsrds_build_ansible_vars(self, env):
         return self._dbaas_build_ansible_vars(env)
@@ -1495,6 +1540,20 @@ class Project:
                      + self.terraform_vars['barman_server']['count']
                      + self.terraform_vars['pem_server']['count']
                      + self.terraform_vars['pooler_server']['count'])
+                )
+
+        # GCloud SQL case
+        if self.cloud == 'gcloud-sql':
+            with AM(
+                "Checking instances availability in region %s"
+                % self.terraform_vars['gcloud_region']
+            ):
+                cloud_cli.cli.check_instances_availability(
+                    self.name,
+                    self.terraform_vars['gcloud_region'],
+                    # Total number of nodes
+                    (self.terraform_vars['postgres_server']['count']
+                     + self.terraform_vars['pem_server']['count'])
                 )
 
         # VMWare case
@@ -1857,7 +1916,7 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'baremetal'
+                    'gbloud-sql', 'baremetal'
                 ]
             },
             {
@@ -1866,7 +1925,8 @@ class Project:
                     'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
                 ),
                 'cloud_vendors': [
-                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud'
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
+                    'gcloud-sql'
                 ]
             },
             {
@@ -1883,6 +1943,11 @@ class Project:
                 'name': 'GCloud Cli',
                 'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
                 'cloud_vendors': ['gcloud']
+            },
+            {
+                'name': 'GCloud Cli',
+                'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['gcloud-sql']
             },
         ]
 
