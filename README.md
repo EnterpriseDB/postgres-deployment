@@ -126,7 +126,7 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `azure`: Microsoft Azure Cloud
   * `azure-db`: Microsoft Azure Database
   * `gcloud`: Google Cloud
-  * `gcloud`: Google Cloud SQL for PostgreSQL
+  * `gcloud-sql`: Google Cloud SQL for PostgreSQL
 
 ## Sub-commands
 

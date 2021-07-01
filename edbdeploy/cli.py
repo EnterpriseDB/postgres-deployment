@@ -26,7 +26,7 @@ class CLIParser(argparse.ArgumentParser):
 
 def parse():
     parser = CLIParser(
-        description='EDB deployment script for aws, aws-rds, azure, azure-db, gcloud, and gcloud_sql'
+        description='EDB deployment script for aws, aws-rds, azure, azure-db, gcloud, and gcloud-sql'
     )
     parser.add_argument(
         '-v', '--version',
@@ -132,7 +132,7 @@ def parse():
             azure_db_parser.print_help()
         elif env.cloud == 'gcloud':
             gcloud_parser.print_help()
-        elif env.cloud == 'gcloud_sql':
+        elif env.cloud == 'gcloud-sql':
             gcloud_sql_parser.print_help()
         elif env.cloud == 'baremetal':
             baremetal_parser.print_help()

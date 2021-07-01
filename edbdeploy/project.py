@@ -1916,7 +1916,7 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gbloud-sql', 'baremetal'
+                    'gcloud-sql', 'baremetal'
                 ]
             },
             {
