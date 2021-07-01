@@ -108,8 +108,9 @@ class Project:
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'python')):
                 self.bin_path = bin_path
+        
         self.environ = os.environ
-   
+
     def check_versions(self):
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
@@ -1785,10 +1786,12 @@ class Project:
                 return
 
             for project_name in os.listdir(projects_path):
-                project_path = os.path.join(projects_path, project_name)    
+                project_path = os.path.join(projects_path, project_name)
                 if not os.path.isdir(project_path):
-                    continue  
+                    continue
+
                 project = Project(cloud, project_name, {})
+                
                 if cloud not in ['vmware', 'baremetal']:
                     terraform_resource_count = 0
                     terraform = TerraformCli(

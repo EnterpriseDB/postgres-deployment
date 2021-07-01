@@ -21,7 +21,6 @@ class VMWareCli:
         self.mem_size = mem_size
         self.cpu_count = cpu_count
         self.mech_project_path = mech_project_path
-        
         # Python supported versions interval
         self.python_min_version = (3, 8, 0)
         self.python_max_version = (9, 9, 9)
