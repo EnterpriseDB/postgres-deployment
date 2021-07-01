@@ -21,6 +21,7 @@ variable "ssh_priv_key" {}
 variable "ssh_pub_key" {}
 variable "ssh_user" {}
 variable "vnet_name" {}
+variable "pg_type" {}
 
 locals {
   lnx_device_names = [

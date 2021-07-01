@@ -33,3 +33,10 @@ variable "add_hosts_filename" {
   type    = string
   default = "add_host.sh"
 }
+
+# pg_type variable
+variable "pg_type" {
+  description = "Postgres Type"
+  type        = string
+  default     = "PG"
+}

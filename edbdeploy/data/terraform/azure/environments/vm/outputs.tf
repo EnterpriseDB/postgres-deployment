@@ -7,14 +7,14 @@ all:
 %{if var.pem_server["count"] > 0 ~}
     pemserver:
       hosts:
-        pemserver1:
+        pemserver1.${var.cluster_name}.internal:
           ansible_host: ${azurerm_public_ip.pem_public_ip[0].ip_address}
           private_ip: ${azurerm_network_interface.pem_public_nic[0].private_ip_address}
 %{endif ~}
 %{if var.barman_server["count"] > 0 ~}
     barmanserver:
       hosts:
-        barmanserver1:
+        barmanserver1.${var.cluster_name}.internal:
           ansible_host: ${azurerm_public_ip.barman_public_ip[0].ip_address}
           private_ip: ${azurerm_network_interface.barman_public_nic[0].private_ip_address}
 %{endif ~}
@@ -22,14 +22,17 @@ all:
 %{if postgres_count == 0 ~}
     primary:
       hosts:
-        primary${postgres_count + 1}:
 %{endif ~}
 %{if postgres_count == 1 ~}
     standby:
       hosts:
 %{endif ~}
-%{if postgres_count > 0 ~}
-        standby${postgres_count}:
+%{if postgres_count >= 0 ~}
+%{if var.pg_type == "EPAS" ~}
+        epas${postgres_count + 1}.${var.cluster_name}.internal:
+%{else ~}
+        pgsql${postgres_count + 1}.${var.cluster_name}.internal:
+%{endif ~}
 %{endif ~}
           ansible_host: ${azurerm_public_ip.postgres_public_ip[postgres_count].ip_address}
           private_ip: ${azurerm_network_interface.postgres_public_nic[postgres_count].private_ip_address}

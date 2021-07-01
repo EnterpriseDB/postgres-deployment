@@ -66,6 +66,14 @@ def subcommands(subparser):
         help=EFMVersionOption.help
     )
     subcommand_parsers['configure'].add_argument(
+        '--use-hostname',
+        dest='use_hostname',
+        choices=UseHostnameOption.choices,
+        default=UseHostnameOption.default,
+        metavar='<use-hostname>',
+        help=UseHostnameOption.help
+    )
+    subcommand_parsers['configure'].add_argument(
         '-k', '--ssh-pub-key',
         dest='ssh_pub_key',
         type=argparse.FileType('r'),

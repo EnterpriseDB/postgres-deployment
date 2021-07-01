@@ -87,6 +87,7 @@ module "vm-hammerdb" {
 
   barman                              = var.barman
   postgres_server                     = var.postgres_server
+  pg_type                             = var.pg_type
   pem_server                          = var.pem_server
   hammerdb_server                     = var.hammerdb_server
   barman_server                       = var.barman_server

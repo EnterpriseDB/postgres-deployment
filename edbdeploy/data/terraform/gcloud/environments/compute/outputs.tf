@@ -7,14 +7,14 @@ all:
 %{if var.pem_server["count"] > 0 ~}
     pemserver:
       hosts:
-        pemserver1:
+        pemserver1.${var.cluster_name}.internal:
           ansible_host: ${google_compute_instance.pem_server[0].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.pem_server[0].network_interface.0.network_ip}
 %{endif ~}
 %{if var.barman_server["count"] > 0 ~}
     barmanserver:
       hosts:
-        barmanserver1:
+        barmanserver1.${var.cluster_name}.internal:
           ansible_host: ${google_compute_instance.barman_server[0].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.barman_server[0].network_interface.0.network_ip}
 %{endif ~}
@@ -22,7 +22,7 @@ all:
 %{if hammerdb_count == 0 ~}
     hammerdbserver:
       hosts:
-        hammerdbserver1:
+        hammerdbserver1.${var.cluster_name}.internal:
           ansible_host: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.network_ip}
 %{endif ~}
@@ -31,14 +31,17 @@ all:
 %{if postgres_count == 0 ~}
     primary:
       hosts:
-        primary${postgres_count + 1}:
 %{endif ~}
 %{if postgres_count == 1 ~}
     standby:
       hosts:
 %{endif ~}
-%{if postgres_count > 0 ~}
-        standby${postgres_count}:
+%{if postgres_count >= 0 ~}
+%{if var.pg_type == "EPAS" ~}
+        epas${postgres_count + 1}.${var.cluster_name}.internal:
+%{else ~}
+        pgsql${postgres_count + 1}.${var.cluster_name}.internal:
+%{endif ~}
 %{endif ~}
           ansible_host: ${google_compute_instance.postgres_server[postgres_count].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.postgres_server[postgres_count].network_interface.0.network_ip}

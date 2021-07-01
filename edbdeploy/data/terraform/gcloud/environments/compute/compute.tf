@@ -18,6 +18,7 @@ variable "ssh_user" {}
 variable "subnetwork_name" {}
 variable "hammerdb_server" {}
 variable "hammerdb" {}
+variable "pg_type" {}
 
 locals {
   lnx_device_names = [
