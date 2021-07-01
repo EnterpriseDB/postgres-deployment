@@ -629,6 +629,9 @@ class GCloudCli:
         execute_install_script(script_name)
 
 
+class GCloudSQLCli(GCloudCli):
+    pass
+
 class CloudCli:
 
     def __init__(self, cloud, bin_path):
@@ -645,6 +648,8 @@ class CloudCli:
             self.cli = AzureDBCli(bin_path)
         elif self.cloud == 'gcloud':
             self.cli = GCloudCli(bin_path)
+        elif self.cloud == 'gcloud-sql':
+            self.cli = GCloudSQLCli(bin_path)
         else:
             raise Exception("Unknown cloud %s", self.cloud)
 

@@ -11,6 +11,7 @@ from .commands import (
     baremetal,
     rds as aws_rds,
     gcloud,
+    gcloud_sql,
     vmware,
 )
 
@@ -25,7 +26,7 @@ class CLIParser(argparse.ArgumentParser):
 
 def parse():
     parser = CLIParser(
-        description='EDB deployment script for aws, aws-rds, azure, azure-db and gcloud'
+        description='EDB deployment script for aws, aws-rds, azure, azure-db, gcloud, and gcloud-sql'
     )
     parser.add_argument(
         '-v', '--version',
@@ -47,6 +48,8 @@ def parse():
     azure_db_parser = subparsers.add_parser('azure-db',
                                             help='Azure Database Cloud')
     gcloud_parser = subparsers.add_parser('gcloud', help='Google Cloud')
+    gcloud_sql_parser = subparsers.add_parser('gcloud-sql',
+                                              help='Google Cloud SQL')
     baremetal_parser = subparsers.add_parser(
         'baremetal', help='Baremetal servers and VMs'
     )
@@ -74,6 +77,10 @@ def parse():
         title='GCloud sub-commands', dest='sub_command',
         metavar='<sub-command>'
     )
+    gcloud_sql_subparser = gcloud_sql_parser.add_subparsers(
+        title='Google Cloud SQL sub-commands', dest='sub_command',
+        metavar='<sub-command>'
+    )
     baremetal_subparser = baremetal_parser.add_subparsers(
         title='Baremetal sub-commands', dest='sub_command',
         metavar='<sub-command>'
@@ -90,6 +97,7 @@ def parse():
     azure.subcommands(azure_subparser)
     azure_db.subcommands(azure_db_subparser)
     gcloud.subcommands(gcloud_subparser)
+    gcloud_sql.subcommands(gcloud_sql_subparser)
     baremetal.subcommands(baremetal_subparser)
     vmware.subcommands(vmware_subparser)
 
@@ -124,6 +132,8 @@ def parse():
             azure_db_parser.print_help()
         elif env.cloud == 'gcloud':
             gcloud_parser.print_help()
+        elif env.cloud == 'gcloud-sql':
+            gcloud_sql_parser.print_help()
         elif env.cloud == 'baremetal':
             baremetal_parser.print_help()
         elif env.cloud == 'vmware':

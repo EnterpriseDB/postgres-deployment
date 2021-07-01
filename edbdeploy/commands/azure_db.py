@@ -20,10 +20,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOptionAzureDB.choices,
-        default=ReferenceArchitectureOptionAzureDB.default,
+        choices=ReferenceArchitectureOptionDBaaS.choices,
+        default=ReferenceArchitectureOptionDBaaS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionAzureDB.help
+        help=ReferenceArchitectureOptionDBaaS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',

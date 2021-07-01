@@ -7,6 +7,7 @@ from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
 from .spec.azure_db import AzureDBSpec
 from .spec.gcloud import GCloudSpec
+from .spec.gcloud_sql import GCloudSQLSpec
 from .spec.baremetal import BaremetalSpec
 from .spec.vmware import VMWareSpec
 from .errors import SpecValidatorError
@@ -110,6 +111,8 @@ def default_spec(cloud, reference_architecture=None):
         return default(AzureDBSpec)
     elif cloud == 'gcloud':
         return default(GCloudSpec)
+    elif cloud == 'gcloud-sql':
+        return default(GCloudSQLSpec)
     elif cloud == 'baremetal':
         return default(BaremetalSpec.get(reference_architecture))
     elif cloud == 'vmware':
@@ -133,6 +136,8 @@ def merge_user_spec(cloud, user_spec, reference_architecture=None):
         cloud_spec = AzureDBSpec
     elif cloud == 'gcloud':
         cloud_spec = GCloudSpec
+    elif cloud == 'gcloud-sql':
+        cloud_spec = GCloudSQLSpec
     elif cloud == 'baremetal':
         cloud_spec = BaremetalSpec.get(reference_architecture)
     elif cloud == 'vmware':

@@ -3,9 +3,9 @@ import argparse
 from ..options import *
 from .default import default_subcommand_parsers
 
-# AWS RDS Aurora for sub-commands and options
+# GCloudSQL sub-commands and options
 def subcommands(subparser):
-    # List of the sub-commands we want to be available for the aws-rds-aurora
+    # List of the sub-commands we want to be available for the gcloud-sql
     # command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
@@ -17,7 +17,7 @@ def subcommands(subparser):
         subparser, available_subcommands
     )
 
-    # aws-rds-aurora configure sub-command options
+    # gcloud-sql configure sub-command options
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
@@ -41,14 +41,6 @@ def subcommands(subparser):
         default=OSOption.default,
         metavar='<operating-system>',
         help=OSOption.help
-    )
-    subcommand_parsers['configure'].add_argument(
-        '-t', '--pg-type',
-        dest='postgres_type',
-        choices=PgTypeOptionRDS.choices,
-        default=PgTypeOptionRDS.default,
-        metavar='<postgres-engine-type>',
-        help=PgTypeOptionRDS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-v', '--pg-version',
@@ -75,28 +67,36 @@ def subcommands(subparser):
         help=SSHPrivKeyOption.help
     )
     subcommand_parsers['configure'].add_argument(
-        '-r', '--aws-rds-region',
-        dest='aws_region',
-        choices=AWSRegionOption.choices,
-        default=AWSRegionOption.default,
+        '-r', '--gcloud-region',
+        dest='gcloud_region',
+        choices=GCloudRegionOption.choices,
+        default=GCloudRegionOption.default,
         metavar='<cloud-region>',
-        help=AWSRegionOption.help
+        help=GCloudRegionOption.help
     )
-    subcommand_parsers['configure'].add_argument(
-        '-i', '--aws-rds-ami-id',
-        dest='aws_ami_id',
-        type=str,
-        default=AWSIAMIDOption.default,
-        metavar='<aws-rds-ami-id>',
-        help=AWSIAMIDOption.help
-    ).completer = aws_ami_id_completer
     subcommand_parsers['configure'].add_argument(
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        metavar='<aws-rds-spec-file>',
-        help="AWS instances specification file, in JSON."
+        metavar='<gcloud-spec-file>',
+        help="GCloud instances specification file, in JSON."
     )
+    subcommand_parsers['configure'].add_argument(
+        '-c', '--gcloud-credentials',
+        dest='gcloud_credentials',
+        type=argparse.FileType('r'),
+        default=GCloudCredentialsOption.default(),
+        metavar='<gcloud-credentials-json-file>',
+        help=GCloudCredentialsOption.help
+    )
+    subcommand_parsers['configure'].add_argument(
+        '-p', '--gcloud-project-id',
+        dest='gcloud_project_id',
+        required=True,
+        type=str,
+        metavar='<gcloud-project-id>',
+        help="GCloud project ID"
+    ).completer = gcloud_project_id_completer
     subcommand_parsers['configure'].add_argument(
         '-T', '--t-shirt',
         dest='shirt',
@@ -105,17 +105,37 @@ def subcommands(subparser):
         metavar='<shirt-size>',
         help=ShirtSizeOption.help
     )
-    # aws-rds-aurora logs sub-command options
+    # gcloud-sql logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
         dest='tail',
         action='store_true',
         help="Do not stop at the end of file."
     )
-    # aws-rds-aurora deploy sub-command options
+    # gcloud-sql deploy sub-command options
     subcommand_parsers['deploy'].add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
         action='store_true',
         help="Do not install the Ansible collection."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-p', '--pre-deploy-ansible',
+        dest='pre_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<pre-deploy-ansible-playbook>',
+        help="Pre deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-P', '--post-deploy-ansible',
+        dest='post_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<post-deploy-ansible-playbook>',
+        help="Post deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-S', '--skip-main-playbook',
+        dest='skip_main_playbook',
+        action='store_true',
+        help="Skip main playbook of the reference architecture."
     )
