@@ -64,8 +64,8 @@ GCloudSQLSpec = {
         'instance_type': SpecValidator(
             type='choice',
             choices=[
-                'db-custom-4-26624', 'db-custom-8-65536',
-                'db-custom-16-131072', 'db-custom-32-262144'
+                'db-custom-4-26624', 'db-custom-8-53248',
+                'db-custom-16-106496', 'db-custom-32-212992'
             ],
             default='db-custom-4-26624'
         ),
@@ -121,12 +121,12 @@ TPROCC_GUC = {
         'max_wal_size': '102400',
     },
     'large': {
-        'effective_cache_size': '13107200',
+        'effective_cache_size': '9542041',
         'shared_buffers': '3145728',
         'max_wal_size': '204800',
     },
     'xl': {
-        'effective_cache_size': '29884416',
+        'effective_cache_size': '19084083',
         'shared_buffers': '3145728',
         'max_wal_size': '409600',
     },
