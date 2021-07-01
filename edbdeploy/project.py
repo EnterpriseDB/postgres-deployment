@@ -108,7 +108,7 @@ class Project:
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'python')):
                 self.bin_path = bin_path
-        
+
         self.environ = os.environ
 
     def check_versions(self):
@@ -1791,7 +1791,7 @@ class Project:
                     continue
 
                 project = Project(cloud, project_name, {})
-                
+
                 if cloud not in ['vmware', 'baremetal']:
                     terraform_resource_count = 0
                     terraform = TerraformCli(
