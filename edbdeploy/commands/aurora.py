@@ -21,10 +21,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOptionRDS.choices,
-        default=ReferenceArchitectureOptionRDS.default,
+        choices=ReferenceArchitectureOptionDBaaS.choices,
+        default=ReferenceArchitectureOptionDBaaS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionRDS.help
+        help=ReferenceArchitectureOptionDBaaS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',

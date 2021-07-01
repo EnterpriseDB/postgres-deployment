@@ -20,7 +20,7 @@ class ReferenceArchitectureOption:
     """)
 
 
-class ReferenceArchitectureOptionRDS:
+class ReferenceArchitectureOptionDBaaS:
     choices = ['HammerDB-DBaaS']
     default = 'HammerDB-DBaaS'
     help = textwrap.dedent("""
@@ -29,14 +29,6 @@ class ReferenceArchitectureOptionRDS:
         client-server architectures with and OLTP workload. Default:
         %(default)s
     """)
-
-
-class ReferenceArchitectureOptionAzure(ReferenceArchitectureOption):
-    pass
-
-
-class ReferenceArchitectureOptionAzureDB(ReferenceArchitectureOptionRDS):
-    pass
 
 
 class OSOption:
