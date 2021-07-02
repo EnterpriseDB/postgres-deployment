@@ -23,7 +23,7 @@ class TerraformCli:
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Terraform supported version interval
         self.min_version = (1, 0, 0)
-        self.max_version = (1, 0, 0)
+        self.max_version = (1, 0, 1)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
