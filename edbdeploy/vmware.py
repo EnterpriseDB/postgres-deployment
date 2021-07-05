@@ -13,21 +13,23 @@ from . import check_version, to_str
 
 class VMWareCli:
 
-    def __init__(self, dir, name, cloud, mech_project_path, bin_path=None):
+    def __init__(self, dir, name, cloud, mem_size, cpu_count, mech_project_path, bin_path=None):
         self.dir = dir
         self.environ = os.environ
         self.name = name
         self.cloud = cloud
+        self.mem_size = mem_size
+        self.cpu_count = cpu_count
         self.mech_project_path = mech_project_path
 
         # Python supported versions interval
         self.python_min_version = (3, 8, 0)
         self.python_max_version = (9, 9, 9)
         # Vagrant supported versions interval
-        self.vagrant_min_version = (3, 8, 0)
+        self.vagrant_min_version = (2, 0, 0)
         self.vagrant_max_version = (9, 9, 9)
         # Mech supported versions interval
-        self.mech_min_version = (3, 8, 0)
+        self.mech_min_version = (0, 3, 0)
         self.mech_max_version = (9, 9, 9)
         # Path to look up for executable
         self.bin_path = None
@@ -144,7 +146,7 @@ class VMWareCli:
             logging.error("Return code is: %s", e.returncode)
             logging.error("Output: %s", e.output)
             raise CliError(
-                "Mech  executable seems to be missing. Please install it or "
+                "Mech executable seems to be missing. Please install it or "
                 "check your PATH variable"
             )
 
@@ -184,8 +186,8 @@ class VMWareCli:
                 [
                     self.bin("mech"),
                     "up",
-                    "--memsize 3072",
-                    "--numvcpus 1"
+                    "--memsize %s" % self.mem_size,
+                    "--numvcpus %s" % self.cpu_count
                 ],
                 environ=self.environ,
                 cwd=self.mech_project_path
@@ -205,13 +207,42 @@ class VMWareCli:
                 [
                     self.bin("mech"),
                     "down",
-                    "--force"
+                    "--force",
                 ],
                 environ=self.environ,
                 cwd=self.mech_project_path
             )
+            
             if rc != 0:
                 raise Exception("Return code not 0")
+        except Exception as e:
+            logging.error("Failed to execute the command")
+            logging.error(e)
+            raise CliError(
+                "Failed to destroy VMWare Instances, please check the logs for details."
+            )
+
+    def count_resources(self):
+        try:     
+            #Use mech list see all running instances within, ggrep gets all instances with started as state which means its on, wc returns a count of the listed files with vmx
+            output = exec_shell(
+                [
+                    self.bin("mech"),
+                    "list",
+                    "|",
+                    self.bin("grep"),
+                    "started",
+                    "|",
+                    self.bin("wc"),
+                    "-l" 
+                ],
+                environ=self.environ,
+                cwd=self.mech_project_path
+            )
+            result = output.decode("utf-8").strip()
+            return int(result)
+            
+            
         except Exception as e:
             logging.error("Failed to execute the command")
             logging.error(e)
@@ -219,6 +250,12 @@ class VMWareCli:
                 "Failed to destroy VMWare Instances, please check the logs for "
                 "details."
             )
+    
+    def mech_machine_status(self):
+        if self.count_resources() > 0:
+            return "PROVISIONED"
+        else:
+            return "DESTROYED"
 
     def install_collection(self, collection_name, version=None):
         if version:

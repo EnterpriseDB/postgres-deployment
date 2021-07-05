@@ -8,7 +8,7 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the vmwarewkstn
     # command
     available_subcommands = [
-        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs'
+        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list'
     ]
 
     # Get sub-commands parsers
@@ -95,6 +95,24 @@ def subcommands(subparser):
         type=argparse.FileType('r'),
         metavar='<aws-spec-file>',
         help="AWS instances specification file, in JSON."
+    )
+
+    subcommand_parsers['configure'].add_argument(
+        '-m', '--mem-size',
+        dest='mem_size',
+        required=True,
+        choices=MemSizeOptionsVMWare.choices,
+        default=MemSizeOptionsVMWare.default,
+        help="Amount of memory to assign"
+    )
+
+    subcommand_parsers['configure'].add_argument(
+        '-c', '--cpu-count',
+        dest='cpu_count',
+        required=True,
+        choices=CPUCountOptionsVMWare.choices,
+        default=CPUCountOptionsVMWare.default,
+        help="Number of CPUS to configure"
     )
 
     # vmware deploy sub-command options

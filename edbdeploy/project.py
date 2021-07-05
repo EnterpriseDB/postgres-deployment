@@ -57,8 +57,7 @@ class Project:
     vmware_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'data',
-        'vmware-wkstn',
-        'centos8'
+        'vmware-wkstn'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres'
@@ -102,7 +101,6 @@ class Project:
             'inventory.yml'
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
-
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains
@@ -117,21 +115,16 @@ class Project:
         # Check Ansible version
         ansible = AnsibleCli('dummy', bin_path=self.cloud_tools_bin_path)
         ansible.check_version()
-
         # Update before committing with
         # projects_root_path
         self.mech_project_path = os.path.join(
             self.projects_root_path,
-            #self.vmware_share_path
             'vmware/',
-            self.name,
-            'centos8/',
-            "%s" % getattr(self.env, 'reference_architecture', None)
+            self.name
         )
-
         # Check only Python3 version when working with vmware deployment
         if self.cloud == 'vmware':
-            vm = VMWareCli('dummy', self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            vm = VMWareCli('dummy', self.name, self.cloud, 0, 0, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
             vm.python_check_version()
             vm.vagrant_check_version()
             vm.mech_check_version()
@@ -142,12 +135,13 @@ class Project:
             return
 
         # Check Terraform version
-        terraform = TerraformCli('dummy', 'dummy',
-                                 bin_path=self.cloud_tools_bin_path)
-        terraform.check_version()
-        # Check cloud vendor CLI/SDK version
-        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-        cloud_cli.check_version()
+        if self.cloud not in ['vmware', 'baremetal']:
+            terraform = TerraformCli('dummy', 'dummy',
+                                    bin_path=self.cloud_tools_bin_path)
+            terraform.check_version()
+            # Check cloud vendor CLI/SDK version
+            cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+            cloud_cli.check_version()
 
     def create_log_dir(self):
         try:
@@ -217,7 +211,7 @@ class Project:
     def create(self):
         if self.cloud == 'baremetal' or self.cloud == 'vmware':
             # Create only project directory when working with baremetal
-            # deployment.
+            # or vmware deployment.
             with AM("Creating project directory %s" % self.project_path):
                 os.makedirs(self.project_path)
             return
@@ -597,18 +591,14 @@ class Project:
         """
         # Un-comment the self.vmware_share_path once the entire commit has been completed
         frommechfile = os.path.join(
-                    self.vmware_share_path,
-                    "%s/Mechfile" % self.ansible_vars['reference_architecture']
+                    self.vmware_share_path + "/%s-%s" % (self.ansible_vars['operating_system'],self.ansible_vars['reference_architecture'])
         )
         self.mechfile = os.path.join(
             self.project_path,
-            'centos8',
-            "%s" % self.ansible_vars['reference_architecture'],
-            "%s" % 'Mechfile'
+            "%s" % "Mechfile"
         )
         fromplaybookfile = os.path.join(
-                    self.vmware_share_path,
-                    "%s/playbook.yml" % self.ansible_vars['reference_architecture']
+                    self.vmware_share_path + "/%s" % "playbook.yml" 
         )
         playbookfile = os.path.join(
             self.project_path,
@@ -834,7 +824,6 @@ class Project:
         """
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
-
         # Copy SSH keys
         self._copy_ssh_keys(env)
 
@@ -1401,6 +1390,9 @@ class Project:
         # VMWare and Vagrant ssh_user and ssh_pass is: 'vagrant'
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
+        operating_system = ''
+        if env.operating_system == 'CentOS8':
+            operating_system = 'c8'
 
         self.ansible_vars = {
             'reference_architecture': env.reference_architecture,
@@ -1409,6 +1401,9 @@ class Project:
             'pg_version': env.postgres_version,
             'repo_username': edb_repo_username,
             'repo_password': edb_repo_password,
+            'mem_size': env.mem_size,
+            'cpu_count': env.cpu_count,
+            'operating_system': operating_system,
             'ssh_user': ssh_user,
             'ssh_pass': ssh_pass,
             'ssh_priv_key': self.ssh_priv_key,
@@ -1447,14 +1442,34 @@ class Project:
                     sys.stdout.write(l)
 
     def remove(self):
-        terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
-            bin_path=self.cloud_tools_bin_path
-        )
-        # Prevent project deletion if some cloud resources are still present
-        # for this project.
-        if terraform.count_resources() > 0:
-            raise ProjectError(
+        if self.cloud not in ['vmware', 'baremetal']:
+            terraform = TerraformCli(
+                self.project_path, self.terraform_plugin_cache_path,
+                bin_path=self.cloud_tools_bin_path
+            )
+            # Prevent project deletion if some cloud resources are still present
+            # for this project.
+            if terraform.count_resources() > 0:
+                raise ProjectError(
+                    "Some cloud resources seem to be still present for this "
+                    "project, please destroy them with the 'destroy' sub-command"
+            )
+    
+        if self.cloud == 'vmware':
+            self._load_ansible_vars()
+            # Update before committing with
+            # projects_root_path
+            self.mech_project_path = os.path.join(
+                self.projects_root_path,
+                'vmware/',
+                self.name
+            )
+            mem_size = self.ansible_vars['mem_size']
+            cpu_count = self.ansible_vars['cpu_count']
+            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            #Counts images currently running in project folder
+            if mech.count_resources() > 0:
+                raise ProjectError(
                 "Some cloud resources seem to be still present for this "
                 "project, please destroy them with the 'destroy' sub-command"
             )
@@ -1487,7 +1502,7 @@ class Project:
     def provision(self, env):
         self._load_ansible_vars()
 
-        if self.cloud != 'vmware':
+        if self.cloud not in ['vmware', 'baremetal']:
             terraform = TerraformCli(
                 self.project_path, self.terraform_plugin_cache_path,
                 bin_path=self.cloud_tools_bin_path
@@ -1569,15 +1584,13 @@ class Project:
             self.mech_project_path = os.path.join(
                 self.projects_root_path,
                 'vmware/',
-                self.name,
-                'centos8/',
-                "%s" % self.ansible_vars['reference_architecture']
+                self.name
             )
-
-            mech = VMWareCli(self.cloud, self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            mem_size = self.ansible_vars['mem_size']
+            cpu_count = self.ansible_vars['cpu_count']
+            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
             with AM("Checking instances availability"):
                 mech.up()
-
             # Build ip address list for vmware deployment
             with AM(
                 "Build VMWare Ansible IP addresses"
@@ -1602,7 +1615,7 @@ class Project:
                 terraform.exec_add_host_sh()
 
     def destroy(self):
-        if self.cloud != 'vmware':
+        if self.cloud not in ['vmware', 'baremetal']:
             terraform = TerraformCli(
                 self.project_path, self.terraform_plugin_cache_path,
                 bin_path=self.cloud_tools_bin_path
@@ -1622,11 +1635,11 @@ class Project:
             self.mech_project_path = os.path.join(
                 self.projects_root_path,
                 'vmware/',
-                self.name,
-                'centos8/',
-                "%s" % self.ansible_vars['reference_architecture']
+                self.name
             )
-            mech = VMWareCli(self.cloud, self.name, self.cloud, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
+            mem_size = self.ansible_vars['mem_size']
+            cpu_count = self.ansible_vars['cpu_count']
+            mech = VMWareCli(self.cloud, self.name, self.cloud, mem_size, cpu_count, self.mech_project_path, bin_path=self.cloud_tools_bin_path)
             with AM("Destroying cloud resources"):
                 mech.destroy()
 
@@ -1833,7 +1846,7 @@ class Project:
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
-        headers = ["Name", "Path", "Machines", "Resources", "Components"]
+        headers = ["Name", "Path", "Machines", "Resources", "Ansible State"]
         rows = []
         try:
             # Case when projects' path does not yet exist
@@ -1848,26 +1861,50 @@ class Project:
 
                 project = Project(cloud, project_name, {})
 
-                terraform_resource_count = 0
-                terraform = TerraformCli(
-                    project.project_path,
-                    project.terraform_plugin_cache_path,
-                    bin_path=Project.cloud_tools_bin_path
-                )
-                terraform_resource_count = terraform.count_resources()
+                if cloud not in ['vmware', 'baremetal']:
+                    terraform_resource_count = 0
+                    terraform = TerraformCli(
+                        project.project_path,
+                        project.terraform_plugin_cache_path,
+                        bin_path=Project.cloud_tools_bin_path
+                    )
+                    terraform_resource_count = terraform.count_resources()
 
-                try:
-                    states = project.load_states()
-                except Exception as e:
-                    states={}
+                    try:
+                        states = project.load_states()
+                    except Exception as e:
+                        states={}
 
-                rows.append([
-                    project.name,
-                    project.project_path,
-                    states.get('terraform', 'UNKNOWN'),
-                    str(terraform_resource_count),
-                    states.get('ansible', 'UNKNOWN')
-                ])
+                    rows.append([
+                        project.name,
+                        project.project_path,
+                        states.get('terraform', 'UNKNOWN'),
+                        str(terraform_resource_count),
+                        states.get('ansible', 'UNKNOWN')
+                    ])
+
+                if cloud == 'vmware':
+                    data = open(project.project_path + "/ansible_vars.json", "r")
+                    ansible_vars = json.load(data)
+                    mech_project_path = os.path.join(
+                    project.project_path
+                    )
+                    mech = VMWareCli(cloud, project.name, cloud, ansible_vars['mem_size'], ansible_vars['cpu_count'], mech_project_path, bin_path=project.cloud_tools_bin_path)
+
+                    try:
+                        states = project.load_states()
+                    except Exception as e:
+                        states={}
+
+                    rows.append([
+                        project.name,
+                        project.project_path,
+                        #Counts the number of machines running in the project, if it is greater than 0 than it is PROVISIONED otherwise it is destroyed
+                        mech.mech_machine_status(),
+                        #Returns an integer of the number of images running in the project
+                        str(mech.count_resources()),
+                        states.get('ansible', 'UNKNOWN')
+                    ])
 
             Project.display_table(headers, rows)
 
