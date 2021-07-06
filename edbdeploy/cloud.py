@@ -2,21 +2,25 @@ import logging
 import json
 import os
 import re
+import textwrap
 import time
 from subprocess import CalledProcessError
 
+from .installation import (
+    build_tmp_install_script,
+    execute_install_script,
+    uname,
+)
 from .system import exec_shell
-
-
-class CloudCliError(Exception):
-    pass
+from .errors import CloudCliError
+from . import check_version, to_str
 
 
 class AWSCli:
     def __init__(self, bin_path=None):
         # aws CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (1, 19, 18)
+        self.max_version = (1, 19, 97)
         # Path to look up for executable
         self.bin_path = None
         # Force aws CLI binary path if bin_path exists and contains
@@ -58,25 +62,11 @@ class AWSCli:
 
         logging.info("aws CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("aws CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "aws CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -174,6 +164,36 @@ class AWSCli:
                 "logs for details: %s" % e.cmd
             )
 
+    def install(self, installation_path):
+        """
+        AWS CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/aws/{version}
+            python3 -m venv {path}/aws/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/aws/{version}/bin/activate
+            source {path}/aws/{version}/bin/activate
+            python3 -m pip install "awscli=={version}"
+            deactivate
+            rm -f {path}/bin/aws
+            ln -sf {path}/aws/{version}/bin/aws {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
 
 class AWSRDSCli(AWSCli):
     def check_instance_type_availability(self, instance_type, region):
@@ -219,7 +239,7 @@ class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 20, 0)
+        self.max_version = (2, 25, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force azure CLI binary path if bin_path exists and contains
@@ -259,25 +279,11 @@ class AzureCli:
 
         logging.info("azure CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("azure CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "azure CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -287,7 +293,6 @@ class AzureCli:
             return os.path.join(self.bin_path, binary)
         else:
             return binary
-
 
     def check_instance_type_availability(self, instance_type, region):
         try:
@@ -383,6 +388,45 @@ class AzureCli:
                 "logs for details: %s" % e.cmd
             )
 
+    def install(self, installation_path):
+        """
+        Azure CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/azure/{version}
+            python3 -m venv {path}/azure/{version}
+            sed -i.bak 's/$1/${{1:-}}/' {path}/azure/{version}/bin/activate
+            source {path}/azure/{version}/bin/activate
+            # cryptography should be pinned to 3.3.2 because the next
+            # version introduces rust as a dependency for building it and
+            # breaks compatiblity with some pip versions.
+            # ref: https://github.com/Azure/azure-cli/issues/16858
+            python3 -m pip install "cryptography==3.3.2"
+            python3 -m pip install "azure-cli=={version}"
+            deactivate
+            rm -f {path}/bin/az
+            ln -sf {path}/azure/{version}/bin/az {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
+
+class AzureDBCli(AzureCli):
+    pass
+
 
 class GCloudCli:
     def __init__(self, bin_path=None):
@@ -428,25 +472,11 @@ class GCloudCli:
 
         logging.info("gcloud CLI version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("gcloud CLI version %s not supported, must be between %s and"
-                     " %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "gcloud CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -569,6 +599,38 @@ class GCloudCli:
                     " logs for details: %s" % e.cmd
                 )
 
+    def install(self, installation_path):
+        """
+        GCloud CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/gcloud/{version}
+            wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-{version}-{os_flavor}-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
+            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud/{version}
+            rm /tmp/google-cloud-sdk.tar.gz
+            rm -f {path}/bin/gcloud
+            ln -sf {path}/gcloud/{version}/google-cloud-sdk/bin/gcloud {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
+
+class GCloudSQLCli(GCloudCli):
+    pass
 
 class CloudCli:
 
@@ -582,8 +644,12 @@ class CloudCli:
             self.cli = AWSRDSAuroraCli(bin_path)
         elif self.cloud == 'azure':
             self.cli = AzureCli(bin_path)
+        elif self.cloud == 'azure-db':
+            self.cli = AzureDBCli(bin_path)
         elif self.cloud == 'gcloud':
             self.cli = GCloudCli(bin_path)
+        elif self.cloud == 'gcloud-sql':
+            self.cli = GCloudSQLCli(bin_path)
         else:
             raise Exception("Unknown cloud %s", self.cloud)
 

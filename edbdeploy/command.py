@@ -1,5 +1,14 @@
 import logging
 from .project import Project
+from .projects.aws import AWSProject
+from .projects.aws_rds import AWSRDSProject
+from .projects.aws_rds_aurora import AWSRDSAuroraProject
+from .projects.azure import AzureProject
+from .projects.azure_db import AzureDBProject
+from .projects.gcloud import GCloudProject
+from .projects.gcloud_sql import GCloudSQLProject
+from .projects.baremetal import BaremetalProject
+from .projects.vmware import VMwareProject
 
 class CommanderError(Exception):
     pass
@@ -9,7 +18,28 @@ class Commander:
         self.env = env
         self.project = None
         if getattr(self.env, 'project', False):
-            self.project = Project(self.env.cloud, self.env.project)
+            if self.env.cloud == 'aws':
+                self.project = AWSProject(self.env.project, self.env)
+            elif self.env.cloud == 'azure':
+                self.project = AzureProject(self.env.project, self.env)
+            elif self.env.cloud == 'gcloud':
+                self.project = GCloudProject(self.env.project, self.env)
+            elif self.env.cloud == 'gcloud-sql':
+                self.project = GCloudSQLProject(self.env.project, self.env)
+            elif self.env.cloud == 'baremetal':
+                self.project = BaremetalProject(self.env.project, self.env)
+            elif self.env.cloud == 'vmware':
+                self.project = VMwareProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-rds':
+                self.project = AWSRDSProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-rds-aurora':
+                self.project = AWSRDSAuroraProject(self.env.project, self.env)
+            elif self.env.cloud == 'azure-db':
+                self.project = AzureDBProject(self.env.project, self.env)
+            else:
+                self.project = Project(
+                    self.env.cloud, self.env.project, self.env
+                )
 
     def _check_project_exists(self):
         if not self.project.exists():
@@ -65,7 +95,7 @@ class Commander:
         self.project.check_versions()
 
         logging.info("Provisioning machines for project %s", self.project.name)
-        self.project.provision()
+        self.project.provision(self.env)
 
     def destroy(self):
         self._check_project_exists()
@@ -83,11 +113,14 @@ class Commander:
         self.project.check_versions()
 
         logging.info("Deploying components for project %s", self.project.name)
-        self.project.deploy(self.env.no_install_collection)
+        self.project.deploy(self.env.no_install_collection,
+                            self.env.pre_deploy_ansible,
+                            self.env.post_deploy_ansible,
+                            self.env.skip_main_playbook)
 
     def display(self):
         self._check_project_exists()
-        logging.info("Desplaying project %s details", self.project.name)
+        logging.info("Displaying project %s details", self.project.name)
 
         # Check 3rd party SW versions
         self.project.check_versions()
@@ -105,4 +138,14 @@ class Commander:
 
     def specs(self):
         logging.info("Showing default specs. for cloud %s", self.env.cloud)
-        Project.show_specs(self.env.cloud)
+        Project.show_specs(
+            self.env.cloud,
+            getattr(self.env, 'reference_architecture', None)
+        )
+
+    def setup(self):
+        logging.info(
+            "Executing the setup command for the %s cloud", self.env.cloud
+        )
+        Project.create_cloud_tools_bin_dir()
+        Project.setup_tools(self.env.cloud)

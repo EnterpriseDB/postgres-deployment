@@ -2,12 +2,16 @@ import logging
 import os
 import re
 from subprocess import CalledProcessError
+import textwrap
 
+from .installation import (
+    execute_install_script,
+    build_tmp_install_script,
+    uname,
+)
 from .system import exec_shell_live, exec_shell
-
-
-class TerraformCliError(Exception):
-    pass
+from .errors import TerraformCliError
+from . import check_version, to_str
 
 
 class TerraformCli:
@@ -15,11 +19,11 @@ class TerraformCli:
     def __init__(self, dir, plugin_cache_dir, bin_path=None):
         self.dir = dir
         self.plugin_cache_dir = plugin_cache_dir
-        self.environ = os.environ
+        self.environ = os.environ.copy()
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Terraform supported version interval
-        self.min_version = (0, 0, 0)
-        self.max_version = (0, 14, 7)
+        self.min_version = (1, 0, 0)
+        self.max_version = (1, 0, 1)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -27,6 +31,13 @@ class TerraformCli:
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'terraform')):
                 self.bin_path = bin_path
+                # Add terraform bin path to the PATH env. variable. This is
+                # needed to cover the case when binaries are localted in
+                # ~/.edb-cloud-tools/bin and terraform needs to execute the az
+                # command.
+                self.environ['PATH'] = "%s:%s" % (
+                    self.environ['PATH'], self.bin_path
+                )
 
     def check_version(self):
         """
@@ -39,10 +50,10 @@ class TerraformCli:
         # catched. In this case, we do not want trigger anything if something
         # fails.
         try:
-            output = exec_shell([
-                self.bin("terraform"),
-                "--version"
-            ])
+            output = exec_shell(
+                [self.bin("terraform"), "--version"],
+                environ=self.environ
+            )
         except CalledProcessError as e:
             logging.error("Failed to execute the command: %s", e.cmd)
             logging.error("Return code is: %s", e.returncode)
@@ -66,25 +77,11 @@ class TerraformCli:
 
         logging.info("Terraform version: %s", '.'.join(map(str, version)))
 
-        # Verify if the version fetched is supported
-        for i in range(0, 3):
-            min = self.min_version[i]
-            max = self.max_version[i]
-
-            if version[i] < max:
-                # If current digit is below the maximum value, no need to
-                # check others digits, we are good
-                break
-
-            if version[i] not in list(range(min, max + 1)):
-                raise Exception(
-                    ("Terraform version %s not supported, must be between %s "
-                     "and %s") % (
-                        '.'.join(map(str, version)),
-                        '.'.join(map(str, self.min_version)),
-                        '.'.join(map(str, self.max_version)),
-                    )
-                )
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                ("Terraform version %s not supported, must be between %s and"
+                 "%s") % (to_str(version), to_str(self.min_version),
+                          to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -95,11 +92,10 @@ class TerraformCli:
         else:
             return binary
 
-
     def init(self):
         try:
             rc = exec_shell_live(
-                [self.bin("terraform"), "init", "-no-color", self.dir],
+                [self.bin("terraform"), "init", "-no-color"],
                 environ=self.environ,
                 cwd=self.dir
             )
@@ -122,8 +118,7 @@ class TerraformCli:
                     "-auto-approve",
                     "-var-file",
                     vars_file,
-                    "-no-color",
-                    self.dir
+                    "-no-color"
                 ],
                 environ=self.environ,
                 cwd=self.dir
@@ -146,8 +141,7 @@ class TerraformCli:
                     "-auto-approve",
                     "-var-file",
                     vars_file,
-                    "-no-color",
-                    self.dir
+                    "-no-color"
                 ],
                 environ=self.environ,
                 cwd=self.dir
@@ -206,3 +200,32 @@ class TerraformCli:
                 "Failed to execute the following command, please check the "
                 "logs for details: %s" % e.cmd
             )
+
+    def install(self, installation_path):
+        """
+        Terraform installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/terraform/{version}/bin
+            wget -q https://releases.hashicorp.com/terraform/{version}/terraform_{version}_{os_flavor}_amd64.zip -O /tmp/terraform.zip
+            unzip /tmp/terraform.zip -d {path}/terraform/{version}/bin
+            rm -f /tmp/terraform.zip
+            rm -f {path}/bin/terraform
+            ln -sf {path}/terraform/{version}/bin/terraform {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)

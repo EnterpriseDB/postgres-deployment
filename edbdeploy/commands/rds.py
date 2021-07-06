@@ -8,7 +8,7 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the aws-rds command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'remove'
+        'passwords', 'provision', 'setup', 'show', 'specs', 'remove'
     ]
 
     # Get sub-commands parsers
@@ -20,10 +20,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOptionRDS.choices,
-        default=ReferenceArchitectureOptionRDS.default,
+        choices=ReferenceArchitectureOptionDBaaS.choices,
+        default=ReferenceArchitectureOptionDBaaS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionRDS.help
+        help=ReferenceArchitectureOptionDBaaS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',
@@ -117,4 +117,24 @@ def subcommands(subparser):
         dest='no_install_collection',
         action='store_true',
         help="Do not install the Ansible collection."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-p', '--pre-deploy-ansible',
+        dest='pre_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<pre-deploy-ansible-playbook>',
+        help="Pre deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-P', '--post-deploy-ansible',
+        dest='post_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<post-deploy-ansible-playbook>',
+        help="Post deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-S', '--skip-main-playbook',
+        dest='skip_main_playbook',
+        action='store_true',
+        help="Skip main playbook of the reference architecture."
     )

@@ -7,21 +7,21 @@ all:
 %{if var.pem_server["count"] > 0 ~}
     pemserver:
       hosts:
-        pemserver1:
+        pemserver1.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.pem_server[0].public_ip}
           private_ip: ${aws_instance.pem_server[0].private_ip}
 %{endif ~}
 %{if var.barman_server["count"] > 0 ~}
     barmanserver:
       hosts:
-        barmanserver1:
+        barmanserver1.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.barman_server[0].public_ip}
           private_ip: ${aws_instance.barman_server[0].private_ip}
 %{endif ~}
 %{if var.hammerdb_server["count"] > 0 ~}
     hammerdbserver:
       hosts:
-        hammerdbserver1:
+        hammerdbserver1.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.hammerdb_server[0].public_ip}
           private_ip: ${aws_instance.hammerdb_server[0].private_ip}
 %{endif ~}
@@ -29,14 +29,17 @@ all:
 %{if postgres_count == 0 ~}
     primary:
       hosts:
-        primary${postgres_count + 1}:
 %{endif ~}
 %{if postgres_count == 1 ~}
     standby:
       hosts:
 %{endif ~}
-%{if postgres_count > 0 ~}
-        standby${postgres_count}:
+%{if postgres_count >= 0 ~}
+%{if var.pg_type == "EPAS" ~}
+        epas${postgres_count + 1}.${var.cluster_name}.internal:
+%{else ~}
+        pgsql${postgres_count + 1}.${var.cluster_name}.internal:
+%{endif ~}
 %{endif ~}
           ansible_host: ${aws_instance.postgres_server[postgres_count].public_ip}
           private_ip: ${aws_instance.postgres_server[postgres_count].private_ip}

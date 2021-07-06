@@ -2,7 +2,9 @@
 
 `edb-deployment` tool is an easy way to provision Cloud resources and deploy
 PostgreSQL, EDB Postgres Advanced Server and tools (high availability,
-backup/recovery, monitoring, connection poolers).
+backup/recovery, monitoring, connection poolers). `edb-deployment` can also be
+used to deploy Postgres architectures on existing infrastructure like physical
+servers (baremetal) or local Virtual Machines.
 
 Supported Cloud providers are **AWS**, **Azure** and **Google Cloud**.
 
@@ -33,12 +35,16 @@ Third party pre-requisites:
    Depending on the cloud provider, install the **latest version** for: AWS
    CLI, Azure CLI or Google Cloud SDK on the system.
 
-2. **Terraform** >= 0.13
-3. **Ansible** >= 2.9
+2. **Terraform** >= 0.15.1
+3. **Ansible** >= 2.10.8
+4. **AWS CLI** >= 2.0.45
+5. **Azure CLI** >= 2.23.0
+6. **Google Cloud CLI** >= 329.0.0
 
 To help the installation of the third party pre-requisites listed above,
-`edb-deployment` provides installation scripts for Linux (x64) and MacOS (x64).
-Please refer to section [Pre-Requisites installation scripts](#pre-requisites-installation-scripts).
+`edb-deployment` provides the `setup` sub-command working for Linux and Darwin
+(macOS).
+Please refer to section [Pre-Requisites installation](#pre-requisites-installation).
 
 # Installation
 
@@ -79,15 +85,16 @@ To enable auto-completion for all the sessions, the command above must be added
 at the end of your `~/.bashrc` file or `~/.zshrc` file, depending on the shell
 you use.
 
-## Pre-Requisites installation scripts
+## Pre-Requisites installation
 
 To ease installation of the third party pre-requisites tools like `aws`,
-`terraform`, `ansible`, etc.. some bash installation scripts are provided for
-Linux (x64) and MacOS (x64). They are located in the `script/` folder.
+`terraform`, `ansible`, etc.. `edb-deployment` provides the `setup`
+sub-command.
 
-The following packages are required in order to execute the installation
-script: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
-`tar`. These packages should be installed through usual package manager (`dnf`,
+The following packages are required in order to execute the `setup`
+sub-command: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
+`tar`.
+These packages should be installed through usual package manager (`dnf`,
 `apt`, `brew`, etc..).
 
 Finally, Python `virtualenv` must be installed with `root` privileges:
@@ -95,33 +102,10 @@ Finally, Python `virtualenv` must be installed with `root` privileges:
 $ sudo pip3 install virtualenv
 ```
 
-The pre-requisites installation script can now be run. By default, third party
-tools are installed into the folder `$HOME/.edb-cloud-tools`, this path can be
-changed by setting the environment variable `INSTALL_PATH`.
-
-On Linux:
+Pre-requisites automated installation:
 ```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_linux_x64.sh
+$ edb-deployment <CLOUD_VENDOR> setup
 ```
-
-On MacOS (Python 3.9 installed with `brew`):
-```shell
-$ /usr/local/share/edb-deployment/scripts/install_requirements_darwin_x64.sh
-```
-
-The last action is to add the installation path to the `PATH` variable. If your
-shell is `bash`, just enter:
-```shell
-$ source ~/.bashrc
-```
-For other shells, you have to re-export the environment variable `PATH` this
-way:
-```shell
-$ export PATH=$PATH:$HOME/.edb-cloud-tools/bin
-```
-
-You can now check if the tools are ready to use with the commands
-`aws --version`, `ansible --version`, etc..
 
 # Usage
 
@@ -140,7 +124,9 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `aws-rds`: Amazon Web Services RDS for PostgreSQL
   * `aws-rds-aurora`: Amazon Aurora
   * `azure`: Microsoft Azure Cloud
+  * `azure-db`: Microsoft Azure Database
   * `gcloud`: Google Cloud
+  * `gcloud-sql`: Google Cloud SQL for PostgreSQL
 
 ## Sub-commands
 
@@ -168,6 +154,13 @@ Deployment of new project should follow the work flow below:
 ## Configure Cloud credentials
 
 This step depends on the target Cloud vendor.
+
+If the Cloud tools have been installed with the help of the `setup`
+sub-command, it's recommended to update the value of the `PATH` environment
+variable to include tools binary location:
+```shell
+$ export PATH=$PATH:$HOME/.edb-cloud-tools/bin
+```
 
 ### AWS credentials configuration
 
@@ -231,6 +224,37 @@ To change these configuration values, you need first to dump the default values
 with:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> specs > my_configuration.json
+```
+
+When deploying on baremetal servers, IP address and SSH user configuration must
+be done through the specifications:
+
+```shell
+$ edb-deployment baremetal specs --reference-architecture EDB-RA-1 > baremetal-edb-ra-1.json
+```
+
+The `baremetal-edb-ra-1.json` file will contain:
+```json
+{
+  "ssh_user": null,
+  "pg_data": null,
+  "pg_wal": null,
+  "postgres_server_1": {
+    "name": "pg1",
+    "public_ip": null,
+    "private_ip": null
+  },
+  "pem_server_1": {
+    "name": "pem1",
+    "public_ip": null,
+    "private_ip": null
+  },
+  "backup_server_1": {
+    "name": "backup1",
+    "public_ip": null,
+    "private_ip": null
+  }
+}
 ```
 
 Then, you can edit and update resources configuration stored in the JSON file.
@@ -308,6 +332,16 @@ $ edb-deployment <CLOUD_VENDOR> deploy <PROJECT_NAME>
 List of projects:
 ```shell
 $ edb-deployment <CLOUD_VENDOR> list
+```
+
+Execute Ansible pre deployment playbook
+```shell
+$ edb-deployment <CLOUD_VENDOR> deploy --pre-deploy-ansible pre_deploy_playbook.yml <PROJECT_NAME>
+```
+
+Execute Ansible post deployment playbook
+```shell
+$ edb-deployment <CLOUD_VENDOR> deploy --post-deploy-ansible post_deploy_playbook.yml <PROJECT_NAME>
 ```
 
 Display of projects inventory:

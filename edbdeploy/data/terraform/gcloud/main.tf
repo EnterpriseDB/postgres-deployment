@@ -20,9 +20,11 @@ module "compute" {
   source = "./environments/compute"
 
   postgres_server                     = var.postgres_server
+  pg_type                             = var.pg_type
   pem_server                          = var.pem_server
   barman_server                       = var.barman_server
   pooler_server                       = var.pooler_server
+  hammerdb_server                     = var.hammerdb_server
   pooler_type                         = var.pooler_type
   pooler_local                        = var.pooler_local
   barman                              = var.barman
@@ -37,6 +39,7 @@ module "compute" {
   ssh_priv_key                        = var.ssh_priv_key
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
   add_hosts_filename                  = var.add_hosts_filename
+  hammerdb                            = var.hammerdb
 
   depends_on = [module.security]
 }

@@ -16,6 +16,9 @@ variable "ssh_priv_key" {}
 variable "ssh_pub_key" {}
 variable "ssh_user" {}
 variable "subnetwork_name" {}
+variable "hammerdb_server" {}
+variable "hammerdb" {}
+variable "pg_type" {}
 
 locals {
   lnx_device_names = [
@@ -337,6 +340,47 @@ resource "google_compute_instance" "pooler_server" {
 
     access_config {
       nat_ip = element(google_compute_address.pooler_public_ip.*.address, count.index)
+    }
+
+  }
+
+  metadata = {
+    ssh-keys = format("%s:%s", var.ssh_user, file(var.ssh_pub_key))
+  }
+}
+
+resource "google_compute_address" "hammerdb_public_ip" {
+  count  = var.hammerdb_server["count"]
+  name   = format("hammerdb-public-ip-%s", count.index + 1)
+  region = var.gcloud_region
+}
+
+resource "google_compute_instance" "hammerdb_server" {
+  count        = var.hammerdb_server["count"]
+  name         = (count.index == 0 ? format("%s-%s", var.cluster_name, "hammerdb") : format("%s-%s%s", var.cluster_name, "standby", count.index))
+  machine_type = var.hammerdb_server["instance_type"]
+
+  zone = element(data.google_compute_zones.available.names, count.index)
+
+  tags = [
+    format("%s-%s", var.network_name, "firewall-ssh"),
+    format("%s-%s", var.network_name, "firewall-icmp"),
+    format("%s-%s", var.network_name, "firewall-secure-forward"),
+  ]
+
+  boot_disk {
+    initialize_params {
+      image = var.gcloud_image
+      type  = var.hammerdb_server["volume"]["type"]
+      size  = var.hammerdb_server["volume"]["size"]
+    }
+  }
+
+  network_interface {
+    subnetwork = var.network_name
+
+    access_config {
+      nat_ip = element(google_compute_address.hammerdb_public_ip.*.address, count.index)
     }
 
   }

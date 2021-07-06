@@ -135,7 +135,7 @@ resource "azurerm_network_security_group" "main" {
   // PgPoolII default pcp udp port
   security_rule {
     name                       = "EDB-PgPoolPCPUDP"
-    priority                   = 801
+    priority                   = 803
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Udp"
@@ -148,7 +148,7 @@ resource "azurerm_network_security_group" "main" {
   // PgPoolII default watchdog udp port
   security_rule {
     name                       = "EDB-PoolWatchDogUDP"
-    priority                   = 700
+    priority                   = 701
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Udp"
@@ -161,7 +161,7 @@ resource "azurerm_network_security_group" "main" {
   // PgPoolII default watchdog heart udp beat port
   security_rule {
     name                       = "EDB-PgPoolWDHUDP"
-    priority                   = 802
+    priority                   = 804
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Udp"

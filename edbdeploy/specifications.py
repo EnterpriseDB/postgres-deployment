@@ -1,12 +1,17 @@
+import socket
+
 from .spec import SpecValidator
 from .spec.aws import AWSSpec
 from .spec.aws_rds import AWSRDSSpec
 from .spec.aws_rds_aurora import AWSRDSAuroraSpec
 from .spec.azure import AzureSpec
+from .spec.azure_db import AzureDBSpec
 from .spec.gcloud import GCloudSpec
+from .spec.gcloud_sql import GCloudSQLSpec
+from .spec.baremetal import BaremetalSpec
+from .spec.vmware import VMWareSpec
+from .errors import SpecValidatorError
 
-class SpecValidatorError(Exception):
-    pass
 
 def merge(data, spec, defaults, path = []):
     """
@@ -58,8 +63,16 @@ def validate(value, validator, path):
                 % ('.'.join(path), value, validator.min, validator.max)
             )
 
+    elif validator.type == 'ipv4':
+        try:
+            socket.inet_aton(value)
+        except socket.error:
+            raise SpecValidatorError(
+                "%s: invalid IPv4 address format %s" % ('.'.join(path), value)
+            )
+
     elif validator.type == 'string':
-        value = str(value)
+        value = str(value) if value is not None else None
 
     return value
 
@@ -82,7 +95,7 @@ def default(element):
 
     return result
 
-def default_spec(cloud):
+def default_spec(cloud, reference_architecture=None):
     """
     Wrapper for the default function
     """
@@ -94,12 +107,20 @@ def default_spec(cloud):
         return default(AWSRDSAuroraSpec)
     elif cloud == 'azure':
         return default(AzureSpec)
+    elif cloud == 'azure-db':
+        return default(AzureDBSpec)
     elif cloud == 'gcloud':
         return default(GCloudSpec)
+    elif cloud == 'gcloud-sql':
+        return default(GCloudSQLSpec)
+    elif cloud == 'baremetal':
+        return default(BaremetalSpec.get(reference_architecture))
+    elif cloud == 'vmware':
+        return default(VMWareSpec.get(reference_architecture))
     else:
         return {}
 
-def merge_user_spec(cloud, user_spec):
+def merge_user_spec(cloud, user_spec, reference_architecture=None):
     """
     Wrapper function for merging user specs. and default specs.
     """
@@ -111,8 +132,16 @@ def merge_user_spec(cloud, user_spec):
         cloud_spec = AWSRDSAuroraSpec
     elif cloud == 'azure':
         cloud_spec = AzureSpec
+    elif cloud == 'azure-db':
+        cloud_spec = AzureDBSpec
     elif cloud == 'gcloud':
         cloud_spec = GCloudSpec
+    elif cloud == 'gcloud-sql':
+        cloud_spec = GCloudSQLSpec
+    elif cloud == 'baremetal':
+        cloud_spec = BaremetalSpec.get(reference_architecture)
+    elif cloud == 'vmware':
+        cloud_spec = VMWareSpec.get(reference_architecture)
 
     defaults = default(cloud_spec)
 

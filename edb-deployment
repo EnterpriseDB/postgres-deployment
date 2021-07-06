@@ -5,11 +5,15 @@ import sys
 
 from edbdeploy import cli
 from edbdeploy import command
-from edbdeploy.cloud import CloudCliError
-from edbdeploy.project import Project, ProjectError
-from edbdeploy.terraform import TerraformCliError
-from edbdeploy.ansible import AnsibleCliError
-from edbdeploy.specifications import SpecValidatorError
+from edbdeploy.errors import (
+	AnsibleCliError,
+	CliError,
+	CloudCliError,
+	ProjectError,
+	SpecValidatorError,
+	TerraformCliError,
+)
+from edbdeploy.project import Project
 
 def configure_project_logging(project, sub_command):
 
@@ -60,6 +64,7 @@ if __name__ == "__main__":
 
     except (
         command.CommanderError,
+        CliError,
         CloudCliError,
         ProjectError,
         TerraformCliError,

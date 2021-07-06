@@ -52,3 +52,10 @@ variable "user_force_destroy" {
   type        = bool
   default     = true
 }
+
+# pg_type variable
+variable "pg_type" {
+  description = "Postgres Type"
+  type        = string
+  default     = "PG"
+}

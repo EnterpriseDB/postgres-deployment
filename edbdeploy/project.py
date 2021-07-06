@@ -4,28 +4,25 @@ import logging
 import os
 import re
 import shutil
-import sys
 import stat
+import sys
 import time
+import yaml
 
-from .cloud import CloudCli, AWSCli, AWSRDSCli, AzureCli, GCloudCli
-from .terraform import TerraformCli
-from .ansible import AnsibleCli
 from .action import ActionManager as AM
+from .ansible import AnsibleCli
+from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
+from .errors import ProjectError
+from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
-from .password import (
-    get_password,
-    list_passwords,
-    random_password,
-    save_password,
-)
-
-from .spec.aws_rds import TPROCC_GUC
+from .terraform import TerraformCli
 
 
-class ProjectError(Exception):
-    pass
+def exec_hook(obj, name, *args, **kwargs):
+    # Inject specific method call.
+    if getattr(obj, name, False):
+        return getattr(obj, name)(*args, **kwargs)
 
 
 class Project:
@@ -51,10 +48,16 @@ class Project:
         'data',
         'ansible'
     )
+    vmware_share_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'vmware-wkstn'
+    )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres'
 
-    def __init__(self, cloud, name):
+    def __init__(self, cloud, name, env, bin_path=None):
+        self.env = env
         self.name = name
         self.cloud = cloud
         self.project_path = os.path.join(
@@ -92,6 +95,15 @@ class Project:
             'inventory.yml'
         )
         self.state_file = os.path.join(self.project_path, 'state.json')
+        # Path to look up for executable
+        self.bin_path = None
+        # Force Ansible binary path if bin_path exists and contains
+        # ansible file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'python')):
+                self.bin_path = bin_path
+
+        self.environ = os.environ
 
     def check_versions(self):
         # Check Ansible version
@@ -118,6 +130,16 @@ class Project:
     def create_root_log_dir():
         try:
             os.makedirs(os.path.join(Project.projects_root_path, "log"))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise ProjectError(str(e))
+        except Exception as e:
+            raise ProjectError(str(e))
+
+    @staticmethod
+    def create_cloud_tools_bin_dir():
+        try:
+            os.makedirs(Project.cloud_tools_bin_path)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise ProjectError(str(e))
@@ -160,14 +182,16 @@ class Project:
             raise ProjectError(msg)
 
     def create(self):
+        # Pre-create hook
+        exec_hook(self, 'hook_pre_create')
+
         # Copy terraform code
         with AM("Copying Terraform code from into %s" % self.project_path):
             try:
                 shutil.copytree(self.terraform_path, self.project_path)
             except Exception as e:
                 raise ProjectError(str(e))
-
-        with AM("Initialzing state file"):
+        with AM("Initializing state file"):
             self.init_state()
 
         # Create Terraform plugin cache
@@ -183,20 +207,33 @@ class Project:
             except Exception as e:
                 raise ProjectError(str(e))
 
-    def configure(self, env):
-        # Load specifications
+    def _load_cloud_specs(self, env):
+        """
+        Load Cloud Vendor specifications based on the merge of default and user
+        defined specs, passed with the help of the -s option.
+        """
+        cloud_spec = None
         with AM("Loading Cloud specifications"):
             if getattr(env, 'spec_file', False):
                 user_spec = self._load_spec_file(env.spec_file.name)
-                env.cloud_spec = merge_user_spec(env.cloud, user_spec)
+                cloud_spec = merge_user_spec(
+                    env.cloud,
+                    user_spec,
+                    getattr(env, 'reference_architecture', None)
+                )
             else:
-                env.cloud_spec = default_spec(env.cloud)
+                cloud_spec = default_spec(
+                    env.cloud, getattr(env, 'reference_architecture', None)
+                )
 
-            logging.debug("env.cloud_specs=%s", env.cloud_spec)
+        logging.debug("cloud_specs=%s", cloud_spec)
+        return cloud_spec
 
-        # Copy SSH keys
+    def _copy_ssh_keys(self, env):
+        """
+        Copy SSH keys pair into project directory.
+        """
         with AM("Copying SSH key pair into %s" % self.project_path):
-
             # Ensure SSH keys have been defined
             if env.ssh_priv_key is None:
                 raise ProjectError("SSH private key not defined")
@@ -208,7 +245,11 @@ class Project:
             os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
             os.chmod(self.ssh_pub_key, stat.S_IREAD | stat.S_IWRITE)
 
-        # Transform templates
+    def _transform_terraform_tpl(self):
+        """
+        Transform project's Terraform templates into .tf files by replacing the
+        %PROJECT_NAME% placeholder by project name.
+        """
         for template in self.terraform_templates:
             template_path = os.path.join(self.project_path, template)
             if not os.path.exists(template_path):
@@ -222,29 +263,128 @@ class Project:
             ):
                 with open(template_path, 'r') as f:
                     with open(dest_path, 'w') as d:
-                        for l in f.readlines():
-                            d.write(l.replace("%PROJECT_NAME%", self.name))
+                        for line in f.readlines():
+                            d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
-        # RDS/Aurora: Build master user random password
-        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
-            with AM("Building master user password"):
-                save_password(self.project_path, 'postgres', random_password())
-
-        # Build the vars files for Terraform and Ansible
+    def _build_terraform_vars_file(self, env):
+        """
+        Build and save the file that contains Terraform variables.
+        """
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
             self._build_terraform_vars(env)
             logging.debug("terraform_vars=%s", self.terraform_vars)
             # Save Terraform vars
             self._save_terraform_vars()
 
+    def _build_ansible_vars_file(self, env):
+        """
+        Build and save the file that contains Ansible variables.
+        """
         with AM("Building Ansible vars file %s" % self.ansible_vars_file):
             self._build_ansible_vars(env)
             logging.debug("ansible_vars=%s", self.ansible_vars)
             # Save Ansible vars
             self._save_ansible_vars()
 
-        with AM("Copying Ansible playbook file %s" % self.ansible_playbook):
+    def _build_ansible_inventory(self, env):
+        """
+        Build Ansible inventory file for baremetal and vmware deployments.
+        """
+        pem1 = env.cloud_spec['pem_server_1']
+        backup1 = env.cloud_spec['backup_server_1']
+        pg1 = env.cloud_spec['postgres_server_1']
+        inventory = {
+            'all': {
+                'children': {
+                    'pemserver': {
+                        'hosts': {
+                            pem1['name']: {
+                                'ansible_host': pem1['public_ip'],
+                                'private_ip': pem1['private_ip'],
+                            }
+                        }
+                    },
+                    'barmanserver': {
+                        'hosts': {
+                            backup1['name']: {
+                                'ansible_host': backup1['public_ip'],
+                                'private_ip': backup1['private_ip'],
+                            }
+                        }
+                    },
+                    'primary': {
+                        'hosts': {
+                            pg1['name']: {
+                                'ansible_host': pg1['public_ip'],
+                                'private_ip': pg1['private_ip'],
+                                'pem_agent': True,
+                                'pem_server_private_ip': pem1['private_ip'],
+                                'barman': True,
+                                'barman_server_private_ip': backup1['private_ip'],  # noqa
+                                'barman_backup_method': 'postgres',
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
+            inventory['all']['children'].update({
+                'standby': {
+                    'hosts': {}
+                }
+            })
+            for i in range(2, 4):
+                pgi = env.cloud_spec['postgres_server_%s' % i]
+                inventory['all']['children']['standby']['hosts'].update({
+                    pgi['name']: {
+                        'ansible_host': pgi['public_ip'],
+                        'private_ip': pgi['private_ip'],
+                        'pem_agent': True,
+                        'pem_server_private_ip': pem1['private_ip'],
+                        'barman': True,
+                        'barman_server_private_ip': backup1['private_ip'],
+                        'barman_backup_method': 'postgres',
+                        'upstream_node_private_ip': pg1['private_ip'],
+                        'replication_type': 'synchronous' if i == 2 else 'asynchronous',  # noqa
+                    }
+                })
+        if env.reference_architecture == 'EDB-RA-3':
+            inventory['all']['children'].update({
+                'pgpool2': {
+                    'hosts': {}
+                }
+            })
+            for i in range(1, 4):
+                pooleri = env.cloud_spec['pooler_server_%s' % i]
+                inventory['all']['children']['pgpool2']['hosts'].update({
+                    pooleri['name']: {
+                        'ansible_host': pooleri['public_ip'],
+                        'private_ip': pooleri['private_ip'],
+                        'primary_node_private_ip': pg1['private_ip'],
+                    }
+                })
+
+        with open(self.ansible_inventory, 'w') as f:
+            f.write(yaml.dump(inventory, default_flow_style=False))
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
+    def _copy_ansible_playbook(self):
+        """
+        Copy reference architecture Ansible playbook into project directory.
+        """
+        with AM(
+            "Copying Ansible playbook file into %s" % self.ansible_playbook
+        ):
             shutil.copy(
                 os.path.join(
                     self.ansible_share_path,
@@ -253,16 +393,12 @@ class Project:
                 self.ansible_playbook
             )
 
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
-        if env.cloud in ['aws-rds', 'aws-rds-aurora']:
-            cloud_cli_2 = CloudCli('aws', bin_path=self.cloud_tools_bin_path)
-
-        # Build a list of instance_type accordingly to the specs
+    def _get_instance_types(self, node_types):
+        """
+        Get the list of instance type from Terraform vars, based on node type.
+        """
         instance_types = []
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server']
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            node_types.extend(['barman_server', 'pooler_server'])
+
         for node_type in node_types:
             node = self.terraform_vars.get(node_type)
             if not node:
@@ -270,161 +406,19 @@ class Project:
             if node['instance_type'] not in instance_types:
                 instance_types.append(node['instance_type'])
 
-        # AWS - Check instance type and image availability
-        if env.cloud == 'aws' and not self.terraform_vars['aws_ami_id']:
-            for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.aws_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.aws_region
-                    )
+        return instance_types
 
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
+    def configure(self, env):
+        """
+        configure sub-command
+        """
+        # Load specifications
+        env.cloud_spec = self._load_cloud_specs(env)
+        # Copy SSH keys
+        self._copy_ssh_keys(env)
 
-        # AWS RDS - Check instance type and image availability
-        if env.cloud == 'aws-rds' and not self.terraform_vars['aws_ami_id']:
-            pattern = re.compile("^db\.")
-            for instance_type in instance_types:
-                if pattern.match(instance_type):
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-                else:
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli_2.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
-
-        # AWS RDS Aurora - Check instance type and image availability
-        if env.cloud == 'aws-rds-aurora' and not self.terraform_vars['aws_ami_id']:
-            pattern = re.compile("^db\.")
-            for instance_type in instance_types:
-                if pattern.match(instance_type):
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-                else:
-                    with AM(
-                        "Checking instance type %s availability in %s"
-                        % (instance_type, env.aws_region)
-                    ):
-                        cloud_cli_2.check_instance_type_availability(
-                            instance_type, env.aws_region
-                        )
-
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
-
-        # Azure - Check instance type and image availability
-        if env.cloud == 'azure':
-            for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.azure_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.azure_region
-                    )
-            # Check availability of image in target region
-            with AM(
-                "Checking image %s:%s:%s availability in %s"
-                % (
-                    self.terraform_vars['azure_publisher'],
-                    self.terraform_vars['azure_offer'],
-                    self.terraform_vars['azure_sku'],
-                    env.azure_region
-                  )
-            ):
-                cloud_cli.cli.check_image_availability(
-                    self.terraform_vars['azure_publisher'],
-                    self.terraform_vars['azure_offer'],
-                    self.terraform_vars['azure_sku'],
-                    env.azure_region
-                )
-
-        # GCloud - Check instance type and image availability
-        if env.cloud == 'gcloud':
-            for instance_type in instance_types:
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.gcloud_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.gcloud_region
-                    )
-            # Check availability of the image
-            with AM(
-                "Checking image %s availability"
-                % self.terraform_vars['gcloud_image']
-            ):
-                cloud_cli.cli.check_image_availability(
-                    self.terraform_vars['gcloud_image']
-                )
+        # Post-configure hook
+        exec_hook(self, 'hook_post_configure', env)
 
     def _load_spec_file(self, spec_file_path):
         try:
@@ -454,7 +448,7 @@ class Project:
                 json_file.write(json.dumps(self.terraform_vars, indent=2))
         except Exception as e:
             msg = ("Unable to save the Terraform vars file %s"
-                    % self.terraform_vars_file)
+                   % self.terraform_vars_file)
             logging.error(msg)
             logging.error(str(e))
             raise ProjectError(msg)
@@ -476,138 +470,16 @@ class Project:
                 json_file.write(json.dumps(self.ansible_vars, indent=2))
         except Exception as e:
             msg = ("Unable to save the Ansible vars file %s"
-                    % self.ansible_vars_file)
+                   % self.ansible_vars_file)
             logging.error(msg)
             logging.error(str(e))
             raise ProjectError(msg)
 
-    def _build_terraform_vars(self, env):
-        ra = self.reference_architecture[env.reference_architecture]
-        pg_spec = env.cloud_spec['postgres_server']
-        os_spec = env.cloud_spec['available_os'][env.operating_system]
-
-        self.terraform_vars = dict(
-            cluster_name=self.name,
-            pg_version=env.postgres_version,
-            ssh_user=os_spec['ssh_user'],
-            ssh_priv_key=self.ssh_priv_key,
-            ssh_pub_key=self.ssh_pub_key,
-            hammerdb=ra['hammerdb']
-        )
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.terraform_vars.update(dict(
-                replication_type=ra['replication_type'],
-                barman=ra['barman'],
-                pooler_local=ra['pooler_local'],
-                pooler_type=ra['pooler_type'],
-            ))
-
-        # AWS case
-        if env.cloud == 'aws':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-            ))
-        # AWS RDS case
-        if env.cloud == 'aws-rds':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-                pg_password=get_password(self.project_path, 'postgres'),
-            ))
-            self.terraform_vars.update(dict(
-                guc_effective_cache_size=TPROCC_GUC[env.shirt]['effective_cache_size'],
-                guc_shared_buffers=TPROCC_GUC[env.shirt]['shared_buffers'],
-                guc_max_wal_size=TPROCC_GUC[env.shirt]['max_wal_size'],
-            ))
-        # AWS RDS Aurora case
-        if env.cloud == 'aws-rds-aurora':
-            self.terraform_vars.update(dict(
-                aws_image=os_spec['image'],
-                aws_region=env.aws_region,
-                aws_ami_id=getattr(env, 'aws_ami_id', None) or None,
-                pg_password=get_password(self.project_path, 'postgres'),
-            ))
-        # Azure case
-        if env.cloud == 'azure':
-            self.terraform_vars.update(dict(
-                azure_region=env.azure_region,
-                azure_publisher=os_spec['publisher'],
-                azure_offer=os_spec['offer'],
-                azure_sku=os_spec['sku']
-            ))
-        # GCloud case
-        if env.cloud == 'gcloud':
-            self.terraform_vars.update(dict(
-                gcloud_image=os_spec['image'],
-                gcloud_region=env.gcloud_region,
-                gcloud_credentials=env.gcloud_credentials.name,
-                gcloud_project_id=env.gcloud_project_id
-            ))
-
-        # Postgres servers terraform_vars
-        self.terraform_vars.update(dict(
-            postgres_server=dict(
-                count=ra['pg_count'],
-                instance_type=pg_spec['instance_type'],
-            )
-        ))
-        if env.cloud != 'aws-rds-aurora':
-            self.terraform_vars['postgres_server'].update(dict(
-                volume=pg_spec['volume'],
-            ))
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.terraform_vars['postgres_server'].update(dict(
-                additional_volumes=pg_spec['additional_volumes'],
-            ))
-
-
-        # PEM server terraform_vars
-        pem_server_spec = env.cloud_spec['pem_server']
-        self.terraform_vars.update(dict(
-            pem_server=dict(
-                count=1 if ra['pem_server'] else 0,
-                instance_type=pem_server_spec['instance_type'],
-                volume=pem_server_spec['volume']
-            )
-        ))
-
-        # Barman server terraform_vars
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            barman_server_spec = env.cloud_spec['barman_server']
-            self.terraform_vars.update(dict(
-                barman_server=dict(
-                    count=1 if ra['barman_server'] else 0,
-                    instance_type=barman_server_spec['instance_type'],
-                    volume=barman_server_spec['volume'],
-                    additional_volumes=barman_server_spec['additional_volumes']
-                )
-            ))
-
-        # Pooler servers terraform_vars
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            pooler_server_spec = env.cloud_spec['pooler_server']
-            self.terraform_vars.update(dict(
-                pooler_server=dict(
-                    count=ra['pooler_count'],
-                    instance_type=pooler_server_spec['instance_type'],
-                    volume=pooler_server_spec['volume']
-                )
-            ))
-
-        # HammerDB server terraform_vars
-        hammerdb_server_spec = env.cloud_spec['hammerdb_server']
-        self.terraform_vars.update(dict(
-            hammerdb_server=dict(
-                count=1 if ra['hammerdb_server'] else 0,
-                instance_type=hammerdb_server_spec['instance_type'],
-                volume=hammerdb_server_spec['volume']
-            )
-        ))
-
-    def _build_ansible_vars(self, env):
+    def _iaas_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for the IaaS cloud vendors: aws, gcloud and
+        azure.
+        """
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
@@ -617,27 +489,49 @@ class Project:
         os_spec = env.cloud_spec['available_os'][env.operating_system]
         pg_spec = env.cloud_spec['postgres_server']
 
-        self.ansible_vars = dict(
-            reference_architecture=env.reference_architecture,
-            cluster_name=self.name,
-            pg_type=env.postgres_type,
-            pg_version=env.postgres_version,
-            repo_username=edb_repo_username,
-            repo_password=edb_repo_password,
-            ssh_user=os_spec['ssh_user'],
-            ssh_priv_key=self.ssh_priv_key
-        )
-        if env.cloud not in ['aws-rds', 'aws-rds-aurora']:
-            self.ansible_vars.update(dict(
-                efm_version=env.efm_version,
-            ))
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': os_spec['ssh_user'],
+            'ssh_priv_key': self.ssh_priv_key,
+            'efm_version': env.efm_version,
+            'use_hostname': env.use_hostname,
+        }
 
-            # Add configuration for pg_data and pg_wal accordingly to the
-            # number of additional volumes
-            if pg_spec['additional_volumes']['count'] > 0:
-                self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
-            if pg_spec['additional_volumes']['count'] > 1:
-                self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+        # Add configuration for pg_data and pg_wal accordingly to the
+        # number of additional volumes
+        if pg_spec['additional_volumes']['count'] > 0:
+            self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
+        if pg_spec['additional_volumes']['count'] > 1:
+            self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+
+    def _dbaas_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for the DBaaS cloud vendors: aws-rds and
+        aws-rds-aurora.
+        """
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+
+        os_spec = env.cloud_spec['available_os'][env.operating_system]
+
+        self.ansible_vars = {
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': "DBaaS",
+            'pg_version': env.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': os_spec['ssh_user'],
+            'ssh_priv_key': self.ssh_priv_key,
+        }
 
     def show_logs(self, tail):
         if not os.path.exists(self.log_file):
@@ -646,18 +540,18 @@ class Project:
         if not tail:
             # Read the whole file and write its content to stdout
             with open(self.log_file, "r") as f:
-                for l in f.readlines():
-                    sys.stdout.write(l)
+                for line in f.readlines():
+                    sys.stdout.write(line)
         else:
             with open(self.log_file, "r") as f:
                 # Go to the end of the file
                 f.seek(0, 2)
                 while True:
-                    l = f.readline()
-                    if not l:
+                    line = f.readline()
+                    if not line:
                         time.sleep(0.1)
                         continue
-                    sys.stdout.write(l)
+                    sys.stdout.write(line)
 
     def remove(self):
         terraform = TerraformCli(
@@ -679,17 +573,14 @@ class Project:
             shutil.rmtree(self.project_path)
 
     def show_configuration(self):
-        self._load_terraform_vars()
         self._load_ansible_vars()
+        output = dict(ansible=self.ansible_vars)
+
+        self._load_terraform_vars()
+        output.update(terraform=self.terraform_vars)
 
         try:
-            json_output = json.dumps(
-                dict(
-                    ansible=self.ansible_vars,
-                    terraform=self.terraform_vars
-                ),
-                indent=2
-            )
+            json_output = json.dumps(output, indent=2)
         except Exception as e:
             msg = "Unable to convert the configuration to JSON"
             logging.error(msg)
@@ -699,65 +590,31 @@ class Project:
         sys.stdout.write(json_output)
         sys.stdout.flush()
 
-    def provision(self):
+    def provision(self, env):
+        self._load_ansible_vars()
+
         terraform = TerraformCli(
             self.project_path, self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
 
-        self.update_state('terraform', 'INITIALIZATING')
         with AM("Terraform project initialization"):
+            self.update_state('terraform', 'INITIALIZATING')
             terraform.init()
-        self.update_state('terraform', 'INITIALIZATED')
+            self.update_state('terraform', 'INITIALIZATED')
 
-        self.update_state('terraform', 'PROVISIONING')
         with AM("Applying cloud resources creation"):
+            self.update_state('terraform', 'PROVISIONING')
             terraform.apply(self.terraform_vars_file)
-        self.update_state('terraform', 'PROVISIONED')
+            self.update_state('terraform', 'PROVISIONED')
 
         # Checking instance availability
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        # Load terraform variables
         self._load_terraform_vars()
 
-        # AWS case
-        if self.cloud == 'aws':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['aws_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.terraform_vars['aws_region']
-                )
-        # AWS RDS case
-        if self.cloud == 'aws-rds':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['aws_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.terraform_vars['aws_region']
-                )
-        # Azure case
-        if self.cloud == 'azure':
-            with AM("Checking instances availability"):
-                cloud_cli.cli.check_instances_availability(self.name)
-        # GCloud case
-        if self.cloud == 'gcloud':
-            with AM(
-                "Checking instances availability in region %s"
-                % self.terraform_vars['gcloud_region']
-            ):
-                cloud_cli.cli.check_instances_availability(
-                    self.name,
-                    self.terraform_vars['gcloud_region'],
-                    # Total number of nodes
-                    (self.terraform_vars['postgres_server']['count']
-                     + self.terraform_vars['barman_server']['count']
-                     + self.terraform_vars['pem_server']['count']
-                     + self.terraform_vars['pooler_server']['count']
-                     + self.terraform_vars['hammerdb_server']['count'])
-                )
-
+        # Instances availability checking hook
+        exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
         with AM("SSH configuration"):
             terraform.exec_add_host_sh()
@@ -768,17 +625,21 @@ class Project:
             bin_path=self.cloud_tools_bin_path
         )
 
-        self.update_state('terraform', 'DESTROYING')
         with AM("Destroying cloud resources"):
+            self.update_state('terraform', 'DESTROYING')
             terraform.destroy(self.terraform_vars_file)
-        self.update_state('terraform', 'DESTROYED')
-        self.update_state('ansible', 'UNKNOWN')
+            self.update_state('terraform', 'DESTROYED')
+            self.update_state('ansible', 'UNKNOWN')
 
-    def deploy(self, no_install_collection):
+    def deploy(self, no_install_collection,
+               pre_deploy_ansible=None,
+               post_deploy_ansible=None,
+               skip_main_playbook=False):
+
         inventory_data = None
         ansible = AnsibleCli(
             self.project_path,
-            bin_path = self.cloud_tools_bin_path
+            bin_path=self.cloud_tools_bin_path
         )
 
         # Load ansible vars
@@ -793,16 +654,20 @@ class Project:
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
-        extra_vars=dict(
+        extra_vars = dict(
             pg_type=self.ansible_vars['pg_type'],
             pg_version=self.ansible_vars['pg_version'],
             repo_username=self.ansible_vars['repo_username'],
             repo_password=self.ansible_vars['repo_password'],
-            pass_dir=os.path.join(self.project_path, '.edbpass')
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
         )
         if self.ansible_vars.get('efm_version'):
             extra_vars.update(dict(
                 efm_version=self.ansible_vars['efm_version'],
+            ))
+        if self.ansible_vars.get('use_hostname'):
+            extra_vars.update(dict(
+                use_hostname=self.ansible_vars['use_hostname'],
             ))
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(
@@ -813,44 +678,81 @@ class Project:
                 pg_wal=self.ansible_vars['pg_wal']
             ))
 
-        self.update_state('ansible', 'DEPLOYING')
-        with AM("Deploying components with Ansible"):
-            ansible.run_playbook(
-                self.cloud,
-                self.ansible_vars['ssh_user'],
-                self.ansible_vars['ssh_priv_key'],
-                self.ansible_inventory,
-                self.ansible_playbook,
-                json.dumps(extra_vars)
-            )
-        self.update_state('ansible', 'DEPLOYED')
+        # A separate YAML file is created with the for the DBaaS options with
+        # database credentials that need to be passed to the Ansible playbooks.
+        postgres_file = os.path.join(self.project_path, 'postgresql.yml')
+        if os.path.isfile(postgres_file):
+            with open(postgres_file, 'r') as file:
+                yaml_in = yaml.safe_load(file)
+                extra_vars.update(yaml_in)
 
-        with AM("Extracting data from the inventory file"):
-            inventory_data = ansible.list_inventory(self.ansible_inventory)
+        # Until this is resolved:
+        # https://github.com/TPC-Council/HammerDB/issues/163
+        if self.cloud == 'azure-db':
+            extra_vars.update(dict(azure_db_hackery=True))
 
-        # Display inventory informations
-        self.display_inventory(inventory_data)
+        if pre_deploy_ansible:
+            with AM("Executing pre deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    pre_deploy_ansible.name,
+                    json.dumps(extra_vars)
+                )
+
+        if not skip_main_playbook:
+            self.update_state('ansible', 'DEPLOYING')
+            with AM("Deploying components with Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    self.ansible_playbook,
+                    json.dumps(extra_vars)
+                )
+            self.update_state('ansible', 'DEPLOYED')
+
+            with AM("Extracting data from the inventory file"):
+                inventory_data = ansible.list_inventory(self.ansible_inventory)
+
+        if post_deploy_ansible:
+            with AM("Executing post deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    post_deploy_ansible.name,
+                    json.dumps(extra_vars)
+                )
+
+        if not skip_main_playbook:
+            # Display inventory informations
+            self.display_inventory(inventory_data)
 
     def display_passwords(self):
         try:
             states = self.load_states()
-        except Exception as e:
-            states={}
+        except Exception:
+            states = {}
         status = states.get('ansible', 'UNKNOWN')
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
                 print("WARNING: project is in deploying state")
 
             Project.display_table(
-                ['Username','Password'],
+                ['Username', 'Password'],
                 list_passwords(self.project_path)
             )
 
     def display_details(self):
         try:
             states = self.load_states()
-        except Exception as e:
-            states={}
+        except Exception:
+            states = {}
         status = states.get('ansible', 'UNKNOWN')
         if status in ['DEPLOYED', 'DEPLOYING']:
             if status == 'DEPLOYING':
@@ -858,7 +760,7 @@ class Project:
             inventory_data = None
             ansible = AnsibleCli(
                 self.project_path,
-                bin_path = self.cloud_tools_bin_path
+                bin_path=self.cloud_tools_bin_path
             )
             with AM("Extracting data from the inventory file"):
                 inventory_data = ansible.list_inventory(self.ansible_inventory)
@@ -912,7 +814,7 @@ class Project:
     @staticmethod
     def list(cloud):
         projects_path = os.path.join(Project.projects_root_path, cloud)
-        headers = ["Name", "Path", "Machines", "Resources", "Components"]
+        headers = ["Name", "Path", "Machines", "Resources", "Ansible State"]
         rows = []
         try:
             # Case when projects' path does not yet exist
@@ -925,7 +827,7 @@ class Project:
                 if not os.path.isdir(project_path):
                     continue
 
-                project = Project(cloud, project_name)
+                project = Project(cloud, project_name, {})
 
                 terraform_resource_count = 0
                 terraform = TerraformCli(
@@ -937,8 +839,8 @@ class Project:
 
                 try:
                     states = project.load_states()
-                except Exception as e:
-                    states={}
+                except Exception:
+                    states = {}
 
                 rows.append([
                     project.name,
@@ -988,6 +890,75 @@ class Project:
         sys.stdout.flush()
 
     @staticmethod
-    def show_specs(cloud):
-        sys.stdout.write(json.dumps(default_spec(cloud), indent=2))
+    def show_specs(cloud, reference_architecture=None):
+        sys.stdout.write(
+            json.dumps(default_spec(cloud, reference_architecture), indent=2)
+        )
         sys.stdout.flush()
+
+    @staticmethod
+    def setup_tools(cloud):
+        """
+        Prerequisites installation
+        """
+        # List of the tools and their supported cloud vendors
+        tools = [
+            {
+                'name': 'Ansible',
+                'cli': AnsibleCli(
+                    'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
+                    'gcloud-sql', 'baremetal'
+                ]
+            },
+            {
+                'name': 'Terraform',
+                'cli': TerraformCli(
+                    'dummy', 'dummy', bin_path=Project.cloud_tools_bin_path
+                ),
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
+                    'gcloud-sql'
+                ]
+            },
+            {
+                'name': 'AWS Cli',
+                'cli': AWSCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['aws', 'aws-rds', 'aws-rds-aurora']
+            },
+            {
+                'name': 'Azure Cli',
+                'cli': AzureCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['azure']
+            },
+            {
+                'name': 'GCloud Cli',
+                'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['gcloud']
+            },
+            {
+                'name': 'GCloud Cli',
+                'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': ['gcloud-sql']
+            },
+        ]
+
+        for tool in tools:
+            # Install the tool only for appropriated cloud vendors
+            if cloud not in tool['cloud_vendors']:
+                continue
+
+            try:
+                # Check if the tool is already installed and in supported
+                # version
+                tool['cli'].check_version()
+                print("INFO: %s is already installed in supported version"
+                      % tool['name'])
+            except Exception:
+                # Proceed with the installation
+                with AM("%s installation" % tool['name']):
+                    tool['cli'].install(
+                        os.path.dirname(Project.cloud_tools_bin_path)
+                    )

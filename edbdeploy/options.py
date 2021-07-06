@@ -1,11 +1,12 @@
 import os
 import re
+import argparse
 import textwrap
 from .project import Project
 
+
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-DBaaS',
-               'HammerDB-TPROC-C']
+    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
 
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
@@ -20,7 +21,7 @@ class ReferenceArchitectureOption:
     """)
 
 
-class ReferenceArchitectureOptionRDS:
+class ReferenceArchitectureOptionDBaaS:
     choices = ['HammerDB-DBaaS']
     default = 'HammerDB-DBaaS'
     help = textwrap.dedent("""
@@ -40,6 +41,14 @@ class OSOption:
     """)
 
 
+class VMWareOSOption:
+    choices = ['CentOS8']
+    default = 'CentOS8'
+    help = textwrap.dedent("""
+        Operating system. Allowed values are: CentOS8. Default: %(default)s
+    """)
+
+
 class PgVersionOption:
     choices = ['11', '12', '13']
     default = '13'
@@ -49,11 +58,29 @@ class PgVersionOption:
     """)
 
 
-class EFMVersionOption:
-    choices = ['3.10', '4.0', '4.1']
-    default = '4.1'
+class PgVersionOptionAzureDB:
+    choices = ['11']
+    default = '11'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0 and 4.1.
+        Azure Database for PostgreSQL version. Allowed values are: 11.
+        Default: %(default)s
+    """)
+
+
+class EFMVersionOption:
+    choices = ['3.10', '4.0', '4.1', '4.2']
+    default = '4.2'
+    help = textwrap.dedent("""
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
+        Default: %(default)s
+    """)
+
+
+class UseHostnameOption:
+    choices = [True, False]
+    default = True
+    help = textwrap.dedent("""
+        Use hostnames for connectivity between servers.
         Default: %(default)s
     """)
 
@@ -69,13 +96,37 @@ class PgTypeOption:
 
 
 class PgTypeOptionRDS:
-    choices = ['RDS']
-    default = 'RDS'
+    choices = ['DBaaS']
+    default = 'DBaaS'
     help = textwrap.dedent("""
-        Postgres engine type. Allowed values are: RDS for AWS RDS.  Default:
+        Postgres engine type. Allowed values are: DBaaS for AWS RDS.  Default:
         %(default)s
     """)
 
+
+class PgTypeOptionAzureDB:
+    choices = ['DBaaS']
+    default = 'DBaaS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: DBaaS for Azure Database.
+        Default: %(default)s
+    """)
+
+class MemSizeOptionsVMWare:
+    choices = ['2048', '3072', '4096']
+    default = '2048'
+    help = textwrap.dedent("""
+        Memory size options. Allowed values are: 2048, 3072, 4096 for VMWare.
+        Default: %(default)s
+    """)
+
+class CPUCountOptionsVMWare:
+    choices = ['1', '2']
+    default = '1'
+    help = textwrap.dedent("""
+        CPU Count options. Allowed values are: 1, 2 for VMWare.
+        Default: %(default)s
+    """)
 
 class SSHPubKeyOption:
 

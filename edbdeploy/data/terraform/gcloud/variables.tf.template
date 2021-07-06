@@ -15,6 +15,8 @@ variable "replication_type" {}
 variable "ssh_priv_key" {}
 variable "ssh_pub_key" {}
 variable "ssh_user" {}
+variable "hammerdb_server" {}
+variable "hammerdb" {}
 
 variable "ip_cidr_range" {
   default = "10.0.0.0/16"
@@ -47,4 +49,11 @@ variable "network_name" {
 variable "subnetwork_name" {
   # Must have network_name tag as a prefix
   default = "%PROJECT_NAME%-edb-network-subnetwork"
+}
+
+# pg_type variable
+variable "pg_type" {
+  description = "Postgres Type"
+  type        = string
+  default     = "PG"
 }

@@ -9,7 +9,7 @@ def subcommands(subparser):
     # command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'remove'
+        'passwords', 'provision', 'setup', 'show', 'specs', 'remove'
     ]
 
     # Get sub-commands parsers
@@ -21,10 +21,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=ReferenceArchitectureOptionRDS.choices,
-        default=ReferenceArchitectureOptionRDS.default,
+        choices=ReferenceArchitectureOptionDBaaS.choices,
+        default=ReferenceArchitectureOptionDBaaS.default,
         metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionRDS.help
+        help=ReferenceArchitectureOptionDBaaS.help
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',
