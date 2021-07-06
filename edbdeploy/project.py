@@ -691,6 +691,10 @@ class Project:
         if self.cloud == 'azure-db':
             extra_vars.update(dict(azure_db_hackery=True))
 
+        if self.cloud == 'vmware':
+            # Set SSH password
+            extra_vars.update(dict(ansible_ssh_pass='vagrant'))
+
         if pre_deploy_ansible:
             with AM("Executing pre deploy playbook using Ansible"):
                 ansible.run_playbook(
