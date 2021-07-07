@@ -75,6 +75,14 @@ class EFMVersionOption:
         Default: %(default)s
     """)
 
+class EFMVersionOptionVMWare:
+    choices = ['3.10', '4.0', '4.1']
+    default = '4.1'
+    help = textwrap.dedent("""
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1.
+        Default: %(default)s
+    """)
+
 
 class UseHostnameOption:
     choices = [True, False]
