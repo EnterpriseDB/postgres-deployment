@@ -89,8 +89,6 @@ class VMwareProject(Project):
             self.projects_root_path,
             'vmware',
             self.name,
-            # 'centos8',
-            # self.ansible_vars['reference_architecture']
         )
         mem_size = self.ansible_vars['mem_size']
         cpu_count = self.ansible_vars['cpu_count']
