@@ -659,6 +659,7 @@ class Project:
             pg_version=self.ansible_vars['pg_version'],
             repo_username=self.ansible_vars['repo_username'],
             repo_password=self.ansible_vars['repo_password'],
+            ansible_ssh_pass=self.ansible_vars['ssh_pass'],
             pass_dir=os.path.join(self.project_path, '.edbpass'),
         )
         if self.ansible_vars.get('efm_version'):
@@ -690,10 +691,6 @@ class Project:
         # https://github.com/TPC-Council/HammerDB/issues/163
         if self.cloud == 'azure-db':
             extra_vars.update(dict(azure_db_hackery=True))
-
-        if self.cloud == 'vmware':
-            # Set SSH password
-            extra_vars.update(dict(ansible_ssh_pass='vagrant'))
 
         if pre_deploy_ansible:
             with AM("Executing pre deploy playbook using Ansible"):

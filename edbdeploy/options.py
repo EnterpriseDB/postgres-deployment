@@ -3,7 +3,19 @@ import re
 import argparse
 import textwrap
 from .project import Project
+import psutil
 
+def avail_memory_check():
+    avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
+   
+    if avail_memory >= 15:
+        return ['2048', '3072', '4096']
+    elif avail_memory >= 10 and avail_memory < 15:
+        return ['2048', '3072']
+    elif avail_memory >= 6 and avail_memory < 10:
+        return ['2048']
+    else: 
+        return []
 
 class ReferenceArchitectureOption:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
@@ -121,10 +133,10 @@ class PgTypeOptionAzureDB:
     """)
 
 class MemSizeOptionsVMWare:
-    choices = ['2048', '3072', '4096']
+    choices = avail_memory_check()
     default = '2048'
     help = textwrap.dedent("""
-        Memory size options. Allowed values are: 2048, 3072, 4096 for VMWare.
+        Memory size options. Allowed values are: {choices} for VMWare.
         Default: %(default)s
     """)
 
