@@ -636,7 +636,7 @@ class CloudCli:
 
     def __init__(self, cloud, bin_path):
         self.cloud = cloud
-        if self.cloud == 'aws':
+        if self.cloud in ['aws', 'aws-pot']:
             self.cli = AWSCli(bin_path)
         elif self.cloud == 'aws-rds':
             self.cli = AWSRDSCli(bin_path)
@@ -651,7 +651,7 @@ class CloudCli:
         elif self.cloud == 'gcloud-sql':
             self.cli = GCloudSQLCli(bin_path)
         else:
-            raise Exception("Unknown cloud %s", self.cloud)
+            raise Exception("Unknown cloud %s" % self.cloud)
 
     def check_instance_type_availability(self, instance_type, region):
         return self.cli.check_instance_type_availability(instance_type, region)
