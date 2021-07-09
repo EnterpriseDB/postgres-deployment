@@ -912,7 +912,7 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql', 'baremetal'
+                    'gcloud-sql', 'baremetal', 'aws-pot'
                 ]
             },
             {
@@ -922,13 +922,15 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql'
+                    'gcloud-sql', 'aws-pot'
                 ]
             },
             {
                 'name': 'AWS Cli',
                 'cli': AWSCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['aws', 'aws-rds', 'aws-rds-aurora']
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'aws-pot'
+                ]
             },
             {
                 'name': 'Azure Cli',
