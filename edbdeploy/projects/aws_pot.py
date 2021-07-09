@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+import sys
 
 from ..action import ActionManager as AM
 from ..ansible import AnsibleCli
@@ -12,7 +13,7 @@ from ..project import Project
 
 class AWSPOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:3.2.0'
+    ansible_collection_name = 'edb_devops.edb_postgres:3.3.2'
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
@@ -285,3 +286,80 @@ class AWSPOTProject(Project):
         if not skip_main_playbook:
             # Display inventory informations
             self.display_inventory(inventory_data)
+
+    def display_inventory(self, inventory_data):
+        # Overload Project.display_inventory()
+        if not self.ansible_vars:
+            self._load_ansible_vars()
+
+        def _p(s):
+            sys.stdout.write(s)
+
+        sys.stdout.flush()
+        _p("\n")
+
+        # Display PEM server informations
+        if 'pemserver' in inventory_data['all']['children']:
+            if self.ansible_vars['pg_type'] == 'EPAS':
+                pem_user = 'enterprisedb'
+            else:
+                pem_user = 'postgres'
+            pem_name = inventory_data['pemserver']['hosts'][0]
+            pem_hostvars = inventory_data['_meta']['hostvars'][pem_name]
+
+            # In PoT PEM server is client server
+            client_login_ip = pem_hostvars['ansible_host']
+            client_private_ip = pem_hostvars['private_ip']
+            se_login_user = self.ansible_vars['ssh_user']
+
+            with open(
+                os.path.join(
+                    self.project_path, '.edbpass', '%s_pass' % pem_user
+                )
+            ) as f:
+                pem_password = f.read()
+
+            _p(
+                "PEM Server: https://%spem.edbpov.io:8443/pem\n"
+                % self.name
+            )
+            _p("PEM User: %s\n" % pem_user)
+            _p("PEM Password: %s\n" % pem_password)
+
+        # Build the nodes table
+        rows = []
+        for name, vars in inventory_data['_meta']['hostvars'].items():
+            if name != pem_name:
+                rows.append([
+                    name,
+                    vars['ansible_host'],
+                    self.ansible_vars['ssh_user'],
+                    vars['private_ip'],
+                    self.name
+                ])
+        rows.append([
+            'client',
+            client_login_ip,
+            se_login_user,
+            client_private_ip,
+            self.name
+        ])
+
+        Project.display_table(
+            ['Name', 'Login IP Address', 'SE Login User',
+             'Internal IP Address', 'Login User'],
+            rows
+        )
+
+    def _copy_ansible_playbook(self):
+        # Overload Project._copy_ansible_playbook()
+        """
+        Copy reference architecture Ansible playbook into project directory.
+        """
+        with AM(
+            "Copying Ansible playbook file into %s" % self.ansible_playbook
+        ):
+            shutil.copy(
+                os.path.join(self.ansible_share_path, "PoT-EDB-RA-2.yml"),
+                self.ansible_playbook
+            )
