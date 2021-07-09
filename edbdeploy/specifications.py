@@ -101,6 +101,9 @@ def default_spec(cloud, reference_architecture=None):
     """
     if cloud == 'aws':
         return default(AWSSpec)
+    elif cloud == 'aws-pot':
+        # Use same specifications as aws
+        return default(AWSSpec)
     elif cloud == 'aws-rds':
         return default(AWSRDSSpec)
     elif cloud == 'aws-rds-aurora':

@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import stat
+from subprocess import CalledProcessError
 import sys
 import time
 import yaml
@@ -16,6 +17,7 @@ from .errors import ProjectError
 from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
+from .system import exec_shell
 from .terraform import TerraformCli
 
 
@@ -962,3 +964,48 @@ class Project:
                     tool['cli'].install(
                         os.path.dirname(Project.cloud_tools_bin_path)
                     )
+
+    def ssh_key_gen(self, ssh_user, is_customer_key=False):
+        # Build SSH key pair for POT
+        if not is_customer_key:
+            project_ssh_priv_key = os.path.join(
+                self.project_path, "%s_%s_key" % (ssh_user, self.name)
+            )
+            project_ssh_pub_key = os.path.join(
+                self.project_path, "%s_%s_key.pub" % (ssh_user, self.name)
+            )
+        else:
+            project_ssh_priv_key = os.path.join(
+                self.project_path, "%s_key" % ssh_user
+            )
+            project_ssh_pub_key = os.path.join(
+                self.project_path, "%s_key.pub" % ssh_user
+            )
+
+        try:
+            output = exec_shell([
+                "ssh-keygen",
+                "-q",
+                "-t rsa",
+                "-f %s" % project_ssh_priv_key,
+                "-C \"\" -N \"\"",
+            ])
+            result = output.decode("utf-8")
+            logging.debug("Command output:")
+            for line in result.split("\n"):
+                logging.debug(line)
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise ProjectError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+        ext_project_ssh_priv_key = project_ssh_priv_key + '.pem'
+        os.rename(project_ssh_priv_key, ext_project_ssh_priv_key)
+        self.custom_ssh_keys[ssh_user] = dict(
+            ssh_pub_key=project_ssh_pub_key,
+            ssh_priv_key=ext_project_ssh_priv_key
+        )

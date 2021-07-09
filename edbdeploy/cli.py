@@ -6,6 +6,7 @@ from . import __version__
 from .commands import (
     aurora as aws_rds_aurora,
     aws,
+    aws_pot,
     azure,
     azure_db,
     baremetal,
@@ -40,6 +41,9 @@ def parse():
 
     # Cloud commands parsers
     aws_parser = subparsers.add_parser('aws', help='AWS Cloud')
+    aws_pot_parser = subparsers.add_parser(
+        'aws-pot', help='EDB POT on AWS Cloud'
+    )
     aws_rds_parser = subparsers.add_parser('aws-rds', help='AWS RDS Cloud')
     aws_rds_aurora_parser = subparsers.add_parser(
         'aws-rds-aurora', help='AWS RDS Aurora Cloud'
@@ -58,6 +62,10 @@ def parse():
     # Sub-commands parsers
     aws_subparser = aws_parser.add_subparsers(
         title='AWS sub-commands', dest='sub_command', metavar='<sub-command>'
+    )
+    aws_pot_subparser = aws_pot_parser.add_subparsers(
+        title='EDB POT on AWS sub-commands', dest='sub_command',
+        metavar='<sub-command>'
     )
     aws_rds_subparser = aws_rds_parser.add_subparsers(
         title='AWS RDS sub-commands', dest='sub_command', metavar='<sub-command>'
@@ -92,6 +100,7 @@ def parse():
 
     # Attach sub-commands options to the sub-parsers
     aws.subcommands(aws_subparser)
+    aws_pot.subcommands(aws_pot_subparser)
     aws_rds.subcommands(aws_rds_subparser)
     aws_rds_aurora.subcommands(aws_rds_aurora_subparser)
     azure.subcommands(azure_subparser)
@@ -122,6 +131,8 @@ def parse():
     if not getattr(env, 'sub_command'):
         if env.cloud == 'aws':
             aws_parser.print_help()
+        elif env.cloud == 'aws-pot':
+            aws_pot_parser.print_help()
         elif env.cloud == 'aws-rds':
             aws_rds_parser.print_help()
         elif env.cloud == 'aws-rds-aurora':

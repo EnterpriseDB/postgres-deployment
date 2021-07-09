@@ -9,6 +9,8 @@ from .projects.gcloud import GCloudProject
 from .projects.gcloud_sql import GCloudSQLProject
 from .projects.baremetal import BaremetalProject
 from .projects.vmware import VMwareProject
+# POT
+from .projects.aws_pot import AWSPOTProject
 
 class CommanderError(Exception):
     pass
@@ -36,6 +38,8 @@ class Commander:
                 self.project = AWSRDSAuroraProject(self.env.project, self.env)
             elif self.env.cloud == 'azure-db':
                 self.project = AzureDBProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-pot':
+                self.project = AWSPOTProject(self.env.project, self.env)
             else:
                 self.project = Project(
                     self.env.cloud, self.env.project, self.env
