@@ -7,8 +7,9 @@ import psutil
 
 def avail_memory_check():
     avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
-   
-    if avail_memory >= 15:
+    if avail_memory >= 20:
+       return ['2048', '3072', '4096', '5120']
+    elif avail_memory >= 15 and avail_memory < 20:
         return ['2048', '3072', '4096']
     elif avail_memory >= 10 and avail_memory < 15:
         return ['2048', '3072']
