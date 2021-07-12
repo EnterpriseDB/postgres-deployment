@@ -916,7 +916,7 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql', 'baremetal', 'aws-pot'
+                    'gcloud-sql', 'baremetal', 'aws-pot', 'azure-pot', 'gcloud-pot'
                 ]
             },
             {
@@ -926,7 +926,7 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql', 'aws-pot'
+                    'gcloud-sql', 'aws-pot', 'azure-pot', 'gcloud-pot'
                 ]
             },
             {
@@ -939,12 +939,12 @@ class Project:
             {
                 'name': 'Azure Cli',
                 'cli': AzureCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['azure']
+                'cloud_vendors': ['azure', 'azure-pot']
             },
             {
                 'name': 'GCloud Cli',
                 'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['gcloud']
+                'cloud_vendors': ['gcloud', 'gcloud-pot']
             },
             {
                 'name': 'GCloud Cli',

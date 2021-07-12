@@ -82,7 +82,7 @@ PRIMARY_CONNECTION="${PRIMARY_CONNECTION} application_name=''${CURRENT_HOST}''"
 
 /bin/echo "primary_conninfo = '${PRIMARY_CONNECTION}'" \
       >> ${PGDATA}/postgresql.auto.conf
-/bin/echo "primary_slot_name = '${CURRENT_HOST}'" \
+/bin/echo "primary_slot_name = '${CURRENT_HOST//./_}'" \
   >> ${PGDATA}/postgresql.auto.conf
 
 /bin/touch ${PGDATA}/standby.signal

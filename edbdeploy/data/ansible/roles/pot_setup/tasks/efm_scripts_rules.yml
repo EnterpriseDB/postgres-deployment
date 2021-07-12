@@ -44,6 +44,7 @@
     group: root
     mode: 0755
   become: yes
+  when: efm_version is version('4.1','<=')
 
 - name: Install EFM and dependencies
   package:
