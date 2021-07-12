@@ -659,9 +659,12 @@ class Project:
             pg_version=self.ansible_vars['pg_version'],
             repo_username=self.ansible_vars['repo_username'],
             repo_password=self.ansible_vars['repo_password'],
-            ansible_ssh_pass=self.ansible_vars.get('ssh_pass', 'None'),
             pass_dir=os.path.join(self.project_path, '.edbpass'),
         )
+        if self.ansible_vars.get('efm_version'):
+            extra_vars.update(dict(
+                efm_version=self.ansible_vars['efm_version'],
+            ))
         if self.ansible_vars.get('efm_version'):
             extra_vars.update(dict(
                 efm_version=self.ansible_vars['efm_version'],
