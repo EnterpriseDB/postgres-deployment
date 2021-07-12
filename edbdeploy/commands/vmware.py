@@ -60,10 +60,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-e', '--efm-version',
         dest='efm_version',
-        choices=EFMVersionOption.choices,
-        default=EFMVersionOption.default,
+        choices=EFMVersionOptionVMWare.choices,
+        default=EFMVersionOptionVMWare.default,
         metavar='<efm-version>',
-        help=EFMVersionOption.help
+        help=EFMVersionOptionVMWare.help
     )
     subcommand_parsers['configure'].add_argument(
         '--use-hostname',

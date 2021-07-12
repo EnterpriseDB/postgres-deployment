@@ -138,7 +138,10 @@ class Commander:
 
     def list(self):
         logging.info("Listing project for cloud %s", self.env.cloud)
-        Project.list(self.env.cloud)
+        if self.env.cloud == 'vmware':
+            VMwareProject.list(self.env.cloud)
+        else:
+            Project.list(self.env.cloud)
 
     def specs(self):
         logging.info("Showing default specs. for cloud %s", self.env.cloud)
