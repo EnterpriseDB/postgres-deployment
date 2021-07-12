@@ -665,9 +665,9 @@ class Project:
             extra_vars.update(dict(
                 efm_version=self.ansible_vars['efm_version'],
             ))
-        if self.ansible_vars.get('efm_version'):
+        if self.ansible_vars.get('ssh_pass'):
             extra_vars.update(dict(
-                efm_version=self.ansible_vars['efm_version'],
+                ansible_ssh_pass=self.ansible_vars['ssh_pass'],
             ))
         if self.ansible_vars.get('use_hostname'):
             extra_vars.update(dict(
