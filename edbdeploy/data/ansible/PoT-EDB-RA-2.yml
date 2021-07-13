@@ -10,8 +10,8 @@
     - name: Initialize the user defined variables
       set_fact:
         use_hostname: yes
-        disable_logging: false
-        efm_version: 4.1
+        disable_logging: true
+        efm_version: 4.2
   roles:
     - role: setup_repo
       when: "'setup_repo' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"

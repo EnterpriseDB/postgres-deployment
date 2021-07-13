@@ -642,11 +642,11 @@ class CloudCli:
             self.cli = AWSRDSCli(bin_path)
         elif self.cloud == 'aws-rds-aurora':
             self.cli = AWSRDSAuroraCli(bin_path)
-        elif self.cloud == 'azure':
+        elif self.cloud in ['azure', 'azure-pot']:
             self.cli = AzureCli(bin_path)
         elif self.cloud == 'azure-db':
             self.cli = AzureDBCli(bin_path)
-        elif self.cloud == 'gcloud':
+        elif self.cloud in ['gcloud', 'gcloud-pot']:
             self.cli = GCloudCli(bin_path)
         elif self.cloud == 'gcloud-sql':
             self.cli = GCloudSQLCli(bin_path)
