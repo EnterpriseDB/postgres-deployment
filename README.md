@@ -121,12 +121,17 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
 ## Cloud vendor list
 
   * `aws`: Amazon Web Services
+  * `aws-pot`: EDB POT (Proof Of Technology) on AWS Cloud
   * `aws-rds`: Amazon Web Services RDS for PostgreSQL
   * `aws-rds-aurora`: Amazon Aurora
   * `azure`: Microsoft Azure Cloud
+  * `azure-pot`: EDB POT (Proof Of Technology) on Azure Cloud
   * `azure-db`: Microsoft Azure Database
   * `gcloud`: Google Cloud
+  * `gcloud-pot`: EDB POT (Proof Of Technology) on Google Cloud
   * `gcloud-sql`: Google Cloud SQL for PostgreSQL
+  * `baremetal`: Baremetal servers and VMs
+  * `vmware`: VMWare Workstation
 
 ## Sub-commands
 
