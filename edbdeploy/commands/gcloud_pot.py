@@ -3,10 +3,9 @@ import argparse
 from ..options import *
 from .default import default_subcommand_parsers
 
-# AWS RDS Aurora for sub-commands and options
+# GCloud sub-commands and options
 def subcommands(subparser):
-    # List of the sub-commands we want to be available for the aws-rds-aurora
-    # command
+    # List of the sub-commands we want to be available for the gcloud command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
         'passwords', 'provision', 'setup', 'show', 'specs', 'remove'
@@ -17,14 +16,30 @@ def subcommands(subparser):
         subparser, available_subcommands
     )
 
-    # aws-rds-aurora configure sub-command options
+    # gcloud configure sub-command options
     subcommand_parsers['configure'].add_argument(
-        '-a', '--reference-architecture',
-        dest='reference_architecture',
-        choices=ReferenceArchitectureOptionDBaaS.choices,
-        default=ReferenceArchitectureOptionDBaaS.default,
-        metavar='<ref-arch-code>',
-        help=ReferenceArchitectureOptionDBaaS.help
+        '--route53-access-key',
+        dest='route53_access_key',
+        required=True,
+        type=str,
+        metavar='<route53-acccess-key>',
+        help="Route53 Access Key"
+    )
+    subcommand_parsers['configure'].add_argument(
+        '--route53-secret',
+        dest='route53_secret',
+        required=True,
+        type=str,
+        metavar='<route53-secret>',
+        help="Route53 Secret"
+    )
+    subcommand_parsers['configure'].add_argument(
+        '--email-id',
+        dest='email_id',
+        required=True,
+        type=str,
+        metavar='<email-id>',
+        help="Email Id"
     )
     subcommand_parsers['configure'].add_argument(
         '-u', '--edb-credentials',
@@ -35,20 +50,12 @@ def subcommands(subparser):
         help="EDB Packages repository credentials."
     ).completer = edb_credentials_completer
     subcommand_parsers['configure'].add_argument(
-        '-o', '--os',
-        dest='operating_system',
-        choices=OSOption.choices,
-        default=OSOption.default,
-        metavar='<operating-system>',
-        help=OSOption.help
-    )
-    subcommand_parsers['configure'].add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
-        choices=PgTypeOptionRDS.choices,
-        default=PgTypeOptionRDS.default,
+        choices=PgTypeOption.choices,
+        default=PgTypeOption.default,
         metavar='<postgres-engine-type>',
-        help=PgTypeOptionRDS.help
+        help=PgTypeOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-v', '--pg-version',
@@ -57,6 +64,22 @@ def subcommands(subparser):
         default=PgVersionOption.default,
         metavar='<postgres-version>',
         help=PgVersionOption.help
+    )
+    subcommand_parsers['configure'].add_argument(
+        '-e', '--efm-version',
+        dest='efm_version',
+        choices=EFMVersionOption.choices,
+        default=EFMVersionOption.default,
+        metavar='<efm-version>',
+        help=EFMVersionOption.help
+    )
+    subcommand_parsers['configure'].add_argument(
+        '--use-hostname',
+        dest='use_hostname',
+        choices=UseHostnameOption.choices,
+        default=UseHostnameOption.default,
+        metavar='<use-hostname>',
+        help=UseHostnameOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-k', '--ssh-pub-key',
@@ -75,44 +98,44 @@ def subcommands(subparser):
         help=SSHPrivKeyOption.help
     )
     subcommand_parsers['configure'].add_argument(
-        '-r', '--aws-rds-region',
-        dest='aws_region',
-        choices=AWSRegionOption.choices,
-        default=AWSRegionOption.default,
+        '-r', '--gcloud-region',
+        dest='gcloud_region',
+        choices=GCloudRegionOption.choices,
+        default=GCloudRegionOption.default,
         metavar='<cloud-region>',
-        help=AWSRegionOption.help
+        help=GCloudRegionOption.help
     )
-    subcommand_parsers['configure'].add_argument(
-        '-i', '--aws-rds-ami-id',
-        dest='aws_ami_id',
-        type=str,
-        default=AWSIAMIDOption.default,
-        metavar='<aws-rds-ami-id>',
-        help=AWSIAMIDOption.help
-    ).completer = aws_ami_id_completer
     subcommand_parsers['configure'].add_argument(
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        metavar='<aws-rds-spec-file>',
-        help="AWS instances specification file, in JSON."
+        metavar='<gcloud-spec-file>',
+        help="GCloud instances specification file, in JSON."
     )
     subcommand_parsers['configure'].add_argument(
-        '-T', '--t-shirt',
-        dest='shirt',
-        choices=ShirtSizeOption.choices,
-        default=ShirtSizeOption.default,
-        metavar='<shirt-size>',
-        help=ShirtSizeOption.help
+        '-c', '--gcloud-credentials',
+        dest='gcloud_credentials',
+        type=argparse.FileType('r'),
+        default=GCloudCredentialsOption.default(),
+        metavar='<gcloud-credentials-json-file>',
+        help=GCloudCredentialsOption.help
     )
-    # aws-rds-aurora logs sub-command options
+    subcommand_parsers['configure'].add_argument(
+        '-p', '--gcloud-project-id',
+        dest='gcloud_project_id',
+        required=True,
+        type=str,
+        metavar='<gcloud-project-id>',
+        help="GCloud project ID"
+    ).completer = gcloud_project_id_completer
+    # gcloud logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
         dest='tail',
         action='store_true',
         help="Do not stop at the end of file."
     )
-    # aws-rds-aurora deploy sub-command options
+    # gcloud deploy sub-command options
     subcommand_parsers['deploy'].add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',

@@ -180,6 +180,7 @@ class AnsibleCli:
             sed -i.bak 's/$1/${{1:-}}/' {path}/ansible/{version}/bin/activate
             source {path}/ansible/{version}/bin/activate
             python3 -m pip install "cryptography==3.3.2"
+            python3 -m pip install "boto3"
             python3 -m pip install "ansible-core=={version}"
             deactivate
             rm -f {path}/bin/ansible

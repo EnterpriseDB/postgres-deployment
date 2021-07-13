@@ -1,0 +1,54 @@
+---
+
+- name: Update efm sudo filee
+  template:
+    src: efm_sudo.template
+    dest: "/etc/sudoers.d/efm-{{ efm_version | replace('.','') }}"
+    owner: root
+    group: root
+    mode: 0400
+  become: yes
+
+- name: Add pot aliases file
+  template:
+    src: pot_aliases.sh.template
+    dest: "/etc/profile.d/pot_aliases.sh"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: EFM rewind script
+  template:
+    src: efm_rewind.sh.template
+    dest: "{{ efm_bin_path }}/efm_rewind.sh"
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+
+- name: EFM reconfigure script
+  template:
+    src: efm_reconfigure_node.sh.template
+    dest: "{{ efm_bin_path }}/efm_reconfigure_node.sh"
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+
+- name: Copy modified efm_db_functions
+  template:
+    src: efm_db_functions.{{ efm_version }}.template
+    dest: "{{ efm_bin_path }}/efm_db_functions"
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+  when: efm_version is version('4.1','<=')
+
+- name: Install EFM and dependencies
+  package:
+    name: "net-tools"
+    state: present
+  when: ansible_os_family == 'RedHat'
+  become: yes

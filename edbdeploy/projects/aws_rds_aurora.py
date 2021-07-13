@@ -4,7 +4,7 @@ from ..password import get_password
 
 class AWSRDSAuroraProject(AWSRDSProject):
     def __init__(self, name, env, bin_path=None):
-        super(AWSRDSAuroraProject, self).__init__(
+        super(AWSRDSProject, self).__init__(
             'aws-rds-aurora', name, env, bin_path
         )
 

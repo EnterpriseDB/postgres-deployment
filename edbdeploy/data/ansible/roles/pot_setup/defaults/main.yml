@@ -1,0 +1,61 @@
+---
+# defaults file for pov_setup
+pg_type: "EPAS"
+efm_version: 4.2
+efm_bin_path: "/usr/edb/efm-{{ efm_version }}/bin"
+efm_cluster_name: "efm"
+disable_logging: no
+
+user_expire_date: ""
+public_key: ""
+email_id: ""
+route53_access_key: ""
+route53_secret: ""
+route53_zone: "edbpov.io"
+route53_record: "edbpov.io"
+domain: "edbpov.io"
+route_ip_addressess: []
+
+project: ""
+pg_customer_password: ""
+
+pg_efm_user: "efm"
+pg_replication_user: "repuser"
+
+pg_project_user: "{{ project }}"
+pg_project_user_password: ""
+os_project_user: "{{ project }}"
+project_public_key: ""
+
+input_password: ""
+
+pg_allow_ip_addresses: []
+
+pem_server_private_ip: ""
+pem_server_public_ip: ""
+primary_public_ip: ""
+user_expiry_date: ""
+
+pem_probe_query: "UPDATE
+    pem.probe
+SET
+    enabled_by_default = TRUE
+WHERE
+    internal_name NOT IN ('slony_replication', 'xdb_smr_mmr_replication', 'sql_protect')
+    AND target_type_id = 200
+    AND enabled_by_default = FALSE;"
+
+pem_alert_query: "UPDATE
+    pem.alert a
+SET
+    enabled = FALSE
+FROM
+    pem.alert_template t
+WHERE
+    a.template_id = t.id
+    AND (t.display_name ~ '^Last'
+        OR t.display_name ~ '^Largest index'
+        OR t.display_name = 'Database size in server'
+        OR t.display_name ~ 'Alert Errors')
+    AND t.is_auto_create = TRUE
+    AND a.enabled;"

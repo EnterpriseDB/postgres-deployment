@@ -1,0 +1,24 @@
+---
+- name: Create customer name at the os level
+  user:
+    name: "{{ os_project_user }}"
+    expires: "{{ user_expiry_date }}"
+    shell: /bin/bash
+  become: yes
+
+- name: Update the customer keys on the hosts
+  ansible.posix.authorized_key:
+    user: "{{ os_project_user }}"
+    state: present
+    key: "{{ lookup('file', public_key ) }}"
+  become: yes
+
+- name: Create user sudo privilege file
+  template:
+    src: sudo_user.template
+    dest: "/etc/sudoers.d/{{ project }}-sudo"
+    owner: root
+    group: root
+    mode: 0440
+  become: yes
+  when: hostvars[inventory_hostname].group_names is subset(['primary', 'standby'])

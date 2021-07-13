@@ -224,7 +224,7 @@ class VMWareCli:
 
     def count_resources(self):
         try:     
-            #Use mech list see all running instances within, ggrep gets all instances with started as state which means its on, wc returns a count of the listed files with vmx
+            #Use mech list see all running instances within, grep gets all instances with started as state which means its on, wc returns a count of the listed files with vmx
             output = exec_shell(
                 [
                     self.bin("mech"),

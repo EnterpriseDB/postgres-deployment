@@ -9,6 +9,11 @@ from .projects.gcloud import GCloudProject
 from .projects.gcloud_sql import GCloudSQLProject
 from .projects.baremetal import BaremetalProject
 from .projects.vmware import VMwareProject
+# POT
+from .projects.aws_pot import AWSPOTProject
+from .projects.azure_pot import AzurePOTProject
+from .projects.gcloud_pot import GCloudPOTProject
+
 
 class CommanderError(Exception):
     pass
@@ -36,6 +41,12 @@ class Commander:
                 self.project = AWSRDSAuroraProject(self.env.project, self.env)
             elif self.env.cloud == 'azure-db':
                 self.project = AzureDBProject(self.env.project, self.env)
+            elif self.env.cloud == 'aws-pot':
+                self.project = AWSPOTProject(self.env.project, self.env)
+            elif self.env.cloud == 'azure-pot':
+                self.project = AzurePOTProject(self.env.project, self.env)
+            elif self.env.cloud == 'gcloud-pot':
+                self.project = GCloudPOTProject(self.env.project, self.env)
             else:
                 self.project = Project(
                     self.env.cloud, self.env.project, self.env
@@ -134,7 +145,10 @@ class Commander:
 
     def list(self):
         logging.info("Listing project for cloud %s", self.env.cloud)
-        Project.list(self.env.cloud)
+        if self.env.cloud == 'vmware':
+            VMwareProject.list(self.env.cloud)
+        else:
+            Project.list(self.env.cloud)
 
     def specs(self):
         logging.info("Showing default specs. for cloud %s", self.env.cloud)
