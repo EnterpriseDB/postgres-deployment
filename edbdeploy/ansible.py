@@ -121,7 +121,13 @@ class AnsibleCli:
                          'gcloud-sql']:
                 command.append('--limit')
                 command.append('!primary')
-            rc = exec_shell_live(command, cwd=self.dir)
+
+            # Enable pipelening for better execution time
+            environ = os.environ.copy()
+            environ['ANSIBLE_PIPELINING'] = 'true'
+            environ['ANSIBLE_SSH_PIPELINING'] = 'true'
+
+            rc = exec_shell_live(command, environ=environ, cwd=self.dir)
             if rc != 0:
                 raise Exception("Return code not 0")
         except Exception as e:
