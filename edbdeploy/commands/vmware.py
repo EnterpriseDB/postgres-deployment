@@ -166,3 +166,9 @@ def subcommands(subparser):
         action='store_true',
         help="Do not stop at the end of file."
     )
+    subcommand_parsers['deploy'].add_argument(
+        '--enable-pipelining',
+        dest='enable_pipelining',
+        action='store_true',
+        help="Enable Ansible pipelining."
+    )

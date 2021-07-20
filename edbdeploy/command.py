@@ -127,7 +127,8 @@ class Commander:
         self.project.deploy(self.env.no_install_collection,
                             self.env.pre_deploy_ansible,
                             self.env.post_deploy_ansible,
-                            self.env.skip_main_playbook)
+                            self.env.skip_main_playbook,
+                            self.env.enable_pipelining)
 
     def display(self):
         self._check_project_exists()
