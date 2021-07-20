@@ -137,12 +137,14 @@ class AWSPOTProject(Project):
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
                post_deploy_ansible=None,
-               skip_main_playbook=False):
+               skip_main_playbook=False,
+               disable_pipelining=False):
         self.pot_deploy(
             no_install_collection,
             pre_deploy_ansible,
             post_deploy_ansible,
-            skip_main_playbook
+            skip_main_playbook,
+            disable_pipelining
         )
 
     def display_inventory(self, inventory_data):

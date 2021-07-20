@@ -102,7 +102,8 @@ class AnsibleCli:
             )
 
     def run_playbook(
-        self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars
+        self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars,
+        disable_pipelining=False
     ):
         try:
             # TODO: extra_vars needs to be escaped for the shell or maybe dump
@@ -122,10 +123,14 @@ class AnsibleCli:
                 command.append('--limit')
                 command.append('!primary')
 
-            # Enable pipelening for better execution time
             environ = os.environ.copy()
-            environ['ANSIBLE_PIPELINING'] = 'true'
-            environ['ANSIBLE_SSH_PIPELINING'] = 'true'
+            if not disable_pipelining:
+                # Enable pipelening for better execution time
+                environ['ANSIBLE_PIPELINING'] = 'true'
+                environ['ANSIBLE_SSH_PIPELINING'] = 'true'
+            else:
+                environ['ANSIBLE_PIPELINING'] = 'false'
+                environ['ANSIBLE_SSH_PIPELINING'] = 'false'
 
             rc = exec_shell_live(command, environ=environ, cwd=self.dir)
             if rc != 0:

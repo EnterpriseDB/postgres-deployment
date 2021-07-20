@@ -113,3 +113,9 @@ def subcommands(subparser):
         action='store_true',
         help="Skip main playbook of the reference architecture."
     )
+    subcommand_parsers['deploy'].add_argument(
+        '--disable-pipelining',
+        dest='disable_pipelining',
+        action='store_true',
+        help="Disable Ansible pipelining."
+    )
