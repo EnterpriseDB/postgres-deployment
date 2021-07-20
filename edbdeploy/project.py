@@ -637,7 +637,7 @@ class Project:
                pre_deploy_ansible=None,
                post_deploy_ansible=None,
                skip_main_playbook=False,
-               enable_pipelining=False):
+               disable_pipelining=False):
 
         inventory_data = None
         ansible = AnsibleCli(
@@ -707,7 +707,7 @@ class Project:
                     self.ansible_inventory,
                     pre_deploy_ansible.name,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:
@@ -720,7 +720,7 @@ class Project:
                     self.ansible_inventory,
                     self.ansible_playbook,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
             self.update_state('ansible', 'DEPLOYED')
 
@@ -736,7 +736,7 @@ class Project:
                     self.ansible_inventory,
                     post_deploy_ansible.name,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:
@@ -1095,7 +1095,7 @@ class Project:
 
     def pot_deploy(self, no_install_collection, pre_deploy_ansible=None,
                    post_deploy_ansible=None, skip_main_playbook=False,
-                   enable_pipelining=False):
+                   disable_pipelining=False):
         """
         Deployment method for the PoT environments
         """
@@ -1147,7 +1147,7 @@ class Project:
                     self.ansible_inventory,
                     pre_deploy_ansible.name,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:
@@ -1160,7 +1160,7 @@ class Project:
                     self.ansible_inventory,
                     self.ansible_playbook,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
             self.update_state('ansible', 'DEPLOYED')
 
@@ -1176,7 +1176,7 @@ class Project:
                     self.ansible_inventory,
                     post_deploy_ansible.name,
                     json.dumps(extra_vars),
-                    enable_pipelining=enable_pipelining,
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:

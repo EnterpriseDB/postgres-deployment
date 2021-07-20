@@ -134,13 +134,13 @@ class AzurePOTProject(Project):
                pre_deploy_ansible=None,
                post_deploy_ansible=None,
                skip_main_playbook=False,
-               enable_pipelining=False):
+               disable_pipelining=False):
         self.pot_deploy(
             no_install_collection,
             pre_deploy_ansible,
             post_deploy_ansible,
             skip_main_playbook,
-            enable_pipelining
+            disable_pipelining
         )
 
     def display_inventory(self, inventory_data):
