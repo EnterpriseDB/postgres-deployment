@@ -1,5 +1,7 @@
 variable "aws_region" {}
 variable "postgres_server" {}
+variable "bdr_server" {}
+variable "bdr_witness_server" {}
 variable "pem_server" {}
 variable "hammerdb_server" {}
 variable "pooler_server" {}
@@ -19,6 +21,11 @@ variable "hammerdb" {}
 # Ansible Yaml Inventory Filename
 variable "ansible_inventory_yaml_filename" {
   default = "inventory.yml"
+}
+
+# TPAexec Yaml Config Filename
+variable "tpaexec_config_yaml_filename" {
+  default = "config.yml"
 }
 
 # Ansible Add Hosts Filename

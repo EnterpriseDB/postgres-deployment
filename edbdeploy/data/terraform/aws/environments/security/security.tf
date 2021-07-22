@@ -128,6 +128,22 @@ resource "aws_security_group" "edb-prereqs-rules" {
     cidr_blocks = [var.public_cidrblock]
   }
 
+  // HARP default port
+  ingress {
+    from_port   = 5442
+    to_port     = 5442
+    protocol    = "tcp"
+    cidr_blocks = [var.public_cidrblock]
+  }
+
+  // etcd default port
+  ingress {
+    from_port   = 2379
+    to_port     = 2379
+    protocol    = "tcp"
+    cidr_blocks = [var.public_cidrblock]
+  }
+
   tags = {
     Name = format("%s_%s", var.project_tag, "SSH_ALLOWED")
   }

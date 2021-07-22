@@ -21,6 +21,20 @@ class ReferenceArchitectureOption:
     """)
 
 
+class POTReferenceArchitectureOption:
+    choices = ['EDB-RA', 'EDB-Always-On']
+
+    default = 'EDB-RA'
+    help = textwrap.dedent("""
+        Reference architecture code name. Allowed values are: EDB-RA for
+        a 3 Postgres nodes deployment with quorum base synchronous replication
+        and automatic failover, one backup server and one PEM monitoring server,
+        EDB-Always-On for deployment 6 Postgres nodes with BDR EE, one backup
+        server, 2 Pgbouncer/HAproxy servers and one PEM monitoring server.
+        Default: %(default)s
+    """)
+
+
 class ReferenceArchitectureOptionDBaaS:
     choices = ['HammerDB-DBaaS']
     default = 'HammerDB-DBaaS'
