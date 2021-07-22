@@ -1,0 +1,106 @@
+{
+  "pem1": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "pem1",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "barman1": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "barman1",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "primary1": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "primary1",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "primary2": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "primary2",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "primary3": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "standby3",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "pooler1": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "pooler1",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "pooler2": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "pooler2",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  },
+  "pooler3": {
+    "box": "bento/centos-8.3",
+    "box_version": "202105.25.0",
+    "name": "pooler3",
+    "provider": "virtualbox",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/centos-8.3/versions/202105.25.0/providers/virtualbox.box"
+  }
+}

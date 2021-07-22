@@ -1,3 +1,4 @@
+from edbdeploy.spec.virtualbox import VirtualBoxSpec
 import socket
 
 from .spec import SpecValidator
@@ -10,6 +11,7 @@ from .spec.gcloud import GCloudSpec
 from .spec.gcloud_sql import GCloudSQLSpec
 from .spec.baremetal import BaremetalSpec
 from .spec.vmware import VMWareSpec
+from .spec.virtualbox import VirtualBoxSpec
 from .errors import SpecValidatorError
 
 
@@ -117,6 +119,8 @@ def default_spec(cloud, reference_architecture=None):
         return default(BaremetalSpec.get(reference_architecture))
     elif cloud == 'vmware':
         return default(VMWareSpec.get(reference_architecture))
+    elif cloud == 'virtualbox':
+        return default(VirtualBoxSpec.get(reference_architecture))
     else:
         return {}
 
@@ -142,6 +146,8 @@ def merge_user_spec(cloud, user_spec, reference_architecture=None):
         cloud_spec = BaremetalSpec.get(reference_architecture)
     elif cloud == 'vmware':
         cloud_spec = VMWareSpec.get(reference_architecture)
+    elif cloud == 'virtualbox':
+        cloud_spec = VirtualBoxSpec.get(reference_architecture)
 
     defaults = default(cloud_spec)
 

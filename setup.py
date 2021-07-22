@@ -64,7 +64,9 @@ Advanced Server, and EDB Tools in the Cloud.
             'data/terraform/*/*/*/*/*.tf',
             'data/terraform/*/*/*/*/*.sh',
             'data/vmware-wkstn/*.*',
-            'data/vmware-wkstn/*'           
+            'data/vmware-wkstn/*',
+            'data/virtualbox/*.*',
+            'data/virtualbox/*'                
         ]
     }
 )

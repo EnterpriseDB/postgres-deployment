@@ -53,6 +53,11 @@ class Project:
         'data',
         'vmware-wkstn'
     )
+    virtualbox_share_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'virtualbox'
+    )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres'
 

@@ -1,3 +1,4 @@
+from edbdeploy.projects.virtualbox import VirtualBoxProject
 import logging
 from .project import Project
 from .projects.aws import AWSProject
@@ -30,6 +31,8 @@ class Commander:
                 self.project = BaremetalProject(self.env.project, self.env)
             elif self.env.cloud == 'vmware':
                 self.project = VMwareProject(self.env.project, self.env)
+            elif self.env.cloud == 'virtualbox':
+                self.project = VirtualBoxProject(self.env.project, self.env)
             elif self.env.cloud == 'aws-rds':
                 self.project = AWSRDSProject(self.env.project, self.env)
             elif self.env.cloud == 'aws-rds-aurora':
