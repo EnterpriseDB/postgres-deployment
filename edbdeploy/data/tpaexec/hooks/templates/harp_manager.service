@@ -1,0 +1,39 @@
+# It's not recommended to modify this file in-place, because it will be
+# overwritten during package upgrades.  If you want to customize, the
+# best way is to create a file "/etc/systemd/system/harp.service",
+# containing
+#	.include /lib/systemd/system/harp.service
+#	Environment=HARP_CONFIG_LOCATION=...
+# For more info about custom unit files, see
+# http://fedoraproject.org/wiki/Systemd#How_do_I_customize_a_unit_file.2F_add_a_custom_unit_file.3F
+
+
+[Unit]
+Description=PostgreSQL high-availability manager
+After=syslog.target
+# HARP needs to shut down before network interfaces. According to SystemD documentation
+# specifying network.target should be sufficient, but experiments show that this is not the case.
+After=network-online.target
+
+[Service]
+Type=simple
+
+User={{ postgres_user }}
+Group={{ postgres_user }}
+
+# Location of Harp configuration
+Environment=HARP_CONFIG_LOCATION=/etc/bdr3/harp.ini
+Environment=HARP_PIDFILE_LOCATION=/var/run/harp/manager.pid
+
+ExecStart=/usr/bin/harp_manager -f ${HARP_CONFIG_LOCATION} -p ${HARP_PIDFILE_LOCATION}
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=30
+TimeoutStopSec=120s
+
+KillSignal=SIGTERM
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

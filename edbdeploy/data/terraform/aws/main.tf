@@ -26,19 +26,13 @@ module "network" {
   depends_on = [module.vpc]
 }
 
-#module "policies" {
-#  source = "./environments/policies/"
-#
-#  aws_iam_user_name = module.iam.aws_iam_user_name
-#  project_tag       = var.project_tag
-#
-#  depends_on = [module.network]
-#}
 
 module "routes" {
   source = "./environments/routes"
 
   postgres_count     = var.postgres_server["count"]
+  bdr_count          = var.bdr_server["count"]
+  bdr_witness_count  = var.bdr_witness_server["count"]
   pem_count          = var.pem_server["count"]
   hammerdb_count     = var.hammerdb_server["count"]
   barman_count       = var.barman_server["count"]
@@ -47,7 +41,6 @@ module "routes" {
   project_tag        = var.project_tag
   public_cidrblock   = var.public_cidrblock
 
-  #  depends_on = [module.policies]
   depends_on = [module.network]
 }
 
@@ -69,6 +62,8 @@ module "edb-db-cluster" {
   vpc_id                              = module.vpc.vpc_id
   pg_type                             = var.pg_type
   postgres_server                     = var.postgres_server
+  bdr_server                          = var.bdr_server
+  bdr_witness_server                  = var.bdr_witness_server
   pem_server                          = var.pem_server
   hammerdb_server                     = var.hammerdb_server
   barman_server                       = var.barman_server
@@ -76,6 +71,7 @@ module "edb-db-cluster" {
   replication_type                    = var.replication_type
   cluster_name                        = var.cluster_name
   ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
+  tpaexec_config_yaml_filename        = var.tpaexec_config_yaml_filename
   add_hosts_filename                  = var.add_hosts_filename
   custom_security_group_id            = module.security.aws_security_group_id
   ssh_pub_key                         = var.ssh_pub_key

@@ -18,10 +18,11 @@ class GCloudPOTProject(Project):
         self.terraform_path = os.path.join(self.terraform_share_path, 'gcloud')
         # POT only attributes
         self.ansible_pot_role = os.path.join(self.ansible_share_path, 'roles')
+        # TPAexec hooks path
+        self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
         # Force PG version to 13 in POT env.
         self.postgres_version = '13'
-        self.reference_architecture_code = "EDB-RA-2"
         self.operating_system = "CentOS8"
 
     def configure(self, env):
@@ -49,18 +50,20 @@ class GCloudPOTProject(Project):
         """
         Build Terraform variable for GCloud provisioning
         """
-        ra = self.reference_architecture[self.reference_architecture_code]
+        ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os_ = env.cloud_spec['available_os'][self.operating_system]
         pem = env.cloud_spec['pem_server']
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
         hammerdb = env.cloud_spec['hammerdb_server']
+        bdr = env.cloud_spec['bdr_server']
+        bdr_witness = env.cloud_spec['bdr_witness_server']
 
         self.terraform_vars = {
             'barman': ra['barman'],
             'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
+                'count': ra['barman_server_count'],
                 'instance_type': barman['instance_type'],
                 'volume': barman['volume'],
                 'additional_volumes': barman['additional_volumes'],
@@ -94,6 +97,17 @@ class GCloudPOTProject(Project):
                 'instance_type': pg['instance_type'],
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
+            },
+            'bdr_server': {
+                'count': ra['bdr_server_count'],
+                'instance_type': bdr['instance_type'],
+                'volume': bdr['volume'],
+                'additional_volumes': bdr['additional_volumes'],
+            },
+            'bdr_witness_server': {
+                'count': ra['bdr_witness_count'],
+                'instance_type': bdr_witness['instance_type'],
+                'volume': bdr_witness['volume'],
             },
             'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
@@ -132,6 +146,9 @@ class GCloudPOTProject(Project):
             cloud_cli.cli.check_image_availability(
                 self.terraform_vars['gcloud_image']
             )
+
+    def provision(self, env):
+        self.pot_provision(env)
 
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
