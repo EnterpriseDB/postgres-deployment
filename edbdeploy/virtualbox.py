@@ -207,7 +207,7 @@ class VirtualBoxCli:
             rc = exec_shell_live(
                 [
                     self.bin("mech"),
-                    "down",
+                    "destroy",
                     "--force",
                 ],
                 environ=self.environ,
@@ -232,7 +232,7 @@ class VirtualBoxCli:
                     "list",
                     "|",
                     self.bin("grep"),
-                    "started",
+                    "running",
                     "|",
                     self.bin("wc"),
                     "-l" 

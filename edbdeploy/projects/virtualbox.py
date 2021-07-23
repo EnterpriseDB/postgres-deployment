@@ -40,7 +40,7 @@ class VirtualBoxProject(Project):
         )
         with AM("Checking instances availability"):
             mech.up()
-        # Build ip address list for VirutalBox deployment
+        # Build ip address list for virtualbox deployment
         with AM("Build VirutalBox Ansible IP addresses"):
             # Assigning Reference Architecture
             self.env.reference_architecture = \
@@ -49,7 +49,7 @@ class VirtualBoxProject(Project):
             # Load specifications
             self.env.cloud_spec = self._load_cloud_specs(self.env)
 
-            # Build VirutalBox Ansible IP addresses
+            # Build virtualbox Ansible IP addresses
             self._build_virtualbox_ips(self.env)
 
     def create(self):
@@ -70,7 +70,7 @@ class VirtualBoxProject(Project):
             'virtualbox',
             self.name
         )
-        # Check only Python3 version when working with VirutalBox deployment
+        # Check only Python3 version when working with virtualbox deployment
         vm = VirtualBoxCli(
             'dummy', self.name, self.cloud, 0, 0, self.mech_project_path,
             bin_path=self.cloud_tools_bin_path
