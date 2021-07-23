@@ -79,7 +79,7 @@ class TerraformCli:
 
         if not check_version(version, self.min_version, self.max_version):
             raise Exception(
-                ("Terraform version %s not supported, must be between %s and"
+                ("Terraform version %s not supported, must be between %s and "
                  "%s") % (to_str(version), to_str(self.min_version),
                           to_str(self.max_version)))
 
