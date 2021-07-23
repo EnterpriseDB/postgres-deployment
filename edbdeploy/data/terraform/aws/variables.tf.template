@@ -3,6 +3,8 @@ variable "postgres_server" {}
 variable "bdr_server" {}
 variable "bdr_witness_server" {}
 variable "pem_server" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "hammerdb_server" {}
 variable "pooler_server" {}
 variable "barman_server" {}
@@ -16,6 +18,7 @@ variable "ssh_user" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
+variable "dbt2" {}
 variable "hammerdb" {}
 
 # Ansible Yaml Inventory Filename

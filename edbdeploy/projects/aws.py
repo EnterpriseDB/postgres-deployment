@@ -41,6 +41,8 @@ class AWSProject(Project):
         pem = env.cloud_spec['pem_server']
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
+        dbt2_client = env.cloud_spec['dbt2_client']
+        dbt2_driver = env.cloud_spec['dbt2_driver']
         hammerdb = env.cloud_spec['hammerdb_server']
         bdr = env.cloud_spec['bdr_server']
         bdr_witness = env.cloud_spec['bdr_witness_server']
@@ -57,6 +59,17 @@ class AWSProject(Project):
                 'additional_volumes': barman['additional_volumes'],
             },
             'cluster_name': self.name,
+            'dbt2': ra['dbt2'],
+            'dbt2_client': {
+                'count': dbt2_client['count'] if 'count' in dbt2_client else ra['dbt2_client_count'],
+                'instance_type': dbt2_client['instance_type'],
+                'volume': dbt2_client['volume'],
+            },
+            'dbt2_driver': {
+                'count': dbt2_driver['count'] if 'count' in dbt2_driver else ra['dbt2_client_count'],
+                'instance_type': dbt2_driver['instance_type'],
+                'volume': dbt2_driver['volume'],
+            },
             'hammerdb': ra['hammerdb'],
             'hammerdb_server': {
                 'count': 1 if ra['hammerdb_server'] else 0,
