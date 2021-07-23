@@ -50,6 +50,74 @@ AWSSpec = {
             )
         }
     },
+    'dbt2_client': {
+        'count': SpecValidator(
+            type='integer',
+            min=0,
+            max=64,
+            default=1
+        ),
+        'instance_type': SpecValidator(
+            type='choice',
+            choices=[
+                'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
+            ] + global_instance_choices,
+            default='m5n.xlarge'
+        ),
+        'volume': {
+            'type': SpecValidator(
+                type='choice',
+                choices=['io1', 'io2', 'gp2', 'gp3', 'st1', 'sc1'],
+                default='gp2'
+            ),
+            'size': SpecValidator(
+                type='integer',
+                min=10,
+                max=16000,
+                default=50
+            ),
+            'iops': SpecValidator(
+                type='integer',
+                min=100,
+                max=64000,
+                default=250
+            )
+        },
+    },
+    'dbt2_driver': {
+        'count': SpecValidator(
+            type='integer',
+            min=0,
+            max=64,
+            default=1
+        ),
+        'instance_type': SpecValidator(
+            type='choice',
+            choices=[
+                'm5n.xlarge', 'm5n.2xlarge', 'm5n.4xlarge'
+            ] + global_instance_choices,
+            default='m5n.xlarge'
+        ),
+        'volume': {
+            'type': SpecValidator(
+                type='choice',
+                choices=['io1', 'io2', 'gp2', 'gp3', 'st1', 'sc1'],
+                default='gp2'
+            ),
+            'size': SpecValidator(
+                type='integer',
+                min=10,
+                max=16000,
+                default=50
+            ),
+            'iops': SpecValidator(
+                type='integer',
+                min=100,
+                max=64000,
+                default=250
+            )
+        },
+    },
     'hammerdb_server': {
         'instance_type': SpecValidator(
             type='choice',

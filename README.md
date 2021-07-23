@@ -285,10 +285,11 @@ Notes:
     single Postgres node deployment with one backup server and one PEM
     monitoring server, **EDB-RA-2** for a 3 Postgres nodes deployment with
     quorum base synchronous replication and automatic failover, one backup
-    server and one PEM monitoring server, **EDB-RA-3** for extending
-    **EDB-RA-2** with 3 PgPoolII nodes, and **HammerDB-TPROC-C** for setting up
-    a 2-tier configuration for benchmarking with an OLTP workload. Default:
-    **EDB-RA-1**
+	server and one PEM monitoring server, **EDB-RA-3** for extending
+	**EDB-RA-2** with 3 PgPoolII nodes, **DBT-2** for setting up a 3-tier
+    configuring for benchmarking with an OLTP workload, and
+    **HammerDB-TPROC-C** for setting up a 2-tier configuration for benchmarking
+    with an OLTP workload.  Default: **EDB-RA-1**
 
   * `OPERATING_SYSTEM`
 

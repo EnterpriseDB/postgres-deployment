@@ -5,6 +5,8 @@ variable "bdr_server" {}
 variable "bdr_witness_server" {}
 variable "barman_server" {}
 variable "pooler_server" {}
+variable "dbt2_client" {}
+variable "dbt2_driver" {}
 variable "hammerdb_server" {}
 variable "replication_type" {}
 variable "vpc_id" {}
@@ -20,6 +22,7 @@ variable "add_hosts_filename" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
+variable "dbt2" {}
 variable "hammerdb" {}
 variable "pg_type" {}
 
@@ -260,6 +263,60 @@ resource "null_resource" "bdr_setup_volume" {
       host        = element(aws_instance.bdr_server.*.public_ip, count.index)
       private_key = file(var.ssh_priv_key)
     }
+  }
+}
+
+resource "aws_instance" "dbt2_client" {
+  count = var.dbt2_client["count"]
+
+  ami = var.aws_ami_id
+
+  instance_type          = var.dbt2_client["instance_type"]
+  key_name               = aws_key_pair.key_pair.id
+  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
+  vpc_security_group_ids = [var.custom_security_group_id]
+
+  root_block_device {
+    delete_on_termination = "true"
+    volume_size           = var.dbt2_client["volume"]["size"]
+    volume_type           = var.dbt2_client["volume"]["type"]
+    iops                  = var.dbt2_client["volume"]["type"] == "io2" ?  var.dbt2_client["volume"]["iops"] : var.dbt2_client["volume"]["type"] == "io1" ? var.dbt2_client["volume"]["iops"] : null
+  }
+
+  tags = {
+    Name       = format("%s-%s%s", var.cluster_name, "dbt2client", count.index + 1)
+    Created_By = var.created_by
+  }
+
+  connection {
+    private_key = file(var.ssh_pub_key)
+  }
+}
+
+resource "aws_instance" "dbt2_driver" {
+  count = var.dbt2_driver["count"]
+
+  ami = var.aws_ami_id
+
+  instance_type          = var.dbt2_driver["instance_type"]
+  key_name               = aws_key_pair.key_pair.id
+  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
+  vpc_security_group_ids = [var.custom_security_group_id]
+
+  root_block_device {
+    delete_on_termination = "true"
+    volume_size           = var.dbt2_driver["volume"]["size"]
+    volume_type           = var.dbt2_driver["volume"]["type"]
+    iops                  = var.dbt2_driver["volume"]["type"] == "io2" ?  var.dbt2_driver["volume"]["iops"] : var.dbt2_driver["volume"]["type"] == "io1" ? var.dbt2_driver["volume"]["iops"] : null
+  }
+
+  tags = {
+    Name       = format("%s-%s%s", var.cluster_name, "dbt2driver", count.index + 1)
+    Created_By = var.created_by
+  }
+
+  connection {
+    private_key = file(var.ssh_pub_key)
   }
 }
 
