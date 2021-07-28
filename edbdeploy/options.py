@@ -17,7 +17,7 @@ def Local_Machine_Mem_Check():
         return ['2048']
     else: 
         return []
-        
+
 
 class ReferenceArchitectureOption:
     choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'DBT-2', 'HammerDB-TPROC-C']
@@ -136,7 +136,7 @@ class PgTypeOptionRDS:
     choices = ['DBaaS']
     default = 'DBaaS'
     help = textwrap.dedent("""
-        Postgres engine type. Allowed values are: DBaaS for AWS RDS.  Default:
+        Postgres engine type. Allowed values are: DBaaS for AWS RDS. Default:
         %(default)s
     """)
 
