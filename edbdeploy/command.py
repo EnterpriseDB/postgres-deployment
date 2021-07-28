@@ -139,6 +139,8 @@ class Commander:
         logging.info("Listing project for cloud %s", self.env.cloud)
         if self.env.cloud == 'vmware':
             VMwareProject.list(self.env.cloud)
+        # if self.env.cloud == 'virtualbox':
+        #     VirtualBoxProject.list(self.env.cloud)
         else:
             Project.list(self.env.cloud)
 
