@@ -18,6 +18,10 @@ class TerraformCliError(Exception):
     pass
 
 
+class TPAexecCliError(Exception):
+    pass
+
+
 class CliError(Exception):
     pass
 

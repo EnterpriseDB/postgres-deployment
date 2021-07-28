@@ -103,15 +103,24 @@ def default_spec(cloud, reference_architecture=None):
     """
     if cloud == 'aws':
         return default(AWSSpec)
+    elif cloud == 'aws-pot':
+        # Use same specifications as aws
+        return default(AWSSpec)
     elif cloud == 'aws-rds':
         return default(AWSRDSSpec)
     elif cloud == 'aws-rds-aurora':
         return default(AWSRDSAuroraSpec)
     elif cloud == 'azure':
         return default(AzureSpec)
+    elif cloud == 'azure-pot':
+        # Use same specifications as azure
+        return default(AzureSpec)
     elif cloud == 'azure-db':
         return default(AzureDBSpec)
     elif cloud == 'gcloud':
+        return default(GCloudSpec)
+    elif cloud == 'gcloud-pot':
+        # Use same specifications as gcloud
         return default(GCloudSpec)
     elif cloud == 'gcloud-sql':
         return default(GCloudSQLSpec)

@@ -636,22 +636,22 @@ class CloudCli:
 
     def __init__(self, cloud, bin_path):
         self.cloud = cloud
-        if self.cloud == 'aws':
+        if self.cloud in ['aws', 'aws-pot']:
             self.cli = AWSCli(bin_path)
         elif self.cloud == 'aws-rds':
             self.cli = AWSRDSCli(bin_path)
         elif self.cloud == 'aws-rds-aurora':
             self.cli = AWSRDSAuroraCli(bin_path)
-        elif self.cloud == 'azure':
+        elif self.cloud in ['azure', 'azure-pot']:
             self.cli = AzureCli(bin_path)
         elif self.cloud == 'azure-db':
             self.cli = AzureDBCli(bin_path)
-        elif self.cloud == 'gcloud':
+        elif self.cloud in ['gcloud', 'gcloud-pot']:
             self.cli = GCloudCli(bin_path)
         elif self.cloud == 'gcloud-sql':
             self.cli = GCloudSQLCli(bin_path)
         else:
-            raise Exception("Unknown cloud %s", self.cloud)
+            raise Exception("Unknown cloud %s" % self.cloud)
 
     def check_instance_type_availability(self, instance_type, region):
         return self.cli.check_instance_type_availability(instance_type, region)

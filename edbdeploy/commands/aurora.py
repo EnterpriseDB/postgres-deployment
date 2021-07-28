@@ -119,3 +119,29 @@ def subcommands(subparser):
         action='store_true',
         help="Do not install the Ansible collection."
     )
+    subcommand_parsers['deploy'].add_argument(
+        '-p', '--pre-deploy-ansible',
+        dest='pre_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<pre-deploy-ansible-playbook>',
+        help="Pre deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-P', '--post-deploy-ansible',
+        dest='post_deploy_ansible',
+        type=argparse.FileType('r'),
+        metavar='<post-deploy-ansible-playbook>',
+        help="Post deploy ansible playbook."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '-S', '--skip-main-playbook',
+        dest='skip_main_playbook',
+        action='store_true',
+        help="Skip main playbook of the reference architecture."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '--disable-pipelining',
+        dest='disable_pipelining',
+        action='store_true',
+        help="Disable Ansible pipelining."
+    )

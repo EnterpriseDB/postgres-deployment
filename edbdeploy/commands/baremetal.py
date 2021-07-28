@@ -124,3 +124,9 @@ def subcommands(subparser):
         metavar='<ref-arch-code>',
         help=ReferenceArchitectureOption.help
     )
+    subcommand_parsers['deploy'].add_argument(
+        '--disable-pipelining',
+        dest='disable_pipelining',
+        action='store_true',
+        help="Disable Ansible pipelining."
+    )

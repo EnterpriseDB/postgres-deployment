@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import stat
+from subprocess import CalledProcessError
 import sys
 import time
 import yaml
@@ -16,8 +17,9 @@ from .errors import ProjectError
 from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
 from .spec.reference_architecture import ReferenceArchitectureSpec
+from .system import exec_shell
 from .terraform import TerraformCli
-
+from .tpaexec import TPAexecCli
 
 def exec_hook(obj, name, *args, **kwargs):
     # Inject specific method call.
@@ -48,6 +50,11 @@ class Project:
         'data',
         'ansible'
     )
+    tpaexec_share_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'tpaexec'
+    )
     vmware_share_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'data',
@@ -59,7 +66,7 @@ class Project:
         'virtualbox'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres'
+    ansible_collection_name = 'edb_devops.edb_postgres:3.4.0'
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
@@ -84,6 +91,10 @@ class Project:
         self.terraform_vars_file = os.path.join(
             self.project_path,
             'terraform_vars.json'
+        )
+        self.edb_creds_file = os.path.join(
+            self.project_path,
+            'edb-credentials'
         )
         self.ansible_vars = None
         self.ansible_vars_file = os.path.join(
@@ -291,6 +302,22 @@ class Project:
             logging.debug("ansible_vars=%s", self.ansible_vars)
             # Save Ansible vars
             self._save_ansible_vars()
+
+    def _save_edb_credentials(self, env):
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+        try:
+            with open(self.edb_creds_file, "w") as text_file:
+                text_file.write(edb_repo_username + ":" + edb_repo_password)
+        except Exception as e:
+            msg = ("Unable to save the EDB credentials file %s"
+                   % self.edb_creds_file)
+            logging.error(msg)
+            logging.error(str(e))
+            raise ProjectError(msg)
 
     def _build_ansible_inventory(self, env):
         """
@@ -639,7 +666,8 @@ class Project:
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
                post_deploy_ansible=None,
-               skip_main_playbook=False):
+               skip_main_playbook=False,
+               disable_pipelining=False):
 
         inventory_data = None
         ansible = AnsibleCli(
@@ -708,7 +736,8 @@ class Project:
                     self.ansible_vars['ssh_priv_key'],
                     self.ansible_inventory,
                     pre_deploy_ansible.name,
-                    json.dumps(extra_vars)
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:
@@ -720,7 +749,8 @@ class Project:
                     self.ansible_vars['ssh_priv_key'],
                     self.ansible_inventory,
                     self.ansible_playbook,
-                    json.dumps(extra_vars)
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
                 )
             self.update_state('ansible', 'DEPLOYED')
 
@@ -735,7 +765,8 @@ class Project:
                     self.ansible_vars['ssh_priv_key'],
                     self.ansible_inventory,
                     post_deploy_ansible.name,
-                    json.dumps(extra_vars)
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
                 )
 
         if not skip_main_playbook:
@@ -919,7 +950,8 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql', 'baremetal'
+                    'gcloud-sql', 'baremetal', 'aws-pot', 'azure-pot',
+                    'gcloud-pot'
                 ]
             },
             {
@@ -929,23 +961,25 @@ class Project:
                 ),
                 'cloud_vendors': [
                     'aws', 'aws-rds', 'aws-rds-aurora', 'azure', 'gcloud',
-                    'gcloud-sql'
+                    'gcloud-sql', 'aws-pot', 'azure-pot', 'gcloud-pot'
                 ]
             },
             {
                 'name': 'AWS Cli',
                 'cli': AWSCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['aws', 'aws-rds', 'aws-rds-aurora']
+                'cloud_vendors': [
+                    'aws', 'aws-rds', 'aws-rds-aurora', 'aws-pot'
+                ]
             },
             {
                 'name': 'Azure Cli',
                 'cli': AzureCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['azure']
+                'cloud_vendors': ['azure', 'azure-pot']
             },
             {
                 'name': 'GCloud Cli',
                 'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
-                'cloud_vendors': ['gcloud']
+                'cloud_vendors': ['gcloud', 'gcloud-pot']
             },
             {
                 'name': 'GCloud Cli',
@@ -971,3 +1005,374 @@ class Project:
                     tool['cli'].install(
                         os.path.dirname(Project.cloud_tools_bin_path)
                     )
+
+    def ssh_key_gen(self, env, ssh_user, is_customer_key=False):
+        # Build SSH key pair for POT
+        if not is_customer_key:
+            project_ssh_priv_key = os.path.join(
+                self.project_path, "%s_%s_key" % (ssh_user, self.name)
+            )
+            project_ssh_pub_key = os.path.join(
+                self.project_path, "%s_%s_key.pub" % (ssh_user, self.name)
+            )
+        else:
+            project_ssh_priv_key = os.path.join(
+                self.project_path, "%s_key" % ssh_user
+            )
+            project_ssh_pub_key = os.path.join(
+                self.project_path, "%s_key.pub" % ssh_user
+            )
+
+        try:
+            output = exec_shell([
+                "ssh-keygen",
+                "-q",
+                "-t rsa",
+                "-f %s" % project_ssh_priv_key,
+                "-C \"\" -N \"\"",
+            ])
+            result = output.decode("utf-8")
+            logging.debug("Command output:")
+            for line in result.split("\n"):
+                logging.debug(line)
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise ProjectError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+        ext_project_ssh_priv_key = project_ssh_priv_key + '.pem'
+        os.rename(project_ssh_priv_key, ext_project_ssh_priv_key)
+        if env.reference_architecture == 'EDB-Always-On':
+            shutil.copy(project_ssh_pub_key, ext_project_ssh_priv_key + '.pub')
+
+        self.custom_ssh_keys[ssh_user] = dict(
+            ssh_pub_key=project_ssh_pub_key,
+            ssh_priv_key=ext_project_ssh_priv_key
+        )
+
+    """
+    TPAexec related methods
+    """
+    def tpaexec_provision(self):
+        self._load_ansible_vars()
+
+        tpaexec = TPAexecCli(
+            self.project_path,
+            tpa_subscription_token=self.ansible_vars['tpa_subscription_token'],
+            bin_path=self.ansible_vars['tpaexec_bin']
+        )
+
+        with AM("TPAexec relink execution"):
+            tpaexec.relink()
+        with AM("TPAexec provision execution"):
+            tpaexec.provision()
+
+    def tpaexec_deploy(self):
+        self._load_ansible_vars()
+
+        tpaexec = TPAexecCli(
+            self.project_path,
+            tpa_subscription_token=self.ansible_vars['tpa_subscription_token'],
+            bin_path=self.ansible_vars['tpaexec_bin']
+        )
+
+        with AM("Executing tpaexec deploy"):
+            tpaexec.deploy()
+        tpa_pass_dir = os.path.join( self.project_path,
+                                     'inventory/group_vars',
+                                     'tag_Cluster_%s' % self.name,
+                                     'secrets'
+                                   )
+
+        for pass_file in os.listdir(tpa_pass_dir):
+            if not pass_file.endswith('_password.yml'):
+                continue
+            username = pass_file.replace('_password.yml', '')
+            tpaexec.tpa_password(username)
+
+    """
+    PoT related methods
+    """
+    def pot_configure(self, env):
+        """
+        Configure sub-comand for PoT environment
+        """
+
+        # Verify the tpaexec_bin and tpa_subscription_token based on architecture
+        if env.reference_architecture == 'EDB-Always-On':
+            if not env.tpaexec_bin or not env.tpa_subscription_token:
+                raise ProjectError(
+                         "--tpaexec-bin and --tpaexec-subscription-token "
+                         "are mandatory parameter for %s" % env.reference_architecture
+                        )
+        # Load specifications
+        env.cloud_spec = self._load_cloud_specs(env)
+        # Copy the PoT role in ansible project directory
+        ansible_roles_path = os.path.join(self.project_path, "roles")
+        tpaexec_hooks_path = os.path.join(self.project_path, "hooks")
+        with AM("Copying PoT role code from into %s" % ansible_roles_path):
+            try:
+                shutil.copytree(self.ansible_pot_role, ansible_roles_path)
+            except Exception as e:
+                raise ProjectError(str(e))
+
+        if env.reference_architecture == 'EDB-Always-On':
+            with AM("Copying PoT TPAexec hooks code from into %s" % tpaexec_hooks_path):
+                try:
+                    shutil.copytree(self.tpaexec_pot_hooks, tpaexec_hooks_path)
+                except Exception as e:
+                    raise ProjectError(str(e))
+
+        with AM("Creating ssh keys for project"):
+            _os = self.operating_system
+            ssh_user = env.cloud_spec['available_os'][_os]['ssh_user']
+            self.ssh_key_gen(env, ssh_user, False)
+
+        with AM("Creating customer ssh keys for project"):
+            self.ssh_key_gen(env, self.name, True)
+
+        # Hook function called by Project.configure()
+        # Transform Terraform templates
+        self._transform_terraform_tpl()
+        # Build the vars files for Terraform and Ansible
+        self._build_terraform_vars_file(env)
+        self._build_ansible_vars_file(env)
+        # Build edb credential file
+        self._save_edb_credentials(env)
+        # Copy Ansible playbook into project dir.
+        self._copy_ansible_playbook()
+        # Check Cloud Instance type and Image availability.
+        self._check_instance_image(env)
+
+    def pot_provision(self, env):
+        self._load_ansible_vars()
+
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        with AM("Terraform project initialization"):
+            self.update_state('terraform', 'INITIALIZATING')
+            terraform.init()
+            self.update_state('terraform', 'INITIALIZATED')
+
+        with AM("Applying cloud resources creation"):
+            self.update_state('terraform', 'PROVISIONING')
+            terraform.apply(self.terraform_vars_file)
+            self.update_state('terraform', 'PROVISIONED')
+
+        # Checking instance availability
+        cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
+        # Load terraform variables
+        self._load_terraform_vars()
+
+        # Instances availability checking hook
+        exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
+
+        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+            self.tpaexec_provision()
+
+        with AM("SSH configuration"):
+            terraform.exec_add_host_sh()
+
+    def pot_build_ansible_vars(self, env):
+        """
+        Build Ansible variables for the PoT environments
+        """
+        # Fetch EDB repo. username and password
+        r = re.compile(r"^([^:]+):(.+)$")
+        m = r.search(env.edb_credentials)
+        edb_repo_username = m.group(1)
+        edb_repo_password = m.group(2)
+
+        os_spec = env.cloud_spec['available_os'][self.operating_system]
+        pg_spec = env.cloud_spec['postgres_server']
+
+        self.ansible_vars = {
+            'tpaexec_bin': env.tpaexec_bin,
+            'tpa_subscription_token': env.tpa_subscription_token,
+            'reference_architecture': env.reference_architecture,
+            'cluster_name': self.name,
+            'pg_type': env.postgres_type,
+            'pg_version': self.postgres_version,
+            'repo_username': edb_repo_username,
+            'repo_password': edb_repo_password,
+            'ssh_user': os_spec['ssh_user'],
+            'ssh_priv_key': self.custom_ssh_keys[os_spec['ssh_user']]['ssh_priv_key'],  # noqa
+            'email_id': env.email_id,
+            'route53_access_key': env.route53_access_key,
+            'route53_secret': env.route53_secret,
+            'project': self.name,
+            'public_key': self.custom_ssh_keys[self.name]['ssh_pub_key'],
+        }
+
+        # Add configuration for pg_data and pg_wal accordingly to the
+        # number of additional volumes
+        if pg_spec['additional_volumes']['count'] > 0:
+            self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
+        if pg_spec['additional_volumes']['count'] > 1:
+            self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+
+    def pot_deploy(self, no_install_collection, pre_deploy_ansible=None,
+                   post_deploy_ansible=None, skip_main_playbook=False,
+                   disable_pipelining=False):
+        """
+        Deployment method for the PoT environments
+        """
+
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        # Load ansible vars
+        self._load_ansible_vars()
+
+        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+            self.tpaexec_deploy()
+
+        if not no_install_collection:
+            with AM("Installing Ansible collection %s" % self.ansible_collection_name):  # noqa
+                ansible.install_collection(self.ansible_collection_name)
+            with AM("Installing AWS collection %s" % self.aws_collection_name):  # noqa
+                ansible.install_collection(self.aws_collection_name)
+
+        # Building extra vars to pass to ansible because it's not safe to pass
+        # the content of ansible_vars as it.
+        extra_vars = dict(
+            pg_type=self.ansible_vars['pg_type'],
+            pg_version=self.ansible_vars['pg_version'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['repo_password'],
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
+            email_id=self.ansible_vars['email_id'],
+            route53_access_key=self.ansible_vars['route53_access_key'],
+            route53_secret=self.ansible_vars['route53_secret'],
+            project=self.ansible_vars['project'],
+            public_key=self.ansible_vars['public_key']
+        )
+        if self.ansible_vars.get('pg_data'):
+            extra_vars.update(dict(
+                pg_data=self.ansible_vars['pg_data']
+            ))
+        if self.ansible_vars.get('pg_wal'):
+            extra_vars.update(dict(
+                pg_wal=self.ansible_vars['pg_wal']
+            ))
+
+        if pre_deploy_ansible:
+            with AM("Executing pre deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    pre_deploy_ansible.name,
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
+                )
+
+        if not skip_main_playbook:
+            self.update_state('ansible', 'DEPLOYING')
+            with AM("Deploying components with Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    self.ansible_playbook,
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
+                )
+            self.update_state('ansible', 'DEPLOYED')
+
+            with AM("Extracting data from the inventory file"):
+                inventory_data = ansible.list_inventory(self.ansible_inventory)
+
+        if post_deploy_ansible:
+            with AM("Executing post deploy playbook using Ansible"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    post_deploy_ansible.name,
+                    json.dumps(extra_vars),
+                    disable_pipelining=disable_pipelining,
+                )
+
+        if not skip_main_playbook:
+            # Display inventory informations
+            self.display_inventory(inventory_data)
+
+    def pot_display_inventory(self, inventory_data):
+        """
+        Display the inventory for PoT environments
+        """
+        if not self.ansible_vars:
+            self._load_ansible_vars()
+
+        def _p(s):
+            sys.stdout.write(s)
+
+        sys.stdout.flush()
+        _p("\n")
+
+        # Display PEM server informations
+        if 'pemserver' in inventory_data['all']['children']:
+            if self.ansible_vars['pg_type'] == 'EPAS':
+                pem_user = 'enterprisedb'
+            else:
+                pem_user = 'postgres'
+            pem_name = inventory_data['pemserver']['hosts'][0]
+            pem_hostvars = inventory_data['_meta']['hostvars'][pem_name]
+
+            # In PoT PEM server is client server
+            client_login_ip = pem_hostvars['ansible_host']
+            client_private_ip = pem_hostvars['private_ip']
+            se_login_user = self.ansible_vars['ssh_user']
+
+            with open(
+                os.path.join(
+                    self.project_path, '.edbpass', '%s_pass' % pem_user
+                )
+            ) as f:
+                pem_password = f.read()
+
+            _p(
+                "PEM Server: https://%spem.edbpov.io:8443/pem\n"
+                % self.name
+            )
+            _p("PEM User: %s\n" % pem_user)
+            _p("PEM Password: %s\n" % pem_password)
+
+        # Build the nodes table
+        rows = []
+        for name, vars in inventory_data['_meta']['hostvars'].items():
+            if name != pem_name:
+                rows.append([
+                    name,
+                    vars['ansible_host'],
+                    self.ansible_vars['ssh_user'],
+                    vars['private_ip'],
+                    self.name
+                ])
+        rows.append([
+            'client',
+            client_login_ip,
+            se_login_user,
+            client_private_ip,
+            self.name
+        ])
+
+        Project.display_table(
+            ['Name', 'Login IP Address', 'SE Login User',
+             'Internal IP Address', 'Login User'],
+            rows
+        )

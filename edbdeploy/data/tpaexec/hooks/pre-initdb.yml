@@ -1,0 +1,8 @@
+---
+- name: Create /pgwal/wal directory
+  file:
+    path: "/pgwal/pg_wal"
+    state: directory
+    owner: "{{ postgres_user }}"
+  when: >
+    'bdr' in role and 'primary' in role
