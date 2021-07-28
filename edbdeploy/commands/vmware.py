@@ -100,6 +100,7 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-m', '--mem-size',
         dest='mem_size',
+        required=True,
         choices=MemSizeOptionsVMWare.choices,
         default=MemSizeOptionsVMWare.default,
         metavar="<mem-size>",
@@ -109,6 +110,7 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-c', '--cpu-count',
         dest='cpu_count',
+        required=True,
         choices=CPUCountOptionsVMWare.choices,
         default=CPUCountOptionsVMWare.default,
         metavar="<cpu-count>",
