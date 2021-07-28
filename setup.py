@@ -67,6 +67,8 @@ Advanced Server, and EDB Tools in the Cloud.
             'data/terraform/*/*/*/*.sh',
             'data/terraform/*/*/*/*/*.tf',
             'data/terraform/*/*/*/*/*.sh',
+            'data/tpaexec/*/*',
+            'data/tpaexec/*/*/*',
             'data/vmware-wkstn/*.*',
             'data/vmware-wkstn/*'
         ]

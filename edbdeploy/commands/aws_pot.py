@@ -17,6 +17,30 @@ def subcommands(subparser):
     )
     # aws configure sub-command options
     subcommand_parsers['configure'].add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=POTReferenceArchitectureOption.choices,
+        default=POTReferenceArchitectureOption.default,
+        metavar='<ref-arch-code>',
+        help=POTReferenceArchitectureOption.help
+    )
+    subcommand_parsers['configure'].add_argument(
+        '--tpaexec-bin',
+        dest='tpaexec_bin',
+        required=False,
+        type=str,
+        metavar='<tpaexec-bin>',
+        help="TPAexec bin directory location"
+    )
+    subcommand_parsers['configure'].add_argument(
+        '--tpaexec-subscription-token',
+        dest='tpa_subscription_token',
+        required=False,
+        type=str,
+        metavar='<tpaexec-subscription-token>',
+        help="EDB TPAexec subscription token"
+    )
+    subcommand_parsers['configure'].add_argument(
         '--route53-access-key',
         dest='route53_access_key',
         required=True,
@@ -112,4 +136,10 @@ def subcommands(subparser):
         dest='skip_main_playbook',
         action='store_true',
         help="Skip main playbook of the reference architecture."
+    )
+    subcommand_parsers['deploy'].add_argument(
+        '--disable-pipelining',
+        dest='disable_pipelining',
+        action='store_true',
+        help="Disable Ansible pipelining."
     )

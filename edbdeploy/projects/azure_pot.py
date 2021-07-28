@@ -7,7 +7,7 @@ from ..project import Project
 
 class AzurePOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:3.3.2'
+    ansible_collection_name = 'edb_devops.edb_postgres:3.4.0'
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
@@ -16,10 +16,11 @@ class AzurePOTProject(Project):
         self.terraform_path = os.path.join(self.terraform_share_path, 'azure')
         # POT only attributes
         self.ansible_pot_role = os.path.join(self.ansible_share_path, 'roles')
+        # TPAexec hooks path
+        self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
         # Force PG version to 13 in POT env.
         self.postgres_version = '13'
-        self.reference_architecture_code = "EDB-RA-2"
         self.operating_system = "CentOS8"
 
     def configure(self, env):
@@ -38,13 +39,15 @@ class AzurePOTProject(Project):
         """
         Build Terraform variable for Azure provisioning
         """
-        ra = self.reference_architecture[self.reference_architecture_code]
+        ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os_ = env.cloud_spec['available_os'][self.operating_system]
         pem = env.cloud_spec['pem_server']
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
         hammerdb = env.cloud_spec['hammerdb_server']
+        bdr = env.cloud_spec['bdr_server']
+        bdr_witness = env.cloud_spec['bdr_witness_server']
 
         self.terraform_vars = {
             'azure_offer': os_['offer'],
@@ -53,7 +56,7 @@ class AzurePOTProject(Project):
             'azure_region': env.azure_region,
             'barman': ra['barman'],
             'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
+                'count': ra['barman_server_count'],
                 'instance_type': barman['instance_type'],
                 'volume': barman['volume'],
                 'additional_volumes': barman['additional_volumes'],
@@ -83,6 +86,17 @@ class AzurePOTProject(Project):
                 'instance_type': pg['instance_type'],
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
+            },
+            'bdr_server': {
+                'count': ra['bdr_server_count'],
+                'instance_type': bdr['instance_type'],
+                'volume': bdr['volume'],
+                'additional_volumes': bdr['additional_volumes'],
+            },
+            'bdr_witness_server': {
+                'count': ra['bdr_witness_count'],
+                'instance_type': bdr_witness['instance_type'],
+                'volume': bdr_witness['volume'],
             },
             'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
@@ -130,15 +144,20 @@ class AzurePOTProject(Project):
                 env.azure_region
             )
 
+    def provision(self, env):
+        self.pot_provision(env)
+
     def deploy(self, no_install_collection,
                pre_deploy_ansible=None,
                post_deploy_ansible=None,
-               skip_main_playbook=False):
+               skip_main_playbook=False,
+               disable_pipelining=False):
         self.pot_deploy(
             no_install_collection,
             pre_deploy_ansible,
             post_deploy_ansible,
-            skip_main_playbook
+            skip_main_playbook,
+            disable_pipelining
         )
 
     def display_inventory(self, inventory_data):

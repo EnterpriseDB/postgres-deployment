@@ -40,6 +40,8 @@ class AzureProject(Project):
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
         hammerdb = env.cloud_spec['hammerdb_server']
+        bdr = env.cloud_spec['bdr_server']
+        bdr_witness = env.cloud_spec['bdr_witness_server']
 
         self.terraform_vars = {
             'azure_offer': os['offer'],
@@ -48,7 +50,7 @@ class AzureProject(Project):
             'azure_region': env.azure_region,
             'barman': ra['barman'],
             'barman_server': {
-                'count': 1 if ra['barman_server'] else 0,
+                'count': ra['barman_server_count'],
                 'instance_type': barman['instance_type'],
                 'volume': barman['volume'],
                 'additional_volumes': barman['additional_volumes'],
@@ -78,6 +80,17 @@ class AzureProject(Project):
                 'instance_type': pg['instance_type'],
                 'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
+            },
+            'bdr_server': {
+                'count': ra['bdr_server_count'],
+                'instance_type': bdr['instance_type'],
+                'volume': bdr['volume'],
+                'additional_volumes': bdr['additional_volumes'],
+            },
+            'bdr_witness_server': {
+                'count': ra['bdr_witness_count'],
+                'instance_type': bdr_witness['instance_type'],
+                'volume': bdr_witness['volume'],
             },
             'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],

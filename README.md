@@ -121,12 +121,17 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
 ## Cloud vendor list
 
   * `aws`: Amazon Web Services
+  * `aws-pot`: EDB POT (Proof Of Technology) on AWS Cloud
   * `aws-rds`: Amazon Web Services RDS for PostgreSQL
   * `aws-rds-aurora`: Amazon Aurora
   * `azure`: Microsoft Azure Cloud
+  * `azure-pot`: EDB POT (Proof Of Technology) on Azure Cloud
   * `azure-db`: Microsoft Azure Database
   * `gcloud`: Google Cloud
+  * `gcloud-pot`: EDB POT (Proof Of Technology) on Google Cloud
   * `gcloud-sql`: Google Cloud SQL for PostgreSQL
+  * `baremetal`: Baremetal servers and VMs
+  * `vmware`: VMWare Workstation
 
 ## Sub-commands
 
@@ -280,10 +285,11 @@ Notes:
     single Postgres node deployment with one backup server and one PEM
     monitoring server, **EDB-RA-2** for a 3 Postgres nodes deployment with
     quorum base synchronous replication and automatic failover, one backup
-    server and one PEM monitoring server, **EDB-RA-3** for extending
-    **EDB-RA-2** with 3 PgPoolII nodes, and **HammerDB-TPROC-C** for setting up
-    a 2-tier configuration for benchmarking with an OLTP workload. Default:
-    **EDB-RA-1**
+	server and one PEM monitoring server, **EDB-RA-3** for extending
+	**EDB-RA-2** with 3 PgPoolII nodes, **DBT-2** for setting up a 3-tier
+    configuring for benchmarking with an OLTP workload, and
+    **HammerDB-TPROC-C** for setting up a 2-tier configuration for benchmarking
+    with an OLTP workload.  Default: **EDB-RA-1**
 
   * `OPERATING_SYSTEM`
 

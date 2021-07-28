@@ -102,7 +102,8 @@ class AnsibleCli:
             )
 
     def run_playbook(
-        self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars
+        self, cloud, ssh_user, ssh_priv_key, inventory, playbook, extra_vars,
+        disable_pipelining=False
     ):
         try:
             # TODO: extra_vars needs to be escaped for the shell or maybe dump
@@ -121,7 +122,17 @@ class AnsibleCli:
                          'gcloud-sql']:
                 command.append('--limit')
                 command.append('!primary')
-            rc = exec_shell_live(command, cwd=self.dir)
+
+            environ = os.environ.copy()
+            if not disable_pipelining:
+                # Enable pipelening for better execution time
+                environ['ANSIBLE_PIPELINING'] = 'true'
+                environ['ANSIBLE_SSH_PIPELINING'] = 'true'
+            else:
+                environ['ANSIBLE_PIPELINING'] = 'false'
+                environ['ANSIBLE_SSH_PIPELINING'] = 'false'
+
+            rc = exec_shell_live(command, environ=environ, cwd=self.dir)
             if rc != 0:
                 raise Exception("Return code not 0")
         except Exception as e:

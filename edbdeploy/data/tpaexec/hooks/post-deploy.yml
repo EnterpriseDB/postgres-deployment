@@ -1,0 +1,91 @@
+---
+
+- name: Create /var/run/harp directory
+  file:
+    path: "/var/run/harp"
+    state: directory
+    owner: "{{ postgres_user }}"
+    group: "{{ postgres_user }}"
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Stop and disable harp_router service
+  systemd:
+    name: "harp_router"
+    state: stopped
+    enabled: no
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Stop and disable harp_manager service
+  systemd:
+    name: "harp_manager"
+    state: stopped
+    enabled: no
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Copy the new harp_manager systemd unit
+  template:
+    src: harp_manager.service
+    dest: /etc/systemd/system/harp_manager.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Copy the new harp_router systemd unit
+  template:
+    src: harp_router.service
+    dest: /etc/systemd/system/harp_router.service
+    owner: root
+    group: root
+    mode: '0644'
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  when: >
+    'pgbouncer' in role
+
+- name: "Enable and start harp_router systemd services"
+  systemd:
+    name: "harp_router"
+    state: started
+    enabled: yes
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: "Enable and start harp_manager systemd services"
+  systemd:
+    name: "harp_manager"
+    state: started
+    enabled: yes
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: "Ensure {{ first_bdr_primary }} is the leader"
+  shell: >
+       harpctl leader set
+  become_user: "{{ postgres_user }}"
+  when: >
+     inventory_hostname in ['epas1', 'epas4']
+
+- name: "Restart haproxy services"
+  systemd:
+    name: "haproxy"
+    state: restarted
+    enabled: yes
+  when: >
+    'haproxy' in role
+
+- name: "Restart pgbouncer systemd services"
+  systemd:
+    name: "pgbouncer"
+    state: restarted
+    enabled: yes
+  when: >
+    'pgbouncer' in role

@@ -29,7 +29,7 @@ class CLIParser(argparse.ArgumentParser):
 
 def parse():
     parser = CLIParser(
-        description='EDB deployment script for aws, aws-rds, azure, azure-db, gcloud, and gcloud-sql'
+        description='EDB deployment script for aws, aws-pot, aws-rds, azure, azure-pot, azure-db, gcloud, gcloud-pot, gcloud-sql, baremetal and vmware'
     )
     parser.add_argument(
         '-v', '--version',
