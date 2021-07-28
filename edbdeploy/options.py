@@ -5,6 +5,18 @@ import textwrap
 import psutil
 from .project import Project
 
+def Local_Machine_Mem_Check():
+    avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
+    if avail_memory >= 20:
+       return ['2048', '3072', '4096', '5120']
+    elif avail_memory >= 15 and avail_memory < 20:
+        return ['2048', '3072', '4096']
+    elif avail_memory >= 10 and avail_memory < 15:
+        return ['2048', '3072']
+    elif avail_memory >= 5 and avail_memory < 10:
+        return ['2048']
+    else: 
+        return []
 
 def Local_Machine_Mem_Check():
     avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
@@ -150,7 +162,11 @@ class PgTypeOptionAzureDB:
     """)
 
 class MemSizeOptionsVMWare:
+<<<<<<< HEAD
     choices = Local_Machine_Mem_Check
+=======
+    choices = Local_Machine_Mem_Check()
+>>>>>>> 3c9203ed320cf98c095f5ff6b7e759ce39a93d47
     default = '2048'
     help = textwrap.dedent("""
         Memory size options. Allowed values are: {choices} for VMWare.
