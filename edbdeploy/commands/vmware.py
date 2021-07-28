@@ -103,6 +103,7 @@ def subcommands(subparser):
         required=True,
         choices=MemSizeOptionsVMWare.choices,
         default=MemSizeOptionsVMWare.default,
+        metavar="<mem-size>",
         help="Amount of memory to assign"
     )
 
@@ -112,6 +113,7 @@ def subcommands(subparser):
         required=True,
         choices=CPUCountOptionsVMWare.choices,
         default=CPUCountOptionsVMWare.default,
+        metavar="<cpu-count>",
         help="Number of CPUS to configure"
     )
 
