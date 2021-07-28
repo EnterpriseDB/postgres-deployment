@@ -49,7 +49,7 @@ Advanced Server, and EDB Tools in the Cloud.
     ],
     keywords="postgresql edb epas cli deploy cloud aws rds aurora azure gcloud",
     python_requires=">=2.7",
-    install_requires=["argcomplete", "PyYAML"],
+    install_requires=["argcomplete", "PyYAML", "psutil"],
     extras_require={},
     data_files=[],
     package_data={
