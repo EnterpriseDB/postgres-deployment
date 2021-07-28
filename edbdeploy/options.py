@@ -150,7 +150,7 @@ class PgTypeOptionAzureDB:
     """)
 
 class MemSizeOptionsVMWare:
-    choices = Local_Machine_Mem_Check
+    choices = Local_Machine_Mem_Check()
     default = '2048'
     help = textwrap.dedent("""
         Memory size options. Allowed values are: {choices} for VMWare.

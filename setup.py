@@ -47,7 +47,7 @@ Advanced Server, and EDB Tools in the Cloud.
         "Programming Language :: Python :: 3",
         "Topic :: Database",
     ],
-    keywords="postgresql edb epas cli deploy cloud aws rds aurora azure gcloud",
+    keywords="postgresql edb epas cli deploy cloud aws rds aurora azure gcloud vmware",
     python_requires=">=2.7",
     install_requires=["argcomplete", "PyYAML", "psutil"],
     extras_require={},
