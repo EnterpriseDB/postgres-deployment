@@ -6,7 +6,7 @@ from .project import Project
 
 
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'DBT-2', 'HammerDB-TPROC-C']
+    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
 
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
@@ -15,10 +15,8 @@ class ReferenceArchitectureOption:
         monitoring server, EDB-RA-2 for a 3 Postgres nodes deployment with
         quorum base synchronous replication and automatic failover, one backup
         server and one PEM monitoring server, EDB-RA-3 for extending EDB-RA-2
-        with 3 PgPoolII nodes, DBT-2 for benchmarking 3-tier client-server
-        architectures with an OLTP workload, and HammerDB-TPROC-C for
-        benchmarking 2-tier client-server architectures with an OLTP workload.
-        Default: %(default)s
+        with 3 PgPoolII nodes, and HammerDB-TPROC-C for benchmarking 2-tier
+        client-server architectures with an OLTP workload.  Default: %(default)s
     """)
 
 

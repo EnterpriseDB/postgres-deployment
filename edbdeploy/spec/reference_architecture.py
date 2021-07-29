@@ -59,26 +59,6 @@ ReferenceArchitectureSpec = {
         'hammerdb': False,
         'hammerdb_server': False
     },
-    'DBT-2': {
-        'pg_count': 1,
-        'pem_server': False,
-        'barman': False,
-        'barman_server_count': 0,
-        'bdr_server_count': 0,
-        'bdr_witness_count': 0,
-        'pooler_count': 0,
-        'pooler_type': None,
-        'pooler_local': False,
-        'efm': False,
-        'replication_type': None,
-        'dbt2': True,
-        'dbt2_client': True,
-        'dbt2_client_count': 1,
-        'dbt2_driver': True,
-        'dbt2_driver_count': 1,
-        'hammerdb': False,
-        'hammerdb_server': False
-    },
     'HammerDB-DBaaS': {
         'pg_count': 0,
         'pem_server': False,
