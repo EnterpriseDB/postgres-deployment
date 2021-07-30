@@ -35,19 +35,9 @@ class AWSProject(Project):
         """
         Build Terraform variable for AWS provisioning
         """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        dbt2_client = env.cloud_spec['dbt2_client']
-        dbt2_driver = env.cloud_spec['dbt2_driver']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        bdr = env.cloud_spec['bdr_server']
-        bdr_witness = env.cloud_spec['bdr_witness_server']
 
-        self.terraform_vars = {
+        self.terraform_vars.update({
             'aws_ami_id': getattr(env, 'aws_ami_id', None),
             'aws_image': os['image'],
             'aws_region': env.aws_region,
