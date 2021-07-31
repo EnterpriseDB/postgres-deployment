@@ -12,7 +12,7 @@ EC2Spec = {
                 'c5.9xlarge', 'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge',
                 'c5.metal', 'r5n.xlarge', 'r5n.2xlarge', 'r5n.4xlarge',
                 'r5n.8xlarge'
-            ] + AWSGlobalInstanceChoices,
+            ],
             default='c5.2xlarge'
         ),
         'volume': {
