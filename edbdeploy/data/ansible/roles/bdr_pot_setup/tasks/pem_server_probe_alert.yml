@@ -1,0 +1,19 @@
+---
+
+- name: Create user sudo privilege file
+  template:
+    src: pem_probe_alert.sql
+    dest: "/tmp/pem_probe_alert.sql"
+    owner: "{{ pg_owner }}"
+    group: "{{ pg_owner }}"
+    mode: 0640
+  become: yes
+
+- name: update pem server for unnecessary alerts/probes
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: execute_sql_scripts
+  vars:
+    pg_sql_scripts:
+      - file_path: "/tmp/pem_probe_alert.sql"
+        db: "pem"

@@ -1,0 +1,66 @@
+---
+- name: Set pem_server_public_ip
+  set_fact:
+    pem_server_public_ip: "{{ node.ansible_host }}"
+  loop: "{{ lookup('edb_devops.edb_postgres.pem_server', wantlist=True) }}"
+  loop_control:
+    loop_var: node
+  no_log: "{{ disable_logging }}"
+
+# router update
+- name: get the route3 information
+  community.aws.route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: get
+    zone: "{{ route53_zone }}"
+    record: "{{ route53_record }}"
+    type: A
+  register: rec
+  become: no
+  delegate_to: localhost
+
+- name: store the value of existsing ip address in a variable
+  set_fact:
+    route_ip_addressess: "{{ route_ip_addressess + [record.Value] }}"
+  with_items: "{{ rec.set.ResourceRecords }}"
+  when: rec.set.ResourceRecords|length > 0
+  loop_control:
+    loop_var: record
+
+- name: add the pem server ips in rec values
+  set_fact:
+        route_ip_addressess: "{{ route_ip_addressess + [pem_server_public_ip] }}"
+  when:
+  - pem_server_public_ip not in route_ip_addressess
+  - rec.set.ResourceRecords|length > 0
+  become: no
+  delegate_to: localhost
+
+- name: update a route53 for customer dns
+  community.aws.route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: present
+    zone: "{{ route53_zone }}"
+    record: "{{ route53_record }}"
+    type: A
+    value: "{{ route_ip_addressess|join(',') }}"
+    overwrite: yes
+    wait: yes
+  become: no
+  delegate_to: localhost
+
+- name: create a url entry in route53
+  community.aws.route53:
+    aws_access_key: "{{ route53_access_key }}"
+    aws_secret_key: "{{ route53_secret }}"
+    state: present
+    zone: "{{ route53_zone }}"
+    record: "{{ project }}pem.{{ domain }}"
+    type: A
+    value: "{{ pem_server_public_ip }}"
+    overwrite: yes
+    wait: yes
+  become: no
+  delegate_to: localhost

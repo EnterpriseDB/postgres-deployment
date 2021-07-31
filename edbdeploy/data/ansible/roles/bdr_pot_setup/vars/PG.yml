@@ -1,0 +1,10 @@
+---
+pg_version: "12"
+pg_bin_path: "/usr/pgsql-{{ pg_version }}/bin"
+pg_data: "/var/lib/pgsql/{{ pg_version }}/data"
+pg_owner: "postgres"
+pg_database: "postgres"
+pg_port: 5432
+pg_service: "postgresql-{{ pg_version }}"
+pg_unix_socket_directories: 
+  - "/var/run/postgresql"
