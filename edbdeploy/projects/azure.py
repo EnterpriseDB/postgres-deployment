@@ -33,71 +33,14 @@ class AzureProject(Project):
         """
         Build Terraform variable for Azure provisioning
         """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        bdr = env.cloud_spec['bdr_server']
-        bdr_witness = env.cloud_spec['bdr_witness_server']
 
-        self.terraform_vars = {
+        self.terraform_vars.update({
             'azure_offer': os['offer'],
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
             'azure_region': env.azure_region,
-            'barman': ra['barman'],
-            'barman_server': {
-                'count': ra['barman_server_count'],
-                'instance_type': barman['instance_type'],
-                'volume': barman['volume'],
-                'additional_volumes': barman['additional_volumes'],
-            },
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'pooler_local': ra['pooler_local'],
-            'pooler_server': {
-                'count': ra['pooler_count'],
-                'instance_type': pooler['instance_type'],
-                'volume': pooler['volume'],
-            },
-            'pooler_type': ra['pooler_type'],
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            },
-            'bdr_server': {
-                'count': ra['bdr_server_count'],
-                'instance_type': bdr['instance_type'],
-                'volume': bdr['volume'],
-                'additional_volumes': bdr['additional_volumes'],
-            },
-            'bdr_witness_server': {
-                'count': ra['bdr_witness_count'],
-                'instance_type': bdr_witness['instance_type'],
-                'volume': bdr_witness['volume'],
-            },
-            'pg_type': env.postgres_type,
-            'replication_type': ra['replication_type'],
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
+        })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()
