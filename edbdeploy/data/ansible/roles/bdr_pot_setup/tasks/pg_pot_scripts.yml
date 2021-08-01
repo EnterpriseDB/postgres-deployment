@@ -1,0 +1,10 @@
+---
+- name: Update servers with pg_pot_sql_scripts
+  shell: psql -h {{ pg_unix_socket_directories[0] }} -d {{ line_item.db }} -f {{ line_item.file_path }}
+  when: pg_pot_sql_scripts|length >0
+  with_items: "{{ pg_pot_sql_scripts }}"
+  loop_control:
+       loop_var: line_item
+  become: yes
+  become_user: "{{ pg_owner }}"
+  ignore_errors: yes

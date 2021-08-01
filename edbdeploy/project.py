@@ -1077,17 +1077,17 @@ class Project:
 
         with AM("Executing tpaexec deploy"):
             tpaexec.deploy()
-        tpa_pass_dir = os.path.join( self.project_path,
-                                     'inventory/group_vars',
-                                     'tag_Cluster_%s' % self.name,
-                                     'secrets'
-                                   )
+            tpa_pass_dir = os.path.join( self.project_path,
+                                         'inventory/group_vars',
+                                         'tag_Cluster_%s' % self.name,
+                                         'secrets'
+                                      )
 
-        for pass_file in os.listdir(tpa_pass_dir):
-            if not pass_file.endswith('_password.yml'):
-                continue
-            username = pass_file.replace('_password.yml', '')
-            tpaexec.tpa_password(username)
+            for pass_file in os.listdir(tpa_pass_dir):
+                if not pass_file.endswith('_password.yml'):
+                    continue
+                username = pass_file.replace('_password.yml', '')
+                tpaexec.tpa_password(username)
 
     """
     PoT related methods

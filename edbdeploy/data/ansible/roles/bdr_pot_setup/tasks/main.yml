@@ -10,19 +10,20 @@
 
 - name: Build pg_hba rules
   include_tasks: pg_hba_rule.yml
+  when: "'primary' in group_names"
 
 - name: Run script and create pg user
   block:
     - import_tasks: pg_create_user.yml
     - import_tasks: pg_pot_scripts.yml
-  when: "'primary' in group_names"
+  when: inventory_hostname == groups.primary[0]
 
-- name: Calling the pot_setup.ym
-  include_tasks: pot_setup.yml
+- name: Calling the bdr_setup
+  include_tasks: bdr_setup.yml
 
 - name: Update route53
   import_tasks: update_route53.yml
-  when: "'primary' in group_names"
+  when: inventory_hostname == groups.primary[0]
 
 - name: Update pem server
   block:

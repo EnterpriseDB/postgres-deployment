@@ -21,4 +21,4 @@
     group: root
     mode: 0440
   become: yes
-  when: hostvars[inventory_hostname].group_names is subset(['primary', 'standby'])
+  when: group_names is subset(['primary', 'standby'])

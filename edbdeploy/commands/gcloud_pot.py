@@ -76,18 +76,18 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
-        choices=PgTypeOption.choices,
-        default=PgTypeOption.default,
+        choices=POTPgTypeOption.choices,
+        default=POTPgTypeOption.default,
         metavar='<postgres-engine-type>',
-        help=PgTypeOption.help
+        help=POTPgTypeOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-v', '--pg-version',
         dest='postgres_version',
-        choices=PgVersionOption.choices,
-        default=PgVersionOption.default,
+        choices=POTPgVersionOption.choices,
+        default=POTPgVersionOption.default,
         metavar='<postgres-version>',
-        help=PgVersionOption.help
+        help=POTPgVersionOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-e', '--efm-version',

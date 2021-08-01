@@ -27,6 +27,10 @@ all:
 %{endif ~}
           ansible_host: ${aws_instance.barman_server[barman_count].public_ip}
           private_ip: ${aws_instance.barman_server[barman_count].private_ip}
+%{if var.pem_server["count"] > 0 ~}
+          pem_agent: true
+          pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
+%{endif ~}
 %{endfor ~}
 %{if var.dbt2_client["count"] > 0 ~}
     dbt2_client:
@@ -206,17 +210,20 @@ cluster_name: ${var.cluster_name}
 cluster_tags: {}
 
 cluster_vars:
-  bdr_database: bdrdb
+  bdr_database: edb
   bdr_node_group: bdrgroup
   extra_postgres_extensions:
   - pglogical
   failover_manager: harp
+  harp_consensus_protocol: etcd
   postgres_data_dir: /pgdata/pg_data
   postgres_initdb_opts:
   - --waldir=/pgwal/pg_wal
   postgres_coredump_filter: '0xff'
   postgres_version: '13'
   postgresql_flavour: epas
+  pg_systemd_service_path: '/etc/systemd/system/postgres.service'
+  pg_systemd_alias: 'edb-as-13.service'
   preferred_python_version: python3
   repmgr_failover: manual
   tpa_2q_repositories:
@@ -226,7 +233,7 @@ cluster_vars:
   use_volatile_subscriptions: false
   publications:
   - type: bdr
-    database: bdrdb
+    database: edb
     replication_sets:
     - name: bdrgroup
       autoadd_tables: false
@@ -295,7 +302,7 @@ instances:
 %{endif ~}
   vars:
     subscriptions:
-    - database: bdrdb
+    - database: edb
       type: bdr
       replication_sets:
       - bdrgroup
@@ -316,7 +323,7 @@ instances:
   - bdr
   vars:
     subscriptions:
-    - database: bdrdb
+    - database: edb
       type: bdr
       replication_sets:
       - bdrgroup
@@ -334,10 +341,10 @@ instances:
   role:
   - pgbouncer
   - haproxy
+  - etcd
   vars:
     haproxy_backend_servers:
 %{if pooler_count < 2 ~}
-    haproxy_backend_servers:
 %{if var.pg_type == "EPAS" ~}
     - epas1
     - epas2
@@ -367,6 +374,7 @@ instances:
   private_ip: ${aws_instance.barman_server[barman_count].private_ip}
   role:
   - barman
+  - etcd
 %{endfor ~}
 %{endif ~}
 EOT

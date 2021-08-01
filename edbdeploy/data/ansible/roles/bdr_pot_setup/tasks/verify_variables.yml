@@ -1,0 +1,35 @@
+---
+# tasks file for pov_setup
+
+- name: verify if we have customer name
+  vars:
+    msg: |
+      Following are the required parameters for the role:
+         1. project - database/os username for the customer
+         2. public_key - key for server login
+         3. email_id - <your email id >
+         4. route53_access_key - AWS access key for route53 
+         5. route53_secret - AWS secret for route53
+         6. user_expiry_date - optional. expiry date of os user
+         7. pg_project_user - optional. project postgres user
+         8. os_project_user - optional. operating system user for project
+  fail:
+    msg: "{{ msg.split('\n')}}"
+  when: project|length < 1  
+        or public_key|length < 1
+        or pg_project_user|length < 1
+        or os_project_user|length < 1
+        or email_id|length < 1
+        or route53_access_key|length < 1
+        or route53_secret|length < 1
+  run_once: true
+
+- name: check user_expire_date value
+  set_fact:
+    user_expiry_date: "{{ (lookup('pipe','expr $(date +%s) + 1209600')) }}"
+  when: user_expiry_date|length < 1
+  run_once: true
+
+- name: Set ansible_user
+  set_fact:
+    pg_ansible_user: "{{ ansible_user }}"

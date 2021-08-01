@@ -44,9 +44,9 @@ class POTReferenceArchitectureOption:
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA for
         a 3 Postgres nodes deployment with quorum base synchronous replication
-        and automatic failover, one backup server and one PEM monitoring server,
-        EDB-Always-On for deployment 6 Postgres nodes with BDR EE, one backup
-        server, 2 Pgbouncer/HAproxy servers and one PEM monitoring server.
+        and automatic failover, one backup server and one PEM monitoring
+        server, EDB-Always-On for deployment 6 Postgres nodes with BDR EE, one backup
+        server, 4 Pgbouncer/HAproxy servers and one PEM monitoring server.
         Default: %(default)s
     """)
 
@@ -84,6 +84,14 @@ class PgVersionOption:
     default = '13'
     help = textwrap.dedent("""
         PostgreSQL or EPAS version. Allowed values are: 11, 12 and 13.
+        Default: %(default)s
+    """)
+
+class POTPgVersionOption:
+    choices = ['13']
+    default = '13'
+    help = textwrap.dedent("""
+        EPAS version. Allowed values are: 13.
         Default: %(default)s
     """)
 
@@ -128,6 +136,16 @@ class PgTypeOption:
     default = 'PG'
     help = textwrap.dedent("""
         Postgres engine type. Allowed values are: PG for PostgreSQL, EPAS for
+        EDB Postgres Advanced Server. Default:
+        %(default)s
+    """)
+
+
+class POTPgTypeOption:
+    choices = ['EPAS']
+    default = 'EPAS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: EPAS for
         EDB Postgres Advanced Server. Default:
         %(default)s
     """)

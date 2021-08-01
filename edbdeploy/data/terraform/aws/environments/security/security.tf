@@ -136,10 +136,18 @@ resource "aws_security_group" "edb-prereqs-rules" {
     cidr_blocks = [var.public_cidrblock]
   }
 
-  // etcd default port
+  // etcd default client port
   ingress {
     from_port   = 2379
     to_port     = 2379
+    protocol    = "tcp"
+    cidr_blocks = [var.public_cidrblock]
+  }
+
+  // etcd default peer port
+  ingress {
+    from_port   = 2380
+    to_port     = 2380
     protocol    = "tcp"
     cidr_blocks = [var.public_cidrblock]
   }
