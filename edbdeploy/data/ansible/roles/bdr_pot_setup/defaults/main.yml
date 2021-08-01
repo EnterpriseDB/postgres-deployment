@@ -1,0 +1,39 @@
+---
+# defaults file for pov_setup
+pg_type: "EPAS"
+efm_version: 4.2
+efm_bin_path: "/usr/edb/efm-{{ efm_version }}/bin"
+efm_cluster_name: "efm"
+disable_logging: no
+
+user_expire_date: ""
+public_key: ""
+email_id: ""
+route53_access_key: ""
+route53_secret: ""
+route53_zone: "edbpov.io"
+route53_record: "edbpov.io"
+domain: "edbpov.io"
+route_ip_addressess: []
+
+project: ""
+pg_customer_password: ""
+
+pg_efm_user: "efm"
+pg_replication_user: "repuser"
+
+pg_project_user: "{{ project }}"
+pg_project_user_password: ""
+pg_ansible_user: ""
+pg_ansible_user_password: ""
+os_project_user: "{{ project }}"
+project_public_key: ""
+
+input_password: ""
+
+pg_allow_ip_addresses: []
+
+pem_server_private_ip: ""
+pem_server_public_ip: ""
+primary_public_ip: ""
+user_expiry_date: ""

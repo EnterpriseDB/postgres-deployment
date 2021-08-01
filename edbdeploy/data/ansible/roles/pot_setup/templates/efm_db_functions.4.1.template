@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright EnterpriseDB Corporation, 2014-2020. All Rights Reserved.
+# Copyright EnterpriseDB Corporation, 2014-2021. All Rights Reserved.
 
 # used as a key in the recovery.conf file header
 EDB_FM="EDB Failover Manager"

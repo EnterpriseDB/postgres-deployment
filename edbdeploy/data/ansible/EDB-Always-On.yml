@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  name: Postgres deployment playbook for reference architecture EDB-RA-2
+  name: Postgres deployment playbook for reference architecture EDB-Always-On
   become: yes
   gather_facts: yes
 
@@ -10,18 +10,25 @@
     - name: Initialize the user defined variables
       set_fact:
         use_hostname: yes
-        disable_logging: true
+        disable_logging: false
         efm_version: 4.2
-  tasks:
-     - name: Print the output
-       debug:
-         msg: "Finished deployment"
-#  roles:
-#    - role: init_dbserver
-#      when: "'init_dbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-#    - role: manage_dbserver
-#      when: "'init_dbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-#    - role: setup_pemserver
-#      when: "'setup_pemserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-#    - role: setup_pemagent
-#      when: "'setup_pemagent' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+        pg_unix_socket_directories:
+            - "/tmp"
+  roles:
+    - role: setup_repo
+      when: "'pemserver' in group_names"
+    - role: install_dbserver
+      when: "'pemserver' in group_names"
+    - role: init_dbserver
+      when: "'pemserver' in group_names"
+    - role: manage_dbserver
+      when: "'pemserver' in group_names"
+    - role: autotuning
+      when: "'pemserver' in group_names"
+    - role: setup_pemserver
+      when: "'pemserver' in group_names"
+    - role: setup_pemagent
+      vars:
+        efm_enabled: False
+      when: "'pemserver' not in group_names"
+    - role: bdr_pot_setup

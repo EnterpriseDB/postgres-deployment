@@ -1,0 +1,19 @@
+---
+pg_version: "13"
+pg_bin_path: "/usr/edb/as{{ pg_version }}/bin"
+pg_data: "/var/lib/edb/as{{ pg_version }}/data"
+pg_owner: "enterprisedb"
+pg_database: "edb"
+pg_port: 5444
+pg_service: "edb-as-{{ pg_version }}"
+
+pg_unix_socket_directories: 
+  - "/var/run/edb"
+
+pg_pot_sql_scripts:
+  - file_path: "/usr/edb/as{{ pg_version }}/share/edb-sample.sql"
+    db: edb
+  - file_path: "/usr/edb/as{{ pg_version }}/share/contrib/sql-profiler.sql"
+    db: edb
+  - file_path: "/usr/edb/as{{ pg_version }}/share/contrib/index_advisor.sql"
+    db: edb

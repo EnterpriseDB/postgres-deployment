@@ -1,0 +1,16 @@
+---
+
+- name: Copy the pem_probe_alert.sql
+  template:
+    src: pem_probe_alert.sql
+    dest: "/tmp/pem_probe_alert.sql"
+    owner: "{{ pg_owner }}"
+    group: "{{ pg_owner }}"
+    mode: 0640
+  become: yes
+
+- name: Update pem server for unnecessary alerts/probes
+  shell: >
+    psql -f /tmp/pem_probe_alert.sql pem
+  become_user: "{{ pg_owner }}"
+  become: yes

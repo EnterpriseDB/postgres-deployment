@@ -1,0 +1,10 @@
+---
+- name: Update OS user and prepare hba
+  block:
+    - import_tasks: os_configure_user.yml
+    - import_tasks: pg_user_pgpass.yml
+
+- name: Create PG user and update hba of database nodes for pg_project_user
+  block:
+    - import_tasks: pg_pot_hba.yml
+  when: group_names is subset(['primary','standby','pemserver'])

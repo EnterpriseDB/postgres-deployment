@@ -1,0 +1,5 @@
+
+export PGDATABASE={{ pg_database }}
+export PGPORT={{ pg_port }}
+export PGHOST=localhost
+export PATH=${PATH}:{{ pg_bin_path }}
