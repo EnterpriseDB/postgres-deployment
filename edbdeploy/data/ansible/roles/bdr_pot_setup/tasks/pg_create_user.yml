@@ -47,13 +47,19 @@
       - name: "{{ pg_ansible_user }}"
         pass: "{{ pg_ansible_user_password }}"
 
-- name: Assign role to pg_project_user
+- name: Assign role to pg_ansible_user and pg_project_user
   include_role:
     name: edb_devops.edb_postgres.manage_dbserver
     tasks_from: manage_privileges
   vars:
     pg_grant_roles:
        - role: pg_monitor
-         user: "{{ pg_project_user }}"
-       - role: pg_monitor
          user: "{{ pg_ansible_user }}"
+       - role: bdr_monitor
+         user: "{{ pg_ansible_user }}"
+       - role: pg_monitor
+         user: "{{ pg_project_user }}"
+       - role: bdr_monitor
+         user: "{{ pg_project_user }}"
+       - role: bdr_monitor
+         user: "pemagent"

@@ -24,9 +24,9 @@ pg_replication_user: "repuser"
 
 pg_project_user: "{{ project }}"
 pg_project_user_password: ""
-os_project_user: "{{ project }}"
 pg_ansible_user: ""
 pg_ansible_user_password: ""
+os_project_user: "{{ project }}"
 project_public_key: ""
 
 input_password: ""

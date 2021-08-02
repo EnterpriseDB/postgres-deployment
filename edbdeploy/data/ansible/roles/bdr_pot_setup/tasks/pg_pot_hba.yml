@@ -3,17 +3,17 @@
 - name: Add pg_project_user hba local entry
   set_fact:
     pg_pot_local_hba:
-      - user: "{{ pg_project_user }}, {{ pg_ansible_user }}, {{pg_owner }}"
+      - user: "{{ pg_project_user }},{{ pg_ansible_user }},{{pg_owner }}"
         source: "127.0.0.1/32"
         databases: "edb" 
-      - user: "{{ pg_project_user }}, {{ pg_ansible_user }}, {{pg_owner }}"
+      - user: "{{ pg_project_user }},{{ pg_ansible_user }}, {{pg_owner }}"
         source: "{{ hostvars[inventory_hostname].private_ip }}/32"
         databases: "edb" 
 
 - name: Add pg_project_user hba local entry
   set_fact:
     _pemserver_hba_entry: 
-      - user: "{{ pg_project_user }}, {{ pg_ansible_user }}, {{pg_owner }}"
+      - user: "{{ pg_project_user }},{{ pg_ansible_user}},{{pg_owner }}"
         source: "{{ pem_server_private_ip }}/32"
         databases: "edb"
   when: group_names is subset([ 'primary', 'standby' ])

@@ -131,6 +131,11 @@ ReferenceArchitectureSpec = {
         'pooler_local': False,
         'efm': True,
         'replication_type': "synchronous",
+        'dbt2': False,
+        'dbt2_client': False,
+        'dbt2_client_count': 0,
+        'dbt2_driver': False,
+        'dbt2_driver_count': 0,
         'hammerdb': False,
         'hammerdb_server': False
     },
@@ -146,6 +151,11 @@ ReferenceArchitectureSpec = {
         'pooler_local': False,
         'efm': True,
         'replication_type': "synchronous",
+        'dbt2': False,
+        'dbt2_client': False,
+        'dbt2_client_count': 0,
+        'dbt2_driver': False,
+        'dbt2_driver_count': 0,
         'hammerdb': False,
         'hammerdb_server': False
     }

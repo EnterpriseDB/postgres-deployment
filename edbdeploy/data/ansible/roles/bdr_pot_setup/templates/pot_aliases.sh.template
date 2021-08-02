@@ -1,0 +1,4 @@
+
+alias pg_ctl='sudo -u {{ pg_owner }} {{ pg_bin_path }}/pg_ctl'
+alias harpctl='sudo -u {{ pg_owner }} /usr/bin/harpctl'
+alias pgbench='{{ pg_bin_path }}/pgbench'

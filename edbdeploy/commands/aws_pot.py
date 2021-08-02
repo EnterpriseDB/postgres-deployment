@@ -75,10 +75,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-t', '--pg-type',
         dest='postgres_type',
-        choices=PgTypeOption.choices,
-        default=PgTypeOption.default,
+        choices=POTPgTypeOption.choices,
+        default=POTPgTypeOption.default,
         metavar='<postgres-engine-type>',
-        help=PgTypeOption.help
+        help=POTPgTypeOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '-r', '--aws-region',
