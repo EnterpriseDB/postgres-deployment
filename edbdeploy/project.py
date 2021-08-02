@@ -327,7 +327,6 @@ class Project:
                 'postgres_server': {
                     'count': ra['pg_count'],
                     'instance_type': pg['instance_type'],
-                    'volume': pg['volume'],
                 },
                 'pg_type': env.postgres_type,
                 'replication_type': ra['replication_type'],

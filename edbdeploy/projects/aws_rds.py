@@ -45,6 +45,7 @@ class AWSRDSProject(Project):
         """
         ra = self.reference_architecture[env.reference_architecture]
         os = env.cloud_spec['available_os'][env.operating_system]
+        pg = env.cloud_spec['postgres_server']
         guc = TPROCC_GUC
 
         self.terraform_vars.update({
@@ -56,6 +57,9 @@ class AWSRDSProject(Project):
             'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
             'pg_password': get_password(self.project_path, 'postgres'),
             'pg_version': env.postgres_version,
+            'postgres_server': {
+                'volume': pg['volume'],
+            },
         })
 
     def _check_instance_image(self, env):
