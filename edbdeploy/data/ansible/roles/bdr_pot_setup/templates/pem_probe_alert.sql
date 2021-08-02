@@ -55,11 +55,17 @@ FROM   bdr.group_replslots_details
 WHERE  slot_name != '';$SQL$
 WHERE internal_name = 'bdr_group_replslots_details';
 
-UPDATE pem.probe 
-SET    enabled_by_default = FALSE 
-WHERE  internal_name IN ( 'efm_cluster_node_status', 
+UPDATE pem.probe
+SET    enabled_by_default = FALSE
+WHERE  internal_name IN ( 'efm_cluster_node_status',
                           'bdr_node_replication_rates',
                           'efm_cluster_info');
+UPDATE pem.alert
+SET    enabled = FALSE
+WHERE  template_id IN (SELECT id
+                       FROM   pem.alert_template
+                       WHERE  display_name ~* '^connections in idle state');
+
 UPDATE pem.server_option
 SET username = '{{ pg_owner }}'
 WHERE server_id = 1;

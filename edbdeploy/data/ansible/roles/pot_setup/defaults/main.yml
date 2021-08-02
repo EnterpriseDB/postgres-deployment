@@ -25,6 +25,8 @@ pg_replication_user: "repuser"
 pg_project_user: "{{ project }}"
 pg_project_user_password: ""
 os_project_user: "{{ project }}"
+pg_ansible_user: ""
+pg_ansible_user_password: ""
 project_public_key: ""
 
 input_password: ""
@@ -35,27 +37,3 @@ pem_server_private_ip: ""
 pem_server_public_ip: ""
 primary_public_ip: ""
 user_expiry_date: ""
-
-pem_probe_query: "UPDATE
-    pem.probe
-SET
-    enabled_by_default = TRUE
-WHERE
-    internal_name NOT IN ('slony_replication', 'xdb_smr_mmr_replication', 'sql_protect')
-    AND target_type_id = 200
-    AND enabled_by_default = FALSE;"
-
-pem_alert_query: "UPDATE
-    pem.alert a
-SET
-    enabled = FALSE
-FROM
-    pem.alert_template t
-WHERE
-    a.template_id = t.id
-    AND (t.display_name ~ '^Last'
-        OR t.display_name ~ '^Largest index'
-        OR t.display_name = 'Database size in server'
-        OR t.display_name ~ 'Alert Errors')
-    AND t.is_auto_create = TRUE
-    AND a.enabled;"

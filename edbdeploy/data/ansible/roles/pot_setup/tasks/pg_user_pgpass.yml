@@ -9,6 +9,11 @@
   no_log: "{{ disable_logging }}"
   when: pg_project_user_password|length < 1
 
+- name: Set the input_password if pg_project_user_password is provided
+  set_fact:
+    input_password: "{{ pg_project_user_password }}"
+  when: pg_project_user_password|length > 0
+
 - name: Add the pgpass for os_project_user on the servers
   include_role:
     name: edb_devops.edb_postgres.manage_dbserver
@@ -19,3 +24,29 @@
         password: "{{ input_password }}"
         create: yes
     pg_owner: "{{ os_project_user }}"
+
+- name: Generate the pg_ansible_user_password
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: generate_password
+  vars:
+    input_user: "{{ pg_ansible_user }}"
+    input_password: "{{ pg_ansible_user_password }}"
+  no_log: "{{ disable_logging }}"
+  when: pg_ansible_user_password|length < 1
+
+- name: Set the input_password if pg_ansible_user_password is provided
+  set_fact:
+    input_password: "{{ pg_ansible_user_password }}"
+  when: pg_ansible_user_password|length > 0
+
+- name: Add the pgpass for pg_ansible_user on the servers
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: manage_pgpass
+  vars:
+    pg_pgpass_values:
+      - user: "{{ pg_ansible_user }}"
+        password: "{{ input_password }}"
+        create: yes
+    pg_owner: "{{ pg_ansible_user }}"

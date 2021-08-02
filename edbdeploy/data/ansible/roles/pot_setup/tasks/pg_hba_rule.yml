@@ -4,7 +4,7 @@
     pg_allow_ip_addresses: >-
       {{ pg_allow_ip_addresses | default([]) }} + [
         {
-          "users": "{{ pg_project_user }}, {{ pg_owner }}",
+          "users": "{{ pg_project_user }}, {{ pg_ansible_user }}, {{ pg_owner }}",
           "source": "{{ node.private_ip }}/32",
           "databases": "edb"
           }
