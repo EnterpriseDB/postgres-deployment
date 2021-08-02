@@ -291,23 +291,13 @@ class Project:
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
         pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
         dbt2_client = env.cloud_spec['dbt2_client']
         dbt2_driver = env.cloud_spec['dbt2_driver']
         hammerdb = env.cloud_spec['hammerdb_server']
-        bdr = env.cloud_spec['bdr_server']
-        bdr_witness = env.cloud_spec['bdr_witness_server']
 
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
             self.terraform_vars = {
                 'barman': ra['barman'],
-                'barman_server': {
-                    'count': ra['barman_server_count'],
-                    'instance_type': barman['instance_type'],
-                    'volume': barman['volume'],
-                    'additional_volumes': barman['additional_volumes'],
-                },
                 'cluster_name': self.name,
                 'dbt2': env.cloud_spec['dbt2'] if 'dbt2' in env.cloud_spec else ra['dbt2'],
                 'dbt2_client': {
@@ -333,28 +323,11 @@ class Project:
                 },
                 'pg_version': env.postgres_version,
                 'pooler_local': ra['pooler_local'],
-                'pooler_server': {
-                    'count': ra['pooler_count'],
-                    'instance_type': pooler['instance_type'],
-                    'volume': pooler['volume'],
-                },
                 'pooler_type': ra['pooler_type'],
                 'postgres_server': {
                     'count': ra['pg_count'],
                     'instance_type': pg['instance_type'],
                     'volume': pg['volume'],
-                    'additional_volumes': pg['additional_volumes'],
-                },
-                'bdr_server': {
-                    'count': ra['bdr_server_count'],
-                    'instance_type': bdr['instance_type'],
-                    'volume': bdr['volume'],
-                    'additional_volumes': bdr['additional_volumes'],
-                },
-                'bdr_witness_server': {
-                    'count': ra['bdr_witness_count'],
-                    'instance_type': bdr_witness['instance_type'],
-                    'volume': bdr_witness['volume'],
                 },
                 'pg_type': env.postgres_type,
                 'replication_type': ra['replication_type'],
@@ -362,6 +335,49 @@ class Project:
                 'ssh_priv_key': self.ssh_priv_key,
                 'ssh_user': os['ssh_user'],
             }
+
+            if 'barman_server' in env.cloud_spec:
+                barman = env.cloud_spec['barman_server']
+                self.terraform_vars.update({
+                    'barman_server': {
+                        'count': ra['barman_server_count'],
+                        'instance_type': barman['instance_type'],
+                        'volume': barman['volume'],
+                        'additional_volumes':
+                                barman['additional_volumes'],
+                    },
+                })
+
+            if 'bdr_server' in env.cloud_spec:
+                bdr = env.cloud_spec['bdr_server']
+                self.terraform_vars.update({
+                    'bdr_server': {
+                        'count': ra['bdr_server_count'],
+                        'instance_type': bdr['instance_type'],
+                        'volume': bdr['volume'],
+                        'additional_volumes': bdr['additional_volumes'],
+                    },
+                })
+
+            if 'bdr_witness_server' in env.cloud_spec:
+                bdr_witness = env.cloud_spec['bdr_witness_server']
+                self.terraform_vars.update({
+                    'bdr_witness_server': {
+                        'count': ra['bdr_witness_count'],
+                        'instance_type': bdr_witness['instance_type'],
+                        'volume': bdr_witness['volume'],
+                    },
+                })
+
+            if 'pooler_server' in env.cloud_spec:
+                pooler = env.cloud_spec['pooler_server']
+                self.terraform_vars.update({
+                    'pooler_server': {
+                        'count': ra['pooler_count'],
+                        'instance_type': pooler['instance_type'],
+                        'volume': pooler['volume'],
+                    },
+                })
 
             self._build_terraform_vars(env)
             logging.debug("terraform_vars=%s", self.terraform_vars)
