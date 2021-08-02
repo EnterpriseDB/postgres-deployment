@@ -10,8 +10,26 @@ all:
         pemserver1:
           ansible_host: ${aws_instance.pem_server[0].public_ip}
           private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif~}
-%{if var.hammerdb_server["count"] > 0~}
+%{endif ~}
+%{if var.dbt2_client["count"] > 0 ~}
+    dbt2_client:
+      hosts:
+%{for dbt2_client_count in range(var.dbt2_client["count"]) ~}
+        dbt2_client${dbt2_client_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${aws_instance.dbt2_client[dbt2_client_count].public_ip}
+          private_ip: ${aws_instance.dbt2_client[dbt2_client_count].private_ip}
+%{endfor ~}
+%{endif ~}
+%{if var.dbt2_driver["count"] > 0 ~}
+    dbt2_driver:
+      hosts:
+%{for dbt2_driver_count in range(var.dbt2_driver["count"]) ~}
+        dbt2_driver${dbt2_driver_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${aws_instance.dbt2_driver[dbt2_driver_count].public_ip}
+          private_ip: ${aws_instance.dbt2_driver[dbt2_driver_count].private_ip}
+%{endfor ~}
+%{endif ~}
+%{if var.hammerdb_server["count"] > 0 ~}
     hammerdbserver:
       hosts:
         hammerdbserver1:

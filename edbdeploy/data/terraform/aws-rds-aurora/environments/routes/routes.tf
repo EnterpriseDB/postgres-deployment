@@ -1,3 +1,9 @@
+variable "dbt2_client_count" {
+  type = number
+}
+variable "dbt2_driver_count" {
+  type = number
+}
 variable "hammerdb_count" {
   type = number
 }
@@ -37,7 +43,7 @@ resource "aws_route_table" "edb-prereqs-postgres-customroutetable" {
 }
 
 resource "aws_route_table_association" "edb-prereqs-postgres-rtassociations" {
-  count          = 1 + var.pem_count + var.hammerdb_count
+  count          = 1 + var.pem_count + var.hammerdb_count + var.dbt2_client_count + var.dbt2_driver_count
   subnet_id      = element(tolist(data.aws_subnet_ids.ids.ids), count.index)
   route_table_id = aws_route_table.edb-prereqs-postgres-customroutetable.id
 }

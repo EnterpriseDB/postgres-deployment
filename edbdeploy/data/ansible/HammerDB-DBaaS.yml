@@ -18,3 +18,10 @@
 
     - role: setup_hammerdbserver
       when: "'setup_hammerdbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+
+    - role: setup_dbt2_driver
+      when: "'setup_dbt2_driver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+    - role: setup_dbt2_client
+      when: "'setup_dbt2_client' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+    - role: setup_dbt2
+      when: "'setup_dbt2' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
