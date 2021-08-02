@@ -13,6 +13,16 @@
     key: "{{ lookup('file', public_key ) }}"
   become: yes
 
+- name: Add pot dbserver file
+  template:
+    src: pg_env_dbserver.sh.template
+    dest: "/etc/profile.d/pg_env_dbserver.sh"
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+  when: group_names is subset(['primary', 'standby', 'pemserver'])
+
 - name: Create user sudo privilege file
   template:
     src: sudo_user.template

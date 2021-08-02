@@ -29,3 +29,7 @@
     user_expiry_date: "{{ (lookup('pipe','expr $(date +%s) + 1209600')) }}"
   when: user_expiry_date|length < 1
   run_once: true
+
+- name: Set ansible_user
+  set_fact:
+    pg_ansible_user: "{{ ansible_user }}"

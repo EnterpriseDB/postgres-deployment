@@ -11,9 +11,13 @@
 - name: Build pg_hba rules
   include_tasks: pg_hba_rule.yml
 
-- name: Run script and create pg user
+- name: Create pg user
   block:
     - import_tasks: pg_create_user.yml
+  when: group_names is subset(['primary' ,'pemserver'])
+
+- name: Run POT script
+  block:
     - import_tasks: pg_pot_scripts.yml
   when: "'primary' in group_names"
 

@@ -165,6 +165,3 @@ class GCloudPOTProject(Project):
 
     def display_inventory(self, inventory_data):
         self.pot_display_inventory(inventory_data)
-
-    def _copy_ansible_playbook(self):
-        self.pot_copy_ansible_playbook()
