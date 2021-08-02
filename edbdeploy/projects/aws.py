@@ -43,6 +43,7 @@ class AWSProject(Project):
             'aws_image': os['image'],
             'aws_region': env.aws_region,
             'postgres_server': {
+                'volume': pg['volume'],
                 'additional_volumes': pg['additional_volumes'],
             }
         })
