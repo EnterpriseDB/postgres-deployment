@@ -61,3 +61,5 @@
          user: "{{ pg_project_user }}"
        - role: bdr_monitor
          user: "{{ pg_project_user }}"
+       - role: bdr_monitor
+         user: "pemagent"

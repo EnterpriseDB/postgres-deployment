@@ -1,5 +1,41 @@
 ---
 
+- name: "Remove the {{ pg_systemd_alias }} if it's not linked to correct service"
+  file:
+    path: "/etc/systemd/system/edb-as-{{ postgres_version }}.service"
+    state: absent
+  when:
+    - "'bdr' in role"
+    - "'primary' in role"
+    - pg_systemd_alias is defined
+    - pg_systemd_service_path is defined
+
+- name: "Create alias {{ pg_systemd_alias }} of postgres service"
+  lineinfile:
+    path: "{{ pg_systemd_service_path }}"
+    insertafter: 'WantedBy=multi-user.target'
+    line: "Alias={{ pg_systemd_alias }}"
+    state: present
+  when:
+    - "'bdr' in role"
+    - "'primary' in role"
+    - pg_systemd_alias is defined
+    - pg_systemd_service_path is defined
+
+- name: "Enable the service"
+  shell: >
+    systemctl enable postgres
+  when: >
+    'bdr' in role and 'primary' in role
+
+- name: Start and enable the service
+  systemd:
+    name: "postgres"
+    state: started
+    enabled: yes
+  when: >
+    'bdr' in role and 'primary' in role
+
 - name: Create /var/run/harp directory
   file:
     path: "/var/run/harp"
@@ -69,7 +105,7 @@
 
 - name: "Ensure {{ first_bdr_primary }} is the leader"
   shell: >
-       harpctl leader set
+     harpctl leader set
   become_user: "{{ postgres_user }}"
   when: >
      inventory_hostname in ['epas1', 'epas4']
