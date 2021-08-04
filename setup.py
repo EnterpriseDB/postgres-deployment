@@ -70,7 +70,9 @@ Advanced Server, and EDB Tools in the Cloud.
             'data/tpaexec/*/*',
             'data/tpaexec/*/*/*',
             'data/vmware-wkstn/*.*',
-            'data/vmware-wkstn/*'
+            'data/vmware-wkstn/*',
+            'data/virtualbox/*.*',
+            'data/virtualbox/*' 
         ]
     }
 )
