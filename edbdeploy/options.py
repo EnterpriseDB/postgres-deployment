@@ -128,10 +128,10 @@ class EFMVersionOptionVMWare:
     """)
 
 class EFMVersionOptionVirtualBox:
-    choices = ['3.10', '4.0', '4.1']
+    choices = ['3.10', '4.0', '4.1', '4.2']
     default = '4.2'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1.
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
         Default: %(default)s
     """)
 
