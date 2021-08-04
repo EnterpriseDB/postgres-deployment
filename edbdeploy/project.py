@@ -60,6 +60,11 @@ class Project:
         'data',
         'vmware-wkstn'
     )
+    virtualbox_share_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'data',
+        'virtualbox'
+    )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:3.4.0'
 
@@ -316,7 +321,7 @@ class Project:
 
     def _build_ansible_inventory(self, env):
         """
-        Build Ansible inventory file for baremetal and vmware deployments.
+        Build Ansible inventory file for baremetal and vmware and virtualbox deployments.
         """
         pem1 = env.cloud_spec['pem_server_1']
         backup1 = env.cloud_spec['backup_server_1']
