@@ -28,9 +28,6 @@ class VirtualBoxCli:
         # Vagrant supported versions interval
         self.vagrant_min_version = (2, 0, 0)
         self.vagrant_max_version = (9, 9, 9)
-        # vagrant supported versions interval
-        self.mech_min_version = (0, 3, 0)
-        self.mech_max_version = (9, 9, 9)
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains

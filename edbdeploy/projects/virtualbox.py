@@ -77,7 +77,6 @@ class VirtualBoxProject(Project):
         )
         vm.python_check_version()
         vm.vagrant_check_version()
-        # vm.mech_check_version()
 
     def overwrite_vagrant_params(self, mem_size, cpu_count):
         vagrantfile = os.path.join(
