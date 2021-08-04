@@ -78,6 +78,12 @@ class VMWareOSOption:
         Operating system. Allowed values are: CentOS8. Default: %(default)s
     """)
 
+class VirtualBoxOSOption:
+    choices = ['CentOS8']
+    default = 'CentOS8'
+    help = textwrap.dedent("""
+        Operating system. Allowed values are: CentOS8. Default: %(default)s
+    """)
 
 class PgVersionOption:
     choices = ['11', '12', '13']
@@ -117,7 +123,15 @@ class EFMVersionOptionVMWare:
     choices = ['3.10', '4.0', '4.1', '4.2']
     default = '4.2'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1, 4.2.
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
+        Default: %(default)s
+    """)
+
+class EFMVersionOptionVirtualBox:
+    choices = ['3.10', '4.0', '4.1']
+    default = '4.2'
+    help = textwrap.dedent("""
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1.
         Default: %(default)s
     """)
 
@@ -176,6 +190,14 @@ class MemSizeOptionsVMWare:
         Default: %(default)s
     """)
 
+class MemSizeOptionsVirtualBox:
+    choices = Local_Machine_Mem_Check()
+    default = '2048'
+    help = textwrap.dedent("""
+        Memory size options. Allowed values are: {choices} for VirtualBox.
+        Default: %(default)s
+    """)
+
 class CPUCountOptionsVMWare:
     choices = ['1', '2']
     default = '1'
@@ -183,6 +205,15 @@ class CPUCountOptionsVMWare:
         CPU Count options. Allowed values are: 1, 2 for VMWare.
         Default: %(default)s
     """)
+
+class CPUCountOptionsVirtualBox:
+    choices = ['1', '2']
+    default = '1'
+    help = textwrap.dedent("""
+        CPU Count options. Allowed values are: 1, 2 for VirtualBox.
+        Default: %(default)s
+    """)
+
 
 class SSHPubKeyOption:
 

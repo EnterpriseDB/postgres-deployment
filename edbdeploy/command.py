@@ -9,6 +9,7 @@ from .projects.gcloud import GCloudProject
 from .projects.gcloud_sql import GCloudSQLProject
 from .projects.baremetal import BaremetalProject
 from .projects.vmware import VMwareProject
+from .projects.virtualbox import VirtualBoxProject
 # POT
 from .projects.aws_pot import AWSPOTProject
 from .projects.azure_pot import AzurePOTProject
@@ -35,6 +36,8 @@ class Commander:
                 self.project = BaremetalProject(self.env.project, self.env)
             elif self.env.cloud == 'vmware':
                 self.project = VMwareProject(self.env.project, self.env)
+            elif self.env.cloud == 'virtualbox':
+                self.project = VirtualBoxProject(self.env.project, self.env)
             elif self.env.cloud == 'aws-rds':
                 self.project = AWSRDSProject(self.env.project, self.env)
             elif self.env.cloud == 'aws-rds-aurora':
@@ -148,6 +151,8 @@ class Commander:
         logging.info("Listing project for cloud %s", self.env.cloud)
         if self.env.cloud == 'vmware':
             VMwareProject.list(self.env.cloud)
+        if self.env.cloud == 'virtualbox':
+            VirtualBoxProject.list(self.env.cloud)
         else:
             Project.list(self.env.cloud)
 
