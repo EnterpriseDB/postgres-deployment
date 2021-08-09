@@ -7,14 +7,17 @@ PEM_BOX_NAME = "PEM"
 BARMAN_BOX_NAME = "BARMAN"
 PRIMARY_BOX_NAME = "PRIMARY"
 STANDBY_BOX_NAME = "STANDBY"
+PGPOOL_BOX_NAME = "PGPOOL"
 # Number of Standby's
 N = 2
+P = 3
 # IP Addresses
 STARTING_IP = "192.168.81."
 STARTING_IP_COUNT = 100
 BARMAN_STARTING_IP_COUNT = STARTING_IP_COUNT + 1
 PRIMARY_STARTING_IP_COUNT = STARTING_IP_COUNT + 2
 STANDBY_STARTING_IP_COUNT = PRIMARY_STARTING_IP_COUNT
+PGPOOL_STARTING_IP_COUNT = STANDBY_STARTING_IP_COUNT + 2
 
 Vagrant.configure("2") do |config|
     #config.ssh.insert_key = false
@@ -59,10 +62,18 @@ Vagrant.configure("2") do |config|
     end
 
     (1..N).each do |i|
-        config.vm.define "standby-#{i}" do |standby|
+        config.vm.define "standby-#{i+1}" do |standby|
             standby.vm.box = IMAGE_NAME
             standby.vm.network "private_network", ip: STARTING_IP + "#{STANDBY_STARTING_IP_COUNT + i}"
-            standby.vm.hostname = STANDBY_BOX_NAME + "-#{i}"
+            standby.vm.hostname = STANDBY_BOX_NAME + "-#{i+1}"
+        end
+    end
+
+    (1..P).each do |i|
+        config.vm.define "pgpool-#{i}" do |pgpool|
+            pgpool.vm.box = IMAGE_NAME
+            pgpool.vm.network "private_network", ip: STARTING_IP + "#{PGPOOL_STARTING_IP_COUNT + i}"
+            pgpool.vm.hostname = PGPOOL_BOX_NAME + "-#{i}"
         end
     end
 end

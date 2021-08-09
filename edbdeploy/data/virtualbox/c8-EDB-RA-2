@@ -59,10 +59,10 @@ Vagrant.configure("2") do |config|
     end
 
     (1..N).each do |i|
-        config.vm.define "standby-#{i}" do |standby|
+        config.vm.define "standby-#{i+1}" do |standby|
             standby.vm.box = IMAGE_NAME
             standby.vm.network "private_network", ip: STARTING_IP + "#{STANDBY_STARTING_IP_COUNT + i}"
-            standby.vm.hostname = STANDBY_BOX_NAME + "-#{i}"
+            standby.vm.hostname = STANDBY_BOX_NAME + "-#{i+1}"
         end
     end
 end
