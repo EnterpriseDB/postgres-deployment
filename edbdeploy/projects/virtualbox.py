@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shutil
+import yaml
 
 from ..action import ActionManager as AM
 from ..ansible import AnsibleCli
@@ -21,7 +22,7 @@ class VirtualBoxProject(Project):
         # Hook function called by Project.configure()
         # Build the vars files for Ansible
         self._build_ansible_vars_file(env)
-        # Copy VirutalBox Vagrant Config File into project dir.
+        # Copy VirtualBox Vagrant Config File into project dir.
         self._copy_virtualbox_configfiles(env)
 
     def hook_instances_availability(self, cloud_cli):
@@ -38,10 +39,10 @@ class VirtualBoxProject(Project):
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
             self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
-        with AM("Checking instances availability"):
+        with AM("Provisioning Virtual Machines"):
             vagrant.up()
         # Build ip address list for virtualbox deployment
-        with AM("Build VirutalBox Ansible IP addresses"):
+        with AM("Build VirtualBox Ansible IP addresses"):
             # Assigning Reference Architecture
             self.env.reference_architecture = \
                 self.ansible_vars['reference_architecture']
@@ -112,23 +113,22 @@ class VirtualBoxProject(Project):
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
             self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
-        with AM("Checking instances availability"):
+        with AM("Provisioning Virtual Machines"):
             vagrant.up()
 
-        # Build ip address list for VirutalBox deployment
-        with AM("Build VirutalBox Ansible IP addresses"):
+        # Build ip address list for VirtualBox deployment
+        with AM("Build VirtualBox Ansible IP addresses"):
             # Assigning Reference Architecture
             env.reference_architecture = \
                 self.ansible_vars['reference_architecture']
 
             # Load specifications
             env.cloud_spec = self._load_cloud_specs(env)
-            print(env.cloud_spec)
 
-            # Build VirutalBox Ansible IP addresses
+            # Build VirtualBox Ansible IP addresses
             self._build_virtualbox_ips(env)
 
-        # Build inventory file for VirutalBox deployment
+        # Build inventory file for VirtualBox deployment
         with AM("Build Ansible inventory file %s" % self.ansible_inventory):
             self._build_ansible_inventory(env)
 
@@ -154,14 +154,14 @@ class VirtualBoxProject(Project):
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()
         """
-        Build Ansible variables for VirutalBox deployment.
+        Build Ansible variables for VirtualBox deployment.
         """
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
         edb_repo_username = m.group(1)
         edb_repo_password = m.group(2)
-        # VirutalBox and Vagrant ssh_user and ssh_pass is: 'vagrant'
+        # VirtualBox and Vagrant ssh_user and ssh_pass is: 'vagrant'
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
         operating_system = ''
@@ -188,7 +188,7 @@ class VirtualBoxProject(Project):
 
     def _build_virtualbox_ips(self, env):
         """
-        Build IP Address list for VirutalBox deployment.
+        Build IP Address list for VirtualBox deployment.
         """
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
@@ -221,7 +221,7 @@ class VirtualBoxProject(Project):
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VirutalBox Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['pem_server_1']['name']
             )
@@ -254,7 +254,7 @@ class VirtualBoxProject(Project):
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VirutalBox Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['backup_server_1']['name']
             )
@@ -287,102 +287,76 @@ class VirtualBoxProject(Project):
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VirutalBox Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['postgres_server_1']['name']
             )
 
         if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
-            pem1 = env.cloud_spec['pem_server_1']
-            pg1 = env.cloud_spec['postgres_server_1']
-            backup1 = env.cloud_spec['backup_server_1']
-            inventory = {
-                'all': {
-                    'children': {
-                        'pemserver': {
-                            'hosts': {
-                                pem1['name']: {
-                                    'ansible_host': pem1['public_ip'],
-                                    'private_ip': pem1['private_ip'],
-                                }
-                            }
-                        },
-                        'barmanserver': {
-                            'hosts': {
-                                backup1['name']: {
-                                    'ansible_host': backup1['public_ip'],
-                                    'private_ip': backup1['private_ip'],
-                                }
-                            }
-                        },
-                        'primary': {
-                            'hosts': {
-                                pg1['name']: {
-                                    'ansible_host': pg1['public_ip'],
-                                    'private_ip': pg1['private_ip'],
-                                    'pem_agent': True,
-                                    'pem_server_private_ip': pem1['private_ip'],  # noqa
-                                    'barman': True,
-                                    'barman_server_private_ip': backup1['private_ip'],  # noqa
-                                    'barman_backup_method': 'postgres',
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            inventory['all']['children'].update({
-                'standby': {
-                    'hosts': {}
-                }
-            })
             for i in range(2, 4):
                 try:
                     output = exec_shell(
                         [
                             self.bin("vagrant"),
-                            "ip",
-                            env.cloud_spec['postgres_server_%s' % i]['name']
+                                "ssh",
+                                "standby-%s" %i,
+                                "-c",
+                                "\"ip address",
+                                "show eth1", 
+                                "|",
+                                "grep",
+                                "'inet '",
+                                "|",
+                                "sed",
+                                "-e",
+                                "'s/^.*inet //' -e 's/\/.*$//'\""
                         ],
                         environ=self.environ,
                         cwd=self.vagrant_project_path
                     )
                     result = output.decode("utf-8").split('\n')
+                    result[0] = result[0].strip()
                     env.cloud_spec['postgres_server_%s' % i]['public_ip'] = result[0]  # noqa
                     env.cloud_spec['postgres_server_%s' % i]['private_ip'] = result[0]  # noqa
                 except Exception as e:
                     logging.error("Failed to execute the command")
                     logging.error(e)
                     raise CliError(
-                        ("Failed to obtain VirutalBox Instance IP Address for: %s,"
+                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
                          "please check the logs for details.")
                         % env.cloud_spec['postgres_server_%s' % i]['name']
                     )
         if env.reference_architecture == 'EDB-RA-3':
-            inventory['all']['children'].update({
-                'pgpool2': {
-                    'hosts': {}
-                }
-            })
             for i in range(1, 4):
                 try:
                     output = exec_shell(
                         [
                             self.bin("vagrant"),
-                            "ip",
-                            env.cloud_spec['pooler_server_%s' % i]['name']
+                                "ssh",
+                                "pgpool-%s" %i,
+                                "-c",
+                                "\"ip address",
+                                "show eth1", 
+                                "|",
+                                "grep",
+                                "'inet '",
+                                "|",
+                                "sed",
+                                "-e",
+                                "'s/^.*inet //' -e 's/\/.*$//'\""
                         ],
                         environ=self.environ,
                         cwd=self.vagrant_project_path
                     )
                     result = output.decode("utf-8").split('\n')
+                    result[0] = result[0].strip()
                     env.cloud_spec['pooler_server_%s' % i]['public_ip'] = result[0]  # noqa
                     env.cloud_spec['pooler_server_%s' % i]['private_ip'] = result[0]  # noqa
                 except Exception as e:
                     logging.error("Failed to execute the command")
                     logging.error(e)
                     raise CliError(
-                        ("Failed to obtain VirutalBox Instance IP Address for: %s,"
+                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
                          "please check the logs for details.")
                         % env.cloud_spec['pooler_server_%s' % i]['name']
                     )
@@ -403,7 +377,7 @@ class VirtualBoxProject(Project):
         fromplaybookfile = os.path.join(self.virtualbox_share_path, "playbook.yml")
         playbookfile = os.path.join(self.project_path, "playbook.yml")
 
-        with AM("Copying Vech Config files into %s" % self.vagrantfile):
+        with AM("Copying Vagrant Config files into %s" % self.vagrantfile):
             # Vechfile
             try:
                 shutil.copy(fromvagrantfile, self.vagrantfile)
