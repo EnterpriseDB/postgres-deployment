@@ -3,12 +3,12 @@ import argparse
 from ..options import *
 from .default import default_subcommand_parsers
 
-# Baremetal sub-commands and options
+# Virtualbox sub-commands and options
 def subcommands(subparser):
     # List of the sub-commands we want to be available for the virtualbox
     # command
     available_subcommands = [
-        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list'
+        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list', 'display'
     ]
 
     # Get sub-commands parsers
