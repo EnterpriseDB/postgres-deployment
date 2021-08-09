@@ -96,7 +96,7 @@ class VMwareProject(Project):
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
             self.mech_project_path, bin_path=self.cloud_tools_bin_path
         )
-        with AM("Checking instances availability"):
+        with AM("Provisioning Virtual Machines"):
             mech.up()
 
         # Build ip address list for vmware deployment
