@@ -2,15 +2,87 @@
 
 - name: Copy the pem_probe_alert.sql
   template:
-    src: pem_probe_alert.sql
-    dest: "/tmp/pem_probe_alert.sql"
+    src: pem_bdr_probe.sql.template
+    dest: "/tmp/pem_bdr_probe.sql"
     owner: "{{ pg_owner }}"
     group: "{{ pg_owner }}"
     mode: 0640
   become: yes
 
-- name: Update pem server for unnecessary alerts/probes
+- name: Copy the pem_chart.sql
+  template:
+    src: pem_charts.sql.template
+    dest: "/tmp/pem_charts.sql"
+    owner: "{{ pg_owner }}"
+    group: "{{ pg_owner }}"
+    mode: 0640
+  become: yes
+
+- name: Copy the pem_dashboard.sql
+  template:
+    src: pem_dashboards.sql.template
+    dest: "/tmp/pem_dashboards.sql"
+    owner: "{{ pg_owner }}"
+    group: "{{ pg_owner }}"
+    mode: 0640
+  become: yes
+
+- name: Copy the data_view.sql
+  template:
+    src: data_view.sql
+    dest: "{{ pem_web_home_dir }}/pgadmin/pem/monitor/charts/templates/charts/sql/table/data_view.sql"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: yes
+
+- name: "Shutdown the {{ pem_server_service }} service"
+  systemd:
+    name: "{{ pem_server_service }}"
+    state: stopped
+  become: yes
+
+- name: "Start the {{ pem_server_service }} service"
+  systemd:
+    name: "{{ pem_server_service }}"
+    state: started
+  become: yes
+
+- name: Update pem server for necessary probes
   shell: >
-    psql -f /tmp/pem_probe_alert.sql pem
+    [[ ! -f /tmp/.pem_bdr_probe.sql.done ]] \
+    && {{ pg_bin_path }}/psql \
+        --file=/tmp/pem_bdr_probe.sql \
+        --dbname=pem \
+        --port={{ pg_port }} \
+        --host={{ pg_unix_socket_directories[0] }} \
+    && touch /tmp/.pem_bdr_probe.sql.done \
+    || echo "pem_bdr_probe.sql already executed"
+  become_user: "{{ pg_owner }}"
+  become: yes
+
+- name: Create pem haproxy, pgbouncer and barman charts
+  shell: >
+    [[ ! -f /tmp/.pem_charts.sql.done ]] \
+    && {{ pg_bin_path }}/psql \
+        --file=/tmp/pem_charts.sql \
+        --dbname=pem \
+        --port={{ pg_port }} \
+        --host={{ pg_unix_socket_directories[0] }} \
+    && touch /tmp/.pem_charts.sql.done \
+    || echo "pem_charts.sql already executed"
+  become_user: "{{ pg_owner }}"
+  become: yes
+
+- name: Create pem haproxy, pgbouncer and barman dashboards
+  shell: >
+    [[ ! -f /tmp/.pem_dashboards.sql.done ]] \
+    && {{ pg_bin_path }}/psql \
+        --file=/tmp/pem_dashboards.sql \
+        --dbname=pem \
+        --port={{ pg_port }} \
+        --host={{ pg_unix_socket_directories[0] }} \
+    && touch /tmp/.pem_dashboards.sql.done \
+    || echo "pem_dashboards.sql already executed"
   become_user: "{{ pg_owner }}"
   become: yes

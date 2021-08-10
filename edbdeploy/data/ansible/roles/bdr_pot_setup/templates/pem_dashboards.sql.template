@@ -1,0 +1,213 @@
+--
+-- HAProxy and Pgbouncer Dashboard
+--
+INSERT INTO pem.dashboard (title, level, OWNER, descp, shared, font, font_size, is_ops_dashboard, show_title)
+    VALUES ('HAproxy and Pgbouncer Dashboard', 100, (
+            SELECT
+                oid
+            FROM pg_roles
+            WHERE
+                rolname = CURRENT_USER)::oid,
+        'Dashboard fro HAproxy and Pgbouncer Dashboard',
+        ('{}')::oid[],
+        (NULL)::text,
+        (NULL)::int4,
+        (FALSE)::boolean,
+        (FALSE)::boolean);
+
+INSERT INTO pem.dashboard_section (id, did, title)
+SELECT
+    1,
+    id,
+    'HAProxy Status'
+FROM
+    pem.dashboard
+WHERE
+    title ~* 'HAproxy and Pgbouncer Dashboard'
+UNION
+SELECT
+    2,
+    id,
+    'Pgbouncer Status'
+FROM
+    pem.dashboard
+WHERE
+    title ~* 'HAproxy and Pgbouncer Dashboard';
+
+INSERT INTO pem.dashboard_chart (did, sid, cid, INDEX, size, align, legend_type, show_chart_title)
+    SELECT
+        did, sid, cid, INDEX, 5 AS size,
+        2 align,
+        1 AS legend_type,
+        TRUE AS show_chart_title
+    FROM (
+        SELECT
+            did,
+            ds.id AS sid,
+            c.id AS cid,
+            0 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* '^HAProxy Status' AND c.name ~* 'HAProxy Availability'
+        UNION
+        SELECT
+            did, ds.id AS sid,
+            c.id AS cid,
+            1 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* '^HAProxy Status' AND c.name ~* 'HAProxy Statistics'
+        UNION
+        SELECT
+            did, ds.id AS sid,
+            c.id AS cid,
+            0 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* '^Pgbouncer Status' AND c.name ~* 'Pgbouncer Availability'
+        UNION
+        SELECT
+            did, ds.id AS sid,
+            c.id AS cid,
+            1 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* '^Pgbouncer Status' AND c.name ~* 'Pgbouncer Statistics') AS foo;
+
+
+--
+-- Barman Dashboard
+--
+INSERT INTO pem.dashboard (title, level, OWNER, descp, shared, font, font_size, is_ops_dashboard, show_title)
+    VALUES ('Barman Backup Dashboard', 100, (
+            SELECT
+                oid
+            FROM pg_roles
+            WHERE
+                rolname = CURRENT_USER)::oid,
+        'Dashboard for Barman Backup Dashboard',
+        ('{}')::oid[],
+        (NULL)::text,
+        (NULL)::int4,
+        (FALSE)::boolean,
+        (FALSE)::boolean);
+
+INSERT INTO pem.dashboard_section (id, did, title)
+SELECT
+    1,
+    id,
+    'Barman Backup Details'
+FROM
+    pem.dashboard
+WHERE
+    title ~* 'Barman Backup Dashboard';
+
+
+INSERT INTO pem.dashboard_chart (did, sid, cid, INDEX, size, align, legend_type, show_chart_title)
+    SELECT
+        did, sid, cid, INDEX, 5 AS size,
+        2 align,
+        1 AS legend_type,
+        TRUE AS show_chart_title
+    FROM (
+        SELECT
+            did,
+            ds.id AS sid,
+            c.id AS cid,
+            0 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* '^Barman Backup Details' AND c.name ~* 'Barman Availability'
+        UNION
+        SELECT
+            did, ds.id AS sid,
+            c.id AS cid,
+            1 AS index
+        FROM
+            pem.dashboard_section ds, pem.chart c
+        WHERE
+            ds.title ~* 'Barman Backup Details' AND c.name ~* 'Barman Backup Detail') AS foo;
+
+
+--
+-- Create Data Center Groups
+--
+INSERT INTO pem.server_group (name)
+SELECT
+    unnest(ARRAY['Data Center I', 'Data Center II', 'Data Center III', 'Data Center I - PEM Agents', 'Data Center II - PEM Agents', 'Data Center III - PEM Agents']);
+
+--
+-- Group Servers based on data center
+--
+
+UPDATE
+    pem.server_options po
+SET
+    server_group_id = sg.id
+FROM
+    pem.server_group sg,
+    pem.server s
+WHERE
+    po.server_id = s.id
+    AND sg.name = 'Data Center I'
+    AND s.description IN ('epas1', 'epas2', 'epas3', 'barmandc1');
+
+UPDATE
+    pem.server_options po
+SET
+    server_group_id = sg.id
+FROM
+    pem.server_group sg,
+    pem.server s
+WHERE
+    po.server_id = s.id
+    AND sg.name = 'Data Center II'
+    AND s.description IN ('epas4', 'epas5','epas6', 'barmandc2');
+
+UPDATE
+    pem.server_options po
+SET
+    server_group_id = sg.id
+FROM
+    pem.server_group sg,
+    pem.server s
+WHERE
+    po.server_id = s.id
+    AND sg.name = 'Data Center III'
+    AND s.description IN ('epas7');
+
+--
+-- Group Agents based on data center
+--
+
+UPDATE
+    pem.agent a
+SET
+    group_id = sg.id
+FROM
+    pem.server_group sg
+WHERE sg.name = 'Data Center I - PEM Agents'
+    AND a.description IN ('epas1', 'epas2', 'epas3', 'barmandc1', 'pgbouncer1', 'pgbouncer2');
+
+UPDATE
+    pem.agent a
+SET
+    group_id = sg.id
+FROM
+    pem.server_group sg
+WHERE sg.name = 'Data Center II - PEM Agents'
+    AND a.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3', 'pgbouncer3');
+
+UPDATE
+    pem.agent a
+SET
+    group_id = sg.id
+FROM
+    pem.server_group sg
+WHERE sg.name = 'Data Center III - PEM Agents'
+    AND a.description IN ('epas7');
