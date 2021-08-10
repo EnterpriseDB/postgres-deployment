@@ -8,3 +8,12 @@
   become: yes
   become_user: "{{ pg_owner }}"
   ignore_errors: yes
+
+- name: Create exention edb_wait_states
+  shell: >
+       psql -h "{{ pg_unix_socket_directories[0] }}" \
+            -d "{{ pg_database }}" \
+            -c "CREATE EXTENSION IF NOT EXISTS edb_wait_states;"
+  become: yes
+  become_user: "{{ pg_owner }}"
+  ignore_errors: yes
