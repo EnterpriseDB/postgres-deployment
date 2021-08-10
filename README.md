@@ -132,6 +132,7 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `gcloud-sql`: Google Cloud SQL for PostgreSQL
   * `baremetal`: Baremetal servers and VMs
   * `vmware`: VMWare Workstation
+  * `virtualbox`: Virtualbox
 
 ## Sub-commands
 
