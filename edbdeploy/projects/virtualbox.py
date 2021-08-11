@@ -392,7 +392,7 @@ class VirtualBoxProject(Project):
             )
         )
         self.vagrantfile = os.path.join(self.project_path, "Vagrantfile")
-        fromplaybookfile = os.path.join(self.virtualbox_share_path, "playbook.yml")
+        fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
         playbookfile = os.path.join(self.project_path, "playbook.yml")
 
         with AM("Copying Vagrant Config files into %s" % self.vagrantfile):
