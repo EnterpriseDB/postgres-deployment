@@ -1,7 +1,7 @@
 # VMWare
 
 Further detailed process on how to deploy using `vmware` can be found 
-[here](https://docs.google.com/document/d/1cuzc6ggXWg0qk2oBZevMqfRoDsz52NVd9EqBpt-en1E/edit?usp=sharing).
+[here](https://docs.google.com/document/d/1B6VBFElAeY7Hz_m-pE43yVqWZpZ9ifMv-UmBO-sAhf4/edit?usp=sharing).
 
 ### Pre-Requisites
 In addition to the pre-requisites for `edb-deployment`,
