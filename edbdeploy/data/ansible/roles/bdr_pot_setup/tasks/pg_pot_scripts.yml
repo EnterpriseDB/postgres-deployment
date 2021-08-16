@@ -17,3 +17,16 @@
   become: yes
   become_user: "{{ pg_owner }}"
   ignore_errors: yes
+
+- name: Grant index_advisor permission to pg_ansible_user and pg_project_user
+  include_role:
+    name: edb_devops.edb_postgres.manage_dbserver
+    tasks_from: manage_privileges
+  vars:
+    pg_grant_privileges:
+       - roles: public
+         type: table
+         schema: public
+         objects: index_advisor_log
+         database: "{{ pg_database }}"
+         privileges: ALL
