@@ -48,7 +48,7 @@ STATUS_MSG="status\tmessage"
 PGBOUNCER_SERVICE="{{ pgbouncer_service }}"
 PGBOUNCER_PORT="{{ pgbouncer_port }}"
 PYTHON3="/usr/bin/python3"
-
+PGDATABASE="{{ pg_database }}"
 export PGBIN HAPROXY_SOCKET HAPROXY_SERVICE PGPORT STATUS_MSG
 
 ################################################################################
@@ -64,7 +64,7 @@ function is_haproxy_running()
         echo -e "NOT OK\tHAProxy is not running"
         exit 0
     fi
-    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGPORT} -q
+    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGPORT} -d ${PGDATABASE} -q
     if [[ $? -ne 0 ]]
     then
         echo -e "${STATUS_MSG}"
@@ -89,7 +89,7 @@ function is_pgbouncer_running()
         echo -e "NOT OK\tPgbouncer is not running"
         exit 0
     fi
-    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGBOUNCER_PORT} -q
+    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGBOUNCER_PORT} -d ${PGDATABASE} -q
     if [[ $? -ne 0 ]]
     then
         echo -e "${STATUS_MSG}"
