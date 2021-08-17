@@ -222,6 +222,7 @@ cluster_vars:
   postgres_coredump_filter: '0xff'
   postgres_version: '13'
   postgresql_flavour: epas
+  pgbouncer_pool_mode: transaction
   postgres_conf_settings:
      shared_preload_libraries: "'dbms_pipe, edb_gen, dbms_aq, edb_wait_states, sql-profiler, index_advisor, pg_stat_statements, pglogical, bdr'"
   pg_systemd_service_path: '/etc/systemd/system/postgres.service'

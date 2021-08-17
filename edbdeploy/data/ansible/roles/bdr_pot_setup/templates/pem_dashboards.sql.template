@@ -155,7 +155,7 @@ FROM
 WHERE
     po.server_id = s.id
     AND sg.name = 'Data Center I'
-    AND s.description IN ('epas1', 'epas2', 'epas3', 'barmandc1');
+    AND s.description IN ('epas1', 'epas2', 'epas3', 'barmandc1','pgbouncer1', 'pgbouncer2');
 
 UPDATE
     pem.server_options po
@@ -167,7 +167,7 @@ FROM
 WHERE
     po.server_id = s.id
     AND sg.name = 'Data Center II'
-    AND s.description IN ('epas4', 'epas5','epas6', 'barmandc2');
+    AND s.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3','pgbouncer4');
 
 UPDATE
     pem.server_options po
@@ -211,3 +211,13 @@ FROM
     pem.server_group sg
 WHERE sg.name = 'Data Center III - PEM Agents'
     AND a.description IN ('epas7');
+
+--
+-- Change the default port of the pgbouncer
+--
+UPDATE
+   pem.server
+SET
+   port = 6432
+WHERE
+   description IN ('pgbouncer1', 'pgbouncer2', 'pgbouncer3', 'pgbouncer4');
