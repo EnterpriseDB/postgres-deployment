@@ -14,9 +14,9 @@
     - ansible_facts.services['firewalld.service'].status == 'enabled'
   become: yes
 
-- name: shutdown the httpd service
+- name: "Shutdown the {{ pem_server_service }} service"
   systemd:
-    name: httpd
+    name: "{{ pem_server_service }}"
     state: stopped
   become: yes
 
@@ -69,8 +69,8 @@
   loop_control:
     loop_var: line_item
 
-- name: start the httpd service
+- name: "Start the {{ pem_server_service }} service"
   systemd:
-    name: httpd
+    name: "{{ pem_server_service }}"
     state: started
   become: yes

@@ -37,3 +37,11 @@ pem_server_private_ip: ""
 pem_server_public_ip: ""
 primary_public_ip: ""
 user_expiry_date: ""
+
+pgbouncer_port: 6432
+pgbouncer_service: "pgbouncer"
+haproxy_service: "haproxy"
+haproxy_socket: "/var/run/haproxy.sock"
+pem_agent_bin_path: "/usr/edb/pem/agent/bin"
+pem_web_home_dir: "/usr/edb/pem/web"
+pem_server_service: "httpd"

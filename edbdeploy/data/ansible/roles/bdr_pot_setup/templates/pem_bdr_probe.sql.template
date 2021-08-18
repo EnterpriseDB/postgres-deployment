@@ -1,0 +1,628 @@
+------------------------------------------------------------------------------
+-- SECTION: HAProxy
+------------------------------------------------------------------------------
+
+--
+-- Probe: haproxy_availability
+--
+-- NOTE: Ensure the path to pg_isready and the port number are correct in the
+--       code below. If not, update as appropriate. See:
+
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'HAProxy Availability',
+    'haproxy_availability',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    60,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+  /usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --haproxy-health
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'haproxy_availability'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+            ('status', 'Status', 1, 'm', 'text', '', false, false, false, true),
+            ('message', 'Message', 2, 'm', 'text', '', false, false, false, false)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+--
+-- Probe: haproxy_stats
+--
+-- NOTE: Ensure the path to the stats socket is correct in the code below. If
+--       not, update as appropriate. See 's.connect("/var/run/haproxy.sock")'
+--
+
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'HAProxy Stats',
+    'haproxy_stats',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    300,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+ /usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --haproxy-stats
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'haproxy_stats'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+            ('proxy_name', 'Proxy Name', 1, 'k', 'text', '', false, false, false, false),
+            ('service_name', 'Service Name', 2, 'k', 'text', '', false, false, false, false),
+            ('queued_requests', 'Queued Requests', 3, 'm', 'bigint', '', false, false, true, true),
+            ('current_sessions', 'Current Sessions', 4, 'm', 'bigint', '', false, false, true, true),
+            ('total_sessions', 'Total Sessions', 5, 'm', 'bigint', '', true, false, false, true),
+            ('bytes_in', 'Bytes In', 6, 'm', 'bigint', '', true, false, false, true),
+            ('bytes_out', 'Bytes Out', 7, 'm', 'bigint', '', true, false, false, true),
+            ('status', 'Status', 8, 'm', 'text', '', false, false, false, false),
+            ('check_status', 'Check Status', 9, 'm', 'text', '', false, false, false, false),
+            ('avg_queue_time', 'Average Queue Time', 10, 'm', 'bigint', '', false, false, true, true),
+            ('avg_connect_time', 'Average Connect Time', 11, 'm', 'bigint', '', false, false, true, true),
+            ('avg_response_time', 'Average Response Time', 12, 'm', 'bigint', '', false, false, true, true)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+------------------------------------------------------------------------------
+-- SECTION: PgBouncer
+------------------------------------------------------------------------------
+
+--
+-- Probe: pgbouncer_availability
+--
+-- NOTE: Ensure the path to pg_isready and the port number are correct in the
+--       code below. If not, update as appropriate.
+--
+
+
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'PgBouncer Availability',
+    'pgbouncer_availability',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    60,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+/usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --pgbouncer-health
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'pgbouncer_availability'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+            ('status', 'Status', 1, 'm', 'text', '', false, false, false, false),
+            ('message', 'Message', 2, 'm', 'text', '', false, false, false, false)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+--
+-- Probe: pgbouncer_stats
+--
+--
+
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'PgBouncer Stats',
+    'pgbouncer_stats',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    300,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+/usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --pgbouncer-stats
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'pgbouncer_stats'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+            ('database', 'Database', 1, 'k', 'text', '', false, false, false, false),
+            ('total_xact_count', 'Total Transaction Count', 2, 'm', 'bigint', '', true, false, false, true),
+            ('total_query_count', 'Current Sessions', 3, 'm', 'bigint', '', true, false, false, true),
+            ('total_received', 'Total Data Received', 4, 'm', 'bigint', 'Bytes', true, false, false, true),
+            ('total_sent', 'Total Data Sent', 5, 'm', 'bigint', 'Bytes', true, false, false, true),
+            ('total_xact_time', 'Total Transaction Duration', 6, 'm', 'bigint', 'uSecs', true, false, false, true),
+            ('total_query_time', 'Total Query Duration', 7, 'm', 'bigint', 'uSecs', true, false, false, true),
+            ('total_wait_time', 'Total Wait Time', 8, 'm', 'bigint', 'uSecs', true, false, false, true),
+            ('avg_xact_count', 'Average Transactions per Second', 9, 'm', 'bigint', '', false, false, true, true),
+            ('avg_query_count', 'Average Queries per Second', 10, 'm', 'bigint', '', false, false, true, true),
+            ('avg_recv', 'Average Data Received per Second', 11, 'm', 'bigint', 'Bytes', false, false, true, true),
+            ('avg_sent', 'Average Data Sent per Second', 12, 'm', 'bigint', 'Bytes', false, false, true, true),
+            ('avg_xact_time', 'Average Transaction Duration', 13, 'm', 'bigint', 'uSecs', false, false, true, true),
+            ('avg_query_time', 'Average Query Duration', 14, 'm', 'bigint', 'uSecs', false, false, true, true),
+            ('avg_wait_time', 'Average Wait Time', 15, 'm', 'bigint', 'uSecs', false, false, true, true)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+--
+-- Barman monitor
+--
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'Barman Availability',
+    'barman_availability',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    60,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+  /usr/edb/pem/agent/bin/barman-backup-monitor.py --status
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'barman_availability'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+            ('server_name', 'Server', 1, 'k', 'text', '', false, false, false, false),
+            ('barman_component', 'Barman Component', 2, 'k', 'text', '', false, false, false, false),
+          ('status', 'Status', 3, 'm', 'text', '', false, false, false, false)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+--
+-- Backup Information
+--
+
+INSERT INTO pem.probe (
+    display_name,
+    internal_name,
+    collection_method,
+    target_type_id,
+    agent_capability,
+    enabled_by_default,
+    force_enabled,
+    default_execution_frequency,
+    default_lifetime,
+    any_server_version,
+    is_system_probe,
+    platform,
+    probe_code
+) VALUES (
+    'Barman Backup Info',
+    'barman_backup_info',
+    'b',
+    100,
+    NULL,
+    false,
+    false,
+    60,
+    90,
+    true,
+    false,
+    'unix',
+    $CODE$#!/bin/bash
+  /usr/edb/pem/agent/bin/barman-backup-monitor.py --backup-info
+$CODE$
+);
+
+INSERT INTO pem.probe_column (
+    probe_id,
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+) SELECT
+    (SELECT id FROM pem.probe WHERE internal_name = 'barman_backup_info'),
+    v.internal_name,
+    v.display_name,
+    v.display_position,
+    v.classification,
+    v.sql_data_type,
+    v.unit_of_value,
+    v.calculate_pit,
+    v.discard_history,
+    v.pit_by_default,
+    v.is_graphable
+FROM
+    (VALUES
+          ('server_name', 'Server', 1, 'k', 'text', '', false, false, false, false),
+          ('backup_id', 'Barman Backup Id', 2, 'k', 'text', '', false, false, false, false),
+          ('end_time', 'End Time', 3, 'm', 'text', '', false, false, false, false),
+          ('retention_status', 'Retention Status', 4, 'm', 'text', '', false, false, false, false),
+          ('size', 'Size', 5, 'm', 'text', '', false, false, false, false),
+          ('status', 'Status', 6, 'm', 'text', '', false, false, false, false)
+        )
+v(
+    internal_name,
+    display_name,
+    display_position,
+    classification,
+    sql_data_type,
+    unit_of_value,
+    calculate_pit,
+    discard_history,
+    pit_by_default,
+    is_graphable
+);
+
+
+SELECT pem.create_data_and_history_tables();
+
+--
+-- Fix the bdr probe and disable some probes which are not needed
+--
+BEGIN;
+
+UPDATE
+    pem.probe
+SET
+    enabled_by_default = TRUE
+WHERE
+    internal_name NOT IN ('slony_replication', 'xdb_smr_mmr_replication', 'sql_protect')
+    AND target_type_id = 200
+    AND enabled_by_default = FALSE;
+
+UPDATE
+    pem.alert a
+SET
+    enabled = FALSE
+FROM
+    pem.alert_template t
+WHERE
+    a.template_id = t.id
+    AND (t.display_name ~ '^Last'
+        OR t.display_name ~ '^Largest index'
+        OR t.display_name = 'Database size in server'
+        OR t.display_name ~ 'Alert Errors')
+    AND t.is_auto_create = TRUE
+    AND a.enabled;
+
+--
+-- Fix BDR probe for replication slots
+--
+UPDATE pem.probe
+SET    probe_code = $SQL$
+SELECT node_group_name,
+       origin_name,
+       target_name,
+       slot_name,
+       active,
+       state,
+       (extract(epoch FROM (
+       CASE
+              WHEN write_lag = '' THEN '00:00:00'
+              ELSE write_lag
+       END)::interval))::DECIMAL AS write_lag,
+       (extract(epoch FROM (
+       CASE
+              WHEN flush_lag = '' THEN '00:00:00'
+              ELSE flush_lag
+       END)::interval))::DECIMAL AS flush_lag,
+       (extract(epoch FROM (
+       CASE
+              WHEN replay_lag = '' THEN '00:00:00'
+              ELSE replay_lag
+       END)::interval))::DECIMAL AS replay_lag,
+       sent_lag_bytes::NUMERIC,
+       write_lag_bytes::NUMERIC,
+       flush_lag_bytes::NUMERIC,
+       replay_lag_bytes::NUMERIC
+FROM   bdr.group_replslots_details
+WHERE  slot_name != '';$SQL$
+WHERE internal_name = 'bdr_group_replslots_details';
+
+UPDATE pem.probe
+SET    enabled_by_default = FALSE
+WHERE  internal_name IN ( 'efm_cluster_node_status',
+                          'bdr_node_replication_rates',
+                          'efm_cluster_info');
+UPDATE pem.alert
+SET    enabled = FALSE
+WHERE  template_id IN (SELECT id
+                       FROM   pem.alert_template
+                       WHERE  display_name ~* '^connections in idle state');
+
+--
+-- Make sure we allow enterprisedb as default user PEM server
+--
+
+UPDATE pem.server_option
+SET username = '{{ pg_owner }}'
+WHERE server_id = 1;
+
+--
+-- Disable HAProxy, Pgbouncer and Barman probes for
+-- where it's not applicable
+--
+INSERT INTO pem.probe_config_agent(probe_id, agent_id, enabled, execution_frequency, lifetime)
+SELECT p.id,
+       a.id as agent_id,
+       true,
+       p.default_execution_frequency,
+       p.default_lifetime
+FROM   pem.probe p, pem.agent a
+WHERE  p.internal_name LIKE '%pgbouncer%' AND a.description LIKE 'pgbouncer%'
+UNION
+SELECT p.id,
+       a.id as agent_id,
+       true,
+       p.default_execution_frequency,
+       p.default_lifetime
+FROM   pem.probe p, pem.agent a
+WHERE  p.internal_name LIKE '%haproxy%' AND a.description LIKE 'pgbouncer%'
+UNION
+SELECT p.id,
+       a.id as agent_id,
+       true,
+       p.default_execution_frequency,
+       p.default_lifetime
+FROM   pem.probe p, pem.agent a
+WHERE  p.internal_name LIKE '%barman%' AND a.description LIKE 'barman%';
+
+END;

@@ -103,7 +103,7 @@
   when: >
     'bdr' in role and 'primary' in role
 
-- name: "Ensure {{ first_bdr_primary }} is the leader"
+- name: "Ensure first ndoe in each data center is the leader"
   shell: >
      harpctl leader set
   become_user: "{{ postgres_user }}"

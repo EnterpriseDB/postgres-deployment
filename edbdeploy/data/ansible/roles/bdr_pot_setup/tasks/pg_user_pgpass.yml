@@ -25,7 +25,7 @@
         create: yes
     pg_owner: "{{ os_project_user }}"
 
-- name: Add the pgpass for os_project_user for 6432 on the servers
+- name: Add the pgpass for os_project_user for "{{ pgbouncer_port }}" on the servers
   include_role:
     name: edb_devops.edb_postgres.manage_dbserver
     tasks_from: manage_pgpass
@@ -34,7 +34,7 @@
       - user: "{{ pg_project_user }}"
         password: "{{ input_password }}"
         create: yes
-    pg_port: 6432
+    pg_port: "{{ pgbouncer_port }}"
     pg_owner: "{{ os_project_user }}"
 
 - name: Generate the pg_ansible_user_password
@@ -63,7 +63,7 @@
         create: yes
     pg_owner: "{{ pg_ansible_user }}"
 
-- name: Add the pgpass for pg_ansible_user for 6432 on the servers
+- name: Add the pgpass for pg_ansible_user for "{{ pgbouncer_port }}" on the servers
   include_role:
     name: edb_devops.edb_postgres.manage_dbserver
     tasks_from: manage_pgpass
@@ -72,5 +72,5 @@
       - user: "{{ pg_ansible_user }}"
         password: "{{ input_password }}"
         create: yes
-    pg_port: 6432
+    pg_port: "{{ pgbouncer_port }}"
     pg_owner: "{{ pg_ansible_user }}"

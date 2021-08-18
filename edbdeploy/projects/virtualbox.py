@@ -11,38 +11,38 @@ from ..ansible import AnsibleCli
 from ..errors import CliError, ProjectError
 from ..project import Project
 from ..system import exec_shell
-from ..vmware import VMWareCli
+from ..virtualbox import VirtualBoxCli
 
 
-class VMwareProject(Project):
+class VirtualBoxProject(Project):
     def __init__(self, name, env, bin_path=None):
-        super(VMwareProject, self).__init__('vmware', name, env, bin_path)
+        super(VirtualBoxProject, self).__init__('virtualbox', name, env, bin_path)
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()
         # Build the vars files for Ansible
         self._build_ansible_vars_file(env)
-        # Copy VMWare Mech Config File into project dir.
-        self._copy_vmware_configfiles()
+        # Copy VirtualBox Vagrant Config File into project dir.
+        self._copy_virtualbox_configfiles(env)
 
     def hook_instances_availability(self, cloud_cli):
         # Update before committing with
         # projects_root_path
-        self.mech_project_path = os.path.join(
+        self.vagrant_project_path = os.path.join(
             self.projects_root_path,
-            'vmware',
+            'virtualbox',
             self.name
         )
         mem_size = self.ansible_vars['mem_size']
         cpu_count = self.ansible_vars['cpu_count']
-        mech = VMWareCli(
+        vagrant = VirtualBoxCli(
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
-            self.mech_project_path, bin_path=self.cloud_tools_bin_path
+            self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
-        with AM("Checking instances availability"):
-            mech.up()
-        # Build ip address list for vmware deployment
-        with AM("Build VMWare Ansible IP addresses"):
+        with AM("Provisioning Virtual Machines"):
+            vagrant.up()
+        # Build ip address list for virtualbox deployment
+        with AM("Build VirtualBox Ansible IP addresses"):
             # Assigning Reference Architecture
             self.env.reference_architecture = \
                 self.ansible_vars['reference_architecture']
@@ -50,8 +50,8 @@ class VMwareProject(Project):
             # Load specifications
             self.env.cloud_spec = self._load_cloud_specs(self.env)
 
-            # Build VMWare Ansible IP addresses
-            self._build_vmware_ips(self.env)
+            # Build virtualbox Ansible IP addresses
+            self._build_virtualbox_ips(self.env)
 
     def check_avail_memory(self, mem_size):
         avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
@@ -84,19 +84,35 @@ class VMwareProject(Project):
 
         # Update before committing with
         # projects_root_path
-        self.mech_project_path = os.path.join(
+        self.vagrant_project_path = os.path.join(
             self.projects_root_path,
-            'vmware',
+            'virtualbox',
             self.name
         )
-        # Check only Python3 version when working with vmware deployment
-        vm = VMWareCli(
-            'dummy', self.name, self.cloud, 0, 0, self.mech_project_path,
+        # Check only Python3 version when working with virtualbox deployment
+        vm = VirtualBoxCli(
+            'dummy', self.name, self.cloud, 0, 0, self.vagrant_project_path,
             bin_path=self.cloud_tools_bin_path
         )
         vm.python_check_version()
         vm.vagrant_check_version()
-        vm.mech_check_version()
+
+    def overwrite_vagrant_params(self, mem_size, cpu_count):
+        vagrantfile = os.path.join(
+            self.vagrant_project_path,
+            'Vagrantfile'
+            )
+        with AM("Overwriting default variables in Vagrantfile %s" % vagrantfile):
+            with open(vagrantfile, 'r') as file :
+                vagrantfiledata = file.read()
+
+            # Overwrites default values memory size and cpu count in Vagrantfile
+            vagrantfiledata = vagrantfiledata.replace('v.memory = 3072', 'v.memory = %s' % mem_size)
+            vagrantfiledata = vagrantfiledata.replace('v.cpus = 2', 'v.cpus = %s' % cpu_count)
+
+            # Write the Vagrantfile out again
+            with open(vagrantfile, 'w') as file:
+                file.write(vagrantfiledata)
 
     def provision(self, env):
         # Overload Project.provision()
@@ -104,22 +120,22 @@ class VMwareProject(Project):
 
         # Update before committing with
         # projects_root_path
-        self.mech_project_path = os.path.join(
+        self.vagrant_project_path = os.path.join(
             self.projects_root_path,
-            'vmware',
+            'virtualbox',
             self.name,
         )
         mem_size = self.ansible_vars['mem_size']
         cpu_count = self.ansible_vars['cpu_count']
-        mech = VMWareCli(
+        vagrant = VirtualBoxCli(
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
-            self.mech_project_path, bin_path=self.cloud_tools_bin_path
+            self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
         with AM("Provisioning Virtual Machines"):
-            mech.up()
+            vagrant.up()
 
-        # Build ip address list for vmware deployment
-        with AM("Build VMWare Ansible IP addresses"):
+        # Build ip address list for VirtualBox deployment
+        with AM("Build VirtualBox Ansible IP addresses"):
             # Assigning Reference Architecture
             env.reference_architecture = \
                 self.ansible_vars['reference_architecture']
@@ -127,10 +143,10 @@ class VMwareProject(Project):
             # Load specifications
             env.cloud_spec = self._load_cloud_specs(env)
 
-            # Build VMWare Ansible IP addresses
-            self._build_vmware_ips(env)
+            # Build VirtualBox Ansible IP addresses
+            self._build_virtualbox_ips(env)
 
-        # Build inventory file for vmware deployment
+        # Build inventory file for VirtualBox deployment
         with AM("Build Ansible inventory file %s" % self.ansible_inventory):
             self._build_ansible_inventory(env)
 
@@ -139,31 +155,31 @@ class VMwareProject(Project):
         self._load_ansible_vars()
         # Update before committing with
         # projects_root_path
-        self.mech_project_path = os.path.join(
+        self.vagrant_project_path = os.path.join(
             self.projects_root_path,
-            'vmware',
+            'virtualbox',
             self.name
         )
         mem_size = self.ansible_vars['mem_size']
         cpu_count = self.ansible_vars['cpu_count']
-        mech = VMWareCli(
+        vagrant = VirtualBoxCli(
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
-            self.mech_project_path, bin_path=self.cloud_tools_bin_path
+            self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
         with AM("Destroying cloud resources"):
-            mech.destroy()
+            vagrant.destroy()
 
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()
         """
-        Build Ansible variables for vmware deployment.
+        Build Ansible variables for VirtualBox deployment.
         """
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
         edb_repo_username = m.group(1)
         edb_repo_password = m.group(2)
-        # VMWare and Vagrant ssh_user and ssh_pass is: 'vagrant'
+        # VirtualBox and Vagrant ssh_user and ssh_pass is: 'vagrant'
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
         operating_system = ''
@@ -186,10 +202,11 @@ class VMwareProject(Project):
             'efm_version': env.efm_version,
             'use_hostname': env.use_hostname,
         }
+        
 
-    def _build_vmware_ips(self, env):
+    def _build_virtualbox_ips(self, env):
         """
-        Build IP Address list for vmware deployment.
+        Build IP Address list for VirtualBox deployment.
         """
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
@@ -197,21 +214,32 @@ class VMwareProject(Project):
         try:
             output = exec_shell(
                 [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['pem_server_1']['name']
+                    self.bin("vagrant"),
+                    "ssh",
+                    "pem",
+                    "-c",
+                    "\"ip address",
+                    "show eth1", 
+                    "|",
+                    "grep",
+                    "'inet '",
+                    "|",
+                    "sed",
+                    "-e",
+                    "'s/^.*inet //' -e 's/\/.*$//'\""
                 ],
                 environ=self.environ,
-                cwd=self.mech_project_path
+                cwd=self.vagrant_project_path
             )
             result = output.decode("utf-8").split('\n')
+            result[0] = result[0].strip()
             env.cloud_spec['pem_server_1']['public_ip'] = result[0]
             env.cloud_spec['pem_server_1']['private_ip'] = result[0]
         except Exception as e:
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VMWare Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['pem_server_1']['name']
             )
@@ -219,21 +247,32 @@ class VMwareProject(Project):
         try:
             output = exec_shell(
                 [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['backup_server_1']['name']
+                    self.bin("vagrant"),
+                    "ssh",
+                    "barman",
+                    "-c",
+                    "\"ip address",
+                    "show eth1", 
+                    "|",
+                    "grep",
+                    "'inet '",
+                    "|",
+                    "sed",
+                    "-e",
+                    "'s/^.*inet //' -e 's/\/.*$//'\""
                 ],
                 environ=self.environ,
-                cwd=self.mech_project_path
+                cwd=self.vagrant_project_path
             )
             result = output.decode("utf-8").split('\n')
+            result[0] = result[0].strip()
             env.cloud_spec['backup_server_1']['public_ip'] = result[0]
             env.cloud_spec['backup_server_1']['private_ip'] = result[0]
         except Exception as e:
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VMWare Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['backup_server_1']['name']
             )
@@ -241,172 +280,157 @@ class VMwareProject(Project):
         try:
             output = exec_shell(
                 [
-                    self.bin("mech"),
-                    "ip",
-                    "%s" % env.cloud_spec['postgres_server_1']['name']
+                    self.bin("vagrant"),
+                    "ssh",
+                    "primary",
+                    "-c",
+                    "\"ip address",
+                    "show eth1", 
+                    "|",
+                    "grep",
+                    "'inet '",
+                    "|",
+                    "sed",
+                    "-e",
+                    "'s/^.*inet //' -e 's/\/.*$//'\""
                 ],
                 environ=self.environ,
-                cwd=self.mech_project_path
+                cwd=self.vagrant_project_path
             )
             result = output.decode("utf-8").split('\n')
+            result[0] = result[0].strip()
             env.cloud_spec['postgres_server_1']['public_ip'] = result[0]
             env.cloud_spec['postgres_server_1']['private_ip'] = result[0]
         except Exception as e:
             logging.error("Failed to execute the command")
             logging.error(e)
             raise CliError(
-                ("Failed to obtain VMWare Instance IP Address for: %s, please "
+                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
                  "check the logs for details.")
                 % env.cloud_spec['postgres_server_1']['name']
             )
 
         if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
-            pem1 = env.cloud_spec['pem_server_1']
-            pg1 = env.cloud_spec['postgres_server_1']
-            backup1 = env.cloud_spec['backup_server_1']
-            inventory = {
-                'all': {
-                    'children': {
-                        'pemserver': {
-                            'hosts': {
-                                pem1['name']: {
-                                    'ansible_host': pem1['public_ip'],
-                                    'private_ip': pem1['private_ip'],
-                                }
-                            }
-                        },
-                        'barmanserver': {
-                            'hosts': {
-                                backup1['name']: {
-                                    'ansible_host': backup1['public_ip'],
-                                    'private_ip': backup1['private_ip'],
-                                }
-                            }
-                        },
-                        'primary': {
-                            'hosts': {
-                                pg1['name']: {
-                                    'ansible_host': pg1['public_ip'],
-                                    'private_ip': pg1['private_ip'],
-                                    'pem_agent': True,
-                                    'pem_server_private_ip': pem1['private_ip'],  # noqa
-                                    'barman': True,
-                                    'barman_server_private_ip': backup1['private_ip'],  # noqa
-                                    'barman_backup_method': 'postgres',
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            inventory['all']['children'].update({
-                'standby': {
-                    'hosts': {}
-                }
-            })
             for i in range(2, 4):
                 try:
                     output = exec_shell(
                         [
-                            self.bin("mech"),
-                            "ip",
-                            env.cloud_spec['postgres_server_%s' % i]['name']
+                            self.bin("vagrant"),
+                                "ssh",
+                                "standby-%s" %i,
+                                "-c",
+                                "\"ip address",
+                                "show eth1", 
+                                "|",
+                                "grep",
+                                "'inet '",
+                                "|",
+                                "sed",
+                                "-e",
+                                "'s/^.*inet //' -e 's/\/.*$//'\""
                         ],
                         environ=self.environ,
-                        cwd=self.mech_project_path
+                        cwd=self.vagrant_project_path
                     )
                     result = output.decode("utf-8").split('\n')
+                    result[0] = result[0].strip()
                     env.cloud_spec['postgres_server_%s' % i]['public_ip'] = result[0]  # noqa
                     env.cloud_spec['postgres_server_%s' % i]['private_ip'] = result[0]  # noqa
                 except Exception as e:
                     logging.error("Failed to execute the command")
                     logging.error(e)
                     raise CliError(
-                        ("Failed to obtain VMWare Instance IP Address for: %s,"
+                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
                          "please check the logs for details.")
                         % env.cloud_spec['postgres_server_%s' % i]['name']
                     )
         if env.reference_architecture == 'EDB-RA-3':
-            inventory['all']['children'].update({
-                'pgpool2': {
-                    'hosts': {}
-                }
-            })
             for i in range(1, 4):
                 try:
                     output = exec_shell(
                         [
-                            self.bin("mech"),
-                            "ip",
-                            env.cloud_spec['pooler_server_%s' % i]['name']
+                            self.bin("vagrant"),
+                                "ssh",
+                                "pgpool-%s" %i,
+                                "-c",
+                                "\"ip address",
+                                "show eth1", 
+                                "|",
+                                "grep",
+                                "'inet '",
+                                "|",
+                                "sed",
+                                "-e",
+                                "'s/^.*inet //' -e 's/\/.*$//'\""
                         ],
                         environ=self.environ,
-                        cwd=self.mech_project_path
+                        cwd=self.vagrant_project_path
                     )
                     result = output.decode("utf-8").split('\n')
+                    result[0] = result[0].strip()
                     env.cloud_spec['pooler_server_%s' % i]['public_ip'] = result[0]  # noqa
                     env.cloud_spec['pooler_server_%s' % i]['private_ip'] = result[0]  # noqa
                 except Exception as e:
                     logging.error("Failed to execute the command")
                     logging.error(e)
                     raise CliError(
-                        ("Failed to obtain VMWare Instance IP Address for: %s,"
+                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
                          "please check the logs for details.")
                         % env.cloud_spec['pooler_server_%s' % i]['name']
                     )
 
-    def _copy_vmware_configfiles(self):
+    def _copy_virtualbox_configfiles(self, env):
         """
-        Copy reference architecture Mech Config file into project directory.
+        Copy reference architecture Vagrant Config file into project directory.
         """
-        # Un-comment the self.vmware_share_path once the entire commit has been
-        # completed
-        frommechfile = os.path.join(
-            self.vmware_share_path,
+
+        fromvagrantfile = os.path.join(
+            self.virtualbox_share_path,
             "%s-%s" % (
                 self.ansible_vars['operating_system'],
                 self.ansible_vars['reference_architecture']
             )
         )
-        self.mechfile = os.path.join(self.project_path, "Mechfile")
-        fromplaybookfile = os.path.join(self.vmware_share_path, "playbook.yml")
+        self.vagrantfile = os.path.join(self.project_path, "Vagrantfile")
+        fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
         playbookfile = os.path.join(self.project_path, "playbook.yml")
 
-        with AM("Copying Mech Config files into %s" % self.mechfile):
-            # Mechfile
+        with AM("Copying Vagrant Config files into %s" % self.vagrantfile):
+            # Vagrantfile
             try:
-                shutil.copy(frommechfile, self.mechfile)
+                shutil.copy(fromvagrantfile, self.vagrantfile)
             except IOError as e:
                 if e.errno != errno.ENOENT:
                     raise
-                os.makedirs(os.path.dirname(self.mechfile))
-                shutil.copy(frommechfile, self.mechfile)
+                os.makedirs(os.path.dirname(self.vagrantfile))
+                shutil.copy(fromvagrantfile, self.vagrantfile)
             # Playbook File
             try:
                 shutil.copy(fromplaybookfile, playbookfile)
             except IOError as e:
                 if e.errno != errno.ENOENT:
                     raise
-                os.makedirs(os.path.dirname(self.mechfile))
+                os.makedirs(os.path.dirname(self.vagrantfile))
                 shutil.copy(fromplaybookfile, playbookfile)
+        self.overwrite_vagrant_params(env.mem_size, env.cpu_count)
 
     def remove(self):
         # Overload Project.remove()
         self._load_ansible_vars()
         # Update before committing with projects_root_path
-        self.mech_project_path = os.path.join(
+        self.vagrant_project_path = os.path.join(
             self.projects_root_path,
-            'vmware/',
+            'virtualbox/',
             self.name
         )
         mem_size = self.ansible_vars['mem_size']
         cpu_count = self.ansible_vars['cpu_count']
-        mech = VMWareCli(
+        vagrant = VirtualBoxCli(
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
-            self.mech_project_path, bin_path=self.cloud_tools_bin_path
+            self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
         # Counts images currently running in project folder
-        if mech.count_resources() > 0:
+        if vagrant.count_resources() > 0:
             raise ProjectError(
                 "Some cloud resources seem to be still present for this "
                 "project, please destroy them with the 'destroy' sub-command"
@@ -439,10 +463,10 @@ class VMwareProject(Project):
 
                 data = open(project.project_path + "/ansible_vars.json", "r")
                 ansible_vars = json.load(data)
-                mech_project_path = project.project_path
-                mech = VMWareCli(
+                vagrant_project_path = project.project_path
+                vagrant = VirtualBoxCli(
                     cloud, project.name, cloud, ansible_vars['mem_size'],
-                    ansible_vars['cpu_count'], mech_project_path,
+                    ansible_vars['cpu_count'], vagrant_project_path,
                     bin_path=project.cloud_tools_bin_path
                 )
 
@@ -457,10 +481,10 @@ class VMwareProject(Project):
                     # Counts the number of machines running in the project, if
                     # it is greater than 0 than it is PROVISIONED otherwise it
                     # is destroyed
-                    mech.mech_machine_status(),
+                    vagrant.vagrant_machine_status(),
                     # Returns an integer of the number of images running in the
                     # project
-                    str(mech.count_resources()),
+                    str(vagrant.count_resources()),
                     states.get('ansible', 'UNKNOWN')
                 ])
 

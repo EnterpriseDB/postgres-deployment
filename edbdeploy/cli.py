@@ -16,6 +16,7 @@ from .commands import (
     gcloud_pot,
     gcloud_sql,
     vmware,
+    virtualbox
 )
 
 
@@ -66,6 +67,7 @@ def parse():
         'baremetal', help='Baremetal servers and VMs'
     )
     vmware_parser = subparsers.add_parser('vmware', help='VMWare Workstation')
+    virtualbox_parser = subparsers.add_parser('virtualbox', help='VirutalBox')
 
     # Sub-commands parsers
     aws_subparser = aws_parser.add_subparsers(
@@ -113,6 +115,10 @@ def parse():
         title='VMWare sub-commands', dest='sub_command',
         metavar='<sub-command>'
     )
+    virtualbox_subparser = virtualbox_parser.add_subparsers(
+        title='VirtualBox sub-commands', dest='sub_command',
+        metavar='<sub-command>'
+    )
 
     # Attach sub-commands options to the sub-parsers
     aws.subcommands(aws_subparser)
@@ -127,6 +133,7 @@ def parse():
     gcloud_sql.subcommands(gcloud_sql_subparser)
     baremetal.subcommands(baremetal_subparser)
     vmware.subcommands(vmware_subparser)
+    virtualbox.subcommands(virtualbox_subparser)
 
     # Autocompletion with argcomplete
     argcomplete.autocomplete(parser)
@@ -171,6 +178,8 @@ def parse():
             baremetal_parser.print_help()
         elif env.cloud == 'vmware':
             vmware_parser.print_help()
+        elif env.cloud == 'virutalbox':
+            virtualbox_parser.print_help()
         sys.stderr.write('error: too few arguments\n')
         sys.exit(2)
 

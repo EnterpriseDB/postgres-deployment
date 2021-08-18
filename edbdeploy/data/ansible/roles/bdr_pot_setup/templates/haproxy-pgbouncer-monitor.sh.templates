@@ -1,0 +1,208 @@
+#!/bin/bash
+
+################################################################################
+# Copyright EnterpriseDB Cooperation
+# All rights reserved.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#    * Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#    * Redistributions in binary form must reproduce the above copyright
+#      notice, this list of conditions and the following disclaimer in
+#      the documentation and/or other materials provided with the
+#      distribution.
+#    * Neither the name of PostgreSQL nor the names of its contributors
+#      may be used to endorse or promote products derived from this
+#      software without specific prior written permission.
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+#  Author: Vibhor Kumar
+#  E-mail ID: vibhor.aim@gmail.com
+################################################################################
+# verify any undefined shell variables
+set -u
+
+
+################################################################################
+# HAProxy environment
+################################################################################
+
+PGBIN="{{ pg_bin_path }}"
+PGPORT="{{ pg_port }}"
+PGOWNER="{{ pg_owner }}"
+HAPROXY_SOCKET="{{ haproxy_socket }}"
+HAPROXY_SERVICE="{{ haproxy_service }}"
+STATUS_MSG="status\tmessage"
+PGBOUNCER_SERVICE="{{ pgbouncer_service }}"
+PGBOUNCER_PORT="{{ pgbouncer_port }}"
+PYTHON3="/usr/bin/python3"
+PGDATABASE="{{ pg_database }}"
+export PGBIN HAPROXY_SOCKET HAPROXY_SERVICE PGPORT STATUS_MSG
+
+################################################################################
+# HAProxy is running or not
+################################################################################
+
+function is_haproxy_running()
+{
+    /bin/systemctl status ${HAPROXY_SERVICE} >/dev/null 2>&1
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tHAProxy is not running"
+        exit 0
+    fi
+    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGPORT} -d ${PGDATABASE} -q
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tHAProxy is not redirecting connections"
+        exit 0
+    fi
+    echo -e "${STATUS_MSG}"
+    echo -e "OK\tHAProxy is running"
+    exit 0
+}
+
+################################################################################
+# pgbouncer is running or not
+################################################################################
+
+function is_pgbouncer_running()
+{
+    /bin/systemctl status ${PGBOUNCER_SERVICE} >/dev/null 2>&1
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tPgbouncer is not running"
+        exit 0
+    fi
+    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGBOUNCER_PORT} -d ${PGDATABASE} -q
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tPgbouncer is not redirecting connections"
+        exit 0
+    fi
+    echo -e "${STATUS_MSG}"
+    echo -e "OK\tPgbouncer is running"
+    exit 0
+}
+
+################################################################################
+# pgbouncer stats
+################################################################################
+
+function pgbouncer_stats()
+{
+    /usr/bin/sudo -u ${PGOWNER} \
+        ${PGBIN}/psql \
+            --no-align \
+            --field-separator=$'\t' \
+            --port=6432 \
+            --username=pgbouncer \
+            --command='SHOW STATS;' \
+            --dbname=pgbouncer \
+            | grep -v "rows)"
+}
+
+################################################################################
+# HAProxy Stats
+################################################################################
+
+function haproxy_stats()
+{
+${PYTHON3} <<EOF
+
+import os
+import socket
+
+with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+    s.connect(os.environ.get('HAPROXY_SOCKET'))
+    s.send(b"show stat\n")
+    raw_data = s.recv(32768)
+    s.close()
+
+raw_data = raw_data.decode()[2:]
+raw_lines = raw_data.strip().split('\n')
+
+lines = []
+for raw_line in raw_lines[1:]:
+    # Replace empty values with zeros, as PEM dislikes NULLs with custom probes
+    line = ["0" if x == '' else x for x in raw_line.split(',')]
+    lines.append(line)
+
+print('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
+     %
+     ( "proxy_name",
+       "service_name",
+       "queued_requests",
+       "current_sessions",
+       "total_sessions",
+       "bytes_in",
+       "bytes_out",
+       "status",
+       "check_status",
+       "avg_queue_time",
+       "avg_connect_time",
+       "avg_response_time"
+      )
+)
+
+for line in lines:
+    print('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
+          %
+          ( line[0],
+            line[1],
+            line[2],
+            line[4],
+            line[7],
+            line[8],
+            line[9],
+            line[17],
+            line[36],
+            line[58],
+            line[59],
+            line[60]
+         )
+    )
+EOF
+}
+
+################################################################################
+# call the functions based on the functions
+################################################################################
+
+case "$1" in
+    --haproxy-health)
+        is_haproxy_running
+        ;;
+    --pgbouncer-health)
+        is_pgbouncer_running
+        ;;
+    --haproxy-stats)
+        haproxy_stats 2>/dev/null
+        ;;
+    --pgbouncer-stats)
+        pgbouncer_stats 2>/dev/null
+        ;;
+    *)
+        echo "ERROR: Unknown Option. Options are listed below"
+	echo "   --haproxy-health"
+	echo "   --pgbouncer-health"
+	echo "   --haproxy-stats"
+	echo "   --pgbouncer-stats"
+        ;;
+esac

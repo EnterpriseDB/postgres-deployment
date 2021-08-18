@@ -1,4 +1,14 @@
 ---
+- name: Install missing packages by tpaexec
+  package:
+    name:
+      - edb-as13-server-edb-modules
+      - edb-as13-server-indexadvisor
+      - edb-as13-server-sqlprofiler
+      - edb-as13-server-sqlprotect
+  when: >
+    'bdr' in role and 'primary' in role
+
 - name: Create /pgwal/wal directory
   file:
     path: "/pgwal/pg_wal"

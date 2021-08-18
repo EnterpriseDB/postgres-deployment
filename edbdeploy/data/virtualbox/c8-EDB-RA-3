@@ -1,0 +1,79 @@
+# Choose your docker image from hub.docker.com
+# Recommended those with guest additions already installed
+# CentOS 8
+IMAGE_NAME = "bento/centos-8"
+# Box names
+PEM_BOX_NAME = "PEM"
+BARMAN_BOX_NAME = "BARMAN"
+PRIMARY_BOX_NAME = "PRIMARY"
+STANDBY_BOX_NAME = "STANDBY"
+PGPOOL_BOX_NAME = "PGPOOL"
+# Number of Standby's
+N = 2
+P = 3
+# IP Addresses
+STARTING_IP = "192.168.81."
+STARTING_IP_COUNT = 100
+BARMAN_STARTING_IP_COUNT = STARTING_IP_COUNT + 1
+PRIMARY_STARTING_IP_COUNT = STARTING_IP_COUNT + 2
+STANDBY_STARTING_IP_COUNT = PRIMARY_STARTING_IP_COUNT
+PGPOOL_STARTING_IP_COUNT = STANDBY_STARTING_IP_COUNT + 2
+
+Vagrant.configure("2") do |config|
+    #config.ssh.insert_key = false
+    config.ssh.forward_agent = true
+
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 3072
+        v.cpus = 2
+        #v.gui = true
+    end
+
+    config.vm.boot_timeout = 600
+
+    config.vm.define "pem" do |pem|
+        pem.vm.box = IMAGE_NAME
+        pem.vm.network "private_network", ip: STARTING_IP + "#{STARTING_IP_COUNT}"
+        pem.vm.hostname = PEM_BOX_NAME
+        # Creation and assignment of random port for ssh_port
+        r = Random.new
+        ssh_port = r.rand(1000...2000)
+        pem.vm.network "forwarded_port", guest: "22", host: "#{ssh_port}", host_ip: "127.0.0.1", id: 'ssh'
+    end
+
+    config.vm.define "barman" do |barman|
+        barman.vm.box = IMAGE_NAME
+        barman.vm.network "private_network", ip: STARTING_IP + "#{BARMAN_STARTING_IP_COUNT}"
+        barman.vm.hostname = BARMAN_BOX_NAME
+        # Creation and assignment of random port for ssh_port
+        r = Random.new
+        ssh_port = r.rand(2001...3000)
+        barman.vm.network "forwarded_port", guest: "22", host: "#{ssh_port}", host_ip: "127.0.0.1", id: 'ssh'
+    end
+
+    config.vm.define "primary" do |primary|
+        primary.vm.box = IMAGE_NAME
+        primary.vm.network "private_network", ip: STARTING_IP + "#{PRIMARY_STARTING_IP_COUNT}"
+        primary.vm.hostname = PRIMARY_BOX_NAME
+        # Creation and assignment of random port for ssh_port
+        r = Random.new
+        ssh_port = r.rand(3001...4000)
+        primary.vm.network "forwarded_port", guest: "22", host: "#{ssh_port}", host_ip: "127.0.0.1", id: 'ssh'
+    end
+
+    (1..N).each do |i|
+        config.vm.define "standby-#{i+1}" do |standby|
+            standby.vm.box = IMAGE_NAME
+            standby.vm.network "private_network", ip: STARTING_IP + "#{STANDBY_STARTING_IP_COUNT + i}"
+            standby.vm.hostname = STANDBY_BOX_NAME + "-#{i+1}"
+        end
+    end
+
+    (1..P).each do |i|
+        config.vm.define "pgpool-#{i}" do |pgpool|
+            pgpool.vm.box = IMAGE_NAME
+            pgpool.vm.network "private_network", ip: STARTING_IP + "#{PGPOOL_STARTING_IP_COUNT + i}"
+            pgpool.vm.hostname = PGPOOL_BOX_NAME + "-#{i}"
+        end
+    end
+end

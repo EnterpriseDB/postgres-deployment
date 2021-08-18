@@ -3,9 +3,9 @@ import argparse
 from ..options import *
 from .default import default_subcommand_parsers
 
-# VMWare sub-commands and options
+# Virtualbox sub-commands and options
 def subcommands(subparser):
-    # List of the sub-commands we want to be available for the vmwarewkstn
+    # List of the sub-commands we want to be available for the virtualbox
     # command
     available_subcommands = [
         'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list', 'display'
@@ -16,7 +16,7 @@ def subcommands(subparser):
         subparser, available_subcommands
     )
 
-    # vmware deploy sub-command options
+    # virtualbox deploy sub-command options
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
@@ -36,8 +36,8 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-o', '--os',
         dest='operating_system',
-        choices=VMWareOSOption.choices,
-        default=VMWareOSOption.default,
+        choices=VirtualBoxOSOption.choices,
+        default=VirtualBoxOSOption.default,
         metavar='<operating-system>',
         help=OSOption.help
     )
@@ -60,10 +60,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-e', '--efm-version',
         dest='efm_version',
-        choices=EFMVersionOptionVMWare.choices,
-        default=EFMVersionOptionVMWare.default,
+        choices=EFMVersionOptionVirtualBox.choices,
+        default=EFMVersionOptionVirtualBox.default,
         metavar='<efm-version>',
-        help=EFMVersionOptionVMWare.help
+        help=EFMVersionOptionVirtualBox.help
     )
     subcommand_parsers['configure'].add_argument(
         '--use-hostname',
@@ -101,9 +101,8 @@ def subcommands(subparser):
         '-m', '--mem-size',
         dest='mem_size',
         required=True,
-        choices=MemSizeOptionsVMWare.choices,
-        default=MemSizeOptionsVMWare.default,
-        metavar="<mem-size>",
+        choices=MemSizeOptionsVirtualBox.choices,
+        default=MemSizeOptionsVirtualBox.default,
         help="Amount of memory to assign"
     )
 
@@ -111,13 +110,12 @@ def subcommands(subparser):
         '-c', '--cpu-count',
         dest='cpu_count',
         required=True,
-        choices=CPUCountOptionsVMWare.choices,
-        default=CPUCountOptionsVMWare.default,
-        metavar="<cpu-count>",
+        choices=CPUCountOptionsVirtualBox.choices,
+        default=CPUCountOptionsVirtualBox.default,
         help="Number of CPUS to configure"
     )
 
-    # vmware deploy sub-command options
+    # virtualbox deploy sub-command options
     subcommand_parsers['provision'].add_argument(
         '-S', '--skip-main-playbook',
         dest='skip_main_playbook',
@@ -125,7 +123,7 @@ def subcommands(subparser):
         help="Skip main playbook of the reference architecture."
     )
 
-    # vmware deploy sub-command options
+    # virtualbox deploy sub-command options
     subcommand_parsers['deploy'].add_argument(
         '-n', '--no-install-collection',
         dest='no_install_collection',
@@ -153,7 +151,7 @@ def subcommands(subparser):
         help="Skip main playbook of the reference architecture."
     )
 
-    # vmware deploy sub-command options
+    # virtualbox deploy sub-command options
     subcommand_parsers['destroy'].add_argument(
         '-S', '--skip-main-playbook',
         dest='skip_main_playbook',
@@ -161,7 +159,7 @@ def subcommands(subparser):
         help="Skip main playbook of the reference architecture."
     )
 
-    # vmware logs sub-command options
+    # virtualbox logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
         dest='tail',
