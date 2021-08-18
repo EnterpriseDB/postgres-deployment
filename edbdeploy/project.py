@@ -66,7 +66,7 @@ class Project:
         'virtualbox'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres:3.4.0'
+    ansible_collection_name = 'edb_devops.edb_postgres:3.5.0'
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
