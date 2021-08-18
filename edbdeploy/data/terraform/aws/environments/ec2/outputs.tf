@@ -379,6 +379,13 @@ instances:
   - barman
   - etcd
 %{endfor ~}
+%{if var.pem_server["count"] > 0 ~}
+- Name: pemserver1
+  node: ${var.bdr_server["count"] + var.bdr_witness_server["count"] + var.pooler_server["count"] + var.barman_server["count"] + 1}
+  location: BDRDC3
+  public_ip: ${aws_instance.pem_server[0].public_ip}
+  private_ip: ${aws_instance.pem_server[0].private_ip}
+%{endif ~}
 %{endif ~}
 EOT
 }
