@@ -3,6 +3,8 @@
   name: Postgres deployment playbook for reference architecture EDB-RA-1
   become: yes
   gather_facts: yes
+  any_errors_fatal: True
+  max_fail_percentage: 0
 
   collections:
     - edb_devops.edb_postgres
