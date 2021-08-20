@@ -44,7 +44,7 @@ ReferenceArchitectureSpec = {
         'pem_server': True,
         'barman': True,
         'barman_server_count': 1,
-        'bdr_server_count': 1,
+        'bdr_server_count': 0,
         'bdr_witness_count': 0,
         'pooler_count': 3,
         'pooler_type': "pgpool2",
