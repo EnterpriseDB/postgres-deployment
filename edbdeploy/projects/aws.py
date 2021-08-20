@@ -61,12 +61,12 @@ class AWSProject(Project):
             'cluster_name': self.name,
             'dbt2': ra['dbt2'],
             'dbt2_client': {
-                'count': dbt2_client['count'] if 'count' in dbt2_client else ra['dbt2_client_count'],
+                'count': ra['dbt2_client_count'],
                 'instance_type': dbt2_client['instance_type'],
                 'volume': dbt2_client['volume'],
             },
             'dbt2_driver': {
-                'count': dbt2_driver['count'] if 'count' in dbt2_driver else ra['dbt2_client_count'],
+                'count': ra['dbt2_client_count'],
                 'instance_type': dbt2_driver['instance_type'],
                 'volume': dbt2_driver['volume'],
             },
