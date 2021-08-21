@@ -39,4 +39,8 @@ WHERE  template_id IN (SELECT id
 UPDATE pem.server_option
 SET username = '{{ pg_owner }}'
 WHERE server_id = 1;
+
+UPDATE
+   pem.server
+   SET description = split_part(description,':',1);
 END;
