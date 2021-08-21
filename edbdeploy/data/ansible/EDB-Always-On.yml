@@ -1,6 +1,6 @@
 ---
-- hosts: all
-  name: Postgres deployment playbook for reference architecture EDB-Always-On
+- name: Postgres deployment playbook for reference architecture EDB-Always-On
+  hosts: all
   become: yes
   gather_facts: yes
   any_errors_fatal: True
@@ -13,7 +13,6 @@
       set_fact:
         use_hostname: yes
         disable_logging: false
-        efm_version: 4.2
         pg_unix_socket_directories:
             - "/tmp"
         pem_agent_package: "edb-pem-agent-8.0.1"
@@ -42,17 +41,20 @@
     - role: setup_pemserver
       when: "'pemserver' in group_names"
     - role: setup_pemagent
-      when: "'primary' in group_names"
+      when: inventory_hostname == groups.primary[0]
+    - role: setup_pemagent
+      when:
+      - "'primary' in group_names"
+      - inventory_hostname != groups.primary[0]
     - role: setup_pemagent
       vars:
         efm_enabled: False
-        force_register_db: False
       when: "'barmanserver' in group_names"
     - role: setup_pemagent
       vars:
         pg_service: pgbouncer
         pg_port: 6432
-        efm_enabled: False
-        force_register_db: True
+        efm_enabled: false
+        force_register_db: true
       when: "'pgbouncer' in group_names"
     - role: bdr_pot_setup

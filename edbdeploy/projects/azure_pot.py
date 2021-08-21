@@ -7,7 +7,7 @@ from ..project import Project
 
 class AzurePOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:3.4.0'
+    ansible_collection_name = 'edb_devops.edb_postgres:3.5.2'
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
