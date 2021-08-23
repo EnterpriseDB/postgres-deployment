@@ -12,6 +12,8 @@
         use_hostname: yes
         disable_logging: false
         efm_version: 4.1
+        pg_unix_socket_directories:
+           - "{{ '/var/run/edb/as' + pg_version if pg_type == 'EPAS' else '/var/run/postgresql' }}"
   roles:
     - role: setup_repo
       when: "'setup_repo' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
