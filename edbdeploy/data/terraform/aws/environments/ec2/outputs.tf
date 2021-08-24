@@ -222,7 +222,6 @@ cluster_vars:
   postgres_coredump_filter: '0xff'
   postgres_version: '13'
   postgresql_flavour: epas
-  pgbouncer_pool_mode: transaction
   postgres_conf_settings:
      shared_preload_libraries: "'dbms_pipe, edb_gen, dbms_aq, edb_wait_states, sql-profiler, index_advisor, pg_stat_statements, pglogical, bdr'"
   pg_systemd_service_path: '/etc/systemd/system/postgres.service'
@@ -379,6 +378,13 @@ instances:
   - barman
   - etcd
 %{endfor ~}
+%{if var.pem_server["count"] > 0 ~}
+- Name: pemserver1
+  node: ${var.bdr_server["count"] + var.bdr_witness_server["count"] + var.pooler_server["count"] + var.barman_server["count"] + 1}
+  location: BDRDC3
+  public_ip: ${aws_instance.pem_server[0].public_ip}
+  private_ip: ${aws_instance.pem_server[0].private_ip}
+%{endif ~}
 %{endif ~}
 EOT
 }

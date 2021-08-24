@@ -142,6 +142,13 @@ SELECT
     unnest(ARRAY['Data Center I', 'Data Center II', 'Data Center III', 'Data Center I - PEM Agents', 'Data Center II - PEM Agents', 'Data Center III - PEM Agents']);
 
 --
+-- Remove the extra port number from pem.description
+--
+UPDATE
+   pem.server
+   SET description = split_part(description,':',1);
+
+--
 -- Group Servers based on data center
 --
 
@@ -155,7 +162,8 @@ FROM
 WHERE
     po.server_id = s.id
     AND sg.name = 'Data Center I'
-    AND s.description IN ('epas1', 'epas2', 'epas3', 'barmandc1','pgbouncer1', 'pgbouncer2');
+    AND (s.description IN ('epas1', 'epas2', 'epas3', 'barmandc1','pgbouncer1', 'pgbouncer2')
+    OR s.description IN ('epas1:5444', 'epas2:5444', 'epas3:5444', 'barmandc1','pgbouncer1:6432', 'pgbouncer2:6432'));
 
 UPDATE
     pem.server_options po
@@ -167,7 +175,8 @@ FROM
 WHERE
     po.server_id = s.id
     AND sg.name = 'Data Center II'
-    AND s.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3','pgbouncer4');
+    AND (s.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3','pgbouncer4')
+    OR s.description IN ('epas4', 'epas5:5444','epas6:5444', 'barmandc2', 'pgbouncer3:6432','pgbouncer4:6432'));
 
 UPDATE
     pem.server_options po
@@ -179,7 +188,8 @@ FROM
 WHERE
     po.server_id = s.id
     AND sg.name = 'Data Center III'
-    AND s.description IN ('epas7');
+    AND (s.description IN ('epas7')
+    OR s.description IN ('epas7:5444'));
 
 --
 -- Group Agents based on data center
