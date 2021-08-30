@@ -73,7 +73,7 @@ DefaultAWSSpec = {
             type='integer',
             min=0,
             max=64,
-            default=1
+            default=0
         ),
         'instance_type': SpecValidator(
             type='choice',
@@ -107,7 +107,7 @@ DefaultAWSSpec = {
             type='integer',
             min=0,
             max=64,
-            default=1
+            default=0
         ),
         'instance_type': SpecValidator(
             type='choice',
