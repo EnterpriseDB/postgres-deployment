@@ -42,10 +42,10 @@ class AWSProject(Project):
             'aws_ami_id': getattr(env, 'aws_ami_id', None),
             'aws_image': os['image'],
             'aws_region': env.aws_region,
-            'postgres_server': {
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            }
+        })
+        self.terraform_vars['postgres_server'].update({
+            'volume': pg['volume'],
+            'additional_volumes': pg['additional_volumes'],
         })
 
     def _check_instance_image(self, env):
