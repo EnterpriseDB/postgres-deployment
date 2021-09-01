@@ -34,12 +34,17 @@ class AzureProject(Project):
         Build Terraform variable for Azure provisioning
         """
         os = env.cloud_spec['available_os'][env.operating_system]
+        pg = env.cloud_spec['postgres_server']
 
         self.terraform_vars.update({
             'azure_offer': os['offer'],
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
             'azure_region': env.azure_region,
+        })
+        self.terraform_vars['postgres_server'].update({
+            'volume': pg['volume'],
+            'additional_volumes': pg['additional_volumes'],
         })
 
     def _check_instance_image(self, env):
