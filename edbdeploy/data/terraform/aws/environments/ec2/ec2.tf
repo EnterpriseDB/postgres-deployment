@@ -231,8 +231,8 @@ resource "null_resource" "postgres_setup_volume" {
 
   provisioner "remote-exec" {
     inline = [
-        "chmod a+x /tmp/setup_volume.sh",
-        "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.postgres_server["count"]))} ${element(local.postgres_mount_points, floor(count.index / var.postgres_server["count"]))} >> /tmp/mount.log 2>&1"
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.postgres_server["count"]))} ${element(local.postgres_mount_points, floor(count.index / var.postgres_server["count"]))} >> /tmp/mount.log 2>&1"
     ]
 
     connection {
@@ -253,8 +253,8 @@ resource "null_resource" "bdr_setup_volume" {
 
   provisioner "remote-exec" {
     inline = [
-        "chmod a+x /tmp/setup_volume.sh",
-        "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.bdr_server["count"]))} ${element(local.bdr_mount_points, floor(count.index / var.bdr_server["count"]))} >> /tmp/mount.log 2>&1"
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.bdr_server["count"]))} ${element(local.bdr_mount_points, floor(count.index / var.bdr_server["count"]))} >> /tmp/mount.log 2>&1"
     ]
 
     connection {
@@ -280,7 +280,7 @@ resource "aws_instance" "dbt2_client" {
     delete_on_termination = "true"
     volume_size           = var.dbt2_client["volume"]["size"]
     volume_type           = var.dbt2_client["volume"]["type"]
-    iops                  = var.dbt2_client["volume"]["type"] == "io2" ?  var.dbt2_client["volume"]["iops"] : var.dbt2_client["volume"]["type"] == "io1" ? var.dbt2_client["volume"]["iops"] : null
+    iops                  = var.dbt2_client["volume"]["type"] == "io2" ? var.dbt2_client["volume"]["iops"] : var.dbt2_client["volume"]["type"] == "io1" ? var.dbt2_client["volume"]["iops"] : null
   }
 
   tags = {
@@ -307,7 +307,7 @@ resource "aws_instance" "dbt2_driver" {
     delete_on_termination = "true"
     volume_size           = var.dbt2_driver["volume"]["size"]
     volume_type           = var.dbt2_driver["volume"]["type"]
-    iops                  = var.dbt2_driver["volume"]["type"] == "io2" ?  var.dbt2_driver["volume"]["iops"] : var.dbt2_driver["volume"]["type"] == "io1" ? var.dbt2_driver["volume"]["iops"] : null
+    iops                  = var.dbt2_driver["volume"]["type"] == "io2" ? var.dbt2_driver["volume"]["iops"] : var.dbt2_driver["volume"]["type"] == "io1" ? var.dbt2_driver["volume"]["iops"] : null
   }
 
   tags = {
@@ -334,7 +334,7 @@ resource "aws_instance" "hammerdb_server" {
     delete_on_termination = "true"
     volume_size           = var.hammerdb_server["volume"]["size"]
     volume_type           = var.hammerdb_server["volume"]["type"]
-    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ?  var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
+    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ? var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
   }
 
   tags = {
@@ -453,8 +453,8 @@ resource "null_resource" "barman_setup_volume" {
 
   provisioner "remote-exec" {
     inline = [
-        "chmod a+x /tmp/setup_volume.sh",
-        "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.barman_server["count"]))} ${element(local.barman_mount_points, floor(count.index / var.barman_server["count"]))} >> /tmp/mount.log 2>&1"
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_nvme_device_names, floor(count.index / var.barman_server["count"]))} ${element(local.barman_mount_points, floor(count.index / var.barman_server["count"]))} >> /tmp/mount.log 2>&1"
     ]
 
     connection {

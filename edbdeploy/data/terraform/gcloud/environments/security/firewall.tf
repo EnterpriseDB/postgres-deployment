@@ -10,7 +10,7 @@ resource "google_compute_firewall" "ssh" {
     ports    = ["22"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-ssh")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-ssh")]
   source_ranges = [var.source_ranges]
 }
 
@@ -23,7 +23,7 @@ resource "google_compute_firewall" "http" {
     ports    = ["80"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-http")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-http")]
   source_ranges = [var.source_ranges]
 }
 
@@ -36,7 +36,7 @@ resource "google_compute_firewall" "https" {
     ports    = ["443"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-https")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-https")]
   source_ranges = [var.source_ranges]
 }
 
@@ -48,7 +48,7 @@ resource "google_compute_firewall" "icmp" {
     protocol = "icmp"
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-icmp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-icmp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -61,7 +61,7 @@ resource "google_compute_firewall" "postgresql" {
     ports    = ["5432"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-postgresql")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-postgresql")]
   source_ranges = [var.source_ranges]
 }
 
@@ -74,7 +74,7 @@ resource "google_compute_firewall" "epas" {
     ports    = ["5444"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-epas")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-epas")]
   source_ranges = [var.source_ranges]
 }
 
@@ -87,7 +87,7 @@ resource "google_compute_firewall" "efm" {
     ports    = ["7800-7810"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-efm")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-efm")]
   source_ranges = [var.source_ranges]
 }
 
@@ -100,7 +100,7 @@ resource "google_compute_firewall" "pem-server" {
     ports    = ["8443"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pem-server")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pem-server")]
   source_ranges = [var.source_ranges]
 }
 
@@ -113,7 +113,7 @@ resource "google_compute_firewall" "pgpool" {
     ports    = ["9999"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool")]
   source_ranges = [var.source_ranges]
 }
 
@@ -126,7 +126,7 @@ resource "google_compute_firewall" "pgpool-pcp" {
     ports    = ["9898"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-pcp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-pcp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -139,7 +139,7 @@ resource "google_compute_firewall" "pgpool-watchdog" {
     ports    = ["9000"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdog")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-watchdog")]
   source_ranges = [var.source_ranges]
 }
 
@@ -152,7 +152,7 @@ resource "google_compute_firewall" "pgpool-watchdoghb" {
     ports    = ["9694"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghb")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghb")]
   source_ranges = [var.source_ranges]
 }
 
@@ -165,7 +165,7 @@ resource "google_compute_firewall" "pgpool-pcpudp" {
     ports    = ["9898"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-pcpudp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-pcpudp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -178,7 +178,7 @@ resource "google_compute_firewall" "pgpool-watchdogudp" {
     ports    = ["9000"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdogudp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-watchdogudp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -191,7 +191,7 @@ resource "google_compute_firewall" "pgpool-watchdoghbudp" {
     ports    = ["9694"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghbudp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgpool-watchdoghbudp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -204,12 +204,12 @@ resource "google_compute_firewall" "pgbouncer" {
     ports    = ["6432"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pgbouncer")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pgbouncer")]
   source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "firewall-secure-forward" {
-  name = format("%s-%s", var.network_name, "firewall-secure-forward")
+  name    = format("%s-%s", var.network_name, "firewall-secure-forward")
   network = var.network_name
 
   allow {
@@ -217,6 +217,6 @@ resource "google_compute_firewall" "firewall-secure-forward" {
     ports    = ["24284"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-secure-forward")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-secure-forward")]
   source_ranges = [var.source_ranges]
 }

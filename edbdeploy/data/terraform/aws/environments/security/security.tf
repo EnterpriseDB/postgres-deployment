@@ -62,8 +62,8 @@ resource "aws_security_group" "edb-prereqs-rules" {
     to_port     = 0
     protocol    = "icmp"
     cidr_blocks = [var.public_cidrblock]
-  } 
-  
+  }
+
   // PgPoolII default port for user connections
   ingress {
     from_port   = 9999
