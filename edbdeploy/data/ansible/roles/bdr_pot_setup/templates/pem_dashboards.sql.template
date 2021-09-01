@@ -191,6 +191,11 @@ WHERE
     AND (s.description IN ('epas7')
     OR s.description IN ('epas7:5444'));
 
+DELETE
+FROM
+   pem.server
+WHERE description IN ('barmandc1','barmandc2');
+
 --
 -- Group Agents based on data center
 --
@@ -211,7 +216,7 @@ SET
 FROM
     pem.server_group sg
 WHERE sg.name = 'Data Center II - PEM Agents'
-    AND a.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3', 'pgbouncer3');
+    AND a.description IN ('epas4', 'epas5','epas6', 'barmandc2', 'pgbouncer3', 'pgbouncer4');
 
 UPDATE
     pem.agent a

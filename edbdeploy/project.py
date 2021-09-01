@@ -1113,15 +1113,22 @@ class Project:
         env.cloud_spec = self._load_cloud_specs(env)
         # Copy the PoT role in ansible project directory
         ansible_roles_path = os.path.join(self.project_path, "roles")
+        ansible_pot_rte53_rm = os.path.join(self.project_path, "POT-Remove-Project-Route53.yml")
         tpaexec_hooks_path = os.path.join(self.project_path, "hooks")
-        with AM("Copying PoT role code from into %s" % ansible_roles_path):
+        with AM("Copying PoT role code into %s" % ansible_roles_path):
             try:
                 shutil.copytree(self.ansible_pot_role, ansible_roles_path)
             except Exception as e:
                 raise ProjectError(str(e))
 
+        with AM("Copying Route53 cleanup playbook code into %s" % ansible_pot_rte53_rm):
+            try:
+                shutil.copy(self.ansible_route53_remove, ansible_pot_rte53_rm)
+            except Exception as e:
+                raise ProjectError(str(e))
+
         if env.reference_architecture == 'EDB-Always-On':
-            with AM("Copying PoT TPAexec hooks code from into %s" % tpaexec_hooks_path):
+            with AM("Copying PoT TPAexec hooks code into %s" % tpaexec_hooks_path):
                 try:
                     shutil.copytree(self.tpaexec_pot_hooks, tpaexec_hooks_path)
                 except Exception as e:
@@ -1376,3 +1383,68 @@ class Project:
              'Internal IP Address', 'Login User'],
             rows
         )
+
+    def pot_destroy(self):
+        """
+        POT destroy method
+        """
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        # Load ansible vars
+        self._load_ansible_vars()
+
+        # Building extra vars to pass to ansible because it's not safe to pass
+        # the content of ansible_vars as it.
+        extra_vars = dict(
+            pg_type=self.ansible_vars['pg_type'],
+            pg_version=self.ansible_vars['pg_version'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['repo_password'],
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
+            email_id=self.ansible_vars['email_id'],
+            route53_access_key=self.ansible_vars['route53_access_key'],
+            route53_secret=self.ansible_vars['route53_secret'],
+            project=self.ansible_vars['project'],
+            public_key=self.ansible_vars['public_key']
+        )
+        if self.ansible_vars.get('pg_data'):
+            extra_vars.update(dict(
+                pg_data=self.ansible_vars['pg_data']
+            ))
+        if self.ansible_vars.get('pg_wal'):
+            extra_vars.update(dict(
+                pg_wal=self.ansible_vars['pg_wal']
+            ))
+
+        try:
+            states = self.load_states()
+        except Exception:
+            states = {}
+        status = states.get('ansible', 'UNKNOWN')
+        pot_rt53_path = os.path.join(self.project_path, 'POT-Remove-Project-Route53.yml')
+        if status in ['DEPLOYED'] and os.path.exists(pot_rt53_path):
+            with AM("Executing Route53 update playbook"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    'POT-Remove-Project-Route53.yml',
+                    json.dumps(extra_vars),
+                    disable_pipelining=True,
+                )
+
+        with AM("Destroying cloud resources"):
+            self.update_state('terraform', 'DESTROYING')
+            terraform.destroy(self.terraform_vars_file)
+            self.update_state('terraform', 'DESTROYED')
+            self.update_state('ansible', 'UNKNOWN')
