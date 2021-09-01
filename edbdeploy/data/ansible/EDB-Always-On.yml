@@ -49,12 +49,13 @@
     - role: setup_pemagent
       vars:
         efm_enabled: False
+        force_register_db: False
       when: "'barmanserver' in group_names"
     - role: setup_pemagent
       vars:
         pg_service: pgbouncer
         pg_port: 6432
         efm_enabled: false
-        force_register_db: true
+        force_register_db: True
       when: "'pgbouncer' in group_names"
     - role: bdr_pot_setup

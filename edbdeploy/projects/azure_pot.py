@@ -14,6 +14,8 @@ class AzurePOTProject(Project):
         super(AzurePOTProject, self).__init__('azure-pot', name, env, bin_path)
         # Use Azure terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'azure')
+        # Route53 entry removal playbook
+        self.ansible_route53_remove = os.path.join(self.ansible_share_path, 'POT-Remove-Project-Route53.yml')
         # POT only attributes
         self.ansible_pot_role = os.path.join(self.ansible_share_path, 'roles')
         # TPAexec hooks path
@@ -162,3 +164,6 @@ class AzurePOTProject(Project):
 
     def display_inventory(self, inventory_data):
         self.pot_display_inventory(inventory_data)
+
+    def destroy(self):
+        self.pot_destroy()

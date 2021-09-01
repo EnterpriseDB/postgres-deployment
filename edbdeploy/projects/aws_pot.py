@@ -17,6 +17,8 @@ class AWSPOTProject(Project):
         self.terraform_path = os.path.join(self.terraform_share_path, 'aws')
         # POT only attributes
         self.ansible_pot_role = os.path.join(self.ansible_share_path, 'roles')
+        # Route53 entry removal playbook
+        self.ansible_route53_remove = os.path.join(self.ansible_share_path, 'POT-Remove-Project-Route53.yml')
         # TPAexec hooks path
         self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
@@ -180,3 +182,5 @@ class AWSPOTProject(Project):
     def display_inventory(self, inventory_data):
         self.pot_display_inventory(inventory_data)
 
+    def destroy(self):
+        self.pot_destroy()
