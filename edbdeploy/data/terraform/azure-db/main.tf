@@ -32,30 +32,30 @@ module "network" {
 module "vm" {
   source = "./environments/vm"
 
-  postgres_server                     = var.postgres_server
-  pg_version                          = var.pg_version
-  pem_server                          = var.pem_server
-  hammerdb_server                     = var.hammerdb_server
-  cluster_name                        = var.cluster_name
-  vnet_name                           = var.vnet_name
-  resourcegroup_name                  = var.resourcegroup_name
-  securitygroup_name                  = var.securitygroup_name
-  azure_region                        = var.azure_region
-  ssh_pub_key                         = var.ssh_pub_key
-  ssh_priv_key                        = var.ssh_priv_key
-  project_tags                        = var.project_tags
-  azure_publisher                     = var.azure_publisher
-  azure_offer                         = var.azure_offer
-  azure_sku                           = var.azure_sku
-  azuredb_passwd                      = var.azuredb_passwd
-  azuredb_sku                         = var.azuredb_sku
-  ssh_user                            = var.ssh_user
-  ansible_inventory_yaml_filename     = var.ansible_inventory_yaml_filename
-  add_hosts_filename                  = var.add_hosts_filename
-  hammerdb                            = var.hammerdb
-  network_count                       = var.postgres_server["count"] + var.hammerdb_server["count"]
-  guc_effective_cache_size            = var.guc_effective_cache_size
-  guc_max_wal_size                    = var.guc_max_wal_size
+  postgres_server                 = var.postgres_server
+  pg_version                      = var.pg_version
+  pem_server                      = var.pem_server
+  hammerdb_server                 = var.hammerdb_server
+  cluster_name                    = var.cluster_name
+  vnet_name                       = var.vnet_name
+  resourcegroup_name              = var.resourcegroup_name
+  securitygroup_name              = var.securitygroup_name
+  azure_region                    = var.azure_region
+  ssh_pub_key                     = var.ssh_pub_key
+  ssh_priv_key                    = var.ssh_priv_key
+  project_tags                    = var.project_tags
+  azure_publisher                 = var.azure_publisher
+  azure_offer                     = var.azure_offer
+  azure_sku                       = var.azure_sku
+  azuredb_passwd                  = var.azuredb_passwd
+  azuredb_sku                     = var.azuredb_sku
+  ssh_user                        = var.ssh_user
+  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
+  add_hosts_filename              = var.add_hosts_filename
+  hammerdb                        = var.hammerdb
+  network_count                   = var.postgres_server["count"] + var.hammerdb_server["count"]
+  guc_effective_cache_size        = var.guc_effective_cache_size
+  guc_max_wal_size                = var.guc_max_wal_size
 
   depends_on = [module.network]
 }
