@@ -9,7 +9,7 @@ def subcommands(subparser):
     # command
     available_subcommands = [
         'configure', 'deploy', 'display', 'list', 'logs', 'passwords', 'setup',
-        'show', 'specs', 'remove'
+        'show', 'specs', 'remove', 'ssh'
     ]
 
     # Get sub-commands parsers
@@ -129,4 +129,9 @@ def subcommands(subparser):
         dest='disable_pipelining',
         action='store_true',
         help="Disable Ansible pipelining."
+    )
+    subcommand_parsers['ssh'].add_argument(
+        metavar='<host-name>',
+        dest='host',
+        help="Node hostname"
     )

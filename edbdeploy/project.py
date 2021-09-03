@@ -1054,6 +1054,54 @@ class Project:
             ssh_priv_key=ext_project_ssh_priv_key
         )
 
+    def prepare_ssh(self, node_name):
+        """
+        Checks if a given node name exists in that project and returns its
+        public address, SSH user and SSH priv. key path.
+        """
+        # Check if the machines have been provisioned when the provision step
+        # is required
+        cloud_vendors_provisioning = ['aws', 'azure', 'gcloud', 'aws-pot',
+                                      'azure-pot', 'gcloud-pot']
+        if self.env.cloud in cloud_vendors_provisioning:
+            try:
+                states = self.load_states()
+            except Exception:
+                states = {}
+            status = states.get('terraform', 'UNKNOWN')
+            if status != 'PROVISIONED':
+                raise ProjectError('Machines not provisioned')
+
+        # Load terraform vars.
+        self._load_terraform_vars()
+        ssh_user = self.terraform_vars['ssh_user']
+        ssh_priv_key = self.terraform_vars['ssh_priv_key']
+
+        # Read ansible inventory
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+        inventory_data = ansible.list_inventory(self.ansible_inventory)
+
+        # Checking inventory entries
+        for hostname, attrs in inventory_data['_meta']['hostvars'].items():
+            if node_name == hostname.split('.')[0]:
+                return (attrs['ansible_host'], ssh_user, ssh_priv_key)
+
+        raise ProjectError("Node %s not found in the inventory" % node_name)
+
+    def ssh(self, node_address, ssh_user, ssh_priv_key):
+        """
+        Open an interactive SSH connection to the node
+        """
+        os.system(' '.join([
+            "ssh",
+            "-i", ssh_priv_key,
+            "%s@%s" % (ssh_user, node_address)
+        ]))
+
     """
     TPAexec related methods
     """
