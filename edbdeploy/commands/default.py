@@ -51,6 +51,10 @@ DEFAULT_SUBCOMMANDS = {
         'help': 'Remove project',
         'project_argument': True,
     },
+    'ssh': {
+        'help': 'Open SSH connection to a node',
+        'project_argument': True,
+    },
 }
 
 def default_subcommand_parsers(subparser, available_subcommands):
