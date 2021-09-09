@@ -283,10 +283,7 @@ class Project:
                             d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
-    def _build_terraform_vars_file(self, env):
-        """
-        Build and save the file that contains Terraform variables.
-        """
+    def _init_terraform_vars(self, env):
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
@@ -295,89 +292,93 @@ class Project:
         dbt2_driver = env.cloud_spec['dbt2_driver']
         hammerdb = env.cloud_spec['hammerdb_server']
 
+        self.terraform_vars = {
+            'barman': ra['barman'],
+            'cluster_name': self.name,
+            'dbt2': env.cloud_spec['dbt2'] if 'dbt2' in env.cloud_spec else ra['dbt2'],
+            'dbt2_client': {
+                'count': dbt2_client['count'] if 'count' in dbt2_client else ra['dbt2_client_count'],
+                'instance_type': dbt2_client['instance_type'],
+                'volume': dbt2_client['volume'],
+            },
+            'dbt2_driver': {
+                'count': dbt2_driver['count'] if 'count' in dbt2_driver else ra['dbt2_client_count'],
+                'instance_type': dbt2_driver['instance_type'],
+                'volume': dbt2_driver['volume'],
+            },
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'pooler_local': ra['pooler_local'],
+            'pooler_type': ra['pooler_type'],
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+            },
+            'pg_type': env.postgres_type,
+            'replication_type': ra['replication_type'],
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
+        if 'barman_server' in env.cloud_spec:
+            barman = env.cloud_spec['barman_server']
+            self.terraform_vars.update({
+                'barman_server': {
+                    'count': ra['barman_server_count'],
+                    'instance_type': barman['instance_type'],
+                    'volume': barman['volume'],
+                    'additional_volumes':
+                            barman['additional_volumes'],
+                },
+            })
+
+        if 'bdr_server' in env.cloud_spec:
+            bdr = env.cloud_spec['bdr_server']
+            self.terraform_vars.update({
+                'bdr_server': {
+                    'count': ra['bdr_server_count'],
+                    'instance_type': bdr['instance_type'],
+                    'volume': bdr['volume'],
+                    'additional_volumes': bdr['additional_volumes'],
+                },
+            })
+
+        if 'bdr_witness_server' in env.cloud_spec:
+            bdr_witness = env.cloud_spec['bdr_witness_server']
+            self.terraform_vars.update({
+                'bdr_witness_server': {
+                    'count': ra['bdr_witness_count'],
+                    'instance_type': bdr_witness['instance_type'],
+                    'volume': bdr_witness['volume'],
+                },
+            })
+
+        if 'pooler_server' in env.cloud_spec:
+            pooler = env.cloud_spec['pooler_server']
+            self.terraform_vars.update({
+                'pooler_server': {
+                    'count': ra['pooler_count'],
+                    'instance_type': pooler['instance_type'],
+                    'volume': pooler['volume'],
+                },
+            })
+
+    def _build_terraform_vars_file(self, env):
+        """
+        Build and save the file that contains Terraform variables.
+        """
         with AM("Building Terraform vars file %s" % self.terraform_vars_file):
-            self.terraform_vars = {
-                'barman': ra['barman'],
-                'cluster_name': self.name,
-                'dbt2': env.cloud_spec['dbt2'] if 'dbt2' in env.cloud_spec else ra['dbt2'],
-                'dbt2_client': {
-                    'count': dbt2_client['count'] if 'count' in dbt2_client else ra['dbt2_client_count'],
-                    'instance_type': dbt2_client['instance_type'],
-                    'volume': dbt2_client['volume'],
-                },
-                'dbt2_driver': {
-                    'count': dbt2_driver['count'] if 'count' in dbt2_driver else ra['dbt2_client_count'],
-                    'instance_type': dbt2_driver['instance_type'],
-                    'volume': dbt2_driver['volume'],
-                },
-                'hammerdb': ra['hammerdb'],
-                'hammerdb_server': {
-                    'count': 1 if ra['hammerdb_server'] else 0,
-                    'instance_type': hammerdb['instance_type'],
-                    'volume': hammerdb['volume'],
-                },
-                'pem_server': {
-                    'count': 1 if ra['pem_server'] else 0,
-                    'instance_type': pem['instance_type'],
-                    'volume': pem['volume'],
-                },
-                'pg_version': env.postgres_version,
-                'pooler_local': ra['pooler_local'],
-                'pooler_type': ra['pooler_type'],
-                'postgres_server': {
-                    'count': ra['pg_count'],
-                    'instance_type': pg['instance_type'],
-                },
-                'pg_type': env.postgres_type,
-                'replication_type': ra['replication_type'],
-                'ssh_pub_key': self.ssh_pub_key,
-                'ssh_priv_key': self.ssh_priv_key,
-                'ssh_user': os['ssh_user'],
-            }
-
-            if 'barman_server' in env.cloud_spec:
-                barman = env.cloud_spec['barman_server']
-                self.terraform_vars.update({
-                    'barman_server': {
-                        'count': ra['barman_server_count'],
-                        'instance_type': barman['instance_type'],
-                        'volume': barman['volume'],
-                        'additional_volumes':
-                                barman['additional_volumes'],
-                    },
-                })
-
-            if 'bdr_server' in env.cloud_spec:
-                bdr = env.cloud_spec['bdr_server']
-                self.terraform_vars.update({
-                    'bdr_server': {
-                        'count': ra['bdr_server_count'],
-                        'instance_type': bdr['instance_type'],
-                        'volume': bdr['volume'],
-                        'additional_volumes': bdr['additional_volumes'],
-                    },
-                })
-
-            if 'bdr_witness_server' in env.cloud_spec:
-                bdr_witness = env.cloud_spec['bdr_witness_server']
-                self.terraform_vars.update({
-                    'bdr_witness_server': {
-                        'count': ra['bdr_witness_count'],
-                        'instance_type': bdr_witness['instance_type'],
-                        'volume': bdr_witness['volume'],
-                    },
-                })
-
-            if 'pooler_server' in env.cloud_spec:
-                pooler = env.cloud_spec['pooler_server']
-                self.terraform_vars.update({
-                    'pooler_server': {
-                        'count': ra['pooler_count'],
-                        'instance_type': pooler['instance_type'],
-                        'volume': pooler['volume'],
-                    },
-                })
-
             self._build_terraform_vars(env)
             logging.debug("terraform_vars=%s", self.terraform_vars)
             # Save Terraform vars

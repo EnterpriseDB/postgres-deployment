@@ -42,6 +42,10 @@ class GCloudProject(Project):
         """
         Build Terraform variable for GCloud provisioning
         """
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
+        # Configure project specific terraform variables
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
