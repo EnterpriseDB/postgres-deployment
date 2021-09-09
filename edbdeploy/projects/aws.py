@@ -35,6 +35,11 @@ class AWSProject(Project):
         """
         Build Terraform variable for AWS provisioning
         """
+
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
+        # Configure project specific terraform variables
         os = env.cloud_spec['available_os'][env.operating_system]
         pg = env.cloud_spec['postgres_server']
 
