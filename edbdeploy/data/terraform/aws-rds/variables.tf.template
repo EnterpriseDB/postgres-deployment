@@ -1,6 +1,8 @@
 variable "aws_region" {}
 variable "postgres_server" {}
 variable "pem_server" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "hammerdb_server" {}
 variable "aws_ami_id" {}
 variable "cluster_name" {}
@@ -9,6 +11,7 @@ variable "pg_password" {}
 variable "ssh_pub_key" {}
 variable "ssh_priv_key" {}
 variable "ssh_user" {}
+variable "dbt2" {}
 variable "hammerdb" {}
 variable "guc_effective_cache_size" {}
 variable "guc_shared_buffers" {}
