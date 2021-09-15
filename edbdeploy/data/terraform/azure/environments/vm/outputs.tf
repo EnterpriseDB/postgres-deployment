@@ -99,3 +99,46 @@ ssh-keygen -f ~/.ssh/known_hosts -R {azurerm_public_ip.pooler_public_ip[count].i
 %{endfor~}
     EOT
 }
+
+resource "local_file" "ssh_config" {
+  filename = "${abspath(path.root)}/ssh_config"
+  file_permission = "0600"
+  content  = <<-EOT
+
+Host *
+    Port 22
+    IdentitiesOnly yes
+    IdentityFile "${basename(var.ssh_priv_key)}"
+    UserKnownHostsFile known_hosts tpa_known_hosts
+    ServerAliveInterval 60
+
+%{for count in range(var.postgres_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.postgres_public_ip[count].ip_address}
+%{endfor~}
+%{if var.pem_server["count"] > 0~}
+Host pemserver1
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.pem_public_ip[0].ip_address}
+%{endif~}
+%{for count in range(var.barman_server["count"])~}
+Host barmanserver${count+1}
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.barman_public_ip[0].ip_address}
+%{endfor~}
+%{for count in range(var.pooler_server["count"])~}
+%{if var.pooler_type == "pgpool2"~}
+Host pgpool2${count+1}
+%{else~}
+Host pgbouncer${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.pooler_public_ip[count].ip_address}
+%{endfor~}
+    EOT
+}

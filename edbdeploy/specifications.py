@@ -136,17 +136,17 @@ def merge_user_spec(cloud, user_spec, reference_architecture=None):
     """
     Wrapper function for merging user specs. and default specs.
     """
-    if cloud == 'aws':
+    if cloud in ('aws', 'aws-pot'):
         cloud_spec = AWSSpec
     elif cloud == 'aws-rds':
         cloud_spec = AWSRDSSpec
     elif cloud == 'aws-rds-aurora':
         cloud_spec = AWSRDSAuroraSpec
-    elif cloud == 'azure':
+    elif cloud in ('azure', 'azure-pot'):
         cloud_spec = AzureSpec
     elif cloud == 'azure-db':
         cloud_spec = AzureDBSpec
-    elif cloud == 'gcloud':
+    elif cloud in ('gcloud', 'gcloud-pot'):
         cloud_spec = GCloudSpec
     elif cloud == 'gcloud-sql':
         cloud_spec = GCloudSQLSpec

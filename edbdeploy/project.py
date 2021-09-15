@@ -1193,6 +1193,48 @@ class Project:
             "%s@%s" % (ssh_user, node_address)
         ]))
 
+    def get_ssh_keys(self):
+        """
+        Get a copy, into the current directory, of the SSH private keys (we can
+        have 2 keys in the PoT case) and the ssh_config file.
+        """
+        files = list()
+        # Check if the machines have been provisioned when the provision step
+        # is required
+        cloud_vendors_provisioning = ['aws', 'azure', 'gcloud', 'aws-pot',
+                                      'azure-pot', 'gcloud-pot']
+        if self.env.cloud in cloud_vendors_provisioning:
+            try:
+                states = self.load_states()
+            except Exception:
+                states = {}
+            status = states.get('terraform', 'UNKNOWN')
+            if status != 'PROVISIONED':
+                raise ProjectError('Machines not provisioned')
+
+        # Load terraform vars.
+        self._load_terraform_vars()
+
+        # Add the key used for the deployment
+        files.append(self.terraform_vars['ssh_priv_key'])
+
+        if self.env.cloud in ['aws-pot', 'azure-pot', 'gcloud-pot']:
+            # In PoT, we add the project key too
+            files.append(
+                os.path.join(
+                    self.project_path, '%s_key.pem' % self.name
+                )
+            )
+        if os.path.exists(os.path.join(self.project_path, 'ssh_config')):
+            # Add ssh_config to the list of the files to copy only if it exists
+            files.append(
+                os.path.join(self.project_path, 'ssh_config')
+            )
+
+        for file in files:
+            with AM("Copying %s into the current directory" % file):
+                shutil.copy(file, os.path.basename(file))
+
     """
     TPAexec related methods
     """

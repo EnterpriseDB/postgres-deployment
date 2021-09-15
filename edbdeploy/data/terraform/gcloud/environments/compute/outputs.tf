@@ -114,3 +114,52 @@ ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_instance.pooler_server[coun
 %{endfor~}
     EOT
 }
+
+
+resource "local_file" "ssh_config" {
+  filename = "${abspath(path.root)}/ssh_config"
+  file_permission = "0600"
+  content  = <<-EOT
+
+Host *
+    Port 22
+    IdentitiesOnly yes
+    IdentityFile "${basename(var.ssh_priv_key)}"
+    UserKnownHostsFile known_hosts tpa_known_hosts
+    ServerAliveInterval 60
+
+%{for count in range(var.postgres_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.postgres_server[count].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+%{if var.pem_server["count"] > 0~}
+Host pemserver1
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.pem_server[0].network_interface.0.access_config.0.nat_ip}
+%{endif~}
+%{for count in range(var.barman_server["count"])~}
+Host barmanserver${count+1}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.barman_server[0].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+%{for count in range(var.hammerdb_server["count"])~}
+Host hammerdbserver${count+1}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.hammerdb_server[count].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+%{for count in range(var.pooler_server["count"])~}
+%{if var.pooler_type == "pgpool2"~}
+Host pgpool2${count+1}
+%{else~}
+Host pgbouncer${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.pooler_server[count].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+    EOT
+}

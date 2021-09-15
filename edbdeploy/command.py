@@ -184,3 +184,7 @@ class Commander:
             "Opening SSH session on %s (%s)", self.env.host, host_address
         )
         self.project.ssh(host_address, ssh_user, ssh_priv_key)
+
+    def get_ssh_keys(self):
+        self._check_project_exists()
+        self.project.get_ssh_keys()
