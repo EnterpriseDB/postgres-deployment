@@ -17,6 +17,12 @@ variable "ssh_pub_key" {}
 variable "ssh_user" {}
 variable "hammerdb_server" {}
 variable "hammerdb" {}
+variable "dbt2" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
+variable "bdr_server" {}
+variable "bdr_witness_server" {}
+
 
 variable "ip_cidr_range" {
   default = "10.0.0.0/16"
