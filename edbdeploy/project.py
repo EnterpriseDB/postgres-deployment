@@ -20,6 +20,8 @@ from .spec.reference_architecture import ReferenceArchitectureSpec
 from .system import exec_shell
 from .terraform import TerraformCli
 from .tpaexec import TPAexecCli
+from . import __edb_ansible_version__
+
 
 def exec_hook(obj, name, *args, **kwargs):
     # Inject specific method call.
@@ -66,7 +68,7 @@ class Project:
         'virtualbox'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres:3.5.2'
+    ansible_collection_name = 'edb_devops.edb_postgres:%s' % __edb_ansible_version__  # noqa
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
