@@ -4,11 +4,12 @@ from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..errors import ProjectError
 from ..project import Project
+from .. import __edb_ansible_version__
 
 
 class AWSPOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:3.5.2'
+    ansible_collection_name = 'edb_devops.edb_postgres:%s' % __edb_ansible_version__  # noqa
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
