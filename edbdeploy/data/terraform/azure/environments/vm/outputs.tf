@@ -83,19 +83,19 @@ ssh-add ${var.ssh_priv_key}
 echo "Adding IPs"
 %{for count in range(var.postgres_server["count"])~}
 ssh-keyscan -H ${azurerm_public_ip.postgres_public_ip[count].ip_address} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R {azurerm_public_ip.postgres_public_ip[count].ip_address}
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.postgres_public_ip[count].ip_address}
 %{endfor~}
 %{if var.pem_server["count"] > 0~}
 ssh-keyscan -H ${azurerm_public_ip.pem_public_ip[0].ip_address} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R {azurerm_public_ip.pem_public_ip[0].ip_address}
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.pem_public_ip[0].ip_address}
 %{endif~}
 %{if var.barman_server["count"] > 0~}
 ssh-keyscan -H ${azurerm_public_ip.barman_public_ip[0].ip_address} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R {azurerm_public_ip.barman_public_ip[0].ip_address}
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.barman_public_ip[0].ip_address}
 %{endif~}
 %{for count in range(var.pooler_server["count"])~}
 ssh-keyscan -H ${azurerm_public_ip.pooler_public_ip[count].ip_address} >> ~/.ssh/known_hosts
-ssh-keygen -f ~/.ssh/known_hosts -R {azurerm_public_ip.pooler_public_ip[count].ip_address}
+ssh-keygen -f ~/.ssh/known_hosts -R ${azurerm_public_ip.pooler_public_ip[count].ip_address}
 %{endfor~}
     EOT
 }
