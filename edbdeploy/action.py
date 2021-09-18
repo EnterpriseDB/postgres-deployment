@@ -2,6 +2,7 @@ import sys
 import logging
 import time
 import threading
+import os
 
 
 def spinning_cursor():
