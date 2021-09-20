@@ -56,6 +56,9 @@ module "vm" {
   source = "./environments/vm"
 
   barman                          = var.barman
+  dbt2                            = var.dbt2
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   pg_type                         = var.pg_type
   postgres_server                 = var.postgres_server
   pem_server                      = var.pem_server
