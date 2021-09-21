@@ -324,7 +324,6 @@ class Project:
             'pooler_type': ra['pooler_type'],
             'postgres_server': {
                 'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
             },
             'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],

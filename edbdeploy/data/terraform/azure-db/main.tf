@@ -35,6 +35,9 @@ module "vm" {
   postgres_server                 = var.postgres_server
   pg_version                      = var.pg_version
   pem_server                      = var.pem_server
+  dbt2                            = var.dbt2
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   hammerdb_server                 = var.hammerdb_server
   cluster_name                    = var.cluster_name
   vnet_name                       = var.vnet_name

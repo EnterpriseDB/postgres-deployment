@@ -63,6 +63,7 @@ class AWSRDSProject(Project):
             'pg_version': env.postgres_version,
         })
         self.terraform_vars['postgres_server'].update({
+            'instance_type': pg['instance_type'],
             'volume': pg['volume'],
         })
 
