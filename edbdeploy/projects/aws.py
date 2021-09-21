@@ -51,6 +51,7 @@ class AWSProject(Project):
         self.terraform_vars['postgres_server'].update({
             'volume': pg['volume'],
             'additional_volumes': pg['additional_volumes'],
+            'instance_type': pg['instance_type'],
         })
 
     def _check_instance_image(self, env):

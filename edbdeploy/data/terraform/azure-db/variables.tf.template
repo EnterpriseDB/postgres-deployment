@@ -6,12 +6,15 @@ variable "azuredb_passwd" {}
 variable "azuredb_sku" {}
 variable "postgres_server" {}
 variable "pem_server" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "hammerdb_server" {}
 variable "cluster_name" {}
 variable "pg_version" {}
 variable "ssh_pub_key" {}
 variable "ssh_priv_key" {}
 variable "ssh_user" {}
+variable "dbt2" {}
 variable "hammerdb" {}
 variable "guc_effective_cache_size" {}
 variable "guc_max_wal_size" {}

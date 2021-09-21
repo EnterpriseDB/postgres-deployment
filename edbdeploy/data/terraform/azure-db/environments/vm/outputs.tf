@@ -11,6 +11,24 @@ all:
           ansible_host: ${azurerm_public_ip.pem_public_ip[0].ip_address}
           private_ip: ${azurerm_network_interface.pem_public_nic[0].private_ip_address}
 %{endif~}
+%{if var.dbt2_client["count"] > 0~}
+    dbt2_client:
+      hosts:
+%{for dbt2_client_count in range(var.dbt2_client["count"])~}
+        dbt2_client${dbt2_client_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${azurerm_public_ip.dbt2_client_public_ip[0].ip_address}
+          private_ip: ${azurerm_network_interface.dbt2_client_public_nic[0].private_ip_address}
+%{endfor~}
+%{endif~}
+%{if var.dbt2_driver["count"] > 0~}
+    dbt2_driver:
+      hosts:
+%{for dbt2_driver_count in range(var.dbt2_driver["count"])~}
+        dbt2_driver${dbt2_driver_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${azurerm_public_ip.dbt2_driver_public_ip[0].ip_address}
+          private_ip: ${azurerm_network_interface.dbt2_driver_public_nic[0].private_ip_address}
+%{endfor~}
+%{endif~}
 %{if var.hammerdb_server["count"] > 0~}
     hammerdbserver:
       hosts:
