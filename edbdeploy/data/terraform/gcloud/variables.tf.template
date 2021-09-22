@@ -1,6 +1,9 @@
 variable "barman" {}
 variable "barman_server" {}
 variable "cluster_name" {}
+variable "dbt2" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "pg_version" {}
 variable "gcloud_credentials" {}
 variable "gcloud_image" {}
