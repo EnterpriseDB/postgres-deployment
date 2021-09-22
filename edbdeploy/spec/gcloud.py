@@ -1,7 +1,7 @@
 from . import DefaultGcloudSpec
 from . import SpecValidator
 
-GCSpec = {
+GCVMSpec = {
     'postgres_server': {
         'instance_type': SpecValidator(
             type='choice',
@@ -185,4 +185,4 @@ GCSpec = {
     }
 }
 
-GCloudSpec = {**DefaultGcloudSpec, **GCSpec}
+GCloudSpec = {**DefaultGcloudSpec, **GCVMSpec}
