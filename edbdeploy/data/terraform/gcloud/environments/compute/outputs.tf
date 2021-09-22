@@ -18,6 +18,24 @@ all:
           ansible_host: ${google_compute_instance.barman_server[0].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.barman_server[0].network_interface.0.network_ip}
 %{endif~}
+%{if var.dbt2_client["count"] > 0~}
+    dbt2_client:
+      hosts:
+%{for dbt2_client_count in range(var.dbt2_client["count"])~}
+        dbt2_client${dbt2_client_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${google_compute_instance.dbt2_client[dbt2_client_count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.dbt2_client[dbt2_client_count].network_interface.0.network_ip}
+%{endfor~}
+%{endif~}
+%{if var.dbt2_driver["count"] > 0~}
+    dbt2_driver:
+      hosts:
+%{for dbt2_driver_count in range(var.dbt2_driver["count"])~}
+        dbt2_driver${dbt2_driver_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${google_compute_instance.dbt2_driver[dbt2_driver_count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.dbt2_driver[dbt2_driver_count].network_interface.0.network_ip}
+%{endfor~}
+%{endif~}
 %{for hammerdb_count in range(var.hammerdb_server["count"])~}
 %{if hammerdb_count == 0~}
     hammerdbserver:

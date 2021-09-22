@@ -2,6 +2,9 @@ variable "add_hosts_filename" {}
 variable "ansible_inventory_yaml_filename" {}
 variable "barman" {}
 variable "barman_server" {}
+variable "dbt2" {}
+variable "dbt2_client" {}
+variable "dbt2_driver" {}
 variable "cluster_name" {}
 variable "gcloud_image" {}
 variable "gcloud_region" {}
@@ -349,6 +352,89 @@ resource "google_compute_instance" "pooler_server" {
   }
 }
 
+resource "google_compute_address" "dbt2_client_public_ip" {
+  count  = var.dbt2_client["count"]
+  name   = format("dbt-2-client-public-ip-%s", count.index + 1)
+  region = var.gcloud_region
+}
+
+resource "google_compute_instance" "dbt2_client" {
+  count        = var.dbt2_client["count"]
+  name         = (count.index == 0 ? format("%s-%s", var.cluster_name, "dbt2client") : format("%s-%s%s", var.cluster_name, "dbt2client", count.index))
+  machine_type = var.dbt2_client["instance_type"]
+
+  zone = element(data.google_compute_zones.available.names, count.index)
+
+  tags = [
+    format("%s-%s", var.network_name, "firewall-dbt-2-client"),
+    format("%s-%s", var.network_name, "firewall-icmp"),
+    format("%s-%s", var.network_name, "firewall-secure-forward"),
+    format("%s-%s", var.network_name, "firewall-ssh"),
+  ]
+
+  boot_disk {
+    initialize_params {
+      image = var.gcloud_image
+      type  = var.dbt2_client["volume"]["type"]
+      size  = var.dbt2_client["volume"]["size"]
+    }
+  }
+
+  network_interface {
+    subnetwork = var.network_name
+
+    access_config {
+      nat_ip = element(google_compute_address.dbt2_client_public_ip.*.address, count.index)
+    }
+
+  }
+
+  metadata = {
+    ssh-keys = format("%s:%s", var.ssh_user, file(var.ssh_pub_key))
+  }
+}
+
+resource "google_compute_address" "dbt2_driver_public_ip" {
+  count  = var.dbt2_driver["count"]
+  name   = format("dbt-2-driver-public-ip-%s", count.index + 1)
+  region = var.gcloud_region
+}
+
+resource "google_compute_instance" "dbt2_driver" {
+  count        = var.dbt2_driver["count"]
+  name         = (count.index == 0 ? format("%s-%s", var.cluster_name, "dbt2driver") : format("%s-%s%s", var.cluster_name, "dbt2driver", count.index))
+  machine_type = var.dbt2_driver["instance_type"]
+
+  zone = element(data.google_compute_zones.available.names, count.index)
+
+  tags = [
+    format("%s-%s", var.network_name, "firewall-icmp"),
+    format("%s-%s", var.network_name, "firewall-secure-forward"),
+    format("%s-%s", var.network_name, "firewall-ssh"),
+  ]
+
+  boot_disk {
+    initialize_params {
+      image = var.gcloud_image
+      type  = var.dbt2_driver["volume"]["type"]
+      size  = var.dbt2_driver["volume"]["size"]
+    }
+  }
+
+  network_interface {
+    subnetwork = var.network_name
+
+    access_config {
+      nat_ip = element(google_compute_address.dbt2_driver_public_ip.*.address, count.index)
+    }
+
+  }
+
+  metadata = {
+    ssh-keys = format("%s:%s", var.ssh_user, file(var.ssh_pub_key))
+  }
+}
+
 resource "google_compute_address" "hammerdb_public_ip" {
   count  = var.hammerdb_server["count"]
   name   = format("hammerdb-public-ip-%s", count.index + 1)
@@ -357,7 +443,7 @@ resource "google_compute_address" "hammerdb_public_ip" {
 
 resource "google_compute_instance" "hammerdb_server" {
   count        = var.hammerdb_server["count"]
-  name         = (count.index == 0 ? format("%s-%s", var.cluster_name, "hammerdb") : format("%s-%s%s", var.cluster_name, "standby", count.index))
+  name         = (count.index == 0 ? format("%s-%s", var.cluster_name, "hammerdb") : format("%s-%s%s", var.cluster_name, "hammerdb", count.index))
   machine_type = var.hammerdb_server["instance_type"]
 
   zone = element(data.google_compute_zones.available.names, count.index)

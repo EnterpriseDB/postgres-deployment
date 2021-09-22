@@ -220,3 +220,16 @@ resource "google_compute_firewall" "firewall-secure-forward" {
   target_tags   = [format("%s-%s", var.network_name, "firewall-secure-forward")]
   source_ranges = [var.source_ranges]
 }
+
+resource "google_compute_firewall" "dbt2-client" {
+  name    = format("%s-%s", var.network_name, "firewall-dbt-2-client")
+  network = var.network_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["30000"]
+  }
+
+  target_tags   = [format("%s-%s", var.network_name, "firewall-dbt-2-client")]
+  source_ranges = [var.source_ranges]
+}
