@@ -9,7 +9,7 @@ from .. import __edb_ansible_version__
 
 class AWSPOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:%s' % __edb_ansible_version__  # noqa
+    ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
