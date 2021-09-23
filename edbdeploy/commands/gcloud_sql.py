@@ -43,6 +43,14 @@ def subcommands(subparser):
         help=OSOption.help
     )
     subcommand_parsers['configure'].add_argument(
+        '-t', '--pg-type',
+        dest='postgres_type',
+        choices=PgTypeOptionGCloudSQL.choices,
+        default=PgTypeOptionGCloudSQL.default,
+        metavar='<postgres-engine-type>',
+        help=PgTypeOptionGCloudSQL.help
+    )
+    subcommand_parsers['configure'].add_argument(
         '-v', '--pg-version',
         dest='postgres_version',
         choices=PgVersionOption.choices,

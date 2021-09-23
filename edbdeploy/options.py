@@ -179,6 +179,14 @@ class PgTypeOptionAzureDB:
         Default: %(default)s
     """)
 
+class PgTypeOptionGCloudSQL:
+    choices = ['DBaaS']
+    default = 'DBaaS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: DBaaS for Google Cloud SQL.
+        Default: %(default)s
+    """)
+
 class MemSizeOptionsVMWare:
     choices = ['2048', '3072', '4096', '5120']
     default = '2048'
