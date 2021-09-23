@@ -68,7 +68,7 @@ class Project:
         'virtualbox'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres:%s' % __edb_ansible_version__  # noqa
+    ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
