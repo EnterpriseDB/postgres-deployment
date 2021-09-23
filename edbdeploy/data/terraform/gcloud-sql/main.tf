@@ -1,24 +1,8 @@
-#module "network" {
-#  source = "./environments/network"
-#
-#  subnetwork_name   = var.subnetwork_name
-#  network_name      = var.network_name
-#  gcloud_region     = var.gcloud_region
-#  ip_cidr_range     = var.ip_cidr_range
-#}
-
-#module "security" {
-#  source = "./environments/security"
-#
-#  network_name  = var.network_name
-#  source_ranges = var.source_ranges
-#
-#  depends_on = [module.network]
-#}
-
 module "compute" {
   source = "./environments/compute"
 
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   postgres_server                 = var.postgres_server
   pem_server                      = var.pem_server
   hammerdb_server                 = var.hammerdb_server
@@ -33,6 +17,7 @@ module "compute" {
   ssh_priv_key                    = var.ssh_priv_key
   ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
+  dbt2                            = var.dbt2
   hammerdb                        = var.hammerdb
   pg_version                      = var.pg_version
   source_ranges                   = var.source_ranges
