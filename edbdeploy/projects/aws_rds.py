@@ -44,42 +44,23 @@ class AWSRDSProject(Project):
         Build Terraform variable for AWS RDS provisioning
         """
         ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
+        pg = env.cloud_spec['postgres_server']
         guc = TPROCC_GUC
 
-        self.terraform_vars = {
+        self.terraform_vars.update({
             'aws_ami_id': getattr(env, 'aws_ami_id', None),
             'aws_image': os['image'],
             'aws_region': env.aws_region,
-            'cluster_name': self.name,
             'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
             'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
             'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
             'pg_password': get_password(self.project_path, 'postgres'),
             'pg_version': env.postgres_version,
             'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
                 'volume': pg['volume'],
             },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
+        })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

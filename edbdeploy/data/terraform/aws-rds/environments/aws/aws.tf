@@ -44,7 +44,7 @@ resource "aws_instance" "hammerdb_server" {
     delete_on_termination = "true"
     volume_size           = var.hammerdb_server["volume"]["size"]
     volume_type           = var.hammerdb_server["volume"]["type"]
-    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ?  var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
+    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ? var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
   }
 
   tags = {
@@ -95,25 +95,25 @@ resource "aws_db_subnet_group" "rds" {
 }
 
 resource "aws_db_instance" "rds_server" {
-  allocated_storage        = var.postgres_server["volume"]["size"]
-  backup_retention_period  = 0
-  db_subnet_group_name     = aws_db_subnet_group.rds.id
-  engine                   = "postgres"
-  engine_version           = var.pg_version
-  identifier               = var.cluster_name
-  instance_class           = var.postgres_server["instance_type"]
-  multi_az                 = false
-  name                     = var.cluster_name
-  parameter_group_name     = aws_db_parameter_group.edb_rds_db_params.name
-  password                 = var.pg_password
-  port                     = 5432
-  publicly_accessible      = true
-  storage_encrypted        = false
-  storage_type             = var.postgres_server["volume"]["type"]
-  iops                     = var.postgres_server["volume"]["iops"]
-  username                 = "postgres"
-  vpc_security_group_ids   = [var.rds_security_group_id]
-  skip_final_snapshot      = true
+  allocated_storage       = var.postgres_server["volume"]["size"]
+  backup_retention_period = 0
+  db_subnet_group_name    = aws_db_subnet_group.rds.id
+  engine                  = "postgres"
+  engine_version          = var.pg_version
+  identifier              = var.cluster_name
+  instance_class          = var.postgres_server["instance_type"]
+  multi_az                = false
+  name                    = var.cluster_name
+  parameter_group_name    = aws_db_parameter_group.edb_rds_db_params.name
+  password                = var.pg_password
+  port                    = 5432
+  publicly_accessible     = true
+  storage_encrypted       = false
+  storage_type            = var.postgres_server["volume"]["type"]
+  iops                    = var.postgres_server["volume"]["iops"]
+  username                = "postgres"
+  vpc_security_group_ids  = [var.rds_security_group_id]
+  skip_final_snapshot     = true
 
   tags = {
     Name       = format("%s-%s", var.cluster_name, "rds")

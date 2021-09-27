@@ -8,7 +8,8 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the aws command
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
-        'passwords', 'provision', 'show', 'specs', 'setup', 'remove'
+        'passwords', 'provision', 'show', 'specs', 'setup', 'remove', 'ssh',
+        'get_ssh_keys'
     ]
 
     # Get sub-commands parsers
@@ -142,4 +143,9 @@ def subcommands(subparser):
         dest='disable_pipelining',
         action='store_true',
         help="Disable Ansible pipelining."
+    )
+    subcommand_parsers['ssh'].add_argument(
+        metavar='<host-name>',
+        dest='host',
+        help="Node hostname"
     )

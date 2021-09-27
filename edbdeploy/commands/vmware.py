@@ -8,7 +8,7 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the vmwarewkstn
     # command
     available_subcommands = [
-        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list', 'display'
+        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list', 'display', 'ssh'
     ]
 
     # Get sub-commands parsers
@@ -173,4 +173,9 @@ def subcommands(subparser):
         dest='disable_pipelining',
         action='store_true',
         help="Disable Ansible pipelining."
+    )
+    subcommand_parsers['ssh'].add_argument(
+        metavar='<host-name>',
+        dest='host',
+        help="Node hostname"
     )

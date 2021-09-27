@@ -4,161 +4,161 @@ resource "local_file" "AnsibleYamlInventory" {
 ---
 all:
   children:
-%{if var.pem_server["count"] > 0 ~}
+%{if var.pem_server["count"] > 0~}
     pemserver:
       hosts:
-%{if var.bdr_server["count"] > 0 ~}
+%{if var.bdr_server["count"] > 0~}
         pemserver1:
-%{else ~}
+%{else~}
         pemserver1.${var.cluster_name}.internal:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.pem_server[0].public_ip}
           private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{for barman_count in range(var.barman_server["count"]) ~}
-%{if barman_count == 0 ~}
+%{endif~}
+%{for barman_count in range(var.barman_server["count"])~}
+%{if barman_count == 0~}
     barmanserver:
       hosts:
-%{endif ~}
-%{if var.bdr_server["count"] > 0 ~}
+%{endif~}
+%{if var.bdr_server["count"] > 0~}
         barmandc${barman_count + 1}:
-%{else ~}
+%{else~}
         barmanserver${barman_count + 1}.${var.cluster_name}.internal:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.barman_server[barman_count].public_ip}
           private_ip: ${aws_instance.barman_server[barman_count].private_ip}
-%{if var.pem_server["count"] > 0 ~}
+%{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endfor ~}
-%{if var.dbt2_client["count"] > 0 ~}
+%{endif~}
+%{endfor~}
+%{if var.dbt2_client["count"] > 0~}
     dbt2_client:
       hosts:
-%{for dbt2_client_count in range(var.dbt2_client["count"]) ~}
+%{for dbt2_client_count in range(var.dbt2_client["count"])~}
         dbt2_client${dbt2_client_count + 1}.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.dbt2_client[dbt2_client_count].public_ip}
           private_ip: ${aws_instance.dbt2_client[dbt2_client_count].private_ip}
-%{endfor ~}
-%{endif ~}
-%{if var.dbt2_driver["count"] > 0 ~}
+%{endfor~}
+%{endif~}
+%{if var.dbt2_driver["count"] > 0~}
     dbt2_driver:
       hosts:
-%{for dbt2_driver_count in range(var.dbt2_driver["count"]) ~}
+%{for dbt2_driver_count in range(var.dbt2_driver["count"])~}
         dbt2_driver${dbt2_driver_count + 1}.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.dbt2_driver[dbt2_driver_count].public_ip}
           private_ip: ${aws_instance.dbt2_driver[dbt2_driver_count].private_ip}
-%{endfor ~}
-%{endif ~}
-%{if var.hammerdb_server["count"] > 0 ~}
+%{endfor~}
+%{endif~}
+%{if var.hammerdb_server["count"] > 0~}
     hammerdbserver:
       hosts:
         hammerdbserver1.${var.cluster_name}.internal:
           ansible_host: ${aws_instance.hammerdb_server[0].public_ip}
           private_ip: ${aws_instance.hammerdb_server[0].private_ip}
-%{endif ~}
-%{for postgres_count in range(var.postgres_server["count"]) ~}
-%{if postgres_count == 0 ~}
+%{endif~}
+%{for postgres_count in range(var.postgres_server["count"])~}
+%{if postgres_count == 0~}
     primary:
       hosts:
-%{endif ~}
-%{if postgres_count == 1 ~}
+%{endif~}
+%{if postgres_count == 1~}
     standby:
       hosts:
-%{endif ~}
-%{if var.pg_type == "EPAS" ~}
+%{endif~}
+%{if var.pg_type == "EPAS"~}
         epas${postgres_count + 1}.${var.cluster_name}.internal:
-%{else ~}
+%{else~}
         pgsql${postgres_count + 1}.${var.cluster_name}.internal:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.postgres_server[postgres_count].public_ip}
           private_ip: ${aws_instance.postgres_server[postgres_count].private_ip}
-%{if var.barman == true ~}
+%{if var.barman == true~}
           barman: true
           barman_server_private_ip: ${aws_instance.barman_server[0].private_ip}
           barman_backup_method: postgres
-%{endif ~}
-%{if var.dbt2 == true ~}
+%{endif~}
+%{if var.dbt2 == true~}
           dbt2: true
-%{for dbt2_client_count in range(var.dbt2_client["count"]) ~}
+%{for dbt2_client_count in range(var.dbt2_client["count"])~}
           dbt2_client_private_ip${dbt2_client_count + 1}: ${aws_instance.dbt2_client[dbt2_client_count].private_ip}
-%{endfor ~}
-%{endif ~}
-%{if var.hammerdb == true ~}
+%{endfor~}
+%{endif~}
+%{if var.hammerdb == true~}
           hammerdb: true
           hammerdb_server_private_ip: ${aws_instance.hammerdb_server[0].private_ip}
-%{endif ~}
-%{if var.pooler_local == true && var.pooler_type == "pgbouncer" ~}
+%{endif~}
+%{if var.pooler_local == true && var.pooler_type == "pgbouncer"~}
           pgbouncer: true
-%{endif ~}
-%{if postgres_count > 0 ~}
-%{if postgres_count == 1 ~}
+%{endif~}
+%{if postgres_count > 0~}
+%{if postgres_count == 1~}
           replication_type: ${var.replication_type}
-%{else ~}
+%{else~}
           replication_type: asynchronous
-%{endif ~}
+%{endif~}
           upstream_node_private_ip: ${aws_instance.postgres_server[0].private_ip}
-%{endif ~}
-%{if var.pem_server["count"] > 0 ~}
+%{endif~}
+%{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endfor ~}
-%{for bdr_count in range(var.bdr_server["count"]) ~}
-%{if bdr_count == 0 ~}
+%{endif~}
+%{endfor~}
+%{for bdr_count in range(var.bdr_server["count"])~}
+%{if bdr_count == 0~}
     primary:
       hosts:
-%{endif ~}
-%{if var.pg_type == "EPAS" ~}
+%{endif~}
+%{if var.pg_type == "EPAS"~}
         epas${bdr_count + 1}:
-%{else ~}
+%{else~}
         pgsql${bdr_count + 1}:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.bdr_server[bdr_count].public_ip}
           private_ip: ${aws_instance.bdr_server[bdr_count].private_ip}
-%{if var.pem_server["count"] > 0 ~}
+%{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endfor ~}
-%{for bdr_witness_count in range(var.bdr_witness_server["count"]) ~}
-%{if var.pg_type == "EPAS" ~}
+%{endif~}
+%{endfor~}
+%{for bdr_witness_count in range(var.bdr_witness_server["count"])~}
+%{if var.pg_type == "EPAS"~}
         epas${var.bdr_server["count"] + bdr_witness_count + 1}:
-%{else ~}
+%{else~}
         pgsql${var.bdr_server["count"] + bdr_witness_count + 1}:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.bdr_witness_server[bdr_witness_count].public_ip}
           private_ip: ${aws_instance.bdr_witness_server[bdr_witness_count].private_ip}
-%{if var.pem_server["count"] > 0 ~}
+%{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endfor ~}
-%{for pooler_count in range(var.pooler_server["count"]) ~}
-%{if pooler_count == 0 ~}
-%{if var.pooler_type == "pgpool2" ~}
+%{endif~}
+%{endfor~}
+%{for pooler_count in range(var.pooler_server["count"])~}
+%{if pooler_count == 0~}
+%{if var.pooler_type == "pgpool2"~}
     pgpool2:
-%{endif ~}
-%{if var.pooler_type == "pgbouncer" ~}
+%{endif~}
+%{if var.pooler_type == "pgbouncer"~}
     pgbouncer:
-%{endif ~}
+%{endif~}
       hosts:
-%{endif ~}
-%{if var.bdr_server["count"] > 0 ~}
+%{endif~}
+%{if var.bdr_server["count"] > 0~}
         pgbouncer${pooler_count + 1}:
-%{else ~}
+%{else~}
         ${var.pooler_type}${pooler_count + 1}.${var.cluster_name}.internal:
-%{endif ~}
+%{endif~}
           ansible_host: ${aws_instance.pooler_server[pooler_count].public_ip}
           private_ip: ${aws_instance.pooler_server[pooler_count].private_ip}
-%{if var.postgres_server["count"] > 0 ~}
+%{if var.postgres_server["count"] > 0~}
           primary_private_ip: ${aws_instance.postgres_server[0].private_ip}
-%{endif ~}
-%{if var.pem_server["count"] > 0 ~}
+%{endif~}
+%{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endfor ~}
+%{endif~}
+%{endfor~}
 EOT
 }
 
@@ -168,42 +168,42 @@ resource "local_file" "host_script" {
 echo "Setting SSH Keys"
 ssh-add ${var.ssh_priv_key}
 echo "Adding IPs"
-%{for count in range(var.postgres_server["count"]) ~}
+%{for count in range(var.postgres_server["count"])~}
 ssh-keyscan -H ${aws_instance.postgres_server[count].public_ip} >> ~/.ssh/known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.postgres_server[count].public_dns}
-%{endfor ~}
-%{if var.pem_server["count"] > 0 ~}
+%{endfor~}
+%{if var.pem_server["count"] > 0~}
 ssh-keyscan -H ${aws_instance.pem_server[0].public_ip} >> ~/.ssh/known_hosts
 ssh-keyscan -H ${aws_instance.pem_server[0].public_ip} >> tpa_known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pem_server[0].public_dns}
-%{endif ~}
-%{for barman_count  in range(var.barman_server["count"]) ~}
+%{endif~}
+%{for barman_count in range(var.barman_server["count"])~}
 ssh-keyscan -H ${aws_instance.barman_server[barman_count].public_ip} >> ~/.ssh/known_hosts
 ssh-keyscan -H ${aws_instance.barman_server[barman_count].public_ip} >> tpa_known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.barman_server[barman_count].public_dns}
-%{endfor ~}
-%{for count in range(var.pooler_server["count"]) ~}
+%{endfor~}
+%{for count in range(var.pooler_server["count"])~}
 ssh-keyscan -H ${aws_instance.pooler_server[count].public_ip} >> ~/.ssh/known_hosts
 ssh-keyscan -H ${aws_instance.pooler_server[count].public_ip} >> tpa_known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.pooler_server[count].public_dns}
-%{endfor ~}
-%{for count in range(var.bdr_server["count"]) ~}
+%{endfor~}
+%{for count in range(var.bdr_server["count"])~}
 ssh-keyscan -H ${aws_instance.bdr_server[count].public_ip} >> ~/.ssh/known_hosts
 ssh-keyscan -H ${aws_instance.bdr_server[count].public_ip} >> tpa_known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.bdr_server[count].public_dns}
-%{endfor ~}
-%{for count in range(var.bdr_witness_server["count"]) ~}
+%{endfor~}
+%{for count in range(var.bdr_witness_server["count"])~}
 ssh-keyscan -H ${aws_instance.bdr_witness_server[count].public_ip} >> ~/.ssh/known_hosts
 ssh-keyscan -H ${aws_instance.bdr_witness_server[count].public_ip} >> tpa_known_hosts
 ssh-keygen -f ~/.ssh/known_hosts -R ${aws_instance.bdr_witness_server[count].public_dns}
-%{endfor ~}
+%{endfor~}
     EOT
 }
 
 resource "local_file" "TPAexecYamlConfig" {
   filename = "${abspath(path.root)}/${var.tpaexec_config_yaml_filename}"
   content  = <<EOT
-%{if var.bdr_server["count"] > 0 ~}
+%{if var.bdr_server["count"] > 0~}
 ---
 architecture: BDR-Always-ON
 cluster_name: ${var.cluster_name}
@@ -263,45 +263,45 @@ instance_defaults:
     ansible_user: ${var.ssh_user}
 
 instances:
-%{for bdr_count in range(var.bdr_server["count"]) ~}
-%{if var.pg_type == "EPAS" ~}
+%{for bdr_count in range(var.bdr_server["count"])~}
+%{if var.pg_type == "EPAS"~}
 - Name: epas${bdr_count + 1}
-%{else ~}
+%{else~}
 - Name: pgsql${bdr_count + 1}
-%{endif ~}
-%{if bdr_count < 3 ~}
+%{endif~}
+%{if bdr_count < 3~}
   location: BDRDC1
-%{else ~}
+%{else~}
   location: BDRDC2
-%{endif ~}
+%{endif~}
   node: ${bdr_count + 1}
   public_ip: ${aws_instance.bdr_server[bdr_count].public_ip}
   private_ip: ${aws_instance.bdr_server[bdr_count].private_ip}
-%{if bdr_count == 0 ~}
+%{if bdr_count == 0~}
   backup: barmandc1
-%{endif ~}
-%{if bdr_count == 3 ~}
+%{endif~}
+%{if bdr_count == 3~}
   backup: barmandc2
-%{endif ~}
+%{endif~}
   role:
   - primary
   - bdr
-%{if bdr_count == 2 || bdr_count == 5 ~}
+%{if bdr_count == 2 || bdr_count == 5~}
   - readonly
-%{if bdr_count < 3 ~}
-%{if var.pg_type == "EPAS" ~}
+%{if bdr_count < 3~}
+%{if var.pg_type == "EPAS"~}
   - upstream: epas1
-%{else ~}
+%{else~}
   - upstream: pgsql1
-%{endif ~}
-%{else ~}
-%{if var.pg_type == "EPAS" ~}
+%{endif~}
+%{else~}
+%{if var.pg_type == "EPAS"~}
   - upstream: epas4
-%{else ~}
+%{else~}
   - upstream: pgsql4
-%{endif ~}
-%{endif ~}
-%{endif ~}
+%{endif~}
+%{endif~}
+%{endif~}
   vars:
     subscriptions:
     - database: edb
@@ -309,13 +309,13 @@ instances:
       replication_sets:
       - bdrgroup
       - bdrdatagroup
-%{endfor ~}
-%{for witness_count in range(var.bdr_witness_server["count"]) ~}
-%{if var.pg_type == "EPAS" ~}
+%{endfor~}
+%{for witness_count in range(var.bdr_witness_server["count"])~}
+%{if var.pg_type == "EPAS"~}
 - Name: epas${var.bdr_server["count"] + witness_count + 1}
-%{else ~}
+%{else~}
 - Name: pgsql${var.bdr_server["count"] + witness_count + 1}
-%{endif ~}
+%{endif~}
   location: BDRDC3
   node: ${var.bdr_server["count"] + witness_count + 1}
   public_ip: ${aws_instance.bdr_witness_server[witness_count].public_ip}
@@ -329,14 +329,14 @@ instances:
       type: bdr
       replication_sets:
       - bdrgroup
-%{endfor ~}
-%{for pooler_count in range(var.pooler_server["count"]) ~}
+%{endfor~}
+%{for pooler_count in range(var.pooler_server["count"])~}
 - Name: pgbouncer${pooler_count + 1}
-%{if pooler_count < 3 ~}
+%{if pooler_count < 3~}
   location: BDRDC1
-%{else ~}
+%{else~}
   location: BDRDC2
-%{endif ~}
+%{endif~}
   node: ${var.bdr_server["count"] + var.bdr_witness_server["count"] + pooler_count + 1}
   public_ip:  ${aws_instance.pooler_server[pooler_count].public_ip}
   private_ip: ${aws_instance.pooler_server[pooler_count].private_ip}
@@ -346,45 +346,125 @@ instances:
   - etcd
   vars:
     haproxy_backend_servers:
-%{if pooler_count < 2 ~}
-%{if var.pg_type == "EPAS" ~}
+%{if pooler_count < 2~}
+%{if var.pg_type == "EPAS"~}
     - epas1
     - epas2
-%{else ~}
+%{else~}
     - pgsql1
     - pgsql2
-%{endif ~}
-%{else ~}
-%{if var.pg_type == "EPAS" ~}
+%{endif~}
+%{else~}
+%{if var.pg_type == "EPAS"~}
     - epas4
     - epas5
-%{else ~}
+%{else~}
     - pgsql4
     - pgsql5
-%{endif ~}
-%{endif ~}
-%{endfor ~}
-%{for barman_count in range(var.barman_server["count"]) ~}
+%{endif~}
+%{endif~}
+%{endfor~}
+%{for barman_count in range(var.barman_server["count"])~}
 - Name: barmandc${barman_count + 1}
-%{if barman_count == 0 ~}
+%{if barman_count == 0~}
   location: BDRDC1
-%{else ~}
+%{else~}
   location: BDRDC2
-%{endif ~}
+%{endif~}
   node: ${var.bdr_server["count"] + var.bdr_witness_server["count"] + var.pooler_server["count"] + barman_count + 1}
   public_ip: ${aws_instance.barman_server[barman_count].public_ip}
   private_ip: ${aws_instance.barman_server[barman_count].private_ip}
   role:
   - barman
   - etcd
-%{endfor ~}
-%{if var.pem_server["count"] > 0 ~}
+%{endfor~}
+%{if var.pem_server["count"] > 0~}
 - Name: pemserver1
   node: ${var.bdr_server["count"] + var.bdr_witness_server["count"] + var.pooler_server["count"] + var.barman_server["count"] + 1}
   location: BDRDC3
   public_ip: ${aws_instance.pem_server[0].public_ip}
   private_ip: ${aws_instance.pem_server[0].private_ip}
-%{endif ~}
-%{endif ~}
+%{endif~}
+%{endif~}
 EOT
+}
+
+resource "local_file" "ssh_config" {
+  filename = "${abspath(path.root)}/ssh_config"
+  file_permission = "0600"
+  content  = <<-EOT
+
+Host *
+    Port 22
+    IdentitiesOnly yes
+    IdentityFile "${basename(var.ssh_priv_key)}"
+    UserKnownHostsFile known_hosts tpa_known_hosts
+    ServerAliveInterval 60
+
+%{for count in range(var.postgres_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.postgres_server[count].public_ip}
+%{endfor~}
+%{for count in range(var.bdr_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.bdr_server[count].public_ip}
+%{endfor~}
+%{if var.pem_server["count"] > 0~}
+Host pemserver1
+    User ${var.ssh_user}
+    Hostname ${aws_instance.pem_server[0].public_ip}
+%{endif~}
+%{for count in range(var.barman_server["count"])~}
+%{if var.bdr_server["count"] > 0~}
+Host barmandc${count+1}:
+%{else~}
+Host barmanserver${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.barman_server[0].public_ip}
+%{endfor~}
+%{for count in range(var.dbt2_client["count"])~}
+Host dbt2_client${count+1}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.dbt2_client[count].public_ip}
+%{endfor~}
+%{for count in range(var.dbt2_driver["count"])~}
+Host dbt2_driver${count+1}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.dbt2_driver[count].public_ip}
+%{endfor~}
+%{for count in range(var.hammerdb_server["count"])~}
+Host hammerdbserver${count+1}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.hammerdb_server[count].public_ip}
+%{endfor~}
+%{for count in range(var.bdr_witness_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${var.bdr_server["count"] + count + 1}
+%{else~}
+Host pgsql${var.bdr_server["count"] + count + 1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.bdr_witness_server[count].public_ip}
+%{endfor~}
+%{for count in range(var.pooler_server["count"])~}
+%{if var.pooler_type == "pgpool2"~}
+Host pgpool2${count+1}
+%{else~}
+Host pgbouncer${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${aws_instance.pooler_server[count].public_ip}
+%{endfor~}
+    EOT
 }

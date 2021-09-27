@@ -40,7 +40,7 @@ resource "google_compute_firewall" "ssh" {
     ports    = ["22"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-ssh")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-ssh")]
   source_ranges = [var.source_ranges]
 }
 
@@ -53,7 +53,7 @@ resource "google_compute_firewall" "http" {
     ports    = ["80"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-http")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-http")]
   source_ranges = [var.source_ranges]
 }
 
@@ -66,7 +66,7 @@ resource "google_compute_firewall" "https" {
     ports    = ["443"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-https")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-https")]
   source_ranges = [var.source_ranges]
 }
 
@@ -78,7 +78,7 @@ resource "google_compute_firewall" "icmp" {
     protocol = "icmp"
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-icmp")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-icmp")]
   source_ranges = [var.source_ranges]
 }
 
@@ -91,7 +91,7 @@ resource "google_compute_firewall" "postgresql" {
     ports    = ["5432"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-postgresql")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-postgresql")]
   source_ranges = [var.source_ranges]
 }
 
@@ -104,12 +104,12 @@ resource "google_compute_firewall" "pem-server" {
     ports    = ["8443"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-pem-server")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-pem-server")]
   source_ranges = [var.source_ranges]
 }
 
 resource "google_compute_firewall" "firewall-secure-forward" {
-  name = format("%s-%s", var.network_name, "firewall-secure-forward")
+  name    = format("%s-%s", var.network_name, "firewall-secure-forward")
   network = google_compute_network.edb_prereq_network.name
 
   allow {
@@ -117,7 +117,7 @@ resource "google_compute_firewall" "firewall-secure-forward" {
     ports    = ["24284"]
   }
 
-  target_tags = [format("%s-%s", var.network_name, "firewall-secure-forward")]
+  target_tags   = [format("%s-%s", var.network_name, "firewall-secure-forward")]
   source_ranges = [var.source_ranges]
 }
 data "google_compute_zones" "available" {
@@ -217,33 +217,33 @@ resource "google_compute_instance" "pem_server" {
 }
 
 resource "google_sql_database_instance" "postgresql" {
-  name = format("%s-%s", var.cluster_name, "sql-postgresql-instance")
-  project = var.gcloud_project_id
-  region = var.gcloud_region
-  database_version = format("POSTGRES_%s", var.pg_version)
+  name                = format("%s-%s", var.cluster_name, "sql-postgresql-instance")
+  project             = var.gcloud_project_id
+  region              = var.gcloud_region
+  database_version    = format("POSTGRES_%s", var.pg_version)
   deletion_protection = false
 
   settings {
-    tier = var.postgres_server["instance_type"]
+    tier              = var.postgres_server["instance_type"]
     activation_policy = "ALWAYS"
     availability_type = "ZONAL"
-    disk_autoresize = false
-    disk_size = var.postgres_server["volume"]["size"]
-    disk_type = var.postgres_server["volume"]["type"]
+    disk_autoresize   = false
+    disk_size         = var.postgres_server["volume"]["size"]
+    disk_type         = var.postgres_server["volume"]["type"]
 
     location_preference {
       zone = element(data.google_compute_zones.available.names, 0)
     }
 
     maintenance_window {
-      day  = "7"  # sunday
+      day  = "7" # sunday
       hour = "3" # 3am
     }
 
     backup_configuration {
       binary_log_enabled = false
-      enabled = false
-      start_time = "00:00"
+      enabled            = false
+      start_time         = "00:00"
     }
 
     ip_configuration {
@@ -253,48 +253,48 @@ resource "google_sql_database_instance" "postgresql" {
         for_each = google_compute_instance.hammerdb_server
         iterator = hammerdb_server
         content {
-          name = hammerdb_server.value.name
+          name  = hammerdb_server.value.name
           value = hammerdb_server.value.network_interface.0.access_config.0.nat_ip
         }
       }
     }
 
     database_flags {
-      name = "checkpoint_timeout"
+      name  = "checkpoint_timeout"
       value = "900"
     }
 
     database_flags {
-      name = "effective_cache_size"
+      name  = "effective_cache_size"
       value = var.guc_effective_cache_size
     }
 
     database_flags {
-      name = "max_connections"
+      name  = "max_connections"
       value = "300"
     }
 
     database_flags {
-      name = "max_wal_size"
+      name  = "max_wal_size"
       value = var.guc_max_wal_size
     }
 
     database_flags {
-      name = "random_page_cost"
+      name  = "random_page_cost"
       value = "1.25"
     }
 
     database_flags {
-      name = "work_mem"
+      name  = "work_mem"
       value = "65536"
     }
   }
 }
 
 resource "google_sql_database" "postgresql_db" {
-  name = format("%s-%s", var.cluster_name, "sql-postgresql-database")
-  instance = google_sql_database_instance.postgresql.name
-  charset = "UTF-8"
+  name      = format("%s-%s", var.cluster_name, "sql-postgresql-database")
+  instance  = google_sql_database_instance.postgresql.name
+  charset   = "UTF-8"
   collation = "en_US.UTF8"
 }
 
@@ -303,7 +303,7 @@ resource "random_id" "user_password" {
 }
 
 resource "google_sql_user" "postgresql_user" {
-  name = "postgres"
+  name     = "postgres"
   instance = google_sql_database_instance.postgresql.name
   password = random_id.user_password.hex
 }

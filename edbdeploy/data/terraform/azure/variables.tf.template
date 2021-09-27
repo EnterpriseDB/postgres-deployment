@@ -17,6 +17,11 @@ variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
 variable "hammerdb" {}
+variable "dbt2" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
+variable "bdr_server" {}
+variable "bdr_witness_server" {}
 
 variable "vnet_cidr_block" {
   description = "CIDR Block for the VNet"

@@ -371,6 +371,23 @@ Project tree deletion:
 $ edb-deployment <CLOUD_VENDOR> remove <PROJECT_NAME>
 ```
 
+Open SSH connection to one host of the project:
+```shell
+$ edb-deployment <CLOUD_VENDOR> ssh <PROJECT_NAME> <NODE_NAME>
+```
+
+Note: the node name list can be found by executing the `display` sub-command.
+It can be: `epas1`, `epas2`, `pemserver1`, etc...
+
+Get a copy of the SSH keys and the ssh_config file. The files are copied into
+the current directory:
+```shell
+$ edb-deployment <CLOUD_VENDOR> get_ssh_keys <PROJECT_NAME>
+```
+
+Note: This sub-command is only available for `aws-pot`, `azure-pot` and
+`gcloud-pot`.
+
 # License
 
 Original work Copyright 2019-2020, EnterpriseDB Corporation

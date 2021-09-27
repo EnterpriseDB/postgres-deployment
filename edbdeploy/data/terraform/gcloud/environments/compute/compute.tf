@@ -141,8 +141,8 @@ resource "null_resource" "postgres_setup_volume" {
 
   provisioner "remote-exec" {
     inline = [
-        "chmod a+x /tmp/setup_volume.sh",
-        "/tmp/setup_volume.sh ${element(local.lnx_device_names, floor(count.index / var.postgres_server["count"]))} ${element(local.postgres_mount_points, floor(count.index / var.postgres_server["count"]))} >> /tmp/mount.log 2>&1"
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_device_names, floor(count.index / var.postgres_server["count"]))} ${element(local.postgres_mount_points, floor(count.index / var.postgres_server["count"]))} >> /tmp/mount.log 2>&1"
     ]
 
     connection {
@@ -242,8 +242,8 @@ resource "null_resource" "barman_setup_volume" {
 
   provisioner "remote-exec" {
     inline = [
-        "chmod a+x /tmp/setup_volume.sh",
-        "/tmp/setup_volume.sh ${element(local.lnx_device_names, floor(count.index / var.barman_server["count"]))} ${element(local.barman_mount_points, floor(count.index / var.barman_server["count"]))} >> /tmp/mount.log 2>&1"
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_device_names, floor(count.index / var.barman_server["count"]))} ${element(local.barman_mount_points, floor(count.index / var.barman_server["count"]))} >> /tmp/mount.log 2>&1"
     ]
 
     connection {

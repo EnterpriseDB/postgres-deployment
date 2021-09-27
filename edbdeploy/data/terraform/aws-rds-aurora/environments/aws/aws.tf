@@ -41,7 +41,7 @@ resource "aws_instance" "hammerdb_server" {
     delete_on_termination = "true"
     volume_size           = var.hammerdb_server["volume"]["size"]
     volume_type           = var.hammerdb_server["volume"]["type"]
-    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ?  var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
+    iops                  = var.hammerdb_server["volume"]["type"] == "io2" ? var.hammerdb_server["volume"]["iops"] : var.hammerdb_server["volume"]["type"] == "io1" ? var.hammerdb_server["volume"]["iops"] : null
   }
 
   tags = {
@@ -92,16 +92,16 @@ resource "aws_db_subnet_group" "rds" {
 }
 
 resource "aws_rds_cluster" "rds_server" {
-  cluster_identifier       = var.cluster_name
-  database_name            = var.cluster_name
-  engine                   = "aurora-postgresql"
-  engine_version           = var.pg_version
-  master_username          = "postgres"
-  master_password          = var.pg_password
-  backup_retention_period  = 1
-  skip_final_snapshot      = true
-  db_subnet_group_name     = "${aws_db_subnet_group.rds.name}"
-  vpc_security_group_ids   = [var.custom_security_group_id]
+  cluster_identifier      = var.cluster_name
+  database_name           = var.cluster_name
+  engine                  = "aurora-postgresql"
+  engine_version          = var.pg_version
+  master_username         = "postgres"
+  master_password         = var.pg_password
+  backup_retention_period = 1
+  skip_final_snapshot     = true
+  db_subnet_group_name    = "${aws_db_subnet_group.rds.name}"
+  vpc_security_group_ids  = [var.custom_security_group_id]
 
   tags = {
     Name       = format("%s-%s", var.cluster_name, "rds-aurora-cluster")
@@ -112,13 +112,13 @@ resource "aws_rds_cluster" "rds_server" {
 resource "aws_rds_cluster_instance" "rds_server" {
   count = 1
 
-  identifier               = var.cluster_name
-  cluster_identifier       = aws_rds_cluster.rds_server.id
-  instance_class           = var.postgres_server["instance_type"]
-  engine                   = "aurora-postgresql"
-  engine_version           = var.pg_version
-  publicly_accessible      = true
-  apply_immediately        = true
+  identifier          = var.cluster_name
+  cluster_identifier  = aws_rds_cluster.rds_server.id
+  instance_class      = var.postgres_server["instance_type"]
+  engine              = "aurora-postgresql"
+  engine_version      = var.pg_version
+  publicly_accessible = true
+  apply_immediately   = true
 
   tags = {
     Name       = format("%s-%s", var.cluster_name, "rds-aurora-instance")

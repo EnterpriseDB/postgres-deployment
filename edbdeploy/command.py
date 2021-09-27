@@ -171,3 +171,20 @@ class Commander:
         )
         Project.create_cloud_tools_bin_dir()
         Project.setup_tools(self.env.cloud)
+
+    def ssh(self):
+        self._check_project_exists()
+
+        # Checking the node name and fetching SSH parameters
+        (host_address, ssh_user, ssh_priv_key) = self.project.prepare_ssh(
+            self.env.host
+        )
+
+        logging.info(
+            "Opening SSH session on %s (%s)", self.env.host, host_address
+        )
+        self.project.ssh(host_address, ssh_user, ssh_priv_key)
+
+    def get_ssh_keys(self):
+        self._check_project_exists()
+        self.project.get_ssh_keys()

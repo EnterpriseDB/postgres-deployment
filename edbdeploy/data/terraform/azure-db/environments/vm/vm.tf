@@ -216,29 +216,29 @@ resource "azurerm_linux_virtual_machine" "pem_server" {
 }
 
 resource "azurerm_postgresql_server" "postgresql_server" {
-  name = format("%s-server", var.cluster_name)
-  location = var.azure_region
+  name                = format("%s-server", var.cluster_name)
+  location            = var.azure_region
   resource_group_name = var.resourcegroup_name
- 
+
   administrator_login          = "postgres"
   administrator_login_password = var.azuredb_passwd
- 
-  sku_name   = var.azuredb_sku
-  version    = var.pg_version
+
+  sku_name = var.azuredb_sku
+  version  = var.pg_version
 
   storage_profile {
-    storage_mb = var.postgres_server["size"]
-    backup_retention_days        = 7
+    storage_mb            = var.postgres_server["size"]
+    backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
   }
 
-  ssl_enforcement           = "Disabled"
+  ssl_enforcement = "Disabled"
 
   tags = var.project_tags
 }
 
 resource "azurerm_postgresql_database" "postgresql_db" {
-  name = format("%s-database", var.cluster_name)
+  name                = format("%s-database", var.cluster_name)
   resource_group_name = var.resourcegroup_name
   server_name         = azurerm_postgresql_server.postgresql_server.name
   charset             = "utf8"
@@ -246,7 +246,7 @@ resource "azurerm_postgresql_database" "postgresql_db" {
 }
 
 resource "azurerm_postgresql_firewall_rule" "postgresql-fw-rule" {
-  name = format("%s-database-fw", var.cluster_name)
+  name                = format("%s-database-fw", var.cluster_name)
   resource_group_name = var.resourcegroup_name
   server_name         = azurerm_postgresql_server.postgresql_server.name
   start_ip_address    = azurerm_public_ip.hammerdb_public_ip[0].ip_address

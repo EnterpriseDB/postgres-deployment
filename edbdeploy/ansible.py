@@ -86,7 +86,7 @@ class AnsibleCli:
                 "collection",
                 "install",
                 "-f",
-                collection_name
+                "\"%s\"" % collection_name
             ])
             result = output.decode("utf-8")
             logging.debug("Command output:")

@@ -20,6 +20,8 @@ from .spec.reference_architecture import ReferenceArchitectureSpec
 from .system import exec_shell
 from .terraform import TerraformCli
 from .tpaexec import TPAexecCli
+from . import __edb_ansible_version__
+
 
 def exec_hook(obj, name, *args, **kwargs):
     # Inject specific method call.
@@ -66,7 +68,7 @@ class Project:
         'virtualbox'
     )
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
-    ansible_collection_name = 'edb_devops.edb_postgres:3.5.2'
+    ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
@@ -282,6 +284,97 @@ class Project:
                         for line in f.readlines():
                             d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
+
+    def _init_terraform_vars(self, env):
+        ra = self.reference_architecture[env.reference_architecture]
+        pg = env.cloud_spec['postgres_server']
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pem = env.cloud_spec['pem_server']
+        dbt2_client = env.cloud_spec['dbt2_client']
+        dbt2_driver = env.cloud_spec['dbt2_driver']
+        hammerdb = env.cloud_spec['hammerdb_server']
+
+        self.terraform_vars = {
+            'barman': ra['barman'],
+            'cluster_name': self.name,
+            'dbt2': env.cloud_spec['dbt2'] if 'dbt2' in env.cloud_spec else ra['dbt2'],
+            'dbt2_client': {
+                'count': dbt2_client['count'] if 'count' in dbt2_client else ra['dbt2_client_count'],
+                'instance_type': dbt2_client['instance_type'],
+                'volume': dbt2_client['volume'],
+            },
+            'dbt2_driver': {
+                'count': dbt2_driver['count'] if 'count' in dbt2_driver else ra['dbt2_client_count'],
+                'instance_type': dbt2_driver['instance_type'],
+                'volume': dbt2_driver['volume'],
+            },
+            'hammerdb': ra['hammerdb'],
+            'hammerdb_server': {
+                'count': 1 if ra['hammerdb_server'] else 0,
+                'instance_type': hammerdb['instance_type'],
+                'volume': hammerdb['volume'],
+            },
+            'pem_server': {
+                'count': 1 if ra['pem_server'] else 0,
+                'instance_type': pem['instance_type'],
+                'volume': pem['volume'],
+            },
+            'pg_version': env.postgres_version,
+            'pooler_local': ra['pooler_local'],
+            'pooler_type': ra['pooler_type'],
+            'postgres_server': {
+                'count': ra['pg_count'],
+                'instance_type': pg['instance_type'],
+            },
+            'pg_type': env.postgres_type,
+            'replication_type': ra['replication_type'],
+            'ssh_pub_key': self.ssh_pub_key,
+            'ssh_priv_key': self.ssh_priv_key,
+            'ssh_user': os['ssh_user'],
+        }
+
+        if 'barman_server' in env.cloud_spec:
+            barman = env.cloud_spec['barman_server']
+            self.terraform_vars.update({
+                'barman_server': {
+                    'count': ra['barman_server_count'],
+                    'instance_type': barman['instance_type'],
+                    'volume': barman['volume'],
+                    'additional_volumes':
+                            barman['additional_volumes'],
+                },
+            })
+
+        if 'bdr_server' in env.cloud_spec:
+            bdr = env.cloud_spec['bdr_server']
+            self.terraform_vars.update({
+                'bdr_server': {
+                    'count': ra['bdr_server_count'],
+                    'instance_type': bdr['instance_type'],
+                    'volume': bdr['volume'],
+                    'additional_volumes': bdr['additional_volumes'],
+                },
+            })
+
+        if 'bdr_witness_server' in env.cloud_spec:
+            bdr_witness = env.cloud_spec['bdr_witness_server']
+            self.terraform_vars.update({
+                'bdr_witness_server': {
+                    'count': ra['bdr_witness_count'],
+                    'instance_type': bdr_witness['instance_type'],
+                    'volume': bdr_witness['volume'],
+                },
+            })
+
+        if 'pooler_server' in env.cloud_spec:
+            pooler = env.cloud_spec['pooler_server']
+            self.terraform_vars.update({
+                'pooler_server': {
+                    'count': ra['pooler_count'],
+                    'instance_type': pooler['instance_type'],
+                    'volume': pooler['volume'],
+                },
+            })
 
     def _build_terraform_vars_file(self, env):
         """
@@ -1054,6 +1147,96 @@ class Project:
             ssh_priv_key=ext_project_ssh_priv_key
         )
 
+    def prepare_ssh(self, node_name):
+        """
+        Checks if a given node name exists in that project and returns its
+        public address, SSH user and SSH priv. key path.
+        """
+        # Check if the machines have been provisioned when the provision step
+        # is required
+        cloud_vendors_provisioning = ['aws', 'azure', 'gcloud', 'aws-pot',
+                                      'azure-pot', 'gcloud-pot']
+        if self.env.cloud in cloud_vendors_provisioning:
+            try:
+                states = self.load_states()
+            except Exception:
+                states = {}
+            status = states.get('terraform', 'UNKNOWN')
+            if status != 'PROVISIONED':
+                raise ProjectError('Machines not provisioned')
+
+        # Load terraform vars.
+        self._load_terraform_vars()
+        ssh_user = self.terraform_vars['ssh_user']
+        ssh_priv_key = self.terraform_vars['ssh_priv_key']
+
+        # Read ansible inventory
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+        inventory_data = ansible.list_inventory(self.ansible_inventory)
+
+        # Checking inventory entries
+        for hostname, attrs in inventory_data['_meta']['hostvars'].items():
+            if node_name == hostname.split('.')[0]:
+                return (attrs['ansible_host'], ssh_user, ssh_priv_key)
+
+        raise ProjectError("Node %s not found in the inventory" % node_name)
+
+    def ssh(self, node_address, ssh_user, ssh_priv_key):
+        """
+        Open an interactive SSH connection to the node
+        """
+        os.system(' '.join([
+            "ssh",
+            "-i", ssh_priv_key,
+            "%s@%s" % (ssh_user, node_address)
+        ]))
+
+    def get_ssh_keys(self):
+        """
+        Get a copy, into the current directory, of the SSH private keys (we can
+        have 2 keys in the PoT case) and the ssh_config file.
+        """
+        files = list()
+        # Check if the machines have been provisioned when the provision step
+        # is required
+        cloud_vendors_provisioning = ['aws', 'azure', 'gcloud', 'aws-pot',
+                                      'azure-pot', 'gcloud-pot']
+        if self.env.cloud in cloud_vendors_provisioning:
+            try:
+                states = self.load_states()
+            except Exception:
+                states = {}
+            status = states.get('terraform', 'UNKNOWN')
+            if status != 'PROVISIONED':
+                raise ProjectError('Machines not provisioned')
+
+        # Load terraform vars.
+        self._load_terraform_vars()
+
+        # Add the key used for the deployment
+        files.append(self.terraform_vars['ssh_priv_key'])
+
+        if self.env.cloud in ['aws-pot', 'azure-pot', 'gcloud-pot']:
+            # In PoT, we add the project key too
+            files.append(
+                os.path.join(
+                    self.project_path, '%s_key.pem' % self.name
+                )
+            )
+        if os.path.exists(os.path.join(self.project_path, 'ssh_config')):
+            # Add ssh_config to the list of the files to copy only if it exists
+            files.append(
+                os.path.join(self.project_path, 'ssh_config')
+            )
+
+        for file in files:
+            with AM("Copying %s into the current directory" % file):
+                shutil.copy(file, os.path.basename(file))
+
     """
     TPAexec related methods
     """
@@ -1113,15 +1296,22 @@ class Project:
         env.cloud_spec = self._load_cloud_specs(env)
         # Copy the PoT role in ansible project directory
         ansible_roles_path = os.path.join(self.project_path, "roles")
+        ansible_pot_rte53_rm = os.path.join(self.project_path, "POT-Remove-Project-Route53.yml")
         tpaexec_hooks_path = os.path.join(self.project_path, "hooks")
-        with AM("Copying PoT role code from into %s" % ansible_roles_path):
+        with AM("Copying PoT role code into %s" % ansible_roles_path):
             try:
                 shutil.copytree(self.ansible_pot_role, ansible_roles_path)
             except Exception as e:
                 raise ProjectError(str(e))
 
+        with AM("Copying Route53 cleanup playbook code into %s" % ansible_pot_rte53_rm):
+            try:
+                shutil.copy(self.ansible_route53_remove, ansible_pot_rte53_rm)
+            except Exception as e:
+                raise ProjectError(str(e))
+
         if env.reference_architecture == 'EDB-Always-On':
-            with AM("Copying PoT TPAexec hooks code from into %s" % tpaexec_hooks_path):
+            with AM("Copying PoT TPAexec hooks code into %s" % tpaexec_hooks_path):
                 try:
                     shutil.copytree(self.tpaexec_pot_hooks, tpaexec_hooks_path)
                 except Exception as e:
@@ -1376,3 +1566,68 @@ class Project:
              'Internal IP Address', 'Login User'],
             rows
         )
+
+    def pot_destroy(self):
+        """
+        POT destroy method
+        """
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        # Load ansible vars
+        self._load_ansible_vars()
+
+        # Building extra vars to pass to ansible because it's not safe to pass
+        # the content of ansible_vars as it.
+        extra_vars = dict(
+            pg_type=self.ansible_vars['pg_type'],
+            pg_version=self.ansible_vars['pg_version'],
+            repo_username=self.ansible_vars['repo_username'],
+            repo_password=self.ansible_vars['repo_password'],
+            pass_dir=os.path.join(self.project_path, '.edbpass'),
+            email_id=self.ansible_vars['email_id'],
+            route53_access_key=self.ansible_vars['route53_access_key'],
+            route53_secret=self.ansible_vars['route53_secret'],
+            project=self.ansible_vars['project'],
+            public_key=self.ansible_vars['public_key']
+        )
+        if self.ansible_vars.get('pg_data'):
+            extra_vars.update(dict(
+                pg_data=self.ansible_vars['pg_data']
+            ))
+        if self.ansible_vars.get('pg_wal'):
+            extra_vars.update(dict(
+                pg_wal=self.ansible_vars['pg_wal']
+            ))
+
+        try:
+            states = self.load_states()
+        except Exception:
+            states = {}
+        status = states.get('ansible', 'UNKNOWN')
+        pot_rt53_path = os.path.join(self.project_path, 'POT-Remove-Project-Route53.yml')
+        if status in ['DEPLOYED'] and os.path.exists(pot_rt53_path):
+            with AM("Executing Route53 update playbook"):
+                ansible.run_playbook(
+                    self.cloud,
+                    self.ansible_vars['ssh_user'],
+                    self.ansible_vars['ssh_priv_key'],
+                    self.ansible_inventory,
+                    'POT-Remove-Project-Route53.yml',
+                    json.dumps(extra_vars),
+                    disable_pipelining=True,
+                )
+
+        with AM("Destroying cloud resources"):
+            self.update_state('terraform', 'DESTROYING')
+            terraform.destroy(self.terraform_vars_file)
+            self.update_state('terraform', 'DESTROYED')
+            self.update_state('ansible', 'UNKNOWN')

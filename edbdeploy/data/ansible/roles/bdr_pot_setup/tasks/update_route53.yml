@@ -22,15 +22,12 @@
 
 - name: store the value of existsing ip address in a variable
   set_fact:
-    route_ip_addressess: "{{ route_ip_addressess + [record.Value] }}"
-  with_items: "{{ rec.set.ResourceRecords }}"
+    route_ip_addressess: "{{ rec.set.ResourceRecords | map(attribute='Value') | unique | list }}"
   when: rec.set.ResourceRecords|length > 0
-  loop_control:
-    loop_var: record
 
-- name: add the pem server ips in rec values
+- name: Add the pem server ips in rec values
   set_fact:
-        route_ip_addressess: "{{ route_ip_addressess + [pem_server_public_ip] }}"
+        route_ip_addressess: "{{ route_ip_addressess| union([pem_server_public_ip]) }}"
   when:
   - pem_server_public_ip not in route_ip_addressess
   - rec.set.ResourceRecords|length > 0

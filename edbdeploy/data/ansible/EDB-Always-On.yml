@@ -15,8 +15,8 @@
         disable_logging: false
         pg_unix_socket_directories:
             - "/tmp"
-        pem_agent_package: "edb-pem-agent-8.0.1"
-        pem_server_packages: "edb-pem-server-8.1.1"
+        pem_agent_package: "edb-pem-agent-8.2.0"
+        pem_server_packages: "edb-pem-server-8.2.0"
 
   post_tasks:
     - name: Make sure /tmp permissions are correct
@@ -49,12 +49,13 @@
     - role: setup_pemagent
       vars:
         efm_enabled: False
+        force_register_db: False
       when: "'barmanserver' in group_names"
     - role: setup_pemagent
       vars:
         pg_service: pgbouncer
         pg_port: 6432
         efm_enabled: false
-        force_register_db: true
+        force_register_db: True
       when: "'pgbouncer' in group_names"
     - role: bdr_pot_setup

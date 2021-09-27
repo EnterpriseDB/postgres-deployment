@@ -35,83 +35,23 @@ class AWSProject(Project):
         """
         Build Terraform variable for AWS provisioning
         """
-        ra = self.reference_architecture[env.reference_architecture]
-        pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        barman = env.cloud_spec['barman_server']
-        pooler = env.cloud_spec['pooler_server']
-        dbt2_client = env.cloud_spec['dbt2_client']
-        dbt2_driver = env.cloud_spec['dbt2_driver']
-        hammerdb = env.cloud_spec['hammerdb_server']
-        bdr = env.cloud_spec['bdr_server']
-        bdr_witness = env.cloud_spec['bdr_witness_server']
 
-        self.terraform_vars = {
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
+        # Configure project specific terraform variables
+        os = env.cloud_spec['available_os'][env.operating_system]
+        pg = env.cloud_spec['postgres_server']
+
+        self.terraform_vars.update({
             'aws_ami_id': getattr(env, 'aws_ami_id', None),
             'aws_image': os['image'],
             'aws_region': env.aws_region,
-            'barman': ra['barman'],
-            'barman_server': {
-                'count': ra['barman_server_count'],
-                'instance_type': barman['instance_type'],
-                'volume': barman['volume'],
-                'additional_volumes': barman['additional_volumes'],
-            },
-            'cluster_name': self.name,
-            'dbt2': ra['dbt2'],
-            'dbt2_client': {
-                'count': ra['dbt2_client_count'],
-                'instance_type': dbt2_client['instance_type'],
-                'volume': dbt2_client['volume'],
-            },
-            'dbt2_driver': {
-                'count': ra['dbt2_client_count'],
-                'instance_type': dbt2_driver['instance_type'],
-                'volume': dbt2_driver['volume'],
-            },
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'pooler_local': ra['pooler_local'],
-            'pooler_server': {
-                'count': ra['pooler_count'],
-                'instance_type': pooler['instance_type'],
-                'volume': pooler['volume'],
-            },
-            'pooler_type': ra['pooler_type'],
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-                'additional_volumes': pg['additional_volumes'],
-            },
-            'bdr_server': {
-                'count': ra['bdr_server_count'],
-                'instance_type': bdr['instance_type'],
-                'volume': bdr['volume'],
-                'additional_volumes': bdr['additional_volumes'],
-            },
-            'bdr_witness_server': {
-                'count': ra['bdr_witness_count'],
-                'instance_type': bdr_witness['instance_type'],
-                'volume': bdr_witness['volume'],
-            },
-            'pg_type': env.postgres_type,
-            'replication_type': ra['replication_type'],
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
+        })
+        self.terraform_vars['postgres_server'].update({
+            'volume': pg['volume'],
+            'additional_volumes': pg['additional_volumes'],
+        })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

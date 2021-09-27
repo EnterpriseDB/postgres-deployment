@@ -3,17 +3,20 @@ import os
 from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
+from .. import __edb_ansible_version__
 
 
 class AzurePOTProject(Project):
 
-    ansible_collection_name = 'edb_devops.edb_postgres:3.5.2'
+    ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
         super(AzurePOTProject, self).__init__('azure-pot', name, env, bin_path)
         # Use Azure terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'azure')
+        # Route53 entry removal playbook
+        self.ansible_route53_remove = os.path.join(self.ansible_share_path, 'POT-Remove-Project-Route53.yml')
         # POT only attributes
         self.ansible_pot_role = os.path.join(self.ansible_share_path, 'roles')
         # TPAexec hooks path
@@ -162,3 +165,6 @@ class AzurePOTProject(Project):
 
     def display_inventory(self, inventory_data):
         self.pot_display_inventory(inventory_data)
+
+    def destroy(self):
+        self.pot_destroy()
