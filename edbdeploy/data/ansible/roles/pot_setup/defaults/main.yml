@@ -2,8 +2,10 @@
 # defaults file for pov_setup
 pg_type: "EPAS"
 efm_version: 4.2
+pg_instance_name: main
 efm_bin_path: "/usr/edb/efm-{{ efm_version }}/bin"
-efm_cluster_name: "efm"
+efm_cluster_name: "{{ pg_instance_name }}"
+efm_service: "edb-efm-{{ efm_cluster_name }}-{{ efm_version }}"
 disable_logging: no
 
 user_expire_date: ""
