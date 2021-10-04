@@ -527,6 +527,12 @@ class Project:
             node = self.terraform_vars.get(node_type)
             if not node:
                 continue
+
+            if not (node['count'] > 0):
+                # Do not check instance type availability if the number of
+                # machine is zero.
+                continue
+
             if node['instance_type'] not in instance_types:
                 instance_types.append(node['instance_type'])
 
