@@ -1,4 +1,4 @@
-- name: check the behavior
+- name: Update Route53
   any_errors_fatal: True
   max_fail_percentage: 0
   gather_facts: no
@@ -56,5 +56,5 @@
           zone: "{{ route53_zone }}"
           record: "{{ project }}pem.{{ domain }}"
           type: A
-          value: "{{ pem_server_public_ip }}"
+          value: "{{ pem_server_info[0]['ansible_host'] }}"
           wait: yes

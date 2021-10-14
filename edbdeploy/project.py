@@ -1144,7 +1144,7 @@ class Project:
 
         ext_project_ssh_priv_key = project_ssh_priv_key + '.pem'
         os.rename(project_ssh_priv_key, ext_project_ssh_priv_key)
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             shutil.copy(project_ssh_pub_key, ext_project_ssh_priv_key + '.pub')
 
         self.custom_ssh_keys[ssh_user] = dict(
@@ -1291,7 +1291,7 @@ class Project:
         """
 
         # Verify the tpaexec_bin and tpa_subscription_token based on architecture
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             if not env.tpaexec_bin or not env.tpa_subscription_token:
                 raise ProjectError(
                          "--tpaexec-bin and --tpaexec-subscription-token "
@@ -1315,7 +1315,7 @@ class Project:
             except Exception as e:
                 raise ProjectError(str(e))
 
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             with AM("Copying PoT TPAexec hooks code into %s" % tpaexec_hooks_path):
                 try:
                     shutil.copytree(self.tpaexec_pot_hooks, tpaexec_hooks_path)
@@ -1369,7 +1369,7 @@ class Project:
         # Instances availability checking hook
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
-        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+        if self.ansible_vars['reference_architecture'].startswith('EDB-Always-On'):
             self.tpaexec_provision()
 
         with AM("SSH configuration"):
@@ -1429,7 +1429,7 @@ class Project:
         # Load ansible vars
         self._load_ansible_vars()
 
-        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+        if self.ansible_vars['reference_architecture'].startswith('EDB-Always-On'):
             self.tpaexec_deploy()
 
         if not no_install_collection:
@@ -1450,7 +1450,8 @@ class Project:
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
             project=self.ansible_vars['project'],
-            public_key=self.ansible_vars['public_key']
+            public_key=self.ansible_vars['public_key'],
+            reference_architecture=self.ansible_vars['reference_architecture']
         )
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(
