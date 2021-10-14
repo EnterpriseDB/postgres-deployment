@@ -287,6 +287,7 @@ instances:
   - primary
   - bdr
 %{if bdr_count == 2 || bdr_count == 5~}
+%{if var.bdr_server["count"] > 3~}
   - readonly
 %{if bdr_count < 3~}
 %{if var.pg_type == "EPAS"~}
@@ -299,6 +300,7 @@ instances:
   - upstream: epas4
 %{else~}
   - upstream: pgsql4
+%{endif~}
 %{endif~}
 %{endif~}
 %{endif~}
@@ -390,9 +392,9 @@ EOT
 }
 
 resource "local_file" "ssh_config" {
-  filename = "${abspath(path.root)}/ssh_config"
+  filename        = "${abspath(path.root)}/ssh_config"
   file_permission = "0600"
-  content  = <<-EOT
+  content         = <<-EOT
 
 Host *
     Port 22
@@ -403,18 +405,18 @@ Host *
 
 %{for count in range(var.postgres_server["count"])~}
 %{if var.pg_type == "EPAS"~}
-Host epas${count+1}
+Host epas${count + 1}
 %{else~}
-Host pgsql${count+1}
+Host pgsql${count + 1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${aws_instance.postgres_server[count].public_ip}
 %{endfor~}
 %{for count in range(var.bdr_server["count"])~}
 %{if var.pg_type == "EPAS"~}
-Host epas${count+1}
+Host epas${count + 1}
 %{else~}
-Host pgsql${count+1}
+Host pgsql${count + 1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${aws_instance.bdr_server[count].public_ip}
@@ -426,25 +428,25 @@ Host pemserver1
 %{endif~}
 %{for count in range(var.barman_server["count"])~}
 %{if var.bdr_server["count"] > 0~}
-Host barmandc${count+1}:
+Host barmandc${count + 1}:
 %{else~}
-Host barmanserver${count+1}
+Host barmanserver${count + 1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${aws_instance.barman_server[0].public_ip}
 %{endfor~}
 %{for count in range(var.dbt2_client["count"])~}
-Host dbt2_client${count+1}
+Host dbt2_client${count + 1}
     User ${var.ssh_user}
     Hostname ${aws_instance.dbt2_client[count].public_ip}
 %{endfor~}
 %{for count in range(var.dbt2_driver["count"])~}
-Host dbt2_driver${count+1}
+Host dbt2_driver${count + 1}
     User ${var.ssh_user}
     Hostname ${aws_instance.dbt2_driver[count].public_ip}
 %{endfor~}
 %{for count in range(var.hammerdb_server["count"])~}
-Host hammerdbserver${count+1}
+Host hammerdbserver${count + 1}
     User ${var.ssh_user}
     Hostname ${aws_instance.hammerdb_server[count].public_ip}
 %{endfor~}
@@ -459,9 +461,9 @@ Host pgsql${var.bdr_server["count"] + count + 1}
 %{endfor~}
 %{for count in range(var.pooler_server["count"])~}
 %{if var.pooler_type == "pgpool2"~}
-Host pgpool2${count+1}
+Host pgpool2${count + 1}
 %{else~}
-Host pgbouncer${count+1}
+Host pgbouncer${count + 1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${aws_instance.pooler_server[count].public_ip}

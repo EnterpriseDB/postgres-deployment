@@ -18,13 +18,24 @@
     mode: 0640
   become: yes
 
-- name: Copy the pem_dashboard.sql
+- name: Copy the pem_dashboard.sql.platinum
   template:
-    src: pem_dashboards.sql.template
+    src: pem_dashboards.sql.platinum.template
     dest: "/tmp/pem_dashboards.sql"
     owner: "{{ pg_owner }}"
     group: "{{ pg_owner }}"
     mode: 0640
+  when: reference_architecture == "EDB-Always-On-Platinum"
+  become: yes
+
+- name: Copy the pem_dashboard.sql.silver
+  template:
+    src: pem_dashboards.sql.silver.template
+    dest: "/tmp/pem_dashboards.sql"
+    owner: "{{ pg_owner }}"
+    group: "{{ pg_owner }}"
+    mode: 0640
+  when: reference_architecture == "EDB-Always-On-Silver"
   become: yes
 
 - name: Copy the data_view.sql

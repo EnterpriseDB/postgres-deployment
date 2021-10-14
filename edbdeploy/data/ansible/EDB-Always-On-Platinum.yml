@@ -17,6 +17,7 @@
             - "/tmp"
         pem_agent_package: "edb-pem-agent-8.2.0"
         pem_server_packages: "edb-pem-server-8.2.0"
+        reference_architecture: "EDB-Always-On-Platinum"
 
   post_tasks:
     - name: Make sure /tmp permissions are correct

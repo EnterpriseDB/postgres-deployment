@@ -33,7 +33,7 @@ class POTReferenceArchitectureOption:
     """)
 
 class AWSPOTReferenceArchitectureOption:
-    choices = ['EDB-RA', 'EDB-Always-On']
+    choices = ['EDB-RA', 'EDB-Always-On-Platinum', 'EDB-Always-On-Silver']
 
     default = 'EDB-RA'
     help = textwrap.dedent("""
