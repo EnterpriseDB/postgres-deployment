@@ -249,6 +249,10 @@ cluster_vars:
       replicate_insert: true
       replicate_truncate: true
       replicate_update: true
+  bdr_extensions:
+    - btree_gist
+    - pglogical
+    - bdr
 
 ssh_key_file: ${var.ssh_priv_key}
 
