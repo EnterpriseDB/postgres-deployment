@@ -37,3 +37,24 @@ services:
       - EDB_DEPLOY_EFM_VERSION
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
+  test-gcloud:
+    image: centos:8
+    init: true
+    volumes:
+    # Source root dir.
+    - ../:/workspace
+    # GCloud credentials
+    - ~/.config/gcloud/:/root/.config/gcloud
+    environment:
+      - EDB_DEPLOY_CLOUD_VENDOR
+      - EDB_DEPLOY_CLOUD_REGION
+      - EDB_DEPLOY_PG_TYPE
+      - EDB_DEPLOY_PG_VERSION
+      - EDB_DEPLOY_RA
+      - EDB_DEPLOY_EDB_CREDENTIALS
+      - EDB_DEPLOY_EFM_VERSION
+      - EDB_GCLOUD_PROJECT_ID
+      - EDB_GOOGLE_ACCOUNTS_FILE
+    working_dir: /workspace
+    entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
+

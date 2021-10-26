@@ -31,6 +31,10 @@ then
 	mkdir -p /root/.azure
 	cp -r /root/.azure.ro/* /root/.azure/.
 fi
+if [ $EDB_DEPLOY_CLOUD_VENDOR = "gcloud" ]
+then
+	cp /workspace/tests/data/accounts.json /root/.
+fi
 
 # Tests execution
 py.test \

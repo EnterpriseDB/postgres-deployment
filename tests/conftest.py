@@ -26,6 +26,10 @@ EFM_VERSION = os.getenv('EDB_DEPLOY_EFM_VERSION', '4.2')
 DEPLOY_DIR = os.getenv(
     'EDB_DEPLOY_DIR', os.path.join(os.path.expanduser("~"), ".edb-deployment")
 )
+GCLOUD_CRED = os.getenv(
+    'GOOGLE_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
+    )
+GCLOUD_PROJECT_ID = os.getenv('EDB_GCLOUD_PROJECT_ID', 'project_id')
 
 
 @pytest.fixture(scope="class")
@@ -57,6 +61,16 @@ def configure():
         options.append(
             '--azure-region=%s' % CLOUD_REGION
         )
+    elif CLOUD_VENDOR == 'gcloud':
+        options.append(
+        '--gcloud-region=%s' % CLOUD_REGION
+    )
+        options.append(
+        '--gcloud-project-id=%s' % GCLOUD_PROJECT_ID
+    )
+        options.append(
+        '--gcloud-credentials=%s' % GCLOUD_CRED
+    )
     options.append(
         PROJECT_NAME
     )
