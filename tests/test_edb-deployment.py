@@ -91,6 +91,8 @@ class TestEDBDeployment:
             assert data['aws_region'] == CLOUD_REGION
         elif CLOUD_VENDOR == 'azure':
             assert data['azure_region'] == CLOUD_REGION
+        elif CLOUD_VENDOR == 'gcloud':
+            assert data['gcloud_region'] == CLOUD_REGION
         assert data['cluster_name'] == PROJECT_NAME
         if RA in ('EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3'):
             assert data['dbt2_client']['count'] == 0
