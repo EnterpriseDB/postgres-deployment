@@ -27,9 +27,11 @@ DEPLOY_DIR = os.getenv(
     'EDB_DEPLOY_DIR', os.path.join(os.path.expanduser("~"), ".edb-deployment")
 )
 GCLOUD_CRED = os.getenv(
-    'GOOGLE_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
+    'EDB_GOOGLE_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
     )
-GCLOUD_PROJECT_ID = os.getenv('EDB_GCLOUD_PROJECT_ID', 'project_id')
+GCLOUD_PROJECT_ID = os.getenv(
+    'EDB_GCLOUD_PROJECT_ID', 'project_id'
+    )
 
 
 @pytest.fixture(scope="class")
