@@ -111,7 +111,7 @@ $ ./run.sh
 Running tests in the same configuration but on GCloud:
 ```console
 $ export EDB_DEPLOY_CLOUD_VENDOR=gcloud
-$ export EDB_DEPLOY_CLOUD_REGION=useast1
+$ export EDB_DEPLOY_CLOUD_REGION=us-east1
 $ export EDB_DEPLOY_PG_TYPE=EPAS
 $ export EDB_DEPLOY_RA=EDB-RA-2
 $ export EDB_DEPLOY_EDB_CREDENTIALS="<username>:<password>"
