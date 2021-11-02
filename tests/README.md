@@ -81,7 +81,7 @@ environment.
 | `EDB_DEPLOY_PG_VERSION` | Database engine major version: `13`, `12`, etc.. | `13` |
 | `EDB_DEPLOY_RA` | Reference architecture: `EDB-RA-1`, `EDB-RA-2` or `EDB-RA-3` | `EDB-RA-1` |
 | `EDB_DEPLOY_EDB_CREDENTIALS` | EDB package repoisory credentials | `user:password` |
-| `EDB_GOOGLE_ACCOUNTS_FILE` | GCloud service service Json file | `~/accounts.json` |
+| `EDB_GOOGLE_ACCOUNTS_FILE` | GCloud service account Json file | `~/accounts.json` |
 | `EDB_GCLOUD_PROJECT_ID` | GCloud project id | `project_id` |
 
 ### Example
