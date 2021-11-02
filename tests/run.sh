@@ -17,7 +17,7 @@ fi
 if [ $EDB_DEPLOY_CLOUD_VENDOR = "gcloud" ]
 then 
 	COMPOSE_SERVICE="test-gcloud"
-	cp $EDB_GOOGLE_ACCOUNTS_FILE data/accounts.json
+	cp $EDB_GCLOUD_ACCOUNTS_FILE data/accounts.json
 fi
 
 # Docker compose command
