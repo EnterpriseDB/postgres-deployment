@@ -269,7 +269,7 @@ Then, you can edit and update resources configuration stored in the JSON file.
 
 Project initialialization will done using the `configure` sub-command:
 ```shell
-$ edb-deploy <CLOUD_VENDOR> configure <PROJECT_NAME> \
+$ edb-deployment <CLOUD_VENDOR> configure <PROJECT_NAME> \
   -a <REFERENCE_ARCHITECTURE_CODE> \
   -o <OPERATING_SYSTEM> \
   -t <PG_ENGINE_TYPE> \
