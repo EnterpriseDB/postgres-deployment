@@ -1175,10 +1175,10 @@ class Project:
             if status != 'PROVISIONED':
                 raise ProjectError('Machines not provisioned')
 
-        # Load terraform vars.
-        self._load_terraform_vars()
-        ssh_user = self.terraform_vars['ssh_user']
-        ssh_priv_key = self.terraform_vars['ssh_priv_key']
+        # Get SSH user and key path from ansible vars.
+        self._load_ansible_vars()
+        ssh_user = self.ansible_vars['ssh_user']
+        ssh_priv_key = self.ansible_vars['ssh_priv_key']
 
         # Read ansible inventory
         inventory_data = None
