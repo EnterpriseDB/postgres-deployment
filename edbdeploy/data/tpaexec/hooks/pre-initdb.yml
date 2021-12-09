@@ -2,10 +2,10 @@
 - name: Install missing packages by tpaexec
   package:
     name:
-      - edb-as13-server-edb-modules
-      - edb-as13-server-indexadvisor
-      - edb-as13-server-sqlprofiler
-      - edb-as13-server-sqlprotect
+      - edb-as14-server-indexadvisor
+      - edb-as14-server-sqlprofiler
+      - edb-as14-server-sqlprotect
+      - edb-as14-server-edb_wait_states
   when: >
     'bdr' in role and 'primary' in role
 
