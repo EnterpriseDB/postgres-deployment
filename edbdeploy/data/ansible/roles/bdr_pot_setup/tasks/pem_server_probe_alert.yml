@@ -72,7 +72,7 @@
   become_user: "{{ pg_owner }}"
   become: yes
 
-- name: Create pem haproxy, pgbouncer and barman charts
+- name: Create pem harp-proxy, pgbouncer and barman charts
   shell: >
     [[ ! -f /tmp/.pem_charts.sql.done ]] \
     && {{ pg_bin_path }}/psql \
@@ -85,7 +85,7 @@
   become_user: "{{ pg_owner }}"
   become: yes
 
-- name: Create pem haproxy, pgbouncer and barman dashboards
+- name: Create pem harp-proxy, pgbouncer and barman dashboards
   shell: >
     [[ ! -f /tmp/.pem_dashboards.sql.done ]] \
     && {{ pg_bin_path }}/psql \

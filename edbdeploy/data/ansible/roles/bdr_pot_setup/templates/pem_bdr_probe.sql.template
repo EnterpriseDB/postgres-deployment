@@ -1,12 +1,10 @@
 ------------------------------------------------------------------------------
--- SECTION: HAProxy
+-- SECTION: Harp-proxy
 ------------------------------------------------------------------------------
 
 --
--- Probe: haproxy_availability
+-- Probe: harp-proxy_availability
 --
--- NOTE: Ensure the path to pg_isready and the port number are correct in the
---       code below. If not, update as appropriate. See:
 
 INSERT INTO pem.probe (
     display_name,
@@ -23,8 +21,8 @@ INSERT INTO pem.probe (
     platform,
     probe_code
 ) VALUES (
-    'HAProxy Availability',
-    'haproxy_availability',
+    'Harp Proxy Availability',
+    'harp-proxy_availability',
     'b',
     100,
     NULL,
@@ -36,7 +34,7 @@ INSERT INTO pem.probe (
     false,
     'unix',
     $CODE$#!/bin/bash
-  /usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --haproxy-health
+  /usr/edb/pem/agent/bin/harp-proxy-pgbouncer-monitor.sh --harp-proxy-health
 $CODE$
 );
 
@@ -53,7 +51,7 @@ INSERT INTO pem.probe_column (
     pit_by_default,
     is_graphable
 ) SELECT
-    (SELECT id FROM pem.probe WHERE internal_name = 'haproxy_availability'),
+    (SELECT id FROM pem.probe WHERE internal_name = 'harp-proxy_availability'),
     v.internal_name,
     v.display_name,
     v.display_position,
@@ -68,97 +66,6 @@ FROM
     (VALUES
             ('status', 'Status', 1, 'm', 'text', '', false, false, false, true),
             ('message', 'Message', 2, 'm', 'text', '', false, false, false, false)
-        )
-v(
-    internal_name,
-    display_name,
-    display_position,
-    classification,
-    sql_data_type,
-    unit_of_value,
-    calculate_pit,
-    discard_history,
-    pit_by_default,
-    is_graphable
-);
-
---
--- Probe: haproxy_stats
---
--- NOTE: Ensure the path to the stats socket is correct in the code below. If
---       not, update as appropriate. See 's.connect("/var/run/haproxy.sock")'
---
-
-INSERT INTO pem.probe (
-    display_name,
-    internal_name,
-    collection_method,
-    target_type_id,
-    agent_capability,
-    enabled_by_default,
-    force_enabled,
-    default_execution_frequency,
-    default_lifetime,
-    any_server_version,
-    is_system_probe,
-    platform,
-    probe_code
-) VALUES (
-    'HAProxy Stats',
-    'haproxy_stats',
-    'b',
-    100,
-    NULL,
-    false,
-    false,
-    300,
-    90,
-    true,
-    false,
-    'unix',
-    $CODE$#!/bin/bash
- /usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --haproxy-stats
-$CODE$
-);
-
-INSERT INTO pem.probe_column (
-    probe_id,
-    internal_name,
-    display_name,
-    display_position,
-    classification,
-    sql_data_type,
-    unit_of_value,
-    calculate_pit,
-    discard_history,
-    pit_by_default,
-    is_graphable
-) SELECT
-    (SELECT id FROM pem.probe WHERE internal_name = 'haproxy_stats'),
-    v.internal_name,
-    v.display_name,
-    v.display_position,
-    v.classification,
-    v.sql_data_type,
-    v.unit_of_value,
-    v.calculate_pit,
-    v.discard_history,
-    v.pit_by_default,
-    v.is_graphable
-FROM
-    (VALUES
-            ('proxy_name', 'Proxy Name', 1, 'k', 'text', '', false, false, false, false),
-            ('service_name', 'Service Name', 2, 'k', 'text', '', false, false, false, false),
-            ('queued_requests', 'Queued Requests', 3, 'm', 'bigint', '', false, false, true, true),
-            ('current_sessions', 'Current Sessions', 4, 'm', 'bigint', '', false, false, true, true),
-            ('total_sessions', 'Total Sessions', 5, 'm', 'bigint', '', true, false, false, true),
-            ('bytes_in', 'Bytes In', 6, 'm', 'bigint', '', true, false, false, true),
-            ('bytes_out', 'Bytes Out', 7, 'm', 'bigint', '', true, false, false, true),
-            ('status', 'Status', 8, 'm', 'text', '', false, false, false, false),
-            ('check_status', 'Check Status', 9, 'm', 'text', '', false, false, false, false),
-            ('avg_queue_time', 'Average Queue Time', 10, 'm', 'bigint', '', false, false, true, true),
-            ('avg_connect_time', 'Average Connect Time', 11, 'm', 'bigint', '', false, false, true, true),
-            ('avg_response_time', 'Average Response Time', 12, 'm', 'bigint', '', false, false, true, true)
         )
 v(
     internal_name,
@@ -213,7 +120,7 @@ INSERT INTO pem.probe (
     false,
     'unix',
     $CODE$#!/bin/bash
-/usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --pgbouncer-health
+/usr/edb/pem/agent/bin/harp-proxy-pgbouncer-monitor.sh --pgbouncer-health
 $CODE$
 );
 
@@ -292,7 +199,7 @@ INSERT INTO pem.probe (
     false,
     'unix',
     $CODE$#!/bin/bash
-/usr/edb/pem/agent/bin/haproxy-pgbouncer-monitor.sh --pgbouncer-stats
+/usr/edb/pem/agent/bin/harp-proxy-pgbouncer-monitor.sh --pgbouncer-stats
 $CODE$
 );
 
@@ -597,7 +504,7 @@ SET username = '{{ pg_owner }}'
 WHERE server_id = 1;
 
 --
--- Disable HAProxy, Pgbouncer and Barman probes for
+-- Disable Harp Proxy, Pgbouncer and Barman probes for
 -- where it's not applicable
 --
 INSERT INTO pem.probe_config_agent(probe_id, agent_id, enabled, execution_frequency, lifetime)
@@ -615,7 +522,7 @@ SELECT p.id,
        p.default_execution_frequency,
        p.default_lifetime
 FROM   pem.probe p, pem.agent a
-WHERE  p.internal_name LIKE '%haproxy%' AND a.description LIKE 'pgbouncer%'
+WHERE  p.internal_name LIKE '%harp-proxy%' AND a.description LIKE 'pgbouncer%'
 UNION
 SELECT p.id,
        a.id as agent_id,

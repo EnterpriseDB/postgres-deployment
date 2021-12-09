@@ -28,51 +28,39 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-#  Author: Vibhor Kumar
-#  E-mail ID: vibhor.aim@gmail.com
+#  Authors:
+#    - Vibhor Kumar <vibhor.aim@gmail.com>
+#    - Julien Tachoires <julien.tachoires@enterprisedb.com>
 ################################################################################
 # verify any undefined shell variables
 set -u
 
 
 ################################################################################
-# HAProxy environment
+# Environment
 ################################################################################
 
 PGBIN="{{ pg_bin_path }}"
 PGPORT="{{ pg_port }}"
 PGOWNER="{{ pg_owner }}"
-HAPROXY_SOCKET="{{ haproxy_socket }}"
-HAPROXY_SERVICE="{{ haproxy_service }}"
 STATUS_MSG="status\tmessage"
-PGBOUNCER_SERVICE="{{ pgbouncer_service }}"
+HARPPROXY_SERVICE="harp-proxy"
 PGBOUNCER_PORT="{{ pgbouncer_port }}"
 PYTHON3="/usr/bin/python3"
 PGDATABASE="{{ pg_database }}"
-export PGBIN HAPROXY_SOCKET HAPROXY_SERVICE PGPORT STATUS_MSG
+export PGBIN HARPPROXY_SERVICE PGPORT STATUS_MSG
 
-################################################################################
-# HAProxy is running or not
-################################################################################
-
-function is_haproxy_running()
+function is_harp-proxy_running()
 {
-    /bin/systemctl status ${HAPROXY_SERVICE} >/dev/null 2>&1
+    /bin/systemctl status ${HARPPROXY_SERVICE} >/dev/null 2>&1
     if [[ $? -ne 0 ]]
     then
         echo -e "${STATUS_MSG}"
-        echo -e "NOT OK\tHAProxy is not running"
-        exit 0
-    fi
-    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${PGPORT} -d ${PGDATABASE} -q
-    if [[ $? -ne 0 ]]
-    then
-        echo -e "${STATUS_MSG}"
-        echo -e "NOT OK\tHAProxy is not redirecting connections"
+        echo -e "NOT OK\tharp-proxy is not running"
         exit 0
     fi
     echo -e "${STATUS_MSG}"
-    echo -e "OK\tHAProxy is running"
+    echo -e "OK\tharp-proxy is running"
     exit 0
 }
 
@@ -82,7 +70,7 @@ function is_haproxy_running()
 
 function is_pgbouncer_running()
 {
-    /bin/systemctl status ${PGBOUNCER_SERVICE} >/dev/null 2>&1
+    /sbin/pidof pgbouncer >/dev/null 2>&1
     if [[ $? -ne 0 ]]
     then
         echo -e "${STATUS_MSG}"
@@ -119,90 +107,23 @@ function pgbouncer_stats()
 }
 
 ################################################################################
-# HAProxy Stats
-################################################################################
-
-function haproxy_stats()
-{
-${PYTHON3} <<EOF
-
-import os
-import socket
-
-with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-    s.connect(os.environ.get('HAPROXY_SOCKET'))
-    s.send(b"show stat\n")
-    raw_data = s.recv(32768)
-    s.close()
-
-raw_data = raw_data.decode()[2:]
-raw_lines = raw_data.strip().split('\n')
-
-lines = []
-for raw_line in raw_lines[1:]:
-    # Replace empty values with zeros, as PEM dislikes NULLs with custom probes
-    line = ["0" if x == '' else x for x in raw_line.split(',')]
-    lines.append(line)
-
-print('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
-     %
-     ( "proxy_name",
-       "service_name",
-       "queued_requests",
-       "current_sessions",
-       "total_sessions",
-       "bytes_in",
-       "bytes_out",
-       "status",
-       "check_status",
-       "avg_queue_time",
-       "avg_connect_time",
-       "avg_response_time"
-      )
-)
-
-for line in lines:
-    print('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
-          %
-          ( line[0],
-            line[1],
-            line[2],
-            line[4],
-            line[7],
-            line[8],
-            line[9],
-            line[17],
-            line[36],
-            line[58],
-            line[59],
-            line[60]
-         )
-    )
-EOF
-}
-
-################################################################################
 # call the functions based on the functions
 ################################################################################
 
 case "$1" in
-    --haproxy-health)
-        is_haproxy_running
+    --harp-proxy-health)
+        is_harp-proxy_running
         ;;
     --pgbouncer-health)
         is_pgbouncer_running
-        ;;
-    --haproxy-stats)
-        haproxy_stats 2>/dev/null
         ;;
     --pgbouncer-stats)
         pgbouncer_stats 2>/dev/null
         ;;
     *)
         echo "ERROR: Unknown Option. Options are listed below"
-	echo "   --haproxy-health"
+	echo "   --harp-proxy-health"
 	echo "   --pgbouncer-health"
-	echo "   --haproxy-stats"
 	echo "   --pgbouncer-stats"
         ;;
 esac

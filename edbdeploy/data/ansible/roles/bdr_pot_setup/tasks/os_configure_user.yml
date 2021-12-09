@@ -53,10 +53,10 @@
   become: yes
   when: group_names is subset(['pgbouncer'])
 
-- name: Add haproxy-pgbouncer-monitor.sh file
+- name: Add harp-proxy-pgbouncer-monitor.sh file
   template:
-    src: haproxy-pgbouncer-monitor.sh.templates
-    dest: "{{ pem_agent_bin_path }}/haproxy-pgbouncer-monitor.sh"
+    src: harp-proxy-pgbouncer-monitor.sh.templates
+    dest: "{{ pem_agent_bin_path }}/harp-proxy-pgbouncer-monitor.sh"
     owner: root
     group: root
     mode: 0755
