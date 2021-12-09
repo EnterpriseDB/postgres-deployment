@@ -212,27 +212,25 @@ cluster_tags: {}
 cluster_vars:
   bdr_database: edb
   bdr_node_group: bdrgroup
-  extra_postgres_extensions:
-  - pglogical
+  bdr_version: '4'
   failover_manager: harp
   harp_consensus_protocol: etcd
   postgres_data_dir: /pgdata/pg_data
   postgres_initdb_opts:
   - --waldir=/pgwal/pg_wal
   postgres_coredump_filter: '0xff'
-  postgres_version: '13'
+  postgres_version: '14'
   postgresql_flavour: epas
   postgres_user: enterprisedb
   postgres_group: enterprisedb
   postgres_conf_settings:
-     shared_preload_libraries: "'dbms_pipe, edb_gen, dbms_aq, edb_wait_states, sql-profiler, index_advisor, pg_stat_statements, pglogical, bdr'"
+     shared_preload_libraries: "'dbms_pipe, edb_gen, dbms_aq, edb_wait_states, sql-profiler, index_advisor, pg_stat_statements, bdr'"
   pg_systemd_service_path: '/etc/systemd/system/postgres.service'
-  pg_systemd_alias: 'edb-as-13.service'
+  pg_systemd_alias: 'edb-as-14.service'
   preferred_python_version: python3
   repmgr_failover: manual
   tpa_2q_repositories:
-  - products/bdr_enterprise_3_7-epas/release
-  - products/pglogical3_7/release
+  - products/bdr4/release
   yum_repository_list:
   - EDB
   - EPEL
@@ -255,7 +253,6 @@ cluster_vars:
       replicate_update: true
   bdr_extensions:
     - btree_gist
-    - pglogical
     - bdr
   etcd_packages:
     Debian: []

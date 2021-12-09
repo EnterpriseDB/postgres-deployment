@@ -22,8 +22,8 @@ class AzurePOTProject(Project):
         # TPAexec hooks path
         self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
-        # Force PG version to 13 in POT env.
-        self.postgres_version = '13'
+        # Force PG version to 14 in POT env.
+        self.postgres_version = '14'
         self.operating_system = "CentOS8"
 
     def configure(self, env):
