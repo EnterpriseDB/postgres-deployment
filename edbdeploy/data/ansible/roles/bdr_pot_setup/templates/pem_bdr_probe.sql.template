@@ -22,7 +22,7 @@ INSERT INTO pem.probe (
     probe_code
 ) VALUES (
     'Harp Proxy Availability',
-    'harp-proxy_availability',
+    'harpproxy_availability',
     'b',
     100,
     NULL,
@@ -51,7 +51,7 @@ INSERT INTO pem.probe_column (
     pit_by_default,
     is_graphable
 ) SELECT
-    (SELECT id FROM pem.probe WHERE internal_name = 'harp-proxy_availability'),
+    (SELECT id FROM pem.probe WHERE internal_name = 'harpproxy_availability'),
     v.internal_name,
     v.display_name,
     v.display_position,
@@ -522,7 +522,7 @@ SELECT p.id,
        p.default_execution_frequency,
        p.default_lifetime
 FROM   pem.probe p, pem.agent a
-WHERE  p.internal_name LIKE '%harp-proxy%' AND a.description LIKE 'pgbouncer%'
+WHERE  p.internal_name LIKE '%harpproxy%' AND a.description LIKE 'pgbouncer%'
 UNION
 SELECT p.id,
        a.id as agent_id,

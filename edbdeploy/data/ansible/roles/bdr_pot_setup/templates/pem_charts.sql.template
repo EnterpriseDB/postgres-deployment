@@ -52,7 +52,7 @@ WITH probes_column_information AS
          join     pem.probe_column pc
          ON       (
                            p.id=pc.probe_id)
-         WHERE    p.internal_name ~* 'harp-proxy_availability'
+         WHERE    p.internal_name ~* 'harpproxy_availability'
          GROUP BY pc.probe_id,
                   p.internal_name )
 SELECT c.id,
