@@ -293,7 +293,6 @@ instances:
   backup: barmandc2
 %{endif~}
   role:
-  - primary
   - bdr
 %{if bdr_count == 2 || bdr_count == 5~}
 %{if var.bdr_server["count"] > 3~}
@@ -332,8 +331,8 @@ instances:
   public_ip: ${aws_instance.bdr_witness_server[witness_count].public_ip}
   private_ip: ${aws_instance.bdr_witness_server[witness_count].private_ip}
   role:
-  - primary
   - bdr
+  - witness
   vars:
     subscriptions:
     - database: edb
