@@ -21,7 +21,7 @@
     group: root
     mode: 0440
   become: yes
-  when: group_names is subset(['primary', 'standby', 'pemserver'])
+  when: group_names is subset(['primary', 'standby', 'pemserver', 'barmanserver'])
 
 - name: Add pot aliases file
   template:
