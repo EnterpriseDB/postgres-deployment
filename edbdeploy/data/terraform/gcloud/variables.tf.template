@@ -32,11 +32,6 @@ variable "source_ranges" {
   default = "0.0.0.0/0"
 }
 
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
-}
-
 # Ansible Add Hosts Filename
 variable "add_hosts_filename" {
   type    = string

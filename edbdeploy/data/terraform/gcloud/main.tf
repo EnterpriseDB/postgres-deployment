@@ -39,7 +39,6 @@ module "compute" {
   ssh_user                        = var.ssh_user
   ssh_pub_key                     = var.ssh_pub_key
   ssh_priv_key                    = var.ssh_priv_key
-  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
   dbt2                            = var.dbt2
   hammerdb                        = var.hammerdb

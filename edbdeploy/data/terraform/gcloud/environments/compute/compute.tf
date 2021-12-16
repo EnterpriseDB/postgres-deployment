@@ -1,5 +1,4 @@
 variable "add_hosts_filename" {}
-variable "ansible_inventory_yaml_filename" {}
 variable "barman" {}
 variable "barman_server" {}
 variable "dbt2" {}

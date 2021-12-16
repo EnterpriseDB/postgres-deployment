@@ -1,7 +1,10 @@
+import os
+
 from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..errors import ProjectError
 from ..project import Project
+from ..render import build_inventory_yml
 
 
 class AWSProject(Project):
@@ -25,6 +28,15 @@ class AWSProject(Project):
         region = self.terraform_vars['aws_region']
         with AM("Checking instances availability in region %s" % region):
             cloud_cli.cli.check_instances_availability(region)
+
+    def hook_inventory_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the inventory.yml file"):
+            build_inventory_yml(
+                self.ansible_inventory,
+                os.path.join(self.project_path, 'servers.yml'),
+                vars=vars
+            )
 
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()

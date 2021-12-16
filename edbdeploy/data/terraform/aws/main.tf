@@ -74,8 +74,6 @@ module "edb-db-cluster" {
   pooler_server                   = var.pooler_server
   replication_type                = var.replication_type
   cluster_name                    = var.cluster_name
-  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
-  tpaexec_config_yaml_filename    = var.tpaexec_config_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
   custom_security_group_id        = module.security.aws_security_group_id
   ssh_pub_key                     = var.ssh_pub_key

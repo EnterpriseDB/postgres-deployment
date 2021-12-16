@@ -726,7 +726,9 @@ class Project:
         sys.stdout.flush()
 
     def provision(self, env):
+        # Load variables
         self._load_ansible_vars()
+        self._load_terraform_vars()
 
         terraform = TerraformCli(
             self.project_path, self.terraform_plugin_cache_path,
@@ -743,11 +745,23 @@ class Project:
             terraform.apply(self.terraform_vars_file)
             self.update_state('terraform', 'PROVISIONED')
 
+        # inventory.yml and config.yml generation
+        # Variables passed to template rendering functions
+        render_vars = dict(
+            reference_architecture=self.ansible_vars['reference_architecture'],
+            cluster_name=self.ansible_vars['cluster_name'],
+            pg_type=self.ansible_vars['pg_type'],
+            pooler_local=self.terraform_vars['pooler_local'],
+            pooler_type=self.terraform_vars['pooler_type'],
+            replication_type=self.terraform_vars['replication_type'],
+            ssh_priv_key=self.terraform_vars['ssh_priv_key'],
+            ssh_user=self.terraform_vars['ssh_user']
+        )
+        # Ansible inventory.yml generation hook
+        exec_hook(self, 'hook_inventory_yml', render_vars)
+
         # Checking instance availability
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-        # Load terraform variables
-        self._load_terraform_vars()
-
         # Instances availability checking hook
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
@@ -1370,6 +1384,23 @@ class Project:
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         # Load terraform variables
         self._load_terraform_vars()
+
+        # inventory.yml and config.yml generation
+        # Variables passed to template rendering functions
+        render_vars = dict(
+            reference_architecture=self.ansible_vars['reference_architecture'],
+            cluster_name=self.ansible_vars['cluster_name'],
+            pg_type=self.ansible_vars['pg_type'],
+            pooler_local=self.terraform_vars['pooler_local'],
+            pooler_type=self.terraform_vars['pooler_type'],
+            replication_type=self.terraform_vars['replication_type'],
+            ssh_priv_key=self.terraform_vars['ssh_priv_key'],
+            ssh_user=self.terraform_vars['ssh_user']
+        )
+        # Ansible inventory.yml generation hook
+        exec_hook(self, 'hook_inventory_yml', render_vars)
+        # TPAexec config.yml generation hook
+        exec_hook(self, 'hook_config_yml', render_vars)
 
         # Instances availability checking hook
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)

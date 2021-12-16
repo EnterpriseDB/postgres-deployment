@@ -1,0 +1,170 @@
+---
+architecture: BDR-Always-ON
+cluster_name: {{ vars['cluster_name'] }}
+cluster_tags: {}
+
+cluster_vars:
+  bdr_database: edb
+  bdr_node_group: bdrgroup
+  bdr_version: '4'
+  failover_manager: harp
+  harp_consensus_protocol: etcd
+  postgres_data_dir: /pgdata/pg_data
+  postgres_initdb_opts:
+  - --waldir=/pgwal/pg_wal
+  postgres_coredump_filter: '0xff'
+  postgres_version: '14'
+  postgresql_flavour: epas
+  postgres_user: enterprisedb
+  postgres_group: enterprisedb
+  postgres_conf_settings:
+     shared_preload_libraries: "'dbms_pipe, edb_gen, dbms_aq, edb_wait_states, sql-profiler, index_advisor, pg_stat_statements, bdr'"
+  pg_systemd_service_path: '/etc/systemd/system/postgres.service'
+  pg_systemd_alias: 'edb-as-14.service'
+  preferred_python_version: python3
+  repmgr_failover: manual
+  tpa_2q_repositories:
+  - products/bdr4/release
+  yum_repository_list:
+  - EDB
+  - EPEL
+  use_volatile_subscriptions: false
+  publications:
+  - type: bdr
+    database: edb
+    replication_sets:
+    - name: bdrgroup
+      autoadd_tables: false
+      replicate_delete: false
+      replicate_insert: false
+      replicate_truncate: false
+      replicate_update: false
+    - name: bdrdatagroup
+      autoadd_tables: true
+      replicate_delete: true
+      replicate_insert: true
+      replicate_truncate: true
+      replicate_update: true
+  bdr_extensions:
+    - btree_gist
+    - bdr
+  etcd_packages:
+    Debian: []
+    RedHat: []
+
+
+ssh_key_file: {{ vars['ssh_priv_key'] }}
+
+locations:
+- Name: BDRDC1
+- Name: BDRDC2
+- Name: BDRDC3
+
+instance_defaults:
+  platform: bare
+  vars:
+    ansible_user: {{ vars['ssh_user'] }}
+
+instances:
+{% for bdr_server in servers['bdr_server'] %}
+{%   if vars['pg_type'] == 'EPAS' %}
+- Name: epas{{ bdr_server['id'] }}
+{%   else %}
+- Name: pgsql{{ bdr_server['id'] }}
+{%   endif %}
+{%   if bdr_server['id'] < 4 %}
+  location: BDRDC1
+{%   else %}
+  location: BDRDC2
+{%   endif %}
+  node: {{ bdr_server['id'] }}
+  public_ip: {{ bdr_server['public_ip'] }}
+  private_ip: {{ bdr_server['private_ip'] }}
+{%   if bdr_server['id'] == 1 %}
+  backup: barmandc1
+{%   elif bdr_server['id'] == 4 %}
+  backup: barmandc2
+{%   endif %}
+  role:
+  - primary
+  - bdr
+{%   if (bdr_server['id'] == 3 or bdr_server['id'] == 6) and vars['reference_architecture'] == 'EDB-Always-On-Platinum' %}
+  - readonly
+{%     if bdr_server['id'] == 3 %}
+{%       if vars['pg_type'] == 'EPAS' %}
+  - upstream: epas1
+{%       else %}
+  - upstream: pgsql1
+{%       endif %}
+{%     elif bdr_server['id'] == 6 %}
+{%       if vars['pg_type'] == 'EPAS' %}
+  - upstream: epas4
+{%       else %}
+  - upstream: pgsql4
+{%       endif %}
+{%     endif %}
+{%   endif %}
+  vars:
+    subscriptions:
+    - database: edb
+      type: bdr
+      replication_sets:
+      - bdrgroup
+      - bdrdatagroup
+{% endfor %}
+{% for bdr_witness_server in servers['bdr_witness_server'] %}
+{%  if vars['pg_type'] == 'EPAS' %}
+- Name: epas{{ servers.get('bdr_server', []) | length + bdr_witness_server['id'] }}
+{%  else %}
+- Name: pgsql{{ servers.get('bdr_server', []) | length + bdr_witness_server['id'] }}
+{%  endif %}
+  location: BDRDC3
+  node: {{ servers.get('bdr_server', []) | length + bdr_witness_server['id'] }}
+  public_ip: {{ bdr_witness_server['public_ip'] }}
+  private_ip: {{ bdr_witness_server['private_ip'] }}
+  role:
+  - bdr
+  - witness
+  vars:
+    subscriptions:
+    - database: edb
+      type: bdr
+      replication_sets:
+      - bdrgroup
+{% endfor %}
+{% for pooler_server in servers['pooler_server'] %}
+- Name: pgbouncer{{ pooler_server['id'] }}
+{%   if pooler_server['id'] < 4 %}
+  location: BDRDC1
+{%   else %}
+  location: BDRDC2
+{%   endif %}
+  node: {{ servers.get('bdr_server', []) | length + servers.get('bdr_witness_server', []) | length + pooler_server['id'] }}
+  public_ip:  {{ pooler_server['public_ip'] }}
+  private_ip: {{ pooler_server['private_ip'] }}
+  role:
+  - pgbouncer
+  - harp-proxy
+  - etcd
+{% endfor %}
+{% for barman_server in servers['barman_server'] %}
+- Name: barmandc{{ barman_server['id']}}
+{%   if barman_server['id'] == 1 %}
+  location: BDRDC1
+{%   else %}
+  location: BDRDC2
+{%   endif %}
+  node: {{ servers.get('bdr_server', []) | length + servers.get('bdr_witness_server', []) | length + servers.get('pooler_server', []) | length + barman_server['id'] }}
+  public_ip: {{ barman_server['public_ip'] }}
+  private_ip: {{ barman_server['private_ip'] }}
+  role:
+  - barman
+  - etcd
+{% endfor %}
+{% if servers.get('pem_server', []) | length > 0 %}
+- Name: pemserver1
+  node: {{ servers.get('bdr_server', []) | length + servers.get('bdr_witness_server', []) | length + servers.get('pooler_server', []) | length + servers.get('barman_server', []) | length + 1 }}
+  location: BDRDC3
+  public_ip: {{ servers['pem_server'][0]['public_ip'] }}
+  private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{% endif %}
