@@ -1,5 +1,4 @@
 variable "add_hosts_filename" {}
-variable "ansible_inventory_yaml_filename" {}
 variable "azure_region" {}
 variable "azure_offer" {}
 variable "azure_publisher" {}

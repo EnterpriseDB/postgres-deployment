@@ -16,8 +16,6 @@ variable "ssh_priv_key" {}
 variable "custom_security_group_id" {}
 variable "cluster_name" {}
 variable "created_by" {}
-variable "ansible_inventory_yaml_filename" {}
-variable "tpaexec_config_yaml_filename" {}
 variable "add_hosts_filename" {}
 variable "barman" {}
 variable "pooler_type" {}

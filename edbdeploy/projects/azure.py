@@ -1,6 +1,9 @@
+import os
+
 from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
+from ..render import build_inventory_yml
 
 
 class AzureProject(Project):
@@ -23,6 +26,15 @@ class AzureProject(Project):
         # Hook function called by Project.provision()
         with AM("Checking instances availability"):
             cloud_cli.cli.check_instances_availability(self.name)
+
+    def hook_inventory_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the inventory.yml file"):
+            build_inventory_yml(
+                self.ansible_inventory,
+                os.path.join(self.project_path, 'servers.yml'),
+                vars=vars
+            )
 
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()
