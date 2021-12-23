@@ -30,9 +30,11 @@
 
   roles:
     - role: setup_repo
-      when: "'pemserver' in group_names"
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
     - role: install_dbserver
-      when: "'pemserver' in group_names"
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
     - role: init_dbserver
       when: "'pemserver' in group_names"
     - role: manage_dbserver

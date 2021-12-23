@@ -54,6 +54,8 @@
       "to": "SSLCertificateFile '/etc/letsencrypt/live/{{ project }}pem.{{ domain }}/cert.pem'"
     - "from": "/usr/edb/pem/bin/../resources/server-pem.key"
       "to": "SSLCertificateKeyFile '/etc/letsencrypt/live/{{ project }}pem.{{ domain }}/privkey.pem'"
+    - "from": "ServerName localhost:8443"
+      "to": "ServerName 127.0.0.1:8443"
   loop_control:
     loop_var: line_item
 
