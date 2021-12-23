@@ -7,7 +7,7 @@
       - edb-as14-server-sqlprotect
       - edb-as14-server-edb_wait_states
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: Create /pgwal/wal directory
   file:
@@ -15,4 +15,4 @@
     state: directory
     owner: "{{ postgres_user }}"
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role

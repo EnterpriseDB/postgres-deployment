@@ -6,7 +6,6 @@
     state: absent
   when:
     - "'bdr' in role"
-    - "'primary' in role"
     - pg_systemd_alias is defined
     - pg_systemd_service_path is defined
 
@@ -18,7 +17,6 @@
     state: present
   when:
     - "'bdr' in role"
-    - "'primary' in role"
     - pg_systemd_alias is defined
     - pg_systemd_service_path is defined
 
@@ -26,7 +24,7 @@
   shell: >
     systemctl enable postgres
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: "Start and enable the service"
   systemd:
@@ -34,7 +32,7 @@
     state: started
     enabled: true
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: "Create harp-manager systemd unit directory used to store the override.conf file"
   ansible.builtin.file:
@@ -44,7 +42,7 @@
     group: root
     mode: '0755'
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: "Create harp-proxy systemd unit directory used to store the override.conf file"
   ansible.builtin.file:
@@ -64,7 +62,7 @@
     group: root
     mode: '0644'
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: "Override harp-proxy systemd unit"
   template:
@@ -80,7 +78,7 @@
   systemd:
     daemon_reload: yes
   when: >
-    ('bdr' in role and 'primary' in role) or ('harp-proxy' in role)
+    'bdr' in role or 'harp-proxy' in role
 
 - name: "Enable and start harp-manager systemd services"
   systemd:
@@ -88,7 +86,7 @@
     state: started
     enabled: true
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
 - name: "Stop and disable pgbouncer systemd services"
   systemd:

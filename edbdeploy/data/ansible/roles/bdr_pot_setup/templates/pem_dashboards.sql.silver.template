@@ -174,6 +174,13 @@ FROM
    pem.server
 WHERE description IN ('barmandc1','barmandc2');
 
+UPDATE pem.agent_server_binding asb
+SET    port=6432,
+       exclude_databases=array['postgres']
+from   pem.agent a
+WHERE  asb.agent_id = a.id
+AND    a.description LIKE 'pgbouncer%';
+
 --
 -- Group Agents based on data center
 --
@@ -202,6 +209,7 @@ WHERE sg.name = 'Data Center II - PEM Agents'
 UPDATE
    pem.server
 SET
-   port = 6432
+   port = 6432,
+   is_remote_monitoring = true
 WHERE
    description IN ('pgbouncer1', 'pgbouncer2', 'pgbouncer3', 'pgbouncer4');

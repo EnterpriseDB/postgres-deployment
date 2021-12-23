@@ -10,8 +10,7 @@ cluster_vars:
   failover_manager: harp
   harp_consensus_protocol: etcd
   postgres_data_dir: /pgdata/pg_data
-  postgres_initdb_opts:
-  - --waldir=/pgwal/pg_wal
+  postgres_wal_dir: /pgwal/pg_wal
   postgres_coredump_filter: '0xff'
   postgres_version: '14'
   postgresql_flavour: epas
@@ -86,7 +85,6 @@ instances:
   backup: barmandc2
 {%   endif %}
   role:
-  - primary
   - bdr
 {%   if (bdr_server['id'] == 3 or bdr_server['id'] == 6) and vars['reference_architecture'] == 'EDB-Always-On-Platinum' %}
   - readonly
@@ -143,9 +141,7 @@ instances:
   public_ip:  {{ pooler_server['public_ip'] }}
   private_ip: {{ pooler_server['private_ip'] }}
   role:
-  - pgbouncer
   - harp-proxy
-  - etcd
 {% endfor %}
 {% for barman_server in servers['barman_server'] %}
 - Name: barmandc{{ barman_server['id']}}
@@ -159,7 +155,6 @@ instances:
   private_ip: {{ barman_server['private_ip'] }}
   role:
   - barman
-  - etcd
 {% endfor %}
 {% if servers.get('pem_server', []) | length > 0 %}
 - Name: pemserver1

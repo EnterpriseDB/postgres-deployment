@@ -60,6 +60,61 @@ SET    enabled_by_default = FALSE
 WHERE  internal_name IN ( 'efm_cluster_node_status',
                           'bdr_node_replication_rates',
                           'efm_cluster_info');
+
+UPDATE pem.probe
+SET probe_code = $SQL$SELECT node_name,
+       node_group_name,
+       peer_state_name,
+       peer_target_state_name,
+       (SELECT ARRAY_AGG(set_name)
+        FROM   bdr.replication_set) AS sub_repsets
+FROM   bdr.node_summary;$SQL$
+WHERE internal_name = 'bdr_node_summary';
+
+UPDATE pem.probe
+SET probe_code = $SQL$SELECT node_name,
+       postgres_version,
+       bdr_version AS pglogical_version,
+       bdr_version,
+       bdr_edition
+FROM   bdr.group_versions_details;$SQL$
+WHERE internal_name = 'bdr_group_versions_details';
+
+UPDATE pem.probe
+SET probe_code = $SQL$SELECT     werr.werr_worker_pid AS worker_pid,
+           bs.node_group_name,
+           bs.origin_name,
+           bs.source_name,
+           bs.target_name,
+           bs.sub_name,
+           werr.werr_worker_role                  AS worker_role,
+           wrn.rolname                            AS worker_role_name,
+           werr.werr_time                         AS error_time,
+           Age(CURRENT_TIMESTAMP, werr.werr_time) AS error_age,
+           werr.werr_message                      AS error_message,
+           werr.werr_context                      AS error_context_message,
+           werr.werr_remoterelid                  AS remoterelid,
+           bs.sub_id                              AS subwriter_id,
+           bs.sub_name                            AS subwriter_name
+FROM       bdr.worker_error werr
+LEFT JOIN  bdr.subscription_summary bs
+ON         werr.werr_subid = bs.sub_id
+CROSS JOIN lateral bdr.worker_role_id_name(werr.werr_worker_role) wrn(rolname);$SQL$
+WHERE internal_name = 'bdr_worker_errors';
+
+UPDATE pem.probe
+SET probe_code = $SQL$SELECT node_name,
+       camo_partner AS camo_partner_of,
+       node_name    AS camo_origin_for,
+       is_camo_partner_connected,
+       is_camo_partner_ready,
+       camo_transactions_resolved,
+       apply_lsn,
+       receive_lsn,
+       apply_queue_size
+FROM   bdr.group_camo_details;$SQL$
+WHERE intenal_name = 'bdr_group_camo_details';
+
 UPDATE pem.alert
 SET    enabled = FALSE
 WHERE  template_id IN (SELECT id
