@@ -35,6 +35,10 @@ class AzureDBProject(Project):
         """
         Build Terraform variable for Azure Database provisioning
         """
+
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
@@ -42,37 +46,22 @@ class AzureDBProject(Project):
         hammerdb = env.cloud_spec['hammerdb_server']
         guc = TPROCC_GUC
 
-        self.terraform_vars = {
+        self.terraform_vars.update({
             'azure_offer': os['offer'],
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
             'azuredb_passwd': self.postgres_passwd,
             'azuredb_sku': pg['sku'],
             'azure_region': env.azure_region,
-            'cluster_name': self.name,
             'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
             'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
             'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'size': pg['size'],
-                'sku': pg['sku'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
+        })
+        self.terraform_vars['postgres_server'].update({
+            'count': ra['pg_count'],
+            'size': pg['size'],
+            'sku': pg['sku'],
+        })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

@@ -1,5 +1,5 @@
 --
--- HAProxy Availability Chart
+-- Harp Proxy Availability Chart
 --
 
 INSERT INTO pem.chart(cid,
@@ -14,8 +14,8 @@ INSERT INTO pem.chart(cid,
 VALUES(1,
        'TB',
        (ARRAY[100])::int4[],
-       'HAProxy Availability',
-       'Chart for HAProxy Availability',
+       'Harp Proxy Availability',
+       'Chart for Harp Proxy Availability',
        (SELECT oid
         FROM pg_roles
         WHERE rolname = current_user
@@ -31,7 +31,7 @@ INSERT INTO pem.tbl_chart
 SELECT id  AS cid,
        'D' AS chart
 FROM   pem.chart
-WHERE  name ~* 'HAProxy Availability';
+WHERE  name ~* 'Harp Proxy Availability';
 
 INSERT INTO pem.data_chart
             (
@@ -52,7 +52,7 @@ WITH probes_column_information AS
          join     pem.probe_column pc
          ON       (
                            p.id=pc.probe_id)
-         WHERE    p.internal_name ~* 'haproxy_availability'
+         WHERE    p.internal_name ~* 'harpproxy_availability'
          GROUP BY pc.probe_id,
                   p.internal_name )
 SELECT c.id,
@@ -67,95 +67,7 @@ SELECT c.id,
               WHERE  id = pc.probe_id)::BOOLEAN
 FROM   pem.chart c,
        probes_column_information pc
-WHERE  c.name ~* 'HAProxy Availability';
-
---
--- HAProxy Stats Chart
---
-INSERT INTO pem.chart
-            (
-              cid,
-              TYPE,
-              LEVEL,
-              name,
-              descp,
-              owner,
-              SHARED,
-              ref_cnt,
-              reload
-            )
-VALUES( 1,
-        'TB',
-        (array[100])::int4[],
-        'HAProxy Statistics',
-        'Chart for HAProxy Statistics',
-        (
-          SELECT oid
-          FROM   pg_roles
-          WHERE  rolname = current_user)::oid,
-        ('{}')::oid[],
-        1,
-        120000
-);
-
-INSERT INTO pem.tbl_chart
-            (cid,
-             chart)
-SELECT id  AS cid,
-       'D' AS chart
-FROM   pem.chart
-WHERE  name ~* 'HAProxy Statistics';
-
-INSERT INTO pem.data_chart(
-                           cid,
-                           tbl,
-                           metrices,
-                           orderby,
-                           orderdir,
-                           glimit,
-                           r_sys_obj
-                          )
-WITH probes_column_information AS (
-    SELECT
-        probe_id,
-        tbl,
-        ARRAY_AGG(internal_name) AS metrices
-    FROM (
-        SELECT
-            pc.probe_id,
-            p.internal_name tbl,
-            pc.internal_name,
-            pc.display_position
-        FROM
-            pem.probe p
-            JOIN pem.probe_column pc ON (p.id = pc.probe_id)
-        WHERE
-            p.internal_name ~* 'haproxy_stats'
-            AND pc.internal_name IN ('check_status', 'proxy_name', 'service_name', 'status', 'total_sessions', 'queued_requests', 'current_sessions')
-        ORDER BY
-            pc.display_position)
-    GROUP BY
-        probe_id,
-        tbl
-)
-SELECT
-    c.id,
-    pc.tbl,
-    pc.metrices,
-    ARRAY['check_status']::text[],
-    ARRAY['A']::character (1)[],
-    200, (
-        SELECT
-            applies_to_id >= 200
-        FROM pem.probe
-    WHERE
-        id = pc.probe_id)::boolean
-FROM
-    pem.chart c,
-    probes_column_information pc
-WHERE
-    c.name ~* 'HAProxy Statistics';
-
+WHERE  c.name ~* 'Harp Proxy Availability';
 
 --
 -- Pgbouncer Availability Chart

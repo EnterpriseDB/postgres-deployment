@@ -6,6 +6,7 @@
 
 {{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD:   {{ pg_bin_path }}/pg_ctl 
 {{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD:   /usr/bin/harpctl
+{{ os_project_user }}  ALL=(ALL)                      NOPASSWD:   /bin/barman
 
 # relax tty requirement for user '{{ os_project_user }}'
 Defaults:{{ pg_owner }} !requiretty

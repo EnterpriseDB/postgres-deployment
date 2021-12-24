@@ -1,5 +1,7 @@
 variable "aws_ami_id" {}
 variable "pem_server" {}
+variable "dbt2_client" {}
+variable "dbt2_driver" {}
 variable "hammerdb_server" {}
 variable "vpc_id" {}
 variable "ssh_user" {}
@@ -10,6 +12,7 @@ variable "cluster_name" {}
 variable "created_by" {}
 variable "ansible_inventory_yaml_filename" {}
 variable "add_hosts_filename" {}
+variable "dbt2" {}
 variable "hammerdb" {}
 variable "public_cidrblock" {}
 variable "project_tag" {}
@@ -25,6 +28,60 @@ data "aws_subnet_ids" "selected" {
 resource "aws_key_pair" "key_pair" {
   key_name   = var.cluster_name
   public_key = file(var.ssh_pub_key)
+}
+
+resource "aws_instance" "dbt2_client" {
+  count = var.dbt2_client["count"]
+
+  ami = var.aws_ami_id
+
+  instance_type          = var.dbt2_client["instance_type"]
+  key_name               = aws_key_pair.key_pair.id
+  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
+  vpc_security_group_ids = [var.custom_security_group_id]
+
+  root_block_device {
+    delete_on_termination = "true"
+    volume_size           = var.dbt2_client["volume"]["size"]
+    volume_type           = var.dbt2_client["volume"]["type"]
+    iops                  = var.dbt2_client["volume"]["type"] == "io2" ? var.dbt2_client["volume"]["iops"] : var.dbt2_client["volume"]["type"] == "io1" ? var.dbt2_client["volume"]["iops"] : null
+  }
+
+  tags = {
+    Name       = format("%s-%s%s", var.cluster_name, "dbt2client", count.index + 1)
+    Created_By = var.created_by
+  }
+
+  connection {
+    private_key = file(var.ssh_pub_key)
+  }
+}
+
+resource "aws_instance" "dbt2_driver" {
+  count = var.dbt2_driver["count"]
+
+  ami = var.aws_ami_id
+
+  instance_type          = var.dbt2_driver["instance_type"]
+  key_name               = aws_key_pair.key_pair.id
+  subnet_id              = element(tolist(data.aws_subnet_ids.selected.ids), count.index)
+  vpc_security_group_ids = [var.custom_security_group_id]
+
+  root_block_device {
+    delete_on_termination = "true"
+    volume_size           = var.dbt2_driver["volume"]["size"]
+    volume_type           = var.dbt2_driver["volume"]["type"]
+    iops                  = var.dbt2_driver["volume"]["type"] == "io2" ? var.dbt2_driver["volume"]["iops"] : var.dbt2_driver["volume"]["type"] == "io1" ? var.dbt2_driver["volume"]["iops"] : null
+  }
+
+  tags = {
+    Name       = format("%s-%s%s", var.cluster_name, "dbt2driver", count.index + 1)
+    Created_By = var.created_by
+  }
+
+  connection {
+    private_key = file(var.ssh_pub_key)
+  }
 }
 
 resource "aws_instance" "hammerdb_server" {

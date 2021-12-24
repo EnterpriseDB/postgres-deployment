@@ -6,7 +6,6 @@
     state: absent
   when:
     - "'bdr' in role"
-    - "'primary' in role"
     - pg_systemd_alias is defined
     - pg_systemd_service_path is defined
 
@@ -18,7 +17,6 @@
     state: present
   when:
     - "'bdr' in role"
-    - "'primary' in role"
     - pg_systemd_alias is defined
     - pg_systemd_service_path is defined
 
@@ -26,102 +24,93 @@
   shell: >
     systemctl enable postgres
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
-- name: Start and enable the service
+- name: "Start and enable the service"
   systemd:
     name: "postgres"
     state: started
-    enabled: yes
+    enabled: true
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
-- name: Create /var/run/harp directory
-  file:
-    path: "/var/run/harp"
+- name: "Create harp-manager systemd unit directory used to store the override.conf file"
+  ansible.builtin.file:
+    path: /etc/systemd/system/harp-manager.service.d
     state: directory
-    owner: "{{ postgres_user }}"
-    group: "{{ postgres_user }}"
+    owner: root
+    group: root
+    mode: '0755'
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
-- name: Stop and disable harp_router service
-  systemd:
-    name: "harp_router"
-    state: stopped
-    enabled: no
+- name: "Create harp-proxy systemd unit directory used to store the override.conf file"
+  ansible.builtin.file:
+    path: /etc/systemd/system/harp-proxy.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   when: >
-    'bdr' in role and 'primary' in role
+    'harp-proxy' in role
 
-- name: Stop and disable harp_manager service
-  systemd:
-    name: "harp_manager"
-    state: stopped
-    enabled: no
-  when: >
-    'bdr' in role and 'primary' in role
-
-- name: Copy the new harp_manager systemd unit
+- name: "Override harp-manager systemd unit"
   template:
-    src: harp_manager.service
-    dest: /etc/systemd/system/harp_manager.service
+    src: harp-manager.override.conf
+    dest: /etc/systemd/system/harp-manager.service.d/override.conf
     owner: root
     group: root
     mode: '0644'
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
-- name: Copy the new harp_router systemd unit
+- name: "Override harp-proxy systemd unit"
   template:
-    src: harp_router.service
-    dest: /etc/systemd/system/harp_router.service
+    src: harp-proxy.override.conf
+    dest: /etc/systemd/system/harp-proxy.service.d/override.conf
     owner: root
     group: root
     mode: '0644'
   when: >
-    'bdr' in role and 'primary' in role
+    'harp-proxy' in role
 
-- name: Reload systemd
+- name: "Reload systemd"
   systemd:
     daemon_reload: yes
   when: >
-    'pgbouncer' in role
+    'bdr' in role or 'harp-proxy' in role
 
-- name: "Enable and start harp_router systemd services"
+- name: "Enable and start harp-manager systemd services"
   systemd:
-    name: "harp_router"
+    name: "harp-manager"
     state: started
-    enabled: yes
+    enabled: true
   when: >
-    'bdr' in role and 'primary' in role
+    'bdr' in role
 
-- name: "Enable and start harp_manager systemd services"
+- name: "Stop and disable pgbouncer systemd services"
   systemd:
-    name: "harp_manager"
-    state: started
-    enabled: yes
+    name: "pgbouncer"
+    state: stopped
+    enabled: false
   when: >
-    'bdr' in role and 'primary' in role
+    'harp-proxy' in role
 
-- name: "Ensure first ndoe in each data center is the leader"
+- name: "Enable and start harp-proxy systemd services"
+  systemd:
+    name: "harp-proxy"
+    state: started
+    enabled: true
+  when: >
+    'harp-proxy' in role
+
+- name: "Ensure first node in each data center is the leader"
   shell: >
-     harpctl leader set
+     harpctl promote --force
+  retries: 10
+  delay: 5
+  register: result
+  until: result.rc == 0
   become_user: "{{ postgres_user }}"
   when: >
      inventory_hostname in ['epas1', 'epas4']
-
-- name: "Restart haproxy services"
-  systemd:
-    name: "haproxy"
-    state: restarted
-    enabled: yes
-  when: >
-    'haproxy' in role
-
-- name: "Restart pgbouncer systemd services"
-  systemd:
-    name: "pgbouncer"
-    state: restarted
-    enabled: yes
-  when: >
-    'pgbouncer' in role

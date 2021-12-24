@@ -1,14 +1,14 @@
 --
--- HAProxy and Pgbouncer Dashboard
+-- Harp Proxy and Pgbouncer Dashboard
 --
 INSERT INTO pem.dashboard (title, level, OWNER, descp, shared, font, font_size, is_ops_dashboard, show_title)
-    VALUES ('HAproxy and Pgbouncer Dashboard', 100, (
+    VALUES ('Harp Proxy and Pgbouncer Dashboard', 100, (
             SELECT
                 oid
             FROM pg_roles
             WHERE
                 rolname = CURRENT_USER)::oid,
-        'Dashboard fro HAproxy and Pgbouncer Dashboard',
+        'Dashboard for Harp Proxy and Pgbouncer Dashboard',
         ('{}')::oid[],
         (NULL)::text,
         (NULL)::int4,
@@ -19,11 +19,11 @@ INSERT INTO pem.dashboard_section (id, did, title)
 SELECT
     1,
     id,
-    'HAProxy Status'
+    'Harp Proxy Status'
 FROM
     pem.dashboard
 WHERE
-    title ~* 'HAproxy and Pgbouncer Dashboard'
+    title ~* 'Harp Proxy and Pgbouncer Dashboard'
 UNION
 SELECT
     2,
@@ -32,7 +32,7 @@ SELECT
 FROM
     pem.dashboard
 WHERE
-    title ~* 'HAproxy and Pgbouncer Dashboard';
+    title ~* 'Harp Proxy and Pgbouncer Dashboard';
 
 INSERT INTO pem.dashboard_chart (did, sid, cid, INDEX, size, align, legend_type, show_chart_title)
     SELECT
@@ -49,16 +49,7 @@ INSERT INTO pem.dashboard_chart (did, sid, cid, INDEX, size, align, legend_type,
         FROM
             pem.dashboard_section ds, pem.chart c
         WHERE
-            ds.title ~* '^HAProxy Status' AND c.name ~* 'HAProxy Availability'
-        UNION
-        SELECT
-            did, ds.id AS sid,
-            c.id AS cid,
-            1 AS index
-        FROM
-            pem.dashboard_section ds, pem.chart c
-        WHERE
-            ds.title ~* '^HAProxy Status' AND c.name ~* 'HAProxy Statistics'
+            ds.title ~* '^Harp Proxy Status' AND c.name ~* 'Harp Proxy Availability'
         UNION
         SELECT
             did, ds.id AS sid,
@@ -233,6 +224,14 @@ WHERE sg.name = 'Data Center III - PEM Agents'
 UPDATE
    pem.server
 SET
-   port = 6432
+   port = 6432,
+   is_remote_monitoring = true
 WHERE
    description IN ('pgbouncer1', 'pgbouncer2', 'pgbouncer3', 'pgbouncer4');
+
+UPDATE pem.agent_server_binding asb
+SET    port=6432,
+       exclude_databases=array['postgres']
+from   pem.agent a
+WHERE  asb.agent_id = a.id
+AND    a.description LIKE 'pgbouncer%';

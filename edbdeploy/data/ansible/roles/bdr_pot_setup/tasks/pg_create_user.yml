@@ -63,3 +63,15 @@
          user: "{{ pg_project_user }}"
        - role: bdr_monitor
          user: "pemagent"
+       - role: bdr_superuser
+         user: "pemagent"
+       - role: bdr_read_all_conflicts
+         user: "pemagent"
+       - role: bdr_read_all_stats
+         user: "pemagent"
+       - role: bdr_superuser
+         user: "{{ pg_project_user }}"
+       - role: bdr_read_all_conflicts
+         user: "{{ pg_project_user }}"
+       - role: bdr_read_all_stats
+         user: "{{ pg_project_user }}"

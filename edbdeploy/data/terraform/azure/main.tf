@@ -56,6 +56,9 @@ module "vm" {
   source = "./environments/vm"
 
   barman                          = var.barman
+  dbt2                            = var.dbt2
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   pg_type                         = var.pg_type
   postgres_server                 = var.postgres_server
   pem_server                      = var.pem_server
@@ -74,7 +77,6 @@ module "vm" {
   azure_offer                     = var.azure_offer
   azure_sku                       = var.azure_sku
   ssh_user                        = var.ssh_user
-  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
   pooler_type                     = var.pooler_type
   pooler_local                    = var.pooler_local
@@ -105,7 +107,6 @@ module "vm-hammerdb" {
   azure_offer                     = var.azure_offer
   azure_sku                       = var.azure_sku
   ssh_user                        = var.ssh_user
-  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
   pooler_type                     = var.pooler_type
   pooler_local                    = var.pooler_local

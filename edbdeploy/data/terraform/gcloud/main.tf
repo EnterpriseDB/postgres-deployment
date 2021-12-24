@@ -23,6 +23,8 @@ module "compute" {
   pg_type                         = var.pg_type
   pem_server                      = var.pem_server
   barman_server                   = var.barman_server
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   pooler_server                   = var.pooler_server
   hammerdb_server                 = var.hammerdb_server
   pooler_type                     = var.pooler_type
@@ -37,8 +39,8 @@ module "compute" {
   ssh_user                        = var.ssh_user
   ssh_pub_key                     = var.ssh_pub_key
   ssh_priv_key                    = var.ssh_priv_key
-  ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
   add_hosts_filename              = var.add_hosts_filename
+  dbt2                            = var.dbt2
   hammerdb                        = var.hammerdb
 
   depends_on = [module.security]

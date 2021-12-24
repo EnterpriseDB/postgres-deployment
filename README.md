@@ -269,7 +269,7 @@ Then, you can edit and update resources configuration stored in the JSON file.
 
 Project initialialization will done using the `configure` sub-command:
 ```shell
-$ edb-deploy <CLOUD_VENDOR> configure <PROJECT_NAME> \
+$ edb-deployment <CLOUD_VENDOR> configure <PROJECT_NAME> \
   -a <REFERENCE_ARCHITECTURE_CODE> \
   -o <OPERATING_SYSTEM> \
   -t <PG_ENGINE_TYPE> \
@@ -286,11 +286,10 @@ Notes:
     single Postgres node deployment with one backup server and one PEM
     monitoring server, **EDB-RA-2** for a 3 Postgres nodes deployment with
     quorum base synchronous replication and automatic failover, one backup
-	server and one PEM monitoring server, **EDB-RA-3** for extending
-	**EDB-RA-2** with 3 PgPoolII nodes, **DBT-2** for setting up a 3-tier
-    configuring for benchmarking with an OLTP workload, and
-    **HammerDB-TPROC-C** for setting up a 2-tier configuration for benchmarking
-    with an OLTP workload.  Default: **EDB-RA-1**
+    server and one PEM monitoring server, **EDB-RA-3** for extending
+    **EDB-RA-2** with 3 PgPoolII nodes,  and **HammerDB-TPROC-C** for setting up
+    a 2-tier configuration for benchmarking with an OLTP workload.  Default:
+    **EDB-RA-1**
 
   * `OPERATING_SYSTEM`
 

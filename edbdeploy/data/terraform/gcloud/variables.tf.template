@@ -1,6 +1,9 @@
 variable "barman" {}
 variable "barman_server" {}
 variable "cluster_name" {}
+variable "dbt2" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "pg_version" {}
 variable "gcloud_credentials" {}
 variable "gcloud_image" {}
@@ -17,9 +20,6 @@ variable "ssh_pub_key" {}
 variable "ssh_user" {}
 variable "hammerdb_server" {}
 variable "hammerdb" {}
-variable "dbt2" {}
-variable "dbt2_driver" {}
-variable "dbt2_client" {}
 variable "bdr_server" {}
 variable "bdr_witness_server" {}
 
@@ -30,11 +30,6 @@ variable "ip_cidr_range" {
 
 variable "source_ranges" {
   default = "0.0.0.0/0"
-}
-
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
 }
 
 # Ansible Add Hosts Filename

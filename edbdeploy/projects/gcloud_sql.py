@@ -28,14 +28,15 @@ class GCloudSQLProject(Project):
         """
         Build Terraform variable for GCloud SQL provisioning
         """
-        ra = self.reference_architecture[env.reference_architecture]
+
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
         guc = TPROCC_GUC
 
-        self.terraform_vars = {
+        self.terraform_vars.update({
             'gcloud_image': os['image'],
             'gcloud_region': env.gcloud_region,
             'gcloud_credentials': env.gcloud_credentials.name,
@@ -43,28 +44,11 @@ class GCloudSQLProject(Project):
             'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
             'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
             'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
-            'cluster_name': self.name,
-            'hammerdb': ra['hammerdb'],
-            'hammerdb_server': {
-                'count': 1 if ra['hammerdb_server'] else 0,
-                'instance_type': hammerdb['instance_type'],
-                'volume': hammerdb['volume'],
-            },
-            'pem_server': {
-                'count': 1 if ra['pem_server'] else 0,
-                'instance_type': pem['instance_type'],
-                'volume': pem['volume'],
-            },
-            'pg_version': env.postgres_version,
-            'postgres_server': {
-                'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
-                'volume': pg['volume'],
-            },
-            'ssh_pub_key': self.ssh_pub_key,
-            'ssh_priv_key': self.ssh_priv_key,
-            'ssh_user': os['ssh_user'],
-        }
+        })
+        self.terraform_vars['postgres_server'].update({
+            'instance_type': pg['instance_type'],
+            'volume': pg['volume'],
+        })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

@@ -5,6 +5,7 @@ efm_version: 4.2
 efm_bin_path: "/usr/edb/efm-{{ efm_version }}/bin"
 efm_cluster_name: "efm"
 disable_logging: no
+reference_architecture: "EDB-Always-On-Platinum"
 
 user_expire_date: ""
 public_key: ""
@@ -39,9 +40,6 @@ primary_public_ip: ""
 user_expiry_date: ""
 
 pgbouncer_port: 6432
-pgbouncer_service: "pgbouncer"
-haproxy_service: "haproxy"
-haproxy_socket: "/var/run/haproxy.sock"
 pem_agent_bin_path: "/usr/edb/pem/agent/bin"
 pem_web_home_dir: "/usr/edb/pem/web"
 pem_server_service: "httpd"

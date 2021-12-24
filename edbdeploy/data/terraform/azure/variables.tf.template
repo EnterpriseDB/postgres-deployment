@@ -4,6 +4,8 @@ variable "azure_offer" {}
 variable "azure_sku" {}
 variable "postgres_server" {}
 variable "pem_server" {}
+variable "dbt2_driver" {}
+variable "dbt2_client" {}
 variable "hammerdb_server" {}
 variable "pooler_server" {}
 variable "barman_server" {}
@@ -16,21 +18,14 @@ variable "ssh_user" {}
 variable "barman" {}
 variable "pooler_type" {}
 variable "pooler_local" {}
-variable "hammerdb" {}
 variable "dbt2" {}
-variable "dbt2_driver" {}
-variable "dbt2_client" {}
+variable "hammerdb" {}
 variable "bdr_server" {}
 variable "bdr_witness_server" {}
 
 variable "vnet_cidr_block" {
   description = "CIDR Block for the VNet"
   default     = "10.0.0.0/16"
-}
-
-# Ansible Yaml Inventory Filename
-variable "ansible_inventory_yaml_filename" {
-  default = "inventory.yml"
 }
 
 # Ansible Add Hosts Filename

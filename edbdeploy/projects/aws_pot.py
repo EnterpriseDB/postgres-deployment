@@ -5,6 +5,7 @@ from ..cloud import CloudCli
 from ..errors import ProjectError
 from ..project import Project
 from .. import __edb_ansible_version__
+from ..render import build_config_yml, build_inventory_yml
 
 
 class AWSPOTProject(Project):
@@ -23,8 +24,8 @@ class AWSPOTProject(Project):
         # TPAexec hooks path
         self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
-        # Force PG version to 13 in POT env.
-        self.postgres_version = '13'
+        # Force PG version to 14 in POT env.
+        self.postgres_version = '14'
         self.operating_system = "CentOS8"
 
     def configure(self, env):
@@ -35,6 +36,24 @@ class AWSPOTProject(Project):
         region = self.terraform_vars['aws_region']
         with AM("Checking instances availability in region %s" % region):
             cloud_cli.cli.check_instances_availability(region)
+
+    def hook_inventory_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the inventory.yml file"):
+            build_inventory_yml(
+                self.ansible_inventory,
+                os.path.join(self.project_path, 'servers.yml'),
+                vars=vars
+            )
+
+    def hook_config_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the config.yml file"):
+            build_config_yml(
+                os.path.join(self.project_path, 'config.yml'),
+                os.path.join(self.project_path, 'servers.yml'),
+                vars=vars
+            )
 
     def _build_ansible_vars(self, env):
         self.pot_build_ansible_vars(env)

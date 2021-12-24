@@ -43,6 +43,10 @@ class AWSRDSProject(Project):
         """
         Build Terraform variable for AWS RDS provisioning
         """
+
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
         ra = self.reference_architecture[env.reference_architecture]
         os = env.cloud_spec['available_os'][env.operating_system]
         pg = env.cloud_spec['postgres_server']
@@ -57,9 +61,10 @@ class AWSRDSProject(Project):
             'guc_shared_buffers': guc[env.shirt]['shared_buffers'],
             'pg_password': get_password(self.project_path, 'postgres'),
             'pg_version': env.postgres_version,
-            'postgres_server': {
-                'volume': pg['volume'],
-            },
+        })
+        self.terraform_vars['postgres_server'].update({
+            'instance_type': pg['instance_type'],
+            'volume': pg['volume'],
         })
 
     def _check_instance_image(self, env):

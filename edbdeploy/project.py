@@ -255,12 +255,17 @@ class Project:
             # Ensure SSH keys have been defined
             if env.ssh_priv_key is None:
                 raise ProjectError("SSH private key not defined")
+            shutil.copy(env.ssh_priv_key.name, self.ssh_priv_key)
+            os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
+
+            if not hasattr(env, 'ssh_pub_key'):
+                # Baremetal does not require public key usage
+                return
+
             if env.ssh_pub_key is None:
                 raise ProjectError("SSH public key not defined")
 
-            shutil.copy(env.ssh_priv_key.name, self.ssh_priv_key)
             shutil.copy(env.ssh_pub_key.name, self.ssh_pub_key)
-            os.chmod(self.ssh_priv_key, stat.S_IREAD | stat.S_IWRITE)
             os.chmod(self.ssh_pub_key, stat.S_IREAD | stat.S_IWRITE)
 
     def _transform_terraform_tpl(self):
@@ -324,7 +329,6 @@ class Project:
             'pooler_type': ra['pooler_type'],
             'postgres_server': {
                 'count': ra['pg_count'],
-                'instance_type': pg['instance_type'],
             },
             'pg_type': env.postgres_type,
             'replication_type': ra['replication_type'],
@@ -528,6 +532,12 @@ class Project:
             node = self.terraform_vars.get(node_type)
             if not node:
                 continue
+
+            if not (node['count'] > 0):
+                # Do not check instance type availability if the number of
+                # machine is zero.
+                continue
+
             if node['instance_type'] not in instance_types:
                 instance_types.append(node['instance_type'])
 
@@ -716,7 +726,9 @@ class Project:
         sys.stdout.flush()
 
     def provision(self, env):
+        # Load variables
         self._load_ansible_vars()
+        self._load_terraform_vars()
 
         terraform = TerraformCli(
             self.project_path, self.terraform_plugin_cache_path,
@@ -733,11 +745,23 @@ class Project:
             terraform.apply(self.terraform_vars_file)
             self.update_state('terraform', 'PROVISIONED')
 
+        # inventory.yml and config.yml generation
+        # Variables passed to template rendering functions
+        render_vars = dict(
+            reference_architecture=self.ansible_vars['reference_architecture'],
+            cluster_name=self.ansible_vars['cluster_name'],
+            pg_type=self.ansible_vars['pg_type'],
+            pooler_local=self.terraform_vars['pooler_local'],
+            pooler_type=self.terraform_vars['pooler_type'],
+            replication_type=self.terraform_vars['replication_type'],
+            ssh_priv_key=self.terraform_vars['ssh_priv_key'],
+            ssh_user=self.terraform_vars['ssh_user']
+        )
+        # Ansible inventory.yml generation hook
+        exec_hook(self, 'hook_inventory_yml', render_vars)
+
         # Checking instance availability
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
-        # Load terraform variables
-        self._load_terraform_vars()
-
         # Instances availability checking hook
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
@@ -1139,7 +1163,7 @@ class Project:
 
         ext_project_ssh_priv_key = project_ssh_priv_key + '.pem'
         os.rename(project_ssh_priv_key, ext_project_ssh_priv_key)
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             shutil.copy(project_ssh_pub_key, ext_project_ssh_priv_key + '.pub')
 
         self.custom_ssh_keys[ssh_user] = dict(
@@ -1165,10 +1189,10 @@ class Project:
             if status != 'PROVISIONED':
                 raise ProjectError('Machines not provisioned')
 
-        # Load terraform vars.
-        self._load_terraform_vars()
-        ssh_user = self.terraform_vars['ssh_user']
-        ssh_priv_key = self.terraform_vars['ssh_priv_key']
+        # Get SSH user and key path from ansible vars.
+        self._load_ansible_vars()
+        ssh_user = self.ansible_vars['ssh_user']
+        ssh_priv_key = self.ansible_vars['ssh_priv_key']
 
         # Read ansible inventory
         inventory_data = None
@@ -1286,7 +1310,7 @@ class Project:
         """
 
         # Verify the tpaexec_bin and tpa_subscription_token based on architecture
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             if not env.tpaexec_bin or not env.tpa_subscription_token:
                 raise ProjectError(
                          "--tpaexec-bin and --tpaexec-subscription-token "
@@ -1310,7 +1334,7 @@ class Project:
             except Exception as e:
                 raise ProjectError(str(e))
 
-        if env.reference_architecture == 'EDB-Always-On':
+        if env.reference_architecture.startswith('EDB-Always-On'):
             with AM("Copying PoT TPAexec hooks code into %s" % tpaexec_hooks_path):
                 try:
                     shutil.copytree(self.tpaexec_pot_hooks, tpaexec_hooks_path)
@@ -1361,10 +1385,27 @@ class Project:
         # Load terraform variables
         self._load_terraform_vars()
 
+        # inventory.yml and config.yml generation
+        # Variables passed to template rendering functions
+        render_vars = dict(
+            reference_architecture=self.ansible_vars['reference_architecture'],
+            cluster_name=self.ansible_vars['cluster_name'],
+            pg_type=self.ansible_vars['pg_type'],
+            pooler_local=self.terraform_vars['pooler_local'],
+            pooler_type=self.terraform_vars['pooler_type'],
+            replication_type=self.terraform_vars['replication_type'],
+            ssh_priv_key=self.terraform_vars['ssh_priv_key'],
+            ssh_user=self.terraform_vars['ssh_user']
+        )
+        # Ansible inventory.yml generation hook
+        exec_hook(self, 'hook_inventory_yml', render_vars)
+        # TPAexec config.yml generation hook
+        exec_hook(self, 'hook_config_yml', render_vars)
+
         # Instances availability checking hook
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
-        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+        if self.ansible_vars['reference_architecture'].startswith('EDB-Always-On'):
             self.tpaexec_provision()
 
         with AM("SSH configuration"):
@@ -1424,7 +1465,7 @@ class Project:
         # Load ansible vars
         self._load_ansible_vars()
 
-        if self.ansible_vars['reference_architecture'] == 'EDB-Always-On':
+        if self.ansible_vars['reference_architecture'].startswith('EDB-Always-On'):
             self.tpaexec_deploy()
 
         if not no_install_collection:
@@ -1445,7 +1486,8 @@ class Project:
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
             project=self.ansible_vars['project'],
-            public_key=self.ansible_vars['public_key']
+            public_key=self.ansible_vars['public_key'],
+            reference_architecture=self.ansible_vars['reference_architecture']
         )
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(

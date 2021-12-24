@@ -1,0 +1,64 @@
+---
+- name: Postgres deployment playbook for reference architecture EDB-Always-On
+  hosts: all
+  become: yes
+  gather_facts: yes
+  any_errors_fatal: True
+  max_fail_percentage: 0
+
+  collections:
+    - edb_devops.edb_postgres
+  pre_tasks:
+    - name: Initialize the user defined variables
+      set_fact:
+        use_hostname: yes
+        disable_logging: false
+        pg_unix_socket_directories:
+            - "/tmp"
+        pem_agent_package: "edb-pem-agent-8.3.0"
+        pem_server_packages: "edb-pem-server-8.3.0"
+        reference_architecture: "EDB-Always-On-Platinum"
+
+  post_tasks:
+    - name: Make sure /tmp permissions are correct
+      file:
+        path: /tmp
+        owner: root
+        group: root
+        mode: 01777
+      when: "'pemserver' not in group_names"
+
+  roles:
+    - role: setup_repo
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
+    - role: install_dbserver
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
+    - role: init_dbserver
+      when: "'pemserver' in group_names"
+    - role: manage_dbserver
+      when: "'pemserver' in group_names"
+    - role: autotuning
+      when: "'pemserver' in group_names"
+    - role: setup_pemserver
+      when: "'pemserver' in group_names"
+    - role: setup_pemagent
+      when: inventory_hostname == groups.primary[0]
+    - role: setup_pemagent
+      when:
+      - "'primary' in group_names"
+      - inventory_hostname != groups.primary[0]
+    - role: setup_pemagent
+      vars:
+        efm_enabled: False
+        force_register_db: False
+      when: "'barmanserver' in group_names"
+    - role: setup_pemagent
+      vars:
+        pg_service: pgbouncer
+        pg_port: 6432
+        efm_enabled: false
+        force_register_db: True
+      when: "'pgbouncer' in group_names"
+    - role: bdr_pot_setup

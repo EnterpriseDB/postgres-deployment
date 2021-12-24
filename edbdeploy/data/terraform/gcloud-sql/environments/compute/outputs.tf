@@ -11,6 +11,24 @@ all:
           ansible_host: ${google_compute_instance.pem_server[0].network_interface.0.access_config.0.nat_ip}
           private_ip: ${google_compute_instance.pem_server[0].network_interface.0.network_ip}
 %{endif~}
+%{if var.dbt2_client["count"] > 0~}
+    dbt2_client:
+      hosts:
+%{for dbt2_client_count in range(var.dbt2_client["count"])~}
+        dbt2_client${dbt2_client_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${google_compute_instance.dbt2_client[dbt2_client_count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.dbt2_client[dbt2_client_count].network_interface.0.network_ip}
+%{endfor~}
+%{endif~}
+%{if var.dbt2_driver["count"] > 0~}
+    dbt2_driver:
+      hosts:
+%{for dbt2_driver_count in range(var.dbt2_driver["count"])~}
+        dbt2_driver${dbt2_driver_count + 1}.${var.cluster_name}.internal:
+          ansible_host: ${google_compute_instance.dbt2_driver[dbt2_driver_count].network_interface.0.access_config.0.nat_ip}
+          private_ip: ${google_compute_instance.dbt2_driver[dbt2_driver_count].network_interface.0.network_ip}
+%{endfor~}
+%{endif~}
 %{for hammerdb_count in range(var.hammerdb_server["count"])~}
 %{if hammerdb_count == 0~}
     hammerdbserver:
@@ -20,32 +38,15 @@ all:
           private_ip: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.network_ip}
 %{endif~}
 %{endfor~}
-%{for postgres_count in range(var.postgres_server["count"])~}
-%{if postgres_count == 0~}
     primary:
       hosts:
-        primary${postgres_count + 1}:
-%{endif~}
-%{if postgres_count == 1~}
-    standby:
-      hosts:
-%{endif~}
-%{if postgres_count > 0~}
-        standby${postgres_count}:
-%{endif~}
+        primary1:
           ansible_host: ${google_sql_database_instance.postgresql.public_ip_address}
           private_ip: ${google_sql_database_instance.postgresql.public_ip_address}
-%{for hammerdb_count in range(var.hammerdb_server["count"])~}
-%{if var.hammerdb == true~}
-          hammerdb: true
-          hammerdb_server_private_ip: ${google_compute_instance.hammerdb_server[hammerdb_count].network_interface.0.network_ip}
-%{endif~}
-%{endfor~}
 %{if var.pem_server["count"] > 0~}
           pem_agent: true
           pem_server_private_ip: ${google_compute_instance.pem_server[0].network_interface.0.network_ip}
 %{endif~}
-%{endfor~}
 EOT
 }
 

@@ -6,7 +6,7 @@ from .project import Project
 
 
 class ReferenceArchitectureOption:
-    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'DBT-2', 'HammerDB-TPROC-C']
+    choices = ['EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3', 'HammerDB-TPROC-C']
 
     default = 'EDB-RA-1'
     help = textwrap.dedent("""
@@ -15,10 +15,8 @@ class ReferenceArchitectureOption:
         monitoring server, EDB-RA-2 for a 3 Postgres nodes deployment with
         quorum base synchronous replication and automatic failover, one backup
         server and one PEM monitoring server, EDB-RA-3 for extending EDB-RA-2
-        with 3 PgPoolII nodes, DBT-2 for benchmarking 3-tier client-server
-        architectures with an OLTP workload, and HammerDB-TPROC-C for
-        benchmarking 2-tier client-server architectures with an OLTP workload.
-        Default: %(default)s
+        with 3 PgPoolII nodes, and HammerDB-TPROC-C for benchmarking 2-tier
+        client-server architectures with an OLTP workload.  Default: %(default)s
     """)
 
 
@@ -35,16 +33,18 @@ class POTReferenceArchitectureOption:
     """)
 
 class AWSPOTReferenceArchitectureOption:
-    choices = ['EDB-RA', 'EDB-Always-On']
+    choices = ['EDB-RA', 'EDB-Always-On-Platinum', 'EDB-Always-On-Silver']
 
     default = 'EDB-RA'
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA for
         a 3 Postgres nodes deployment with quorum base synchronous replication
         and automatic failover, one backup server and one PEM monitoring
-        server, EDB-Always-On for deployment 6 Postgres nodes and one witness node
-        with BDR EE, two backup servers, 4 Pgbouncer/HAproxy servers and
-        one PEM monitoring server.
+        server, EDB-Always-On-Platinum for deployment 6 Postgres nodes and one
+        witness node with BDR EE, two backup servers, 4 Pgbouncer/HAproxy
+        servers and one PEM monitoring server, EDB-Always-On-Silver for 3
+        Postgres nodes with BDR EE, 2 Pgbouncer/HAproxy servers and one PEM
+        monitoring server.
         Default: %(default)s
     """)
 
@@ -178,6 +178,14 @@ class PgTypeOptionAzureDB:
     default = 'DBaaS'
     help = textwrap.dedent("""
         Postgres engine type. Allowed values are: DBaaS for Azure Database.
+        Default: %(default)s
+    """)
+
+class PgTypeOptionGCloudSQL:
+    choices = ['DBaaS']
+    default = 'DBaaS'
+    help = textwrap.dedent("""
+        Postgres engine type. Allowed values are: DBaaS for Google Cloud SQL.
         Default: %(default)s
     """)
 

@@ -20,6 +20,8 @@ module "routes" {
   source = "./environments/routes"
 
   pem_count        = var.pem_server["count"]
+  dbt2_driver_count = var.dbt2_driver["count"]
+  dbt2_client_count = var.dbt2_client["count"]
   hammerdb_count   = var.hammerdb_server["count"]
   vpc_id           = module.vpc.vpc_id
   project_tag      = var.project_tag
@@ -45,6 +47,8 @@ module "aws" {
   aws_ami_id                      = var.aws_ami_id
   vpc_id                          = module.vpc.vpc_id
   pem_server                      = var.pem_server
+  dbt2_client                     = var.dbt2_client
+  dbt2_driver                     = var.dbt2_driver
   hammerdb_server                 = var.hammerdb_server
   cluster_name                    = var.cluster_name
   ansible_inventory_yaml_filename = var.ansible_inventory_yaml_filename
@@ -54,6 +58,7 @@ module "aws" {
   ssh_priv_key                    = var.ssh_priv_key
   ssh_user                        = var.ssh_user
   created_by                      = var.created_by
+  dbt2                            = var.dbt2
   hammerdb                        = var.hammerdb
   public_cidrblock                = var.public_cidrblock
   project_tag                     = var.project_tag

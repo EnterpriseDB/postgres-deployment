@@ -1,4 +1,4 @@
-- name: check the behavior
+- name: Update Route53
   any_errors_fatal: True
   max_fail_percentage: 0
   gather_facts: no
@@ -9,7 +9,7 @@
      - name: Set facts
        set_fact:
           disable_logging: false
-          pem_server_public_ip: "{{ hostvars['pemserver1']['ansible_host'] }}"
+          pem_server_info: "{{ lookup('edb_devops.edb_postgres.pem_server', wantlist=True) }}"
           route53_zone: "edbpov.io"
           route53_record: "edbpov.io"
           domain: "edbpov.io"
@@ -31,9 +31,9 @@
 
      - name: Remove the pem server ips in rec values
        set_fact:
-           route_ip_addressess: "{{ route_ip_addressess | difference([pem_server_public_ip]) }}"
+           route_ip_addressess: "{{ route_ip_addressess | difference([pem_server_info[0]['ansible_host']]) }}"
        when:
-       - pem_server_public_ip in route_ip_addressess
+       - pem_server_info[0]['ansible_host'] in route_ip_addressess
        - rec.set.ResourceRecords|length > 0
 
      - name: Update a route53 for customer dns
@@ -56,5 +56,5 @@
           zone: "{{ route53_zone }}"
           record: "{{ project }}pem.{{ domain }}"
           type: A
-          value: "{{ pem_server_public_ip }}"
+          value: "{{ pem_server_info[0]['ansible_host'] }}"
           wait: yes

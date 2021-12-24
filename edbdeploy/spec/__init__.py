@@ -1,4 +1,6 @@
-# These are instance types to make available to all AWS systems.
+# These are instance types to make available to all AWS EC2 systems, except the .
+# PostgreSQL server, until the auto tuning playbook can tune for systems that
+# small.
 AWSGlobalInstanceChoices = [
         't2.nano', 't2.micro',
         't3.nano', 't3.micro',
@@ -233,7 +235,7 @@ DefaultAzureSpec = {
             type='integer',
             min=0,
             max=64,
-            default=1
+            default=0
         ),
         'instance_type': SpecValidator(
             type='choice',
@@ -258,7 +260,7 @@ DefaultAzureSpec = {
             type='integer',
             min=0,
             max=64,
-            default=1
+            default=0
         ),
         'instance_type': SpecValidator(
             type='choice',

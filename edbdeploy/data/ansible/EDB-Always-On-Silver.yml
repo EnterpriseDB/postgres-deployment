@@ -15,8 +15,9 @@
         disable_logging: false
         pg_unix_socket_directories:
             - "/tmp"
-        pem_agent_package: "edb-pem-agent-8.2.0"
-        pem_server_packages: "edb-pem-server-8.2.0"
+        pem_agent_package: "edb-pem-agent-8.3.0"
+        pem_server_packages: "edb-pem-server-8.3.0"
+        reference_architecture: "EDB-Always-On-Silver"
 
   post_tasks:
     - name: Make sure /tmp permissions are correct
@@ -29,9 +30,11 @@
 
   roles:
     - role: setup_repo
-      when: "'pemserver' in group_names"
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
     - role: install_dbserver
-      when: "'pemserver' in group_names"
+      when: >
+        'pemserver' in group_names or 'pgbouncer' in group_names
     - role: init_dbserver
       when: "'pemserver' in group_names"
     - role: manage_dbserver

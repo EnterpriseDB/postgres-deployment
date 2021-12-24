@@ -17,6 +17,10 @@ class AWSRDSAuroraProject(AWSRDSProject):
         """
         Build Terraform variable for AWS RDS Aurora provisioning
         """
+
+        # Initialize terraform variables with common values
+        self._init_terraform_vars(env)
+
         ra = self.reference_architecture[env.reference_architecture]
         os = env.cloud_spec['available_os'][env.operating_system]
 

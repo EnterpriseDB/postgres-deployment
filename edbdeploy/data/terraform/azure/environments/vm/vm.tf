@@ -1,11 +1,13 @@
 variable "add_hosts_filename" {}
-variable "ansible_inventory_yaml_filename" {}
 variable "azure_region" {}
 variable "azure_offer" {}
 variable "azure_publisher" {}
 variable "azure_sku" {}
 variable "barman_server" {}
 variable "barman" {}
+variable "dbt2" {}
+variable "dbt2_client" {}
+variable "dbt2_driver" {}
 variable "cluster_name" {}
 variable "network_count" {}
 variable "pem_server" {}
@@ -123,6 +125,52 @@ resource "azurerm_network_interface" "barman_public_nic" {
 
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.barman_public_ip.*.id, count.index)
+  }
+}
+
+resource "azurerm_public_ip" "dbt2_client_public_ip" {
+  count               = var.dbt2_client["count"]
+  name                = format("dbt2c-%s-%s-%s", var.cluster_name, "edb_public_ip", count.index)
+  location            = var.azure_region
+  resource_group_name = var.resourcegroup_name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "dbt2_client_public_nic" {
+  count               = var.dbt2_client["count"]
+  name                = format("dbt2c-%s-%s-%s", var.cluster_name, "edb_public_nic", count.index)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  ip_configuration {
+    name      = "DBT2_Client_Private_Nic_${count.index}"
+    subnet_id = element(azurerm_subnet.all_subnet.*.id, count.index)
+
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = element(azurerm_public_ip.dbt2_client_public_ip.*.id, count.index)
+  }
+}
+
+resource "azurerm_public_ip" "dbt2_driver_public_ip" {
+  count               = var.dbt2_driver["count"]
+  name                = format("dbt2d-%s-%s-%s", var.cluster_name, "edb_public_ip", count.index)
+  location            = var.azure_region
+  resource_group_name = var.resourcegroup_name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "dbt2_driver_public_nic" {
+  count               = var.dbt2_driver["count"]
+  name                = format("dbt2d-%s-%s-%s", var.cluster_name, "edb_public_nic", count.index)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  ip_configuration {
+    name      = "DBT2_Driver_Private_Nic_${count.index}"
+    subnet_id = element(azurerm_subnet.all_subnet.*.id, count.index)
+
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = element(azurerm_public_ip.dbt2_driver_public_ip.*.id, count.index)
   }
 }
 
@@ -419,4 +467,78 @@ resource "null_resource" "barman_setup_volume" {
       private_key = file(var.ssh_priv_key)
     }
   }
+}
+
+resource "azurerm_linux_virtual_machine" "dbt2_client_server" {
+  count               = var.dbt2_client["count"]
+  name                = format("%s-%s%s", var.cluster_name, "dbt2c", count.index + 1)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  size           = var.dbt2_client["instance_type"]
+  admin_username = var.ssh_user
+
+  network_interface_ids = [element(azurerm_network_interface.dbt2_client_public_nic.*.id, count.index)]
+
+  admin_ssh_key {
+    username   = var.ssh_user
+    public_key = file(var.ssh_pub_key)
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  source_image_reference {
+    publisher = var.azure_publisher
+    offer     = var.azure_offer
+    sku       = var.azure_sku
+
+    version = "latest"
+  }
+
+  os_disk {
+    name                 = format("dbt2c-%s-%s-%s", var.cluster_name, "EDB-VM-OS-Disk", count.index)
+    storage_account_type = var.dbt2_client["volume"]["storage_account_type"]
+    caching              = "ReadWrite"
+  }
+
+  tags = var.project_tags
+}
+
+resource "azurerm_linux_virtual_machine" "dbt2_driver_server" {
+  count               = var.dbt2_driver["count"]
+  name                = format("%s-%s%s", var.cluster_name, "dbt2d", count.index + 1)
+  resource_group_name = var.resourcegroup_name
+  location            = var.azure_region
+
+  size           = var.dbt2_driver["instance_type"]
+  admin_username = var.ssh_user
+
+  network_interface_ids = [element(azurerm_network_interface.dbt2_driver_public_nic.*.id, count.index)]
+
+  admin_ssh_key {
+    username   = var.ssh_user
+    public_key = file(var.ssh_pub_key)
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  source_image_reference {
+    publisher = var.azure_publisher
+    offer     = var.azure_offer
+    sku       = var.azure_sku
+
+    version = "latest"
+  }
+
+  os_disk {
+    name                 = format("dbt2d-%s-%s-%s", var.cluster_name, "EDB-VM-OS-Disk", count.index)
+    storage_account_type = var.dbt2_driver["volume"]["storage_account_type"]
+    caching              = "ReadWrite"
+  }
+
+  tags = var.project_tags
 }
