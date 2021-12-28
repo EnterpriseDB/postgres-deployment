@@ -21,14 +21,18 @@ class ReferenceArchitectureOption:
 
 
 class POTReferenceArchitectureOption:
-    choices = ['EDB-RA']
+    choices = ['EDB-RA', 'EDB-Always-On-Platinum', 'EDB-Always-On-Silver']
 
     default = 'EDB-RA'
     help = textwrap.dedent("""
         Reference architecture code name. Allowed values are: EDB-RA for
         a 3 Postgres nodes deployment with quorum base synchronous replication
         and automatic failover, one backup server and one PEM monitoring
-        server.
+        server, EDB-Always-On-Platinum for deployment 6 Postgres nodes and one
+        witness node with BDR EE, two backup servers, 4 Pgbouncer/HAproxy
+        servers and one PEM monitoring server, EDB-Always-On-Silver for 3
+        Postgres nodes with BDR EE, 2 Pgbouncer/HAproxy servers and one PEM
+        monitoring server.
         Default: %(default)s
     """)
 
