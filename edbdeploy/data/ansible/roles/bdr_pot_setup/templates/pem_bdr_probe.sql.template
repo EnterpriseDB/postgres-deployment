@@ -487,7 +487,6 @@ WHERE internal_name = 'bdr_group_replslots_details';
 UPDATE pem.probe
 SET    enabled_by_default = FALSE
 WHERE  internal_name IN ( 'efm_cluster_node_status',
-                          'bdr_node_replication_rates',
                           'efm_cluster_info');
 
 UPDATE pem.probe
