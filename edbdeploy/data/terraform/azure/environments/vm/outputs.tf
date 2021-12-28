@@ -1,6 +1,8 @@
 locals {
   server_count_map = {
     postgres_server = var.postgres_server
+    bdr_server = var.bdr_server
+    bdr_witness_server = var.bdr_witness_server
     pem_server = var.pem_server
     barman_server = var.barman_server
     pooler_server = var.pooler_server
@@ -9,6 +11,8 @@ locals {
   }
   azurerm_public_ip_map = {
     postgres_server = azurerm_public_ip.postgres_public_ip
+    bdr_server = azurerm_public_ip.bdr_public_ip
+    bdr_witness_server = azurerm_public_ip.bdr_witness_public_ip
     pem_server = azurerm_public_ip.pem_public_ip
     barman_server = azurerm_public_ip.barman_public_ip
     pooler_server = azurerm_public_ip.pooler_public_ip
@@ -17,6 +21,8 @@ locals {
   }
   azurerm_public_nic_map = {
     postgres_server = azurerm_network_interface.postgres_public_nic
+    bdr_server = azurerm_network_interface.bdr_public_nic
+    bdr_witness_server = azurerm_network_interface.bdr_witness_public_nic
     pem_server = azurerm_network_interface.pem_public_nic
     barman_server = azurerm_network_interface.barman_public_nic
     pooler_server = azurerm_network_interface.pooler_public_nic
@@ -80,6 +86,24 @@ Host pgsql${count+1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${azurerm_public_ip.postgres_public_ip[count].ip_address}
+%{endfor~}
+%{for count in range(var.bdr_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.bdr_public_ip[count].ip_address}
+%{endfor~}
+%{for count in range(var.bdr_witness_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${azurerm_public_ip.bdr_witness_public_ip[count].ip_address}
 %{endfor~}
 %{if var.pem_server["count"] > 0~}
 Host pemserver1

@@ -3,6 +3,8 @@ variable "azure_publisher" {}
 variable "azure_offer" {}
 variable "azure_sku" {}
 variable "postgres_server" {}
+variable "bdr_server" {}
+variable "bdr_witness_server" {}
 variable "pem_server" {}
 variable "dbt2_driver" {}
 variable "dbt2_client" {}
@@ -20,8 +22,6 @@ variable "pooler_type" {}
 variable "pooler_local" {}
 variable "dbt2" {}
 variable "hammerdb" {}
-variable "bdr_server" {}
-variable "bdr_witness_server" {}
 
 variable "vnet_cidr_block" {
   description = "CIDR Block for the VNet"
