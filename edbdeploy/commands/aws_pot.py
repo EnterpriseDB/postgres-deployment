@@ -20,10 +20,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=AWSPOTReferenceArchitectureOption.choices,
-        default=AWSPOTReferenceArchitectureOption.default,
+        choices=POTReferenceArchitectureOption.choices,
+        default=POTReferenceArchitectureOption.default,
         metavar='<ref-arch-code>',
-        help=AWSPOTReferenceArchitectureOption.help
+        help=POTReferenceArchitectureOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '--tpaexec-bin',
