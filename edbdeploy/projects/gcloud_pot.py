@@ -4,7 +4,7 @@ from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
 from .. import __edb_ansible_version__
-from ..render import build_inventory_yml
+from ..render import build_config_yml, build_inventory_yml
 
 
 class GCloudPOTProject(Project):
@@ -55,6 +55,15 @@ class GCloudPOTProject(Project):
                 vars=vars
             )
 
+    def hook_config_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the config.yml file"):
+            build_config_yml(
+                os.path.join(self.project_path, 'config.yml'),
+                os.path.join(self.project_path, 'servers.yml'),
+                vars=vars
+            )
+
     def _build_ansible_vars(self, env):
         self.pot_build_ansible_vars(env)
 
@@ -69,6 +78,8 @@ class GCloudPOTProject(Project):
         pem = env.cloud_spec['pem_server']
         barman = env.cloud_spec['barman_server']
         pooler = env.cloud_spec['pooler_server']
+        dbt2_client = env.cloud_spec['dbt2_client']
+        dbt2_driver = env.cloud_spec['dbt2_driver']
         hammerdb = env.cloud_spec['hammerdb_server']
         bdr = env.cloud_spec['bdr_server']
         bdr_witness = env.cloud_spec['bdr_witness_server']
@@ -86,6 +97,17 @@ class GCloudPOTProject(Project):
             'gcloud_region': env.gcloud_region,
             'gcloud_credentials': env.gcloud_credentials.name,
             'gcloud_project_id': env.gcloud_project_id,
+            'dbt2': ra['dbt2'],
+            'dbt2_client': {
+                'count': ra['dbt2_client_count'],
+                'instance_type': dbt2_client['instance_type'],
+                'volume': dbt2_client['volume'],
+            },
+            'dbt2_driver': {
+                'count': ra['dbt2_driver_count'],
+                'instance_type': dbt2_driver['instance_type'],
+                'volume': dbt2_driver['volume'],
+            },
             'hammerdb': ra['hammerdb'],
             'hammerdb_server': {
                 'count': 1 if ra['hammerdb_server'] else 0,

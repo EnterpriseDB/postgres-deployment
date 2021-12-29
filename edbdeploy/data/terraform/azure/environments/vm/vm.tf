@@ -99,7 +99,7 @@ resource "azurerm_network_interface" "bdr_public_nic" {
   location            = var.azure_region
 
   ip_configuration {
-    name      = "PG_Private_Nic_${count.index}"
+    name      = "BDR_Private_Nic_${count.index}"
     subnet_id = element(azurerm_subnet.all_subnet.*.id, count.index)
 
     private_ip_address_allocation = "Dynamic"
@@ -122,7 +122,7 @@ resource "azurerm_network_interface" "bdr_witness_public_nic" {
   location            = var.azure_region
 
   ip_configuration {
-    name      = "PG_Private_Nic_${count.index}"
+    name      = "BDR_Witness_Private_Nic_${count.index}"
     subnet_id = element(azurerm_subnet.all_subnet.*.id, count.index)
 
     private_ip_address_allocation = "Dynamic"
@@ -486,7 +486,7 @@ resource "azurerm_linux_virtual_machine" "bdr_witness_server" {
   resource_group_name = var.resourcegroup_name
   location            = var.azure_region
 
-  size           = var.pem_server["instance_type"]
+  size           = var.bdr_witness_server["instance_type"]
   admin_username = var.ssh_user
 
   network_interface_ids = [element(azurerm_network_interface.bdr_witness_public_nic.*.id, count.index)]
@@ -510,7 +510,7 @@ resource "azurerm_linux_virtual_machine" "bdr_witness_server" {
 
   os_disk {
     name                 = format("bdr-witness-%s-%s-%s", var.cluster_name, "EDB-VM-OS-Disk", count.index)
-    storage_account_type = var.pem_server["volume"]["storage_account_type"]
+    storage_account_type = var.bdr_witness_server["volume"]["storage_account_type"]
     caching              = "ReadWrite"
   }
 
