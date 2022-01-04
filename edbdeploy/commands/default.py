@@ -59,6 +59,10 @@ DEFAULT_SUBCOMMANDS = {
         'help': 'Get a copy of the SSH private keys and configuration file',
         'project_argument': True,
     },
+    'update_route53_key': {
+        'help': 'Update project\'s route53 access key and secret',
+        'project_argument': True,
+    },
 }
 
 def default_subcommand_parsers(subparser, available_subcommands):

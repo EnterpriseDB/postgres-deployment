@@ -1673,3 +1673,10 @@ class Project:
             terraform.destroy(self.terraform_vars_file)
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
+
+    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret):
+        with AM("Updating route53 key and secret"):
+            self._load_ansible_vars()
+            self.ansible_vars['route53_access_key'] = n_route53_access_key
+            self.ansible_vars['route53_secret'] = n_route53_secret
+            self._save_ansible_vars()
