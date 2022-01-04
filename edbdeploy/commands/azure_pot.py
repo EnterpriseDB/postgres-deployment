@@ -9,7 +9,7 @@ def subcommands(subparser):
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
         'passwords', 'provision', 'setup', 'show', 'specs', 'remove', 'ssh',
-        'get_ssh_keys'
+        'get_ssh_keys', 'update_route53_key'
     ]
 
     # Get sub-commands parsers
@@ -181,4 +181,20 @@ def subcommands(subparser):
         metavar='<host-name>',
         dest='host',
         help="Node hostname"
+    )
+    subcommand_parsers['update_route53_key'].add_argument(
+        '--route53-access-key',
+        dest='route53_access_key',
+        required=True,
+        type=str,
+        metavar='<route53-acccess-key>',
+        help="Route53 Access Key"
+    )
+    subcommand_parsers['update_route53_key'].add_argument(
+        '--route53-secret',
+        dest='route53_secret',
+        required=True,
+        type=str,
+        metavar='<route53-secret>',
+        help="Route53 Secret"
     )

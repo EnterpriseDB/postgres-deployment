@@ -188,3 +188,9 @@ class Commander:
     def get_ssh_keys(self):
         self._check_project_exists()
         self.project.get_ssh_keys()
+
+    def update_route53_key(self):
+        self._check_project_exists()
+        self.project.pot_update_route53_key(
+            self.env.route53_access_key, self.env.route53_secret
+        )
