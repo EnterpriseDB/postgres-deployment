@@ -248,11 +248,12 @@ class ShirtSizeOption:
 
 # Cloud specific options
 class AWSRegionOption:
-    choices = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2']
+    choices = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2','eu-west-1',
+               'eu-west-2', 'eu-west-3']
     default = 'us-east-1'
     help = textwrap.dedent("""
-        AWS region. Allowed values are us-east-1, us-east-2, us-west-1 and
-        us-west-2. Default: %(default)s
+        AWS region. Allowed values are us-east-1, us-east-2, us-west-1,
+        us-west-2, eu-west-1, eu-west-2 and eu-west-3. Default: %(default)s
     """)
 
 
