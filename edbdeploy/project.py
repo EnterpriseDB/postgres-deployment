@@ -756,7 +756,7 @@ class Project:
             replication_type=self.terraform_vars['replication_type'],
             ssh_priv_key=self.terraform_vars['ssh_priv_key'],
             ssh_user=self.terraform_vars['ssh_user'],
-            dbt2=self.terraform_vars['dbt2'],
+            dbt2=self.terraform_vars.get('dbt2', False),
         )
         # Ansible inventory.yml generation hook
         exec_hook(self, 'hook_inventory_yml', render_vars)
