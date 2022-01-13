@@ -755,7 +755,8 @@ class Project:
             pooler_type=self.terraform_vars['pooler_type'],
             replication_type=self.terraform_vars['replication_type'],
             ssh_priv_key=self.terraform_vars['ssh_priv_key'],
-            ssh_user=self.terraform_vars['ssh_user']
+            ssh_user=self.terraform_vars['ssh_user'],
+            dbt2=self.terraform_vars['dbt2'],
         )
         # Ansible inventory.yml generation hook
         exec_hook(self, 'hook_inventory_yml', render_vars)
