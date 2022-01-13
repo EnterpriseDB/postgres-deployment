@@ -50,6 +50,9 @@ all:
           barman_server_private_ip: {{ servers['barman_server'][0]['private_ip'] }}
           barman_backup_method: postgres
 {%     endif %}
+{%     if vars['dbt2'] == true %}
+          dbt2: true
+{%     endif %}
 {%     if servers.get('dbt2_client', []) | length > 0 %}
 {%       for dbt2_client in servers['dbt2_client'] %}
           dbt2_client_private_ip{{ dbt2_client['id']}}: {{ dbt2_client['private_ip'] }}
