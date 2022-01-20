@@ -2,6 +2,7 @@ variable "azure_region" {}
 variable "azure_publisher" {}
 variable "azure_offer" {}
 variable "azure_sku" {}
+variable "rocky" {}
 variable "postgres_server" {}
 variable "bdr_server" {}
 variable "bdr_witness_server" {}
