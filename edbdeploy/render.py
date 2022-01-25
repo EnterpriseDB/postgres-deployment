@@ -21,7 +21,7 @@ def render_template(template_name, servers_path, vars={}):
     current_dir = pathlib.Path(__file__).parent.resolve()
     templates_dir = pathlib.PurePath.joinpath(current_dir, 'data/templates')
 
-    file_loader = FileSystemLoader(templates_dir)
+    file_loader = FileSystemLoader(str(templates_dir))
     env = Environment(loader=file_loader, trim_blocks=True)
     template = env.get_template(template_name)
 
