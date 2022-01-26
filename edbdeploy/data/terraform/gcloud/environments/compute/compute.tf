@@ -13,6 +13,8 @@ variable "pooler_local" {}
 variable "pooler_server" {}
 variable "pooler_type" {}
 variable "postgres_server" {}
+variable "bdr_server" {}
+variable "bdr_witness_server" {}
 variable "replication_type" {}
 variable "ssh_priv_key" {}
 variable "ssh_pub_key" {}
@@ -153,6 +155,158 @@ resource "null_resource" "postgres_setup_volume" {
       host        = element(google_compute_instance.postgres_server.*.network_interface.0.access_config.0.nat_ip, count.index)
       private_key = file(var.ssh_priv_key)
     }
+  }
+}
+
+resource "google_compute_address" "bdr_public_ip" {
+  count  = var.bdr_server["count"]
+  name   = format("bdr-public-ip-%s", count.index + 1)
+  region = var.gcloud_region
+}
+
+resource "google_compute_instance" "bdr_server" {
+  count        = var.bdr_server["count"]
+  name         = format("%s-%s%s", var.cluster_name, "bdr", count.index)
+  machine_type = var.bdr_server["instance_type"]
+
+  zone = element(data.google_compute_zones.available.names, count.index)
+
+  tags = [
+    format("%s-%s", var.network_name, "firewall-ssh"),
+    format("%s-%s", var.network_name, "firewall-icmp"),
+    format("%s-%s", var.network_name, "firewall-postgresql"),
+    format("%s-%s", var.network_name, "firewall-epas"),
+    format("%s-%s", var.network_name, "firewall-efm"),
+    format("%s-%s", var.network_name, "firewall-secure-forward"),
+    format("%s-%s", var.network_name, "firewall-etcd-client"),
+    format("%s-%s", var.network_name, "firewall-etcd-peer"),
+  ]
+
+  boot_disk {
+    initialize_params {
+      image = var.gcloud_image
+      type  = var.bdr_server["volume"]["type"]
+      size  = var.bdr_server["volume"]["size"]
+    }
+  }
+
+  network_interface {
+    subnetwork = var.network_name
+
+    access_config {
+      nat_ip = element(google_compute_address.bdr_public_ip.*.address, count.index)
+    }
+
+  }
+
+  metadata = {
+    ssh-keys = format("%s:%s", var.ssh_user, file(var.ssh_pub_key))
+  }
+}
+
+resource "google_compute_disk" "bdr_volumes" {
+  count = var.bdr_server["count"] * var.bdr_server["additional_volumes"]["count"]
+  name  = format("%s-bdr-disk-%s", var.cluster_name, count.index)
+  type  = var.bdr_server["additional_volumes"]["type"]
+  size  = var.bdr_server["additional_volumes"]["size"]
+  zone  = element(data.google_compute_zones.available.names, floor(count.index / var.bdr_server["additional_volumes"]["count"]))
+
+  depends_on = [google_compute_instance.bdr_server]
+}
+
+resource "google_compute_attached_disk" "bdr_attached_vol" {
+  count    = var.bdr_server["count"] * var.bdr_server["additional_volumes"]["count"]
+  disk     = element(google_compute_disk.bdr_volumes.*.id, count.index)
+  instance = element(google_compute_instance.bdr_server.*.id, floor(count.index / var.bdr_server["additional_volumes"]["count"]))
+
+  depends_on = [google_compute_disk.bdr_volumes]
+}
+
+resource "null_resource" "bdr_copy_setup_volume_script" {
+  count = var.bdr_server["count"]
+
+  depends_on = [
+    google_compute_attached_disk.bdr_attached_vol
+  ]
+
+  provisioner "file" {
+    content     = file("${abspath(path.module)}/setup_volume.sh")
+    destination = "/tmp/setup_volume.sh"
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(google_compute_instance.bdr_server.*.network_interface.0.access_config.0.nat_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "null_resource" "bdr_setup_volume" {
+  count = var.bdr_server["count"] * var.bdr_server["additional_volumes"]["count"]
+
+  depends_on = [
+    null_resource.bdr_copy_setup_volume_script
+  ]
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod a+x /tmp/setup_volume.sh",
+      "/tmp/setup_volume.sh ${element(local.lnx_device_names, floor(count.index / var.bdr_server["count"]))} ${element(local.postgres_mount_points, floor(count.index / var.bdr_server["count"]))} >> /tmp/mount.log 2>&1"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_user
+      host        = element(google_compute_instance.bdr_server.*.network_interface.0.access_config.0.nat_ip, count.index)
+      private_key = file(var.ssh_priv_key)
+    }
+  }
+}
+
+resource "google_compute_address" "bdr_witness_public_ip" {
+  count  = var.bdr_witness_server["count"]
+  name   = format("bdr-witness-public-ip-%s", count.index + 1)
+  region = var.gcloud_region
+}
+
+resource "google_compute_instance" "bdr_witness_server" {
+  count        = var.bdr_witness_server["count"]
+  name         = format("%s-%s%s", var.cluster_name, "bdr-witness", count.index)
+  machine_type = var.bdr_witness_server["instance_type"]
+
+  zone = element(data.google_compute_zones.available.names, count.index)
+
+  tags = [
+    format("%s-%s", var.network_name, "firewall-ssh"),
+    format("%s-%s", var.network_name, "firewall-icmp"),
+    format("%s-%s", var.network_name, "firewall-postgresql"),
+    format("%s-%s", var.network_name, "firewall-epas"),
+    format("%s-%s", var.network_name, "firewall-efm"),
+    format("%s-%s", var.network_name, "firewall-secure-forward"),
+    format("%s-%s", var.network_name, "firewall-etcd-client"),
+    format("%s-%s", var.network_name, "firewall-etcd-peer"),
+  ]
+
+  boot_disk {
+    initialize_params {
+      image = var.gcloud_image
+      type  = var.bdr_witness_server["volume"]["type"]
+      size  = var.bdr_witness_server["volume"]["size"]
+    }
+  }
+
+  network_interface {
+    subnetwork = var.network_name
+
+    access_config {
+      nat_ip = element(google_compute_address.bdr_witness_public_ip.*.address, count.index)
+    }
+
+  }
+
+  metadata = {
+    ssh-keys = format("%s:%s", var.ssh_user, file(var.ssh_pub_key))
   }
 }
 
@@ -327,6 +481,8 @@ resource "google_compute_instance" "pooler_server" {
     format("%s-%s", var.network_name, "firewall-pgpool-pcpudp"),
     format("%s-%s", var.network_name, "firewall-pgbouncer"),
     format("%s-%s", var.network_name, "firewall-secure-forward"),
+    format("%s-%s", var.network_name, "firewall-etcd-client"),
+    format("%s-%s", var.network_name, "firewall-etcd-peer"),
   ]
 
   boot_disk {

@@ -755,7 +755,8 @@ class Project:
             pooler_type=self.terraform_vars['pooler_type'],
             replication_type=self.terraform_vars['replication_type'],
             ssh_priv_key=self.terraform_vars['ssh_priv_key'],
-            ssh_user=self.terraform_vars['ssh_user']
+            ssh_user=self.terraform_vars['ssh_user'],
+            dbt2=self.terraform_vars.get('dbt2', False),
         )
         # Ansible inventory.yml generation hook
         exec_hook(self, 'hook_inventory_yml', render_vars)
@@ -1673,3 +1674,10 @@ class Project:
             terraform.destroy(self.terraform_vars_file)
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
+
+    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret):
+        with AM("Updating route53 key and secret"):
+            self._load_ansible_vars()
+            self.ansible_vars['route53_access_key'] = n_route53_access_key
+            self.ansible_vars['route53_secret'] = n_route53_secret
+            self._save_ansible_vars()
