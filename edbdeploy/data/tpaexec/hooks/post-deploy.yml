@@ -96,17 +96,40 @@
   when: >
     'harp-proxy' in role
 
+- name: Update HARP config.yml file
+  lineinfile:
+    path: "/etc/harp/config.yml"
+    regexp: "{{ line_item.name + ':' }}"
+    line: "{{ line_item.name + ': ' + line_item.value|string }}"
+    state: present
+  with_items:
+    - { name: "  request_timeout", value: "250ms" }
+    - { name: "  watch_poll_interval", value: "500ms" }
+  loop_control:
+   loop_var: line_item
+  become_user: "{{ postgres_user }}"
+  when: >
+    'harp-proxy' in role or 'bdr' in role
+
+- name: "Enable and start harp-manager systemd services"
+  systemd:
+    name: "harp-manager"
+    state: restarted
+    enabled: true
+  when: >
+    'bdr' in role
+
 - name: "Enable and start harp-proxy systemd services"
   systemd:
     name: "harp-proxy"
-    state: started
+    state: restarted
     enabled: true
   when: >
     'harp-proxy' in role
 
 - name: "Ensure first node in each data center is the leader"
   shell: >
-     harpctl promote --force
+     harpctl promote $(hostname)
   retries: 10
   delay: 5
   register: result
