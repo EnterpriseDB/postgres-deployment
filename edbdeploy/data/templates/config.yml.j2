@@ -8,6 +8,8 @@ cluster_vars:
   bdr_node_group: bdrgroup
   bdr_version: '4'
   failover_manager: harp
+  harp_request_timeout: '250ms'
+  harp_watch_poll_interval: '500ms'
   harp_consensus_protocol: etcd
   postgres_data_dir: /pgdata/pg_data
   postgres_wal_dir: /pgwal/pg_wal
