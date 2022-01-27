@@ -63,7 +63,19 @@ DefaultAWSSpec = {
                 choices=['ec2-user'],
                 default='ec2-user'
             )
+        },
+        'RockyLinux': {
+            'image': SpecValidator(
+                type='string',
+                default="Rocky*"
+            ),
+            'ssh_user': SpecValidator(
+                type='choice',
+                choices=['rocky'],
+                default='rocky'
+            )
         }
+
     },
     'dbt2': SpecValidator(
         type='choice',
@@ -223,6 +235,12 @@ DefaultAzureSpec = {
             'offer': SpecValidator(type='string', default="RHEL"),
             'sku': SpecValidator(type='string', default="8.2"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
+        },
+        'RockyLinux': {
+            'publisher': SpecValidator(type='string', default="Perforce"),
+            'offer': SpecValidator(type='string', default="rockylinux8"),
+            'sku': SpecValidator(type='string', default="8"),
+            'ssh_user': SpecValidator(type='string', default='rocky')
         }
     },
     'dbt2': SpecValidator(
@@ -355,6 +373,10 @@ DefaultGcloudSpec = {
         'RedHat8': {
             'image': SpecValidator(type='string', default="rhel-8"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
+        },
+        'RockyLinux': {
+            'image': SpecValidator(type='string', default="rocky-linux-8"),
+            'ssh_user': SpecValidator(type='string', default='rocky')
         }
     },
     'dbt2': SpecValidator(

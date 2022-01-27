@@ -57,6 +57,7 @@ class AzureProject(Project):
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
             'azure_region': env.azure_region,
+            'rocky': True if os['offer'] == 'rockylinux8' else False
         })
         self.terraform_vars['postgres_server'].update({
             'volume': pg['volume'],
