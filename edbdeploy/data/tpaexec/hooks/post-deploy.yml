@@ -88,6 +88,36 @@
   when: >
     'bdr' in role
 
+- name: "Make sure pgbouncer pool_mode is set to transaction"
+  ansible.builtin.lineinfile:
+    path: /etc/harp/harp.cluster.init.yml
+    line: "  pool_mode: transaction"
+    regexp: ".*pool_mode.*"
+    insertafter: "^proxies"
+    state: present
+  become: true
+  when: >
+    'bdr' in role
+
+- name: "Make sure Harp session_transfer_mode is set to fast"
+  ansible.builtin.lineinfile:
+    path: /etc/harp/harp.cluster.init.yml
+    line: "  session_transfer_mode: fast"
+    regexp: ".*session_transfer_mode.*"
+    insertafter: "^proxies"
+    state: present
+  become: true
+  when: >
+    'bdr' in role
+
+- name: "Apply Harp configuration"
+  ansible.builtin.command: >
+    /usr/bin/harpctl apply /etc/harp/harp.cluster.init.yml
+  become: true
+  become_user: enterprisedb
+  when: >
+    inventory_hostname in ['epas1', 'epas4']
+
 - name: "Stop and disable pgbouncer systemd services"
   systemd:
     name: "pgbouncer"

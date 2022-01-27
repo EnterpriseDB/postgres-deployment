@@ -135,7 +135,7 @@ instances:
 {% endfor %}
 {% for pooler_server in servers['pooler_server'] %}
 - Name: pgbouncer{{ pooler_server['id'] }}
-{%   if pooler_server['id'] < 4 %}
+{%   if pooler_server['id'] < 3 %}
   location: BDRDC1
 {%   else %}
   location: BDRDC2
