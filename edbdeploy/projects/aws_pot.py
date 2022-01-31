@@ -26,7 +26,7 @@ class AWSPOTProject(Project):
         self.custom_ssh_keys = {}
         # Force PG version to 14 in POT env.
         self.postgres_version = '14'
-        self.operating_system = "CentOS8"
+        self.operating_system = "RockyLinux8"
 
     def configure(self, env):
         self.pot_configure(env)

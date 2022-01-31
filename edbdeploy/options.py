@@ -48,11 +48,11 @@ class ReferenceArchitectureOptionDBaaS:
 
 
 class OSOption:
-    choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8', 'RockyLinux']
-    default = 'CentOS8'
+    choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8', 'RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS7, CentOS8, RedHat7 and
-        RedHat8. Default: %(default)s
+        Operating system. Allowed values are: CentOS7, CentOS8, RedHat7, RedHat8 and
+        RockyLinux8. Default: %(default)s
     """)
 
 

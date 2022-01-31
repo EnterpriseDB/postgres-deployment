@@ -522,14 +522,20 @@ class GCloudCli:
 
     def check_image_availability(self, image):
         try:
-            output = exec_shell([
+            cmd = [
                 self.bin("gcloud"),
                 "compute",
                 "images",
                 "list",
                 "--filter=\"family=%s\"" % image,
                 "--format=json"
-            ])
+            ]
+            if image == 'rocky-linux-8':
+                cmd = cmd + [
+                        '--no-standard-images',
+                        '--project=rocky-linux-cloud'
+                        ]
+            output = exec_shell(cmd)
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
             if len(result) == 0 or result[0]['status'] != 'READY':
