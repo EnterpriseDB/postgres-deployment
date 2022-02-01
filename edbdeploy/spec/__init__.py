@@ -31,17 +31,6 @@ DefaultAWSSpec = {
                 default='centos'
             )
         },
-        'CentOS8': {
-            'image': SpecValidator(
-                type='string',
-                default="CentOS 8*"
-            ),
-            'ssh_user': SpecValidator(
-                type='choice',
-                choices=['centos'],
-                default='centos'
-            )
-        },
         'RedHat7': {
             'image': SpecValidator(
                 type='string',
@@ -218,12 +207,6 @@ DefaultAzureSpec = {
             'sku': SpecValidator(type='string', default="7.7"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
         },
-        'CentOS8': {
-            'publisher': SpecValidator(type='string', default="OpenLogic"),
-            'offer': SpecValidator(type='string', default="CentOS"),
-            'sku': SpecValidator(type='string', default="8_1"),
-            'ssh_user': SpecValidator(type='string', default='edbadm')
-        },
         'RedHat7': {
             'publisher': SpecValidator(type='string', default="RedHat"),
             'offer': SpecValidator(type='string', default="RHEL"),
@@ -360,10 +343,6 @@ DefaultGcloudSpec = {
     'available_os': {
         'CentOS7': {
             'image': SpecValidator(type='string', default="centos-7"),
-            'ssh_user': SpecValidator(type='string', default='edbadm')
-        },
-        'CentOS8': {
-            'image': SpecValidator(type='string', default="centos-8"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
         },
         'RedHat7': {

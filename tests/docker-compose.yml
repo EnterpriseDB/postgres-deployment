@@ -2,7 +2,7 @@ version: '3'
 
 services:
   test-aws:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -20,7 +20,7 @@ services:
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
   test-azure:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -38,7 +38,7 @@ services:
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
   test-gcloud:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -57,4 +57,3 @@ services:
       - EDB_GOOGLE_ACCOUNTS_FILE
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
-

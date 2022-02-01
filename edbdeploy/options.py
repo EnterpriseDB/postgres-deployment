@@ -48,26 +48,26 @@ class ReferenceArchitectureOptionDBaaS:
 
 
 class OSOption:
-    choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8', 'RockyLinux8']
+    choices = ['CentOS7', 'RedHat7', 'RedHat8', 'RockyLinux8']
     default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS7, CentOS8, RedHat7, RedHat8 and
+        Operating system. Allowed values are: CentOS7, RedHat7, RedHat8 and
         RockyLinux8. Default: %(default)s
     """)
 
 
 class VMWareOSOption:
-    choices = ['CentOS8']
-    default = 'CentOS8'
+    choices = ['RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS8. Default: %(default)s
+        Operating system. Allowed values are: RockyLinux8. Default: %(default)s
     """)
 
 class VirtualBoxOSOption:
-    choices = ['CentOS8']
-    default = 'CentOS8'
+    choices = ['RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS8. Default: %(default)s
+        Operating system. Allowed values are: RockyLinux8. Default: %(default)s
     """)
 
 class PgVersionOption:
