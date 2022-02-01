@@ -183,8 +183,8 @@ class VirtualBoxProject(Project):
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
         operating_system = ''
-        if env.operating_system == 'CentOS8':
-            operating_system = 'c8'
+        if env.operating_system == 'RockyLinux8':
+            operating_system = 'r8'
 
         self.ansible_vars = {
             'reference_architecture': env.reference_architecture,
