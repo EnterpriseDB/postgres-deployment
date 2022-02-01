@@ -1,7 +1,7 @@
 {
   "pem1": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "pem1",
     "provider": "vmware",
     "shared_folders": [
@@ -10,11 +10,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "barman1": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "barman1",
     "provider": "vmware",
     "shared_folders": [
@@ -23,11 +23,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "primary1": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "primary1",
     "provider": "vmware",
     "shared_folders": [
@@ -36,11 +36,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "primary2": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "primary2",
     "provider": "vmware",
     "shared_folders": [
@@ -49,11 +49,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "primary3": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "standby3",
     "provider": "vmware",
     "shared_folders": [
@@ -62,11 +62,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "pooler1": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "pooler1",
     "provider": "vmware",
     "shared_folders": [
@@ -75,11 +75,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "pooler2": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "pooler2",
     "provider": "vmware",
     "shared_folders": [
@@ -88,11 +88,11 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   },
   "pooler3": {
-    "box": "rockylinux/8",
-    "box_version": "4.0.0",
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
     "name": "pooler3",
     "provider": "vmware",
     "shared_folders": [
@@ -101,6 +101,6 @@
         "share_name": "mech"
       }
     ],
-    "url": "https://app.vagrantup.com/rockylinux/boxes/8/versions/4.0.0/providers/virtualbox.box"
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
   }
 }
