@@ -293,8 +293,8 @@ Notes:
 
   * `OPERATING_SYSTEM`
 
-    Operating system. Allowed values are: **CentOS7**, **CentOS8**, **RedHat7**
-    and **RedHat8**. Default: **CentOS8**
+    Operating system. Allowed values are: **CentOS7**, **RockyLinux8**, **RedHat7**
+    and **RedHat8**. Default: **RockyLinux8**
 
   * `PG_ENGINE_TYPE`
 
