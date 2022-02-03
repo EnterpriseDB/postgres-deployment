@@ -110,16 +110,6 @@
   when: >
     'bdr' in role
 
-- name: "Make sure Harp listen_address for proxy is 0.0.0.0"
-  lineinfile:
-    path: /etc/harp/harp.cluster.init.yml
-    line: "  listen_address: 0.0.0.0"
-    regexp: ".*listen_address.*"
-    state: present
-  become: true
-  when: >
-    'harp-proxy' in role or 'bdr' in role
-
 - name: "Stop and disable pgbouncer systemd services"
   systemd:
     name: "pgbouncer"
