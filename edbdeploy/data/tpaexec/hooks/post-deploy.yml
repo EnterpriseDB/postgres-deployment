@@ -42,7 +42,7 @@
     group: root
     mode: '0755'
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Create harp-proxy systemd unit directory used to store the override.conf file"
   ansible.builtin.file:
@@ -62,7 +62,7 @@
     group: root
     mode: '0644'
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Override harp-proxy systemd unit"
   template:
@@ -86,7 +86,7 @@
     state: started
     enabled: true
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Make sure pgbouncer pool_mode is set to transaction"
   ansible.builtin.lineinfile:
