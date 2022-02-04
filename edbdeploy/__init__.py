@@ -1,6 +1,6 @@
-__version__ = "3.9.0"
+__version__ = "3.10.0"
 # Version number of the Ansible collection we want to use
-__edb_ansible_version__ = "3.8.0"
+__edb_ansible_version__ = "3.10.0"
 
 def to_num(version):
     """
