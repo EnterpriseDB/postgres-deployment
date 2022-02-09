@@ -31,7 +31,7 @@ def execute_install_script(script_name):
     Execute an installation script
     """
     try:
-        output = exec_shell([script_name])
+        output = exec_shell(['/bin/bash', script_name])
         result = output.decode("utf-8")
         os.unlink(script_name)
         logging.debug("Command output: %s", result)
