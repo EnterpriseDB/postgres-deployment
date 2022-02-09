@@ -97,6 +97,8 @@ sub-command: `gcc` (Linux only), `python3-devel` (Linux only), `unzip`, `wget`,
 These packages should be installed through usual package manager (`dnf`,
 `apt`, `brew`, etc..).
 
+Note for Debian users: the package `libffi-dev` must be present.
+
 Finally, Python `virtualenv` must be installed with `root` privileges:
 ```shell
 $ sudo pip3 install virtualenv
