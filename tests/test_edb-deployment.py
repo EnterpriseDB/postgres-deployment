@@ -10,6 +10,11 @@ from conftest import (
     EFM_VERSION,
     PG_TYPE,
     PG_VERSION,
+    POT_R53_ACCESS_KEY,
+    POT_R53_SECRET,
+    POT_EMAIL_ID,
+    POT_TPAEXEC_BIN,
+    POT_TPAEXEC_SUBSCRIPTION_TOKEN,
     PROJECT_NAME,
     RA,
     SSH_PRIV_KEY,
@@ -77,6 +82,12 @@ class TestEDBDeployment:
         assert data['pg_type'] == PG_TYPE
         assert data['pg_version'] == PG_VERSION
         assert data['efm_version'] == EFM_VERSION
+        if RA.startswith('EDB-Always-On'):
+            assert data['tpa_subscription_token'] == POT_TPAEXEC_SUBSCRIPTION_TOKEN
+            assert data['tpaexec_bin'] == POT_TPAEXEC_BIN
+            assert data['route53_access_key'] == POT_R53_ACCESS_KEY
+            assert data['route53_secret'] == POT_R53_SECRET
+            assert data['email_id'] == POT_EMAIL_ID
 
     def test_configure_terraform_vars(self, setup, configure):
         """
@@ -87,7 +98,7 @@ class TestEDBDeployment:
 
         assert data['pg_type'] == PG_TYPE
         assert data['pg_version'] == PG_VERSION
-        if CLOUD_VENDOR == 'aws':
+        if CLOUD_VENDOR in ['aws', 'aws-pot']:
             assert data['aws_region'] == CLOUD_REGION
         elif CLOUD_VENDOR == 'azure':
             assert data['azure_region'] == CLOUD_REGION
@@ -112,6 +123,18 @@ class TestEDBDeployment:
                 assert data['pooler_server']['count'] == 3
             else:
                 assert data['pooler_server']['count'] == 0
+        if RA == 'EDB-Always-On-Silver':
+            assert data['bdr_server']['count'] == 3
+            assert data['bdr_witness_server']['count'] == 0
+            assert data['pooler_server']['count'] == 2
+            assert data['barman_server']['count'] == 1
+            assert data['postgres_server']['count'] == 0
+        elif RA == 'EDB-Always-On-Platinum':
+            assert data['bdr_server']['count'] == 6
+            assert data['bdr_witness_server']['count'] == 1
+            assert data['pooler_server']['count'] == 4
+            assert data['barman_server']['count'] == 2
+            assert data['postgres_server']['count'] == 0
 
     def test_configure_ssh(self, setup, configure):
         """
@@ -181,6 +204,8 @@ class TestEDBDeployment:
             assert len(children.keys()) == 4
         elif RA == 'EDB-RA-3':
             assert len(children.keys()) == 5
+        elif RA.startswith('EDB-Always-On'):
+            assert len(children.keys()) == 4
 
         assert 'primary' in children
         assert 'barmanserver' in children
@@ -194,14 +219,26 @@ class TestEDBDeployment:
         elif RA == 'EDB-RA-3':
             assert 'standby' in children
             assert 'pgpool2' in children
+        elif RA.startswith('EDB-Always-On'):
+            assert 'pgbouncer' in children
 
         # Test the number of machines
         # One PEM server
         assert len(children['pemserver']['hosts'].keys()) == 1
         # One barman server
-        assert len(children['barmanserver']['hosts'].keys()) == 1
-        # One primary server
-        assert len(children['primary']['hosts'].keys()) == 1
+        if RA == 'EDB-Always-On-Platinum':
+            assert len(children['barmanserver']['hosts'].keys()) == 2
+        else:
+            assert len(children['barmanserver']['hosts'].keys()) == 1
+
+        # One primary server for EDB-RA-*, multiple primaires for BDR arch.
+        if RA == 'EDB-Always-On-Platinum':
+            assert len(children['primary']['hosts'].keys()) == 7
+        elif RA == 'EDB-Always-On-Silver':
+            assert len(children['primary']['hosts'].keys()) == 3
+        else:
+            assert len(children['primary']['hosts'].keys()) == 1
+
         if RA in ('EDB-RA-2', 'EDB-RA-3'):
             # Two standby servers
             assert len(children['standby']['hosts'].keys()) == 2
@@ -226,6 +263,8 @@ class TestEDBDeployment:
             groups.append('standby')
         if RA == 'EDB-RA-3':
             groups.append('pgpool2')
+        if RA.startswith('EDB-Always-On'):
+            groups.append('pgbouncer')
 
         for group in groups:
             for host in get_hosts(group):
@@ -235,9 +274,8 @@ class TestEDBDeployment:
 
     def test_deploy_primary(self, setup, configure, provision, deploy):
         """
-        Checking Postgres instance on the primary node
+        Checking Postgres instance on the primary nodes
         """
-        primary = get_primary()
         conf = get_conf()[PG_TYPE]
 
         service_name = conf['service_name']
@@ -246,22 +284,23 @@ class TestEDBDeployment:
         unix_socket_dir = os.path.dirname(unix_socket)
         user = conf['user']
 
-        with primary.sudo():
-            assert primary.service(service_name).is_running, \
-                "Service %s not running" % service_name
-            assert primary.service(service_name).is_enabled, \
-                "Service %s not enabled" % service_name
-            assert primary.socket('tcp://0.0.0.0:%s' % port).is_listening, \
-                "Postgres/EPAS not listening on 0.0.0.0:%s" % port
-            assert primary.socket('unix://%s' % unix_socket).is_listening, \
-                "Postgres/EPAS not listening on %s" % unix_socket
+        for primary in get_hosts('primary')=
+            with primary.sudo():
+                assert primary.service(service_name).is_running, \
+                    "Service %s not running on %s" % (service_name, primary.check_output('hostname -s'))
+                assert primary.service(service_name).is_enabled, \
+                    "Service %s not enabled on %s" % (service_name, primary.check_output('hostname -s'))
+                assert primary.socket('tcp://0.0.0.0:%s' % port).is_listening, \
+                    "Postgres/EPAS not listening on 0.0.0.0:%s on %s" % (port, primary.check_output('hostname -s'))
+                assert primary.socket('unix://%s' % unix_socket).is_listening, \
+                    "Postgres/EPAS not listening on %s on %s" % (unix_socket, primary.check_output('hostname -s'))
 
-        with primary.sudo(user):
-            assert primary.check_output(
-                "psql -tA -h %s -p %s -d postgres -c 'SELECT pg_is_in_recovery()'"  # noqa
-                % (unix_socket_dir, port)
-            ) == 'f', \
-                "Postgres/EPAS instance does not look to accept writes"
+            with primary.sudo(user):
+                assert primary.check_output(
+                    "psql -tA -h %s -p %s -d postgres -c 'SELECT pg_is_in_recovery()'"  # noqa
+                    % (unix_socket_dir, port)
+                ) == 'f', \
+                    "Postgres/EPAS instance does not look to accept writes on %s" % primary.check_output('hostname -s')
 
     def test_deploy_pemagent(self, setup, configure, provision, deploy):
         """
@@ -275,6 +314,15 @@ class TestEDBDeployment:
             if group not in ('pemserver'):
                 assert node.file('/usr/edb/pem/agent/etc/.agentregistered').exists, \
                     "Agent not registered on %s" % node.check_output('hostname -s')  # noqa
+        if RA.startswith('EDB-Always-On'):
+            for node in get_hosts('pgbouncer'):
+                assert node.service('pemagent').is_running, \
+                    "Service pemagent not running on %s" % node.check_output('hostname -s')  # noqa
+                assert node.service('pemagent').is_enabled, \
+                    "Service pemagent not enabled on %s" % node.check_output('hostname -s')  # noqa
+                if group not in ('pemserver'):
+                    assert node.file('/usr/edb/pem/agent/etc/.agentregistered').exists, \
+                        "Agent not registered on %s" % node.check_output('hostname -s')  # noqa
 
     def test_deploy_pemserver(self, setup, configure, provision, deploy):
         """
