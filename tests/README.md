@@ -156,3 +156,88 @@ test-aws_1 exited with code 0
 
 Log entries produced by `edb-deployment` during tests execution are stored in
 the `pytest.log` file.
+
+## Testing BDR PoT
+
+### Using TPAexec
+
+In order to execute BDR PoT tests, TPAexec sources (git clone) directory must
+be present on the host system. The testing framework installs TPAexec on the
+container environment from these sources, then, using a specific version
+consists in checking out the corresponding git tag.
+
+Example: using the v22.8 version
+
+```shell
+$ cd tpaexec
+$ git fetch --all --tags
+$ git checkout tags/v22.8 -b v22.8
+```
+
+### Variables
+
+Fallowing are the BDR PoT variables.
+
+| Variable | Description | Default value |
+| --- | --- | --- |
+| `EDB_POT_R53_ACCESS_KEY` | AWS Route53 access key |  |
+| `EDB_POT_R53_SECRET` | AWS Route53 secret |  |
+| `EDB_POT_EMAIL_ID` | User email address |  |
+| `EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN` | TPAexec subscription token |  |
+| `EDB_POT_TPAEXEC_SRC_PATH` | TPAexec source directory (full path) |  |
+
+### Coverage
+
+The following points are checked during tests execution:
+- project creation
+- project structure
+- Ansible variables
+- Terraform variables
+- SSH configuration
+- Ansible inventory file
+- SSH connection to the machines
+- Postgres is up and running on the BDR nodes
+- PEM agent is installed, configured and running on BDR and pgbouncer nodes
+- PEM server is installed, configured and running
+- Barman works (`barman check`) for each location
+- harp-proxy and pgbouncer are running on the pooler nodes
+- BDR lead master nodes are harp cluster leaders
+- Postgres connection to harp-proxy works and redirects to right BDR lead
+  master node.
+
+### Running the tests
+
+To ease variables configuration, we recommend to define them in a dedicated
+file named `.env-bdr-pot`.
+
+Example for the EDB-Always-On-Silver architecture:
+```bash
+# Must be set to EPAS
+export EDB_DEPLOY_PG_TYPE=EPAS
+# Must be set to 14
+export EDB_DEPLOY_PG_VERSION=14
+export EDB_DEPLOY_PROJECT_NAME=testbdr
+export EDB_DEPLOY_RA=EDB-Always-On-Silver
+export EDB_DEPLOY_EDB_CREDENTIALS="<edb-repo-username>:<edb-repo-password>"
+export EDB_DEPLOY_CLOUD_REGION=us-east-2
+export EDB_POT_R53_ACCESS_KEY=<aws-route53-access-key>
+export EDB_POT_R53_SECRET=<aws-route53-secret>
+export EDB_POT_EMAIL_ID=user@mail.com
+export EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN=<tpaexec-subscription-token>
+export EDB_POT_TPAEXEC_SRC_PATH=/Users/julien/Work/Development/tpaexec
+```
+
+Enable those variables with:
+```shell
+$ source ./.env-bdr-pot
+```
+
+and then, start the execution of the test with:
+```shell
+$ ./run.sh
+```
+
+### Tests execution timing
+
+Running the tests for the *EDB-Always-On-Silver* architecture takes 40 minutes,
+testing the Platinum architecture takes 1 hour.
