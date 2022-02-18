@@ -20,18 +20,19 @@ from conftest import (
     SSH_PRIV_KEY,
     SSH_PUB_KEY,
     get_barmanserver,
+    get_barmanservers,
     get_conf,
     get_pemserver,
     get_pg_nodes,
     get_pg_cluster_nodes,
     get_pgpool2,
     get_hosts,
-    get_primary,
     get_standbys,
     load_ansible_vars,
     load_inventory,
     load_terraform_vars,
 )
+
 
 class TestEDBDeployment:
 
@@ -50,16 +51,24 @@ class TestEDBDeployment:
         files = [
             'ansible_vars.json',
             'playbook.yml',
-            'ssh_priv_key',
             'state.json',
             'terraform_vars.json',
             'environments',
             'main.tf',
             'provider.tf',
-            'ssh_pub_key',
             'tags.tf',
             'variables.tf',
         ]
+        if RA.startswith('EDB-Always-On'):
+            files += [
+                'centos_%s_key.pem' % PROJECT_NAME,
+                'centos_%s_key.pub' % PROJECT_NAME,
+            ]
+        else:
+            files += [
+                'ssh_priv_key',
+                'ssh_pub_key',
+            ]
         for file in files:
             file_path = os.path.join(
                 DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, file
@@ -81,9 +90,10 @@ class TestEDBDeployment:
         assert data['cluster_name'] == PROJECT_NAME
         assert data['pg_type'] == PG_TYPE
         assert data['pg_version'] == PG_VERSION
-        assert data['efm_version'] == EFM_VERSION
+        if RA.startswith('EDB-RA'):
+            assert data['efm_version'] == EFM_VERSION
         if RA.startswith('EDB-Always-On'):
-            assert data['tpa_subscription_token'] == POT_TPAEXEC_SUBSCRIPTION_TOKEN
+            assert data['tpa_subscription_token'] == POT_TPAEXEC_SUBSCRIPTION_TOKEN  # noqa
             assert data['tpaexec_bin'] == POT_TPAEXEC_BIN
             assert data['route53_access_key'] == POT_R53_ACCESS_KEY
             assert data['route53_secret'] == POT_R53_SECRET
@@ -108,11 +118,11 @@ class TestEDBDeployment:
         if RA in ('EDB-RA-1', 'EDB-RA-2', 'EDB-RA-3'):
             assert data['dbt2_client']['count'] == 0
             assert data['dbt2_driver']['count'] == 0
-            assert data['hammerdb'] == False
+            assert data['hammerdb'] is False
             assert data['hammerdb_server']['count'] == 0
             assert data['bdr_server']['count'] == 0
             assert data['bdr_witness_server']['count'] == 0
-            assert data['barman'] == True
+            assert data['barman'] is True
             assert data['barman_server']['count'] == 1
             assert data['pem_server']['count'] == 1
             if RA == 'EDB-RA-1':
@@ -249,15 +259,6 @@ class TestEDBDeployment:
         """
         Testing SSH connections to the machines
         """
-        inventory_data = load_inventory(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME)
-        children = inventory_data['all']['children']
-
-        # Read terraform variables
-        terraform_data = load_terraform_vars(
-            DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME
-        )
-        ssh_user = terraform_data['ssh_user']
-
         groups = ['primary', 'pemserver', 'barmanserver']
         if RA in ('EDB-RA-2', 'EDB-RA-3'):
             groups.append('standby')
@@ -280,27 +281,32 @@ class TestEDBDeployment:
 
         service_name = conf['service_name']
         port = conf['port']
-        unix_socket = conf['unix_socket']
+        if RA.startswith('EDB-Always-On'):
+            # unix_socket_directories is configured to the default value when
+            # Postgres is deployed by TPAexec.
+            unix_socket = "/tmp/.s.PGSQL.5444"
+        else:
+            unix_socket = conf['unix_socket']
         unix_socket_dir = os.path.dirname(unix_socket)
         user = conf['user']
 
-        for primary in get_hosts('primary')=
+        for primary in get_hosts('primary'):
             with primary.sudo():
                 assert primary.service(service_name).is_running, \
-                    "Service %s not running on %s" % (service_name, primary.check_output('hostname -s'))
+                    "Service %s not running on %s" % (service_name, primary.check_output('hostname -s'))  # noqa
                 assert primary.service(service_name).is_enabled, \
-                    "Service %s not enabled on %s" % (service_name, primary.check_output('hostname -s'))
+                    "Service %s not enabled on %s" % (service_name, primary.check_output('hostname -s'))  # noqa
                 assert primary.socket('tcp://0.0.0.0:%s' % port).is_listening, \
-                    "Postgres/EPAS not listening on 0.0.0.0:%s on %s" % (port, primary.check_output('hostname -s'))
+                    "Postgres/EPAS not listening on 0.0.0.0:%s on %s" % (port, primary.check_output('hostname -s'))  # noqa
                 assert primary.socket('unix://%s' % unix_socket).is_listening, \
-                    "Postgres/EPAS not listening on %s on %s" % (unix_socket, primary.check_output('hostname -s'))
+                    "Postgres/EPAS not listening on %s on %s" % (unix_socket, primary.check_output('hostname -s'))  # noqa
 
             with primary.sudo(user):
                 assert primary.check_output(
                     "psql -tA -h %s -p %s -d postgres -c 'SELECT pg_is_in_recovery()'"  # noqa
                     % (unix_socket_dir, port)
                 ) == 'f', \
-                    "Postgres/EPAS instance does not look to accept writes on %s" % primary.check_output('hostname -s')
+                    "Postgres/EPAS instance does not look to accept writes on %s" % primary.check_output('hostname -s')  # noqa
 
     def test_deploy_pemagent(self, setup, configure, provision, deploy):
         """
@@ -334,7 +340,12 @@ class TestEDBDeployment:
 
         service_name = conf['service_name']
         port = conf['port']
-        unix_socket = conf['unix_socket']
+        if RA.startswith('EDB-Always-On'):
+            # unix_socket_directories is configured to the default value when
+            # Postgres is deployed by TPAexec.
+            unix_socket = "/tmp/.s.PGSQL.5444"
+        else:
+            unix_socket = conf['unix_socket']
         unix_socket_dir = os.path.dirname(unix_socket)
         user = conf['user']
 
@@ -366,6 +377,9 @@ class TestEDBDeployment:
         each Postgres node that are supposed to be backuped. If barman check
         does not return an error, everything is fine.
         """
+        if not RA.startswith('EDB-RA'):
+            pytest.skip()
+
         conf = get_conf()[PG_TYPE]
         barmanserver = get_barmanserver()
 
@@ -407,9 +421,9 @@ class TestEDBDeployment:
                 assert standby.service(service_name).is_enabled, \
                     "Service %s not enabled on %s" % (service_name, host)
                 assert standby.socket('tcp://0.0.0.0:%s' % port).is_listening, \
-                    "Postgres/EPAS not listening on 0.0.0.0:%s on %s" % (port, host)
+                    "Postgres/EPAS not listening on 0.0.0.0:%s on %s" % (port, host)  # noqa
                 assert standby.socket('unix://%s' % unix_socket).is_listening, \
-                    "Postgres/EPAS not listening on %s on %s" % (unix_socket, host)
+                    "Postgres/EPAS not listening on %s on %s" % (unix_socket, host)  # noqa
 
             with standby.sudo(user):
                 assert standby.check_output(
@@ -450,9 +464,9 @@ class TestEDBDeployment:
                     )
                 )
                 assert node_status['type'].lower() == group_name, \
-                    "Node type %s differs from %s on %s" % (node_status['type'].lower(), group_name, host)
+                    "Node type %s differs from %s on %s" % (node_status['type'].lower(), group_name, host)  # noqa
                 assert node_status['db'] == 'UP', \
-                    "Node status %s is not UP on %s" % (node_status['db'], host)
+                    "Node status %s is not UP on %s" % (node_status['db'], host)  # noqa
 
     def test_deploy_pgpool2(self, setup, configure, provision, deploy):
         if RA not in ('EDB-RA-3'):
@@ -471,5 +485,106 @@ class TestEDBDeployment:
                     "Service %s not running on %s" % (service_name, host)
                 assert pgpool2.service(service_name).is_enabled, \
                     "Service %s not enabled on %s" % (service_name, host)
-                assert pgpool2.socket('tcp://0.0.0.0:%s' % port).is_listening, \
+                assert pgpool2.socket('tcp://0.0.0.0:%s' % port).is_listening,\
                     "pgpool2 not listening on 0.0.0.0:%s on %s" % (port, host)
+
+    def test_bdr_deploy_barmanserver(self, setup, configure, provision,
+                                     deploy):
+        """
+        Testing barman deployment in BDR environment: we just have to execute
+        the barman check command for each Postgres node that are supposed to be
+        backuped. If barman check does not return an error, everything is fine.
+        """
+        if not RA.startswith('EDB-Always-On'):
+            pytest.skip()
+
+        # List of BDR lead master nodes
+        backuped_servers = ['epas1', 'epas4']
+
+        i = 0
+        for barmanserver in get_barmanservers():
+            name = backuped_servers[i]
+            i += 1
+            with barmanserver.sudo('barman'):
+                # Rexecute barman cron just to be sure the wal receiver is
+                # running before checking because we don't want to wait until
+                # it's executed automatically.
+                barmanserver.run("barman cron")
+                assert barmanserver.run("barman check %s" % name).succeeded, \
+                    "barman check failed for %s" % name
+
+    def test_bdr_harp_proxy(self, setup, configure, provision, deploy):
+        """
+        Testing harp-proxy deployment in BDR environment.
+        """
+        if not RA.startswith('EDB-Always-On'):
+            pytest.skip()
+
+        for host in get_hosts('pgbouncer'):
+            with host.sudo():
+                assert host.service('harp-proxy').is_running, \
+                    "Service harp-proxy not running on %s" % host
+                assert host.service('harp-proxy').is_enabled, \
+                    "Service harp-proxy not enabled on %s" % host
+                hostname_ip = host.check_output('hostname -i')
+                assert host.socket('tcp://%s:6432' % hostname_ip).is_listening, \
+                    "pgbouncer not listening on %s:6432 on %s" % (hostname_ip, host)  # noqa
+
+    def test_bdr_harp_leader(self, setup, configure, provision, deploy):
+        """
+        Testing Harp leader nodes.
+        """
+        if not RA.startswith('EDB-Always-On'):
+            pytest.skip()
+
+        locations = ['BDRDC1', 'BDRDC2']
+        lead_masters = ['epas1', 'epas4']
+
+        i = 0
+        for host in get_hosts('primary'):
+            if host.check_output('hostname -s') not in lead_masters:
+                # Execute this test only once per location
+                continue
+
+            location = locations[i]
+            cmd = host.run("harpctl get leader %s -o json" % location)
+            assert cmd.succeeded, \
+                "Cannot execute the harpctl get leader command"
+            json_output = json.loads(cmd.stdout)
+            assert json_output['name'] == lead_masters[i], \
+                "Harp leader configured to %s, must be %s" % (json_output['name'], lead_masters[i])  # noqa
+            i += 1
+
+    def test_bdr_pgbouncer_connection(self, setup, configure, provision,
+                                      deploy):
+        """
+        Testing pgbouncer connection
+        """
+        if not RA.startswith('EDB-Always-On'):
+            pytest.skip()
+
+        conf = get_conf()[PG_TYPE]
+        pg_user = conf['user']
+
+        lead_masters = ['epas1', 'epas4']
+        poolers = ['pgbouncer1', 'pgbouncer3']
+
+        i = 0
+        for host in get_hosts('primary'):
+            if host.check_output('hostname -s') not in lead_masters:
+                # Execute this test only once per location
+                continue
+
+            with host.sudo(pg_user):
+                assert host.check_output(
+                    "psql -tA -h %s -p 6432 -d edb -c 'SELECT 1'"
+                    % poolers[i]
+                ) == '1', \
+                    "Pgbouncer connection does not work on %s" % poolers[i]
+
+                assert host.check_output(
+                    "psql -tA -h %s -p 6432 -d edb -c 'SELECT node_name FROM bdr.local_node_info()'"  # noqa
+                    % poolers[i]
+                ) == lead_masters[i], \
+                    "Pgbouncer not connect to the right lead master node on %s" % poolers[i]  # noqa
+            i += 1
