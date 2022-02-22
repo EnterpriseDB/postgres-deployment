@@ -14,7 +14,7 @@ TEST_DATA_DIR = os.path.join(
 # Global variables used for the tests
 RA = os.getenv('EDB_DEPLOY_RA', 'EDB-RA-1')
 PG_TYPE = os.getenv('EDB_DEPLOY_PG_TYPE', 'PG')
-PG_VERSION = os.getenv('EDB_DEPLOY_PG_VERSION', '13')
+PG_VERSION = os.getenv('EDB_DEPLOY_PG_VERSION', '14')
 CLOUD_VENDOR = os.getenv('EDB_DEPLOY_CLOUD_VENDOR', 'aws')
 CLOUD_REGION = os.getenv('EDB_DEPLOY_CLOUD_REGION', 'us-east-2')
 EDB_CREDENTIALS = os.getenv('EDB_DEPLOY_EDB_CREDENTIALS', 'user:password')

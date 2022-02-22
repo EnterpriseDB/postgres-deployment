@@ -78,7 +78,7 @@ environment.
 | `EDB_DEPLOY_CLOUD_VENDOR` | Cloud vendor code name: `aws` or `azure` or `gcloud` | `aws` |
 | `EDB_DEPLOY_CLOUD_REGION` | Cloud vendor region where the machines will be located. | `us-east-2` |
 | `EDB_DEPLOY_PG_TYPE` | Database engine: `PG` or `EPAS` | `PG` |
-| `EDB_DEPLOY_PG_VERSION` | Database engine major version: `13`, `12`, etc.. | `13` |
+| `EDB_DEPLOY_PG_VERSION` | Database engine major version: `14`, `13`, `12`, etc.. | `14` |
 | `EDB_DEPLOY_RA` | Reference architecture: `EDB-RA-1`, `EDB-RA-2` or `EDB-RA-3` | `EDB-RA-1` |
 | `EDB_DEPLOY_EDB_CREDENTIALS` | EDB package repoisory credentials | `user:password` |
 | `EDB_GOOGLE_ACCOUNTS_FILE` | GCloud service account Json file | `~/accounts.json` |
