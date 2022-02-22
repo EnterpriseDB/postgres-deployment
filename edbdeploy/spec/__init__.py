@@ -31,17 +31,6 @@ DefaultAWSSpec = {
                 default='centos'
             )
         },
-        'CentOS8': {
-            'image': SpecValidator(
-                type='string',
-                default="CentOS 8*"
-            ),
-            'ssh_user': SpecValidator(
-                type='choice',
-                choices=['centos'],
-                default='centos'
-            )
-        },
         'RedHat7': {
             'image': SpecValidator(
                 type='string',
@@ -63,7 +52,19 @@ DefaultAWSSpec = {
                 choices=['ec2-user'],
                 default='ec2-user'
             )
+        },
+        'RockyLinux8': {
+            'image': SpecValidator(
+                type='string',
+                default="Rocky Linux 8.4*"
+            ),
+            'ssh_user': SpecValidator(
+                type='choice',
+                choices=['rocky'],
+                default='rocky'
+            )
         }
+
     },
     'dbt2': SpecValidator(
         type='choice',
@@ -206,12 +207,6 @@ DefaultAzureSpec = {
             'sku': SpecValidator(type='string', default="7.7"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
         },
-        'CentOS8': {
-            'publisher': SpecValidator(type='string', default="OpenLogic"),
-            'offer': SpecValidator(type='string', default="CentOS"),
-            'sku': SpecValidator(type='string', default="8_1"),
-            'ssh_user': SpecValidator(type='string', default='edbadm')
-        },
         'RedHat7': {
             'publisher': SpecValidator(type='string', default="RedHat"),
             'offer': SpecValidator(type='string', default="RHEL"),
@@ -223,6 +218,12 @@ DefaultAzureSpec = {
             'offer': SpecValidator(type='string', default="RHEL"),
             'sku': SpecValidator(type='string', default="8.2"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
+        },
+        'RockyLinux8': {
+            'publisher': SpecValidator(type='string', default="Perforce"),
+            'offer': SpecValidator(type='string', default="rockylinux8"),
+            'sku': SpecValidator(type='string', default="8"),
+            'ssh_user': SpecValidator(type='string', default='rocky')
         }
     },
     'dbt2': SpecValidator(
@@ -344,10 +345,6 @@ DefaultGcloudSpec = {
             'image': SpecValidator(type='string', default="centos-7"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
         },
-        'CentOS8': {
-            'image': SpecValidator(type='string', default="centos-8"),
-            'ssh_user': SpecValidator(type='string', default='edbadm')
-        },
         'RedHat7': {
             'image': SpecValidator(type='string', default="rhel-7"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
@@ -355,6 +352,10 @@ DefaultGcloudSpec = {
         'RedHat8': {
             'image': SpecValidator(type='string', default="rhel-8"),
             'ssh_user': SpecValidator(type='string', default='edbadm')
+        },
+        'RockyLinux8': {
+            'image': SpecValidator(type='string', default="rocky-linux-8"),
+            'ssh_user': SpecValidator(type='string', default='rocky')
         }
     },
     'dbt2': SpecValidator(

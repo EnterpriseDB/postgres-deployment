@@ -21,18 +21,6 @@ class ReferenceArchitectureOption:
 
 
 class POTReferenceArchitectureOption:
-    choices = ['EDB-RA']
-
-    default = 'EDB-RA'
-    help = textwrap.dedent("""
-        Reference architecture code name. Allowed values are: EDB-RA for
-        a 3 Postgres nodes deployment with quorum base synchronous replication
-        and automatic failover, one backup server and one PEM monitoring
-        server.
-        Default: %(default)s
-    """)
-
-class AWSPOTReferenceArchitectureOption:
     choices = ['EDB-RA', 'EDB-Always-On-Platinum', 'EDB-Always-On-Silver']
 
     default = 'EDB-RA'
@@ -48,8 +36,6 @@ class AWSPOTReferenceArchitectureOption:
         Default: %(default)s
     """)
 
-
-
 class ReferenceArchitectureOptionDBaaS:
     choices = ['HammerDB-DBaaS']
     default = 'HammerDB-DBaaS'
@@ -62,26 +48,26 @@ class ReferenceArchitectureOptionDBaaS:
 
 
 class OSOption:
-    choices = ['CentOS7', 'CentOS8', 'RedHat7', 'RedHat8']
-    default = 'CentOS8'
+    choices = ['CentOS7', 'RedHat7', 'RedHat8', 'RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS7, CentOS8, RedHat7 and
-        RedHat8. Default: %(default)s
+        Operating system. Allowed values are: CentOS7, RedHat7, RedHat8 and
+        RockyLinux8. Default: %(default)s
     """)
 
 
 class VMWareOSOption:
-    choices = ['CentOS8']
-    default = 'CentOS8'
+    choices = ['RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS8. Default: %(default)s
+        Operating system. Allowed values are: RockyLinux8. Default: %(default)s
     """)
 
 class VirtualBoxOSOption:
-    choices = ['CentOS8']
-    default = 'CentOS8'
+    choices = ['RockyLinux8']
+    default = 'RockyLinux8'
     help = textwrap.dedent("""
-        Operating system. Allowed values are: CentOS8. Default: %(default)s
+        Operating system. Allowed values are: RockyLinux8. Default: %(default)s
     """)
 
 class PgVersionOption:
@@ -262,11 +248,12 @@ class ShirtSizeOption:
 
 # Cloud specific options
 class AWSRegionOption:
-    choices = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2']
+    choices = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2','eu-west-1',
+               'eu-west-2', 'eu-west-3']
     default = 'us-east-1'
     help = textwrap.dedent("""
-        AWS region. Allowed values are us-east-1, us-east-2, us-west-1 and
-        us-west-2. Default: %(default)s
+        AWS region. Allowed values are us-east-1, us-east-2, us-west-1,
+        us-west-2, eu-west-1, eu-west-2 and eu-west-3. Default: %(default)s
     """)
 
 

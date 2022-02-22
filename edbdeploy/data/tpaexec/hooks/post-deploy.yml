@@ -42,7 +42,7 @@
     group: root
     mode: '0755'
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Create harp-proxy systemd unit directory used to store the override.conf file"
   ansible.builtin.file:
@@ -62,7 +62,7 @@
     group: root
     mode: '0644'
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Override harp-proxy systemd unit"
   template:
@@ -86,6 +86,28 @@
     state: started
     enabled: true
   when: >
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
+
+- name: "Make sure pgbouncer pool_mode is set to transaction"
+  ansible.builtin.lineinfile:
+    path: /etc/harp/harp.cluster.init.yml
+    line: "  pool_mode: transaction"
+    regexp: ".*pool_mode.*"
+    insertafter: "^proxies"
+    state: present
+  become: true
+  when: >
+    'bdr' in role
+
+- name: "Make sure Harp session_transfer_mode is set to fast"
+  lineinfile:
+    path: /etc/harp/harp.cluster.init.yml
+    line: "  session_transfer_mode: fast"
+    regexp: ".*session_transfer_mode.*"
+    insertafter: "^proxies"
+    state: present
+  become: true
+  when: >
     'bdr' in role
 
 - name: "Stop and disable pgbouncer systemd services"
@@ -96,10 +118,46 @@
   when: >
     'harp-proxy' in role
 
-- name: "Enable and start harp-proxy systemd services"
+- name: "Ensure /var/log/pgbouncer own by postgres_user"
+  file:
+    path: "/var/log/pgbouncer"
+    state: directory
+    owner: "{{ postgres_user }}"
+  when: >
+    'harp-proxy' in role
+
+- name: "Make sure log_level is info in HARP cofig.yml"
+  lineinfile:
+    path: /etc/harp/config.yml
+    line: "  log_level: info"
+    regexp: ".*log_level.*"
+    state: present
+  become: true
+  when: >
+    'harp-proxy' in role or 'bdr' in role
+
+- name: "Make sure pgbouncer log location in /var/log"
+  lineinfile:
+    path: /etc/harp/harp.cluster.init.yml
+    line: "  logfile: /var/log/pgbouncer/pgbouncer.log"
+    regexp: ".*logfile:.*"
+    state: present
+  become: true
+  when: >
+    'harp-proxy' in role or 'bdr' in role
+
+- name: "Apply Harp configuration"
+  command: >
+    /usr/bin/harpctl apply /etc/harp/harp.cluster.init.yml
+  become: true
+  become_user: "{{ postgres_user }}"
+  when: >
+    inventory_hostname in ['epas1', 'epas4']
+
+- name: "Enable and restart harp-proxy systemd services"
   systemd:
     name: "harp-proxy"
-    state: started
+    state: restarted
     enabled: true
   when: >
     'harp-proxy' in role

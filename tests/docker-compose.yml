@@ -2,7 +2,7 @@ version: '3'
 
 services:
   test-aws:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -20,7 +20,7 @@ services:
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
   test-azure:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -38,7 +38,7 @@ services:
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
   test-gcloud:
-    image: centos:8
+    image: rockylinux:8
     init: true
     volumes:
     # Source root dir.
@@ -57,4 +57,28 @@ services:
       - EDB_GOOGLE_ACCOUNTS_FILE
     working_dir: /workspace
     entrypoint: [/workspace/tests/entry_point_run_tests.sh, "--"]
-
+  test-aws-pot:
+    image: rockylinux:8
+    init: true
+    volumes:
+    # Source root dir.
+    - ../:/workspace
+    # AWS credentials
+    - ~/.aws/:/root/.aws:ro
+    - ${EDB_POT_TPAEXEC_SRC_PATH}:/root/tpaexec
+    environment:
+      - EDB_DEPLOY_CLOUD_VENDOR=aws-pot
+      - EDB_DEPLOY_CLOUD_REGION
+      - EDB_DEPLOY_PG_TYPE
+      - EDB_DEPLOY_PG_VERSION
+      - EDB_DEPLOY_PROJECT_NAME
+      - EDB_DEPLOY_RA
+      - EDB_DEPLOY_EDB_CREDENTIALS
+      - EDB_DEPLOY_EFM_VERSION
+      - EDB_POT_R53_ACCESS_KEY
+      - EDB_POT_R53_SECRET
+      - EDB_POT_EMAIL_ID
+      - EDB_POT_TPAEXEC_BIN=/root/tpaexec/bin
+      - EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN
+    working_dir: /workspace
+    entrypoint: [/workspace/tests/entry_point_run_tests_bdr_pot.sh, "--"]

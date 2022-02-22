@@ -61,6 +61,8 @@ module "vm" {
   dbt2_driver                     = var.dbt2_driver
   pg_type                         = var.pg_type
   postgres_server                 = var.postgres_server
+  bdr_server                      = var.bdr_server
+  bdr_witness_server              = var.bdr_witness_server
   pem_server                      = var.pem_server
   barman_server                   = var.barman_server
   pooler_server                   = var.pooler_server
@@ -80,8 +82,9 @@ module "vm" {
   add_hosts_filename              = var.add_hosts_filename
   pooler_type                     = var.pooler_type
   pooler_local                    = var.pooler_local
-  network_count                   = var.pooler_server["count"] > var.postgres_server["count"] ? var.pooler_server["count"] : var.postgres_server["count"]
+  network_count                   = max(var.pooler_server["count"], var.postgres_server["count"], var.bdr_server["count"])
   depends_on                      = [module.network]
+  rocky                           = var.rocky
 }
 
 module "vm-hammerdb" {

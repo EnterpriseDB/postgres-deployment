@@ -1,0 +1,67 @@
+{
+  "barman1": {
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
+    "name": "barman1",
+    "provider": "vmware",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
+  },
+  "pem1": {
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
+    "name": "pem1",
+    "provider": "vmware",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
+  },
+  "primary1": {
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
+    "name": "primary1",
+    "provider": "vmware",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
+  },
+  "primary2": {
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
+    "name": "primary2",
+    "provider": "vmware",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
+  },
+  "primary3": {
+    "box": "bento/rockylinux-8",
+    "box_version": "202112.19.0",
+    "name": "primary3",
+    "provider": "vmware",
+    "shared_folders": [
+      {
+        "host_path": ".",
+        "share_name": "mech"
+      }
+    ],
+    "url": "https://vagrantcloud.com/bento/boxes/rockylinux-8/versions/202112.19.0/providers/vmware_desktop.box"
+  }
+}

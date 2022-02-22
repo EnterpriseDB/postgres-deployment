@@ -1,7 +1,4 @@
-# Choose your docker image from hub.docker.com
-# Recommended those with guest additions already installed
-# CentOS 8
-IMAGE_NAME = "bento/centos-8"
+IMAGE_NAME = "rockylinux/8"
 # Box names
 PEM_BOX_NAME = "PEM"
 BARMAN_BOX_NAME = "BARMAN"

@@ -8,6 +8,8 @@ cluster_vars:
   bdr_node_group: bdrgroup
   bdr_version: '4'
   failover_manager: harp
+  harp_request_timeout: '250ms'
+  harp_watch_poll_interval: '500ms'
   harp_consensus_protocol: etcd
   postgres_data_dir: /pgdata/pg_data
   postgres_wal_dir: /pgwal/pg_wal
@@ -24,6 +26,7 @@ cluster_vars:
   repmgr_failover: manual
   tpa_2q_repositories:
   - products/bdr4/release
+  - products/harp/release
   yum_repository_list:
   - EDB
   - EPEL
@@ -47,10 +50,6 @@ cluster_vars:
   bdr_extensions:
     - btree_gist
     - bdr
-  etcd_packages:
-    Debian: []
-    RedHat: []
-
 
 ssh_key_file: {{ vars['ssh_priv_key'] }}
 
@@ -132,7 +131,7 @@ instances:
 {% endfor %}
 {% for pooler_server in servers['pooler_server'] %}
 - Name: pgbouncer{{ pooler_server['id'] }}
-{%   if pooler_server['id'] < 4 %}
+{%   if pooler_server['id'] < 3 %}
   location: BDRDC1
 {%   else %}
   location: BDRDC2

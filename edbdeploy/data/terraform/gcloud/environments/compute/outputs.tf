@@ -1,6 +1,8 @@
 locals {
   server_count_map = {
     postgres_server = var.postgres_server
+    bdr_server = var.bdr_server
+    bdr_witness_server = var.bdr_witness_server
     pem_server = var.pem_server
     barman_server = var.barman_server
     pooler_server = var.pooler_server
@@ -10,6 +12,8 @@ locals {
   }
   google_compute_map = {
     postgres_server = google_compute_instance.postgres_server
+    bdr_server = google_compute_instance.bdr_server
+    bdr_witness_server = google_compute_instance.bdr_witness_server
     pem_server = google_compute_instance.pem_server
     barman_server = google_compute_instance.barman_server
     pooler_server = google_compute_instance.pooler_server
@@ -74,6 +78,24 @@ Host pgsql${count+1}
 %{endif~}
     User ${var.ssh_user}
     Hostname ${google_compute_instance.postgres_server[count].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+%{for count in range(var.bdr_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.bdr_server[count].network_interface.0.access_config.0.nat_ip}
+%{endfor~}
+%{for count in range(var.bdr_witness_server["count"])~}
+%{if var.pg_type == "EPAS"~}
+Host epas${count+1}
+%{else~}
+Host pgsql${count+1}
+%{endif~}
+    User ${var.ssh_user}
+    Hostname ${google_compute_instance.bdr_witness_server[count].network_interface.0.access_config.0.nat_ip}
 %{endfor~}
 %{if var.pem_server["count"] > 0~}
 Host pemserver1

@@ -9,7 +9,7 @@ def subcommands(subparser):
     available_subcommands = [
         'configure', 'deploy', 'destroy', 'display', 'list', 'logs',
         'passwords', 'provision', 'show', 'specs', 'setup', 'remove', 'ssh',
-        'get_ssh_keys'
+        'get_ssh_keys', 'update_route53_key'
     ]
 
     # Get sub-commands parsers
@@ -20,10 +20,10 @@ def subcommands(subparser):
     subcommand_parsers['configure'].add_argument(
         '-a', '--reference-architecture',
         dest='reference_architecture',
-        choices=AWSPOTReferenceArchitectureOption.choices,
-        default=AWSPOTReferenceArchitectureOption.default,
+        choices=POTReferenceArchitectureOption.choices,
+        default=POTReferenceArchitectureOption.default,
         metavar='<ref-arch-code>',
-        help=AWSPOTReferenceArchitectureOption.help
+        help=POTReferenceArchitectureOption.help
     )
     subcommand_parsers['configure'].add_argument(
         '--tpaexec-bin',
@@ -148,4 +148,20 @@ def subcommands(subparser):
         metavar='<host-name>',
         dest='host',
         help="Node hostname"
+    )
+    subcommand_parsers['update_route53_key'].add_argument(
+        '--route53-access-key',
+        dest='route53_access_key',
+        required=True,
+        type=str,
+        metavar='<route53-acccess-key>',
+        help="Route53 Access Key"
+    )
+    subcommand_parsers['update_route53_key'].add_argument(
+        '--route53-secret',
+        dest='route53_secret',
+        required=True,
+        type=str,
+        metavar='<route53-secret>',
+        help="Route53 Secret"
     )
