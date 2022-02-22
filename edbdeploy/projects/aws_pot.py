@@ -26,9 +26,20 @@ class AWSPOTProject(Project):
         self.custom_ssh_keys = {}
         # Force PG version to 14 in POT env.
         self.postgres_version = '14'
-        self.operating_system = "CentOS8"
+        self.operating_system = "RockyLinux8"
 
     def configure(self, env):
+        # Dirty hack used to change on-the-fly the target OS, depending on the
+        # reference architecture.
+        # FIXME: remove it once TPAexec supports RockyLinux8
+        if env.reference_architecture.startswith('EDB-RA'):
+            # Use RockyLinux8 for EDB-RA-* reference architectures
+            self.operating_system = "RockyLinux8"
+        else:
+            # Use centos7 for BDR-Always-On architecture. TPAexec does not yet
+            # support RockyLinux8, then we have to use an antique OS.
+            self.operating_system = "CentOS7"
+
         self.pot_configure(env)
 
     def hook_instances_availability(self, cloud_cli):

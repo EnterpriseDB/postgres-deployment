@@ -57,7 +57,7 @@ class AzureProject(Project):
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
             'azure_region': env.azure_region,
-            'rocky': True if os['offer'] == 'rockylinux8' else False
+            'rocky': True if env.operating_system == 'RockyLinux8' else False
         })
         self.terraform_vars['postgres_server'].update({
             'volume': pg['volume'],
@@ -97,9 +97,17 @@ class AzureProject(Project):
                 env.azure_region
               )
         ):
-            cloud_cli.cli.check_image_availability(
+            image = cloud_cli.cli.check_image_availability(
                 self.terraform_vars['azure_publisher'],
                 self.terraform_vars['azure_offer'],
                 self.terraform_vars['azure_sku'],
                 env.azure_region
             )
+        if env.operating_system == 'RockyLinux8':
+            with AM("Accepting marketplace terms for this image offer"):
+                cloud_cli.cli.accept_terms(
+                    self.terraform_vars['azure_publisher'],
+                    self.terraform_vars['azure_offer'],
+                    self.terraform_vars['azure_sku'],
+                    image['version'],
+                )

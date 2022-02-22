@@ -15,13 +15,18 @@ then
 	COMPOSE_SERVICE="test-azure"
 fi
 if [ $EDB_DEPLOY_CLOUD_VENDOR = "gcloud" ]
-then 
+then
 	COMPOSE_SERVICE="test-gcloud"
 	cp $EDB_GCLOUD_ACCOUNTS_FILE data/accounts.json
+fi
+if [ $EDB_DEPLOY_CLOUD_VENDOR = "aws-pot" ]
+then
+	COMPOSE_SERVICE="test-aws-pot"
 fi
 
 # Docker compose command
 docker compose up \
 	--exit-code-from ${COMPOSE_SERVICE} \
-	--abort-on-container-exit ${COMPOSE_SERVICE} \
-	--remove-orphans
+	--abort-on-container-exit \
+	--remove-orphans \
+	${COMPOSE_SERVICE}

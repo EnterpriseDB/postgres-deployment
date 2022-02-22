@@ -18,20 +18,29 @@ PG_VERSION = os.getenv('EDB_DEPLOY_PG_VERSION', '13')
 CLOUD_VENDOR = os.getenv('EDB_DEPLOY_CLOUD_VENDOR', 'aws')
 CLOUD_REGION = os.getenv('EDB_DEPLOY_CLOUD_REGION', 'us-east-2')
 EDB_CREDENTIALS = os.getenv('EDB_DEPLOY_EDB_CREDENTIALS', 'user:password')
-PROJECT_NAME = 'testproject'
-SSH_PRIV_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa')
-SSH_PUB_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa.pub')
+PROJECT_NAME = os.getenv('EDB_DEPLOY_PROJECT_NAME', 'testproject')
 SSH_CONFIG = os.path.join(TEST_DATA_DIR, 'ssh_config')
 EFM_VERSION = os.getenv('EDB_DEPLOY_EFM_VERSION', '4.2')
 DEPLOY_DIR = os.getenv(
     'EDB_DEPLOY_DIR', os.path.join(os.path.expanduser("~"), ".edb-deployment")
 )
+if RA.startswith('EDB-RA'):
+    SSH_PRIV_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa')
+    SSH_PUB_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa.pub')
+elif RA.startswith('EDB-Always-On'):
+    SSH_PRIV_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pem' % PROJECT_NAME)
+    SSH_PUB_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pub' % PROJECT_NAME)
 GCLOUD_CRED = os.getenv(
     'EDB_GCLOUD_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
 )
 GCLOUD_PROJECT_ID = os.getenv(
     'EDB_GCLOUD_PROJECT_ID', 'project_id'
 )
+POT_R53_ACCESS_KEY = os.getenv('EDB_POT_R53_ACCESS_KEY')
+POT_R53_SECRET = os.getenv('EDB_POT_R53_SECRET')
+POT_EMAIL_ID = os.getenv('EDB_POT_EMAIL_ID')
+POT_TPAEXEC_BIN = os.getenv('EDB_POT_TPAEXEC_BIN')
+POT_TPAEXEC_SUBSCRIPTION_TOKEN = os.getenv('EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN')
 
 
 @pytest.fixture(scope="class")
@@ -49,13 +58,24 @@ def configure():
         CLOUD_VENDOR, 'configure',
         '--reference-architecture=%s' % RA,
         '--edb-credentials=%s' % EDB_CREDENTIALS,
-        '--pg-type=%s' % PG_TYPE,
-        '--pg-version=%s' % PG_VERSION,
-        '--ssh-private-key=%s' % SSH_PRIV_KEY,
-        '--ssh-pub-key=%s' % SSH_PUB_KEY,
-        '--efm-version=%s' % EFM_VERSION,
     ]
-    if CLOUD_VENDOR == 'aws':
+    if CLOUD_VENDOR == 'aws-pot' and RA.startswith('EDB-Always-On'):
+        options += [
+            '--route53-access-key=%s' % POT_R53_ACCESS_KEY,
+            '--route53-secret=%s' % POT_R53_SECRET,
+            '--email-id=%s' % POT_EMAIL_ID,
+            '--tpaexec-bin=%s' % POT_TPAEXEC_BIN,
+            '--tpaexec-subscription-token=%s' % POT_TPAEXEC_SUBSCRIPTION_TOKEN,
+        ]
+    else:
+        options += [
+            '--pg-version=%s' % PG_VERSION,
+            '--ssh-private-key=%s' % SSH_PRIV_KEY,
+            '--ssh-pub-key=%s' % SSH_PUB_KEY,
+            '--pg-type=%s' % PG_TYPE,
+            '--efm-version=%s' % EFM_VERSION,
+        ]
+    if CLOUD_VENDOR in ['aws', 'aws-pot']:
         options.append(
             '--aws-region=%s' % CLOUD_REGION
         )
@@ -88,10 +108,22 @@ def configure():
 
 @pytest.fixture(scope="class")
 def provision():
-    c = EDBDeploymentCLI([
-        CLOUD_VENDOR, 'provision', PROJECT_NAME
-    ])
-    c.execute()
+    try:
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'provision', PROJECT_NAME
+        ])
+        c.execute()
+    except Exception:
+        # Force resources destruction and remove the project in case of
+        # provisioning error
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'destroy', PROJECT_NAME
+        ])
+        c.execute()
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'remove', PROJECT_NAME
+        ])
+        c.execute()
     yield
     c = EDBDeploymentCLI([
         CLOUD_VENDOR, 'destroy', PROJECT_NAME
@@ -101,10 +133,22 @@ def provision():
 
 @pytest.fixture(scope="class")
 def deploy():
-    c = EDBDeploymentCLI([
-        CLOUD_VENDOR, 'deploy', PROJECT_NAME
-    ])
-    c.execute()
+    try:
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'deploy', PROJECT_NAME
+        ])
+        c.execute()
+    except Exception:
+        # Force resources destruction and remove the project in case of
+        # deployment error
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'destroy', PROJECT_NAME
+        ])
+        c.execute()
+        c = EDBDeploymentCLI([
+            CLOUD_VENDOR, 'remove', PROJECT_NAME
+        ])
+        c.execute()
     yield
 
 
@@ -163,10 +207,6 @@ def get_hosts(group_name):
     return nodes
 
 
-def get_primary():
-    return get_hosts('primary')[0]
-
-
 def get_pemserver():
     return get_hosts('pemserver')[0]
 
@@ -195,6 +235,10 @@ def get_pgpool2():
     return get_hosts('pgpool2')
 
 
+def get_barmanservers():
+    return get_hosts('barmanserver')
+
+
 def get_conf():
     return dict(
         EPAS=dict(
@@ -215,7 +259,6 @@ def get_conf():
             pgpool2=dict(
                 service_name="pgpool-II-%s" % PG_VERSION,
                 port=9999,
-                
             )
         ),
         EFM=dict(

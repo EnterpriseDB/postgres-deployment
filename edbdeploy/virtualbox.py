@@ -139,7 +139,7 @@ class VirtualBoxCli:
                 [
                     self.bin("vagrant"),
                     "init",
-                    "bento/centos-8",
+                    "rockylinux/8",
                 ],
                 environ=self.environ,
                 cwd=self.vagrant_project_path

@@ -350,6 +350,7 @@ class AzureCli:
                     "Image %s:%s:%s not available in region %s"
                     % (publisher, offer, sku, region)
                 )
+            return result[0]
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -376,6 +377,26 @@ class AzureCli:
                 "$(%s vm list -g \"%s_edb_resource_group\" --query \"[].id\" -o tsv)"
                 % (self.bin("az"), project_name),
                 "--created"
+            ])
+            logging.debug("Command output: %s", output.decode("utf-8"))
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def accept_terms(self, publisher, offer, sku, version):
+        try:
+            output = exec_shell([
+                self.bin("az"),
+                "vm",
+                "image",
+                "terms",
+                "accept",
+                "--urn %s:%s:%s:%s" % (publisher, offer, sku, version),
             ])
             logging.debug("Command output: %s", output.decode("utf-8"))
 
@@ -522,14 +543,20 @@ class GCloudCli:
 
     def check_image_availability(self, image):
         try:
-            output = exec_shell([
+            cmd = [
                 self.bin("gcloud"),
                 "compute",
                 "images",
                 "list",
                 "--filter=\"family=%s\"" % image,
                 "--format=json"
-            ])
+            ]
+            if image == 'rocky-linux-8':
+                cmd = cmd + [
+                        '--no-standard-images',
+                        '--project=rocky-linux-cloud'
+                        ]
+            output = exec_shell(cmd)
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
             if len(result) == 0 or result[0]['status'] != 'READY':

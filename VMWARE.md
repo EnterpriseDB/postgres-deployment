@@ -39,8 +39,8 @@ $ edb-deploy vmware configure <PROJECT_NAME> \
 
   * `OPERATING_SYSTEM`
 
-    Operating system. Allowed values are: **CentOS7** and **CentOS8**
-    Default: **CentOS8**
+    Operating system. Allowed values are: **CentOS7** and **RockyLinux8**
+    Default: **RockyLinux8**
 
   * `PG_ENGINE_TYPE`
 
@@ -69,7 +69,7 @@ $ edb-deploy vmware configure <PROJECT_NAME> \
 
 
   * `CPU_COUNT`
-    
+
     Number of CPUS assigned to local machines **Required**.
 
 For more details, please use:

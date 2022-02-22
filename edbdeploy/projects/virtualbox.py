@@ -58,13 +58,13 @@ class VirtualBoxProject(Project):
         #Converting megabytes to gigabytes
         mem_size = int(mem_size) / 1024
         if self.env.reference_architecture == 'EDB-RA-1' and avail_memory < mem_size * 3:
-            raise ValueError("For EDB-RA-1 you must have at least %s, GB of free space. "
+            raise ValueError("For EDB-RA-1 you must have at least %s GB of free memory. "
             "Try lowering your memory-size." % (mem_size * 3))
         if self.env.reference_architecture == 'EDB-RA-2' and avail_memory < mem_size * 5:
-            raise ValueError("For EDB-RA-2 you must have at least %s, GB of free space. "
+            raise ValueError("For EDB-RA-2 you must have at least %s GB of free memory. "
             "Try lowering your memory-size." % (mem_size * 5))
         if self.env.reference_architecture == 'EDB-RA-3' and avail_memory < mem_size * 8:
-            raise ValueError("For EDB-RA-3 you must have at least %s, GB of free space. "
+            raise ValueError("For EDB-RA-3 you must have at least %s GB of free memory. "
             "Try lowering your memory-size." % (mem_size * 8))
 
     def create(self):
@@ -183,8 +183,8 @@ class VirtualBoxProject(Project):
         ssh_user = 'vagrant'
         ssh_pass = 'vagrant'
         operating_system = ''
-        if env.operating_system == 'CentOS8':
-            operating_system = 'c8'
+        if env.operating_system == 'RockyLinux8':
+            operating_system = 'r8'
 
         self.ansible_vars = {
             'reference_architecture': env.reference_architecture,

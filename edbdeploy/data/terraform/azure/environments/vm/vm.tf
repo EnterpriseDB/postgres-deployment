@@ -26,6 +26,7 @@ variable "ssh_pub_key" {}
 variable "ssh_user" {}
 variable "vnet_name" {}
 variable "pg_type" {}
+variable "rocky" {}
 
 locals {
   lnx_device_names = [
@@ -265,6 +266,15 @@ resource "azurerm_linux_virtual_machine" "postgres_server" {
     type = "SystemAssigned"
   }
 
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
+  }
+
   source_image_reference {
     publisher = var.azure_publisher
     offer     = var.azure_offer
@@ -362,6 +372,15 @@ resource "azurerm_linux_virtual_machine" "bdr_server" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
   }
 
   source_image_reference {
@@ -463,6 +482,15 @@ resource "azurerm_linux_virtual_machine" "pem_server" {
     type = "SystemAssigned"
   }
 
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
+  }
+
   source_image_reference {
     publisher = var.azure_publisher
     offer     = var.azure_offer
@@ -498,6 +526,15 @@ resource "azurerm_linux_virtual_machine" "bdr_witness_server" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
   }
 
   source_image_reference {
@@ -537,6 +574,15 @@ resource "azurerm_linux_virtual_machine" "pooler_server" {
     type = "SystemAssigned"
   }
 
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
+  }
+
   source_image_reference {
     publisher = var.azure_publisher
     offer     = var.azure_offer
@@ -572,6 +618,15 @@ resource "azurerm_linux_virtual_machine" "barman_server" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
   }
 
   source_image_reference {
@@ -673,6 +728,15 @@ resource "azurerm_linux_virtual_machine" "dbt2_client_server" {
     type = "SystemAssigned"
   }
 
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
+  }
+
   source_image_reference {
     publisher = var.azure_publisher
     offer     = var.azure_offer
@@ -708,6 +772,15 @@ resource "azurerm_linux_virtual_machine" "dbt2_driver_server" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  dynamic "plan" {
+    for_each = toset(var.rocky == true ? ["1"] : [])
+    content {
+      name      = var.azure_sku
+      product   = var.azure_offer
+      publisher = lower(var.azure_publisher)
+    }
   }
 
   source_image_reference {
