@@ -28,8 +28,8 @@ if RA.startswith('EDB-RA'):
     SSH_PRIV_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa')
     SSH_PUB_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa.pub')
 elif RA.startswith('EDB-Always-On'):
-    SSH_PRIV_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pem' % PROJECT_NAME)
-    SSH_PUB_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pub' % PROJECT_NAME)
+    SSH_PRIV_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'rocky_%s_key.pem' % PROJECT_NAME)
+    SSH_PUB_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'rocky_%s_key.pub' % PROJECT_NAME)
 GCLOUD_CRED = os.getenv(
     'EDB_GCLOUD_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
 )

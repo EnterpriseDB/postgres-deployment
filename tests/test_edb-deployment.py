@@ -61,8 +61,8 @@ class TestEDBDeployment:
         ]
         if RA.startswith('EDB-Always-On'):
             files += [
-                'centos_%s_key.pem' % PROJECT_NAME,
-                'centos_%s_key.pub' % PROJECT_NAME,
+                'rocky_%s_key.pem' % PROJECT_NAME,
+                'rocky_%s_key.pub' % PROJECT_NAME,
             ]
         else:
             files += [
