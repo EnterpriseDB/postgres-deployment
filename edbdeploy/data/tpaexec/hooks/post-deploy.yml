@@ -97,7 +97,7 @@
     state: present
   become: true
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Make sure Harp session_transfer_mode is set to fast"
   lineinfile:
@@ -108,7 +108,7 @@
     state: present
   become: true
   when: >
-    'bdr' in role
+    'bdr' in role and 'witness' not in role and 'readonly' not in role
 
 - name: "Stop and disable pgbouncer systemd services"
   systemd:
@@ -134,7 +134,7 @@
     state: present
   become: true
   when: >
-    'harp-proxy' in role or 'bdr' in role
+    'harp-proxy' in role or ('bdr' in role and 'witness' not in role and 'readonly' not in role)
 
 - name: "Make sure pgbouncer log location in /var/log"
   lineinfile:
@@ -144,7 +144,7 @@
     state: present
   become: true
   when: >
-    'harp-proxy' in role or 'bdr' in role
+    'harp-proxy' in role or ('bdr' in role and 'witness' not in role and 'readonly' not in role)
 
 - name: "Apply Harp configuration"
   command: >
