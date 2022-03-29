@@ -71,10 +71,10 @@ class VirtualBoxOSOption:
     """)
 
 class PgVersionOption:
-    choices = ['11', '12', '13']
-    default = '13'
+    choices = ['11', '12', '13', '14']
+    default = '14'
     help = textwrap.dedent("""
-        PostgreSQL or EPAS version. Allowed values are: 11, 12 and 13.
+        PostgreSQL or EPAS version. Allowed values are: 11, 12, 13 and 14.
         Default: %(default)s
     """)
 
