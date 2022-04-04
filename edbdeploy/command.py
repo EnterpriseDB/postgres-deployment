@@ -192,5 +192,5 @@ class Commander:
     def update_route53_key(self):
         self._check_project_exists()
         self.project.pot_update_route53_key(
-            self.env.route53_access_key, self.env.route53_secret
+            self.env.route53_access_key, self.env.route53_secret, self.env.route53_session_token
         )
