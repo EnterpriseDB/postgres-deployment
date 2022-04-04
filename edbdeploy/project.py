@@ -1439,6 +1439,7 @@ class Project:
             'email_id': env.email_id,
             'route53_access_key': env.route53_access_key,
             'route53_secret': env.route53_secret,
+            'route53_session_token': env.route53_session_token,
             'project': self.name,
             'public_key': self.custom_ssh_keys[self.name]['ssh_pub_key'],
         }
@@ -1486,6 +1487,7 @@ class Project:
             email_id=self.ansible_vars['email_id'],
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
+            route53_session_token=self.ansible_vars['route53_session_token'],
             project=self.ansible_vars['project'],
             public_key=self.ansible_vars['public_key'],
             reference_architecture=self.ansible_vars['reference_architecture']
@@ -1639,6 +1641,7 @@ class Project:
             email_id=self.ansible_vars['email_id'],
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
+            route53_session_token=self.ansible_vars['route53_session_token'],
             project=self.ansible_vars['project'],
             public_key=self.ansible_vars['public_key']
         )
@@ -1675,9 +1678,10 @@ class Project:
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
 
-    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret):
-        with AM("Updating route53 key and secret"):
+    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret, n_route53_session_token):
+        with AM("Updating route53 key, secret and session-token"):
             self._load_ansible_vars()
             self.ansible_vars['route53_access_key'] = n_route53_access_key
             self.ansible_vars['route53_secret'] = n_route53_secret
+            self.ansible_vars['route53_session_token'] = n_route53_session_token
             self._save_ansible_vars()
