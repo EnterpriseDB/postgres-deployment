@@ -38,6 +38,7 @@ GCLOUD_PROJECT_ID = os.getenv(
 )
 POT_R53_ACCESS_KEY = os.getenv('EDB_POT_R53_ACCESS_KEY')
 POT_R53_SECRET = os.getenv('EDB_POT_R53_SECRET')
+POT_R53_SESSION_TOKEN = os.getenv('EDB_POT_R53_SESSION_TOKEN')
 POT_EMAIL_ID = os.getenv('EDB_POT_EMAIL_ID')
 POT_TPAEXEC_BIN = os.getenv('EDB_POT_TPAEXEC_BIN')
 POT_TPAEXEC_SUBSCRIPTION_TOKEN = os.getenv('EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN')
@@ -63,6 +64,7 @@ def configure():
         options += [
             '--route53-access-key=%s' % POT_R53_ACCESS_KEY,
             '--route53-secret=%s' % POT_R53_SECRET,
+            '--route53-session-token=%s' % POT_R53_SESSION_TOKEN,
             '--email-id=%s' % POT_EMAIL_ID,
             '--tpaexec-bin=%s' % POT_TPAEXEC_BIN,
             '--tpaexec-subscription-token=%s' % POT_TPAEXEC_SUBSCRIPTION_TOKEN,
