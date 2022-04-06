@@ -142,6 +142,7 @@ instances:
   private_ip: {{ pooler_server['private_ip'] }}
   role:
   - harp-proxy
+  - pgbouncer
 {% endfor %}
 {% for barman_server in servers['barman_server'] %}
 - Name: barmandc{{ barman_server['id']}}
