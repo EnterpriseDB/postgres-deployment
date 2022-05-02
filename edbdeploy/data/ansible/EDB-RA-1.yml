@@ -18,12 +18,12 @@
       when: "'init_dbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_pemserver
       when: "'setup_pemserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-    - role: setup_pemagent
-      when: "'setup_pemagent' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_barmanserver
       when: "'setup_barmanserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_barman
       when: "'setup_barman' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+    - role: setup_pemagent
+      when: "'setup_pemagent' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_dbt2_driver
       when: "'setup_dbt2_driver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_dbt2_client
