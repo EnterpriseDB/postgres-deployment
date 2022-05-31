@@ -35,19 +35,40 @@
          zone: "{{ route53_zone }}"
          record: "{{ route53_record }}"
          type: A
-       register: rec
+       register: rec_session
        when: route53_session_token|length > 0
 
      - name: Store the value of existsing ip address in a variable
        set_fact:
          route_ip_addressess: "{{ rec.set.ResourceRecords | map(attribute='Value') | unique | list }}"
+       when:
+       - rec is defined
+       - rec|length > 0
+       - rec.set is defined
+
+     - name: Store the value of existsing ip address in a variable
+       set_fact:
+         route_ip_addressess: "{{ rec_session.set.ResourceRecords | map(attribute='Value') | unique | list }}"
+       when:
+       - rec_session is defined
+       - rec_session|length > 0
+       - rec_session.set is defined
 
      - name: Remove the pem server ips in rec values
        set_fact:
            route_ip_addressess: "{{ route_ip_addressess | difference([pem_server_info[0]['ansible_host']]) }}"
        when:
+       - rec is defined
        - pem_server_info[0]['ansible_host'] in route_ip_addressess
        - rec.set.ResourceRecords|length > 0
+
+     - name: Remove the pem server ips in rec values
+       set_fact:
+           route_ip_addressess: "{{ route_ip_addressess | difference([pem_server_info[0]['ansible_host']]) }}"
+       when:
+       - rec_session is defined
+       - pem_server_info[0]['ansible_host'] in route_ip_addressess
+       - rec_session.set.ResourceRecords|length > 0
 
      - name: Update a route53 for customer dns
        community.aws.route53:
