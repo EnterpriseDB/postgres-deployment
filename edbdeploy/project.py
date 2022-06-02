@@ -1362,6 +1362,14 @@ class Project:
         self._copy_ansible_playbook()
         # Check Cloud Instance type and Image availability.
         self._check_instance_image(env)
+        # Check tpaexec version
+        if env.reference_architecture.startswith('EDB-Always-On'):
+            tpaexec = TPAexecCli(
+                        self.project_path,
+                        tpa_subscription_token=env.tpa_subscription_token,
+                        bin_path=env.tpaexec_bin
+                      )
+            tpaexec.check_version()
 
     def pot_provision(self, env):
         self._load_ansible_vars()

@@ -26,8 +26,8 @@ class TPAexecCli:
         self.environ['ANSIBLE_PIPELINING'] = 'true'
         self.environ['ANSIBLE_SSH_PIPELINING'] = 'true'
         # Terraform supported version interval
-        self.min_version = (21, 4)
-        self.max_version = (21, 4)
+        self.min_version = (22, 14)
+        self.max_version = (22, 14)
         # Path to look up for executable
         self.bin_path = None
         # Force tpaexec binary path if bin_path exists and contains
@@ -74,7 +74,7 @@ class TPAexecCli:
         for line in output.decode("utf-8").split("\n"):
             m = pattern.search(line)
             if m:
-                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                version = (int(m.group(1)), int(m.group(2)))
                 break
 
         if version is None:
@@ -85,7 +85,7 @@ class TPAexecCli:
         if not check_version(version, self.min_version, self.max_version):
             raise Exception(
                 ("TPAexec version %s not supported, must be between %s and"
-                 "%s") % (to_str(version), to_str(self.min_version),
+                 " %s") % (to_str(version), to_str(self.min_version),
                           to_str(self.max_version)))
 
     def bin(self, binary):
@@ -166,7 +166,8 @@ class TPAexecCli:
                     self.bin("tpaexec"),
                     "show-password",
                     ".",
-                    username
+                    username,
+                    " 2>/dev/null"
                 ],
                 environ=self.environ,
                 cwd=self.dir
