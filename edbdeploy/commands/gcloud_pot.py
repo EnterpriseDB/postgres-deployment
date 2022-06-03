@@ -162,6 +162,12 @@ def subcommands(subparser):
         metavar='<gcloud-project-id>',
         help="GCloud project ID"
     ).completer = gcloud_project_id_completer
+    subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )
     # gcloud logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',

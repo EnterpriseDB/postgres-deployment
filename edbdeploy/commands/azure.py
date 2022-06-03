@@ -104,6 +104,12 @@ def subcommands(subparser):
         metavar='<cloud-region>',
         help=AzureRegionOption.help
     )
+    subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )
     # azure logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
