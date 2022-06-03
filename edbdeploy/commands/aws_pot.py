@@ -113,6 +113,12 @@ def subcommands(subparser):
         metavar='<aws-spec-file>',
         help="AWS instances specification file, in JSON."
     )
+    subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )
     # aws logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
