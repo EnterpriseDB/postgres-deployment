@@ -8,7 +8,8 @@ def subcommands(subparser):
     # List of the sub-commands we want to be available for the virtualbox
     # command
     available_subcommands = [
-        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list', 'display', 'ssh'
+        'configure', 'provision', 'deploy', 'destroy', 'remove', 'logs', 'list',
+        'display', 'ssh', 'specs'
     ]
 
     # Get sub-commands parsers
@@ -176,4 +177,12 @@ def subcommands(subparser):
         metavar='<host-name>',
         dest='host',
         help="Node hostname"
+    )
+    subcommand_parsers['specs'].add_argument(
+        '-a', '--reference-architecture',
+        dest='reference_architecture',
+        choices=ReferenceArchitectureOption.choices,
+        default=ReferenceArchitectureOption.default,
+        metavar='<ref-arch-code>',
+        help=ReferenceArchitectureOption.help
     )
