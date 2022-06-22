@@ -67,6 +67,12 @@ def subcommands(subparser):
         help=EFMVersionOptionVirtualBox.help
     )
     subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )
+    subcommand_parsers['configure'].add_argument(
         '--use-hostname',
         dest='use_hostname',
         choices=UseHostnameOption.choices,
@@ -94,8 +100,8 @@ def subcommands(subparser):
         '-s', '--spec',
         dest='spec_file',
         type=argparse.FileType('r'),
-        metavar='<aws-spec-file>',
-        help="AWS instances specification file, in JSON."
+        metavar='<spec-file>',
+        help="VirtualBox instances specification file, in JSON."
     )
 
     subcommand_parsers['configure'].add_argument(
