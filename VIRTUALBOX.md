@@ -38,7 +38,7 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
 
   * `OPERATING_SYSTEM`
 
-    Operating system. Allowed values are: **CentOS7** and **RockyLinux8**
+    Operating system. Allowed values are: **RockyLinux8**
     Default: **RockyLinux8**
 
   * `PG_ENGINE_TYPE`
