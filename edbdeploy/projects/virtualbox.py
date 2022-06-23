@@ -97,23 +97,6 @@ class VirtualBoxProject(Project):
         vm.python_check_version()
         vm.vagrant_check_version()
 
-    def overwrite_vagrant_params(self, mem_size, cpu_count):
-        vagrantfile = os.path.join(
-            self.vagrant_project_path,
-            'Vagrantfile'
-            )
-        with AM("Overwriting default variables in Vagrantfile %s" % vagrantfile):
-            with open(vagrantfile, 'r') as file :
-                vagrantfiledata = file.read()
-
-            # Overwrites default values memory size and cpu count in Vagrantfile
-            vagrantfiledata = vagrantfiledata.replace('v.memory = 3072', 'v.memory = %s' % mem_size)
-            vagrantfiledata = vagrantfiledata.replace('v.cpus = 2', 'v.cpus = %s' % cpu_count)
-
-            # Write the Vagrantfile out again
-            with open(vagrantfile, 'w') as file:
-                file.write(vagrantfiledata)
-
     def provision(self, env):
         # Overload Project.provision()
         self._load_ansible_vars()
@@ -381,29 +364,14 @@ class VirtualBoxProject(Project):
 
     def _copy_virtualbox_configfiles(self, env):
         """
-        Copy reference architecture Vagrant Config file into project directory.
+        Create Vagrantfile and Ansible playbook in project directory.
         """
 
-        fromvagrantfile = os.path.join(
-            self.virtualbox_share_path,
-            "%s-%s" % (
-                self.ansible_vars['operating_system'],
-                self.ansible_vars['reference_architecture']
-            )
-        )
         self.vagrantfile = os.path.join(self.project_path, "Vagrantfile")
         fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
         playbookfile = os.path.join(self.project_path, "playbook.yml")
 
         with AM("Copying Vagrant Config files into %s" % self.vagrantfile):
-            # Vagrantfile
-            try:
-                shutil.copy(fromvagrantfile, self.vagrantfile)
-            except IOError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-                os.makedirs(os.path.dirname(self.vagrantfile))
-                shutil.copy(fromvagrantfile, self.vagrantfile)
             # Playbook File
             try:
                 shutil.copy(fromplaybookfile, playbookfile)
@@ -412,7 +380,69 @@ class VirtualBoxProject(Project):
                     raise
                 os.makedirs(os.path.dirname(self.vagrantfile))
                 shutil.copy(fromplaybookfile, playbookfile)
-        self.overwrite_vagrant_params(env.mem_size, env.cpu_count)
+
+        # Add logic to handle setting the image_name based on
+        # self.ansible_vars['operating_system'] when we support more than one
+        # operating_system.
+        image_name = 'mwedb/rockylinux8'
+        ip_prefix = '192.168.81.'
+        # TODO: Make the starting ip address configurable in the event there are
+        # multiple clusters to create.  We can't ask VirtualBox for unique IP
+        # addresses, but we can control the sequence.
+        current_ip = 100
+
+        vagrantfile = open(self.vagrantfile, 'w')
+        vagrantfile.write('Vagrant.configure("2") do |config|\n')
+        vagrantfile.write('    config.ssh.forward_agent = true\n')
+        vagrantfile.write('\n')
+        vagrantfile.write('    config.vm.provider "virtualbox" do |v|\n')
+        vagrantfile.write('        v.memory = ' + env.mem_size + '\n')
+        vagrantfile.write('        v.cpus = ' + env.cpu_count + '\n')
+        vagrantfile.write('    end\n')
+        vagrantfile.write('\n')
+        vagrantfile.write('    config.vm.boot_timeout = 600\n')
+        vagrantfile.write('\n')
+        vagrantfile.write('    config.vm.define "pem" do |pem|\n')
+        vagrantfile.write('        pem.vm.box = "' + image_name + '"\n')
+        vagrantfile.write('        pem.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+        current_ip += 1
+        vagrantfile.write('        pem.vm.hostname = "pem"\n')
+        vagrantfile.write('    end\n')
+        vagrantfile.write('\n')
+        vagrantfile.write('    config.vm.define "barman" do |barman|\n')
+        vagrantfile.write('        barman.vm.box = "' + image_name + '"\n')
+        vagrantfile.write('        barman.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+        current_ip += 1
+        vagrantfile.write('        barman.vm.hostname = "barman"\n')
+        vagrantfile.write('    end\n')
+        vagrantfile.write('\n')
+        vagrantfile.write('    config.vm.define "primary" do |primary|\n')
+        vagrantfile.write('        primary.vm.box = "' + image_name + '"\n')
+        vagrantfile.write('        primary.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+        current_ip += 1
+        vagrantfile.write('        primary.vm.hostname = "primary"\n')
+        vagrantfile.write('    end\n')
+        if self.ansible_vars['reference_architecture'] in ['EDB-RA-2',
+                                                           'EDB-RA-3']:
+            for i in ['2', '3']:
+                vagrantfile.write('\n')
+                vagrantfile.write('    config.vm.define "standby-' + i + '" do |standby|\n')
+                vagrantfile.write('        standby.vm.box = "' + image_name + '"\n')
+                vagrantfile.write('        standby.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+                current_ip += 1
+                vagrantfile.write('        standby.vm.hostname = "standby-' + i + '"\n')
+                vagrantfile.write('    end\n')
+        if self.ansible_vars['reference_architecture'] in ['EDB-RA-3']:
+            for i in ['1', '2', '3']:
+                vagrantfile.write('\n')
+                vagrantfile.write('    config.vm.define "pgpool-' + i + '" do |pgpool|\n')
+                vagrantfile.write('        pgpool.vm.box = "' + image_name + '"\n')
+                vagrantfile.write('        pgpool.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+                current_ip += 1
+                vagrantfile.write('        pgpool.vm.hostname = "pgpool-' + i + '"\n')
+                vagrantfile.write('    end\n')
+        vagrantfile.write('end\n')
+        vagrantfile.close()
 
     def remove(self):
         # Overload Project.remove()
