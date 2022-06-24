@@ -12,6 +12,7 @@ from ..errors import CliError, ProjectError
 from ..project import Project
 from ..system import exec_shell
 from ..virtualbox import VirtualBoxCli
+from ..specifications import default_spec, merge
 
 
 class VirtualBoxProject(Project):
@@ -124,7 +125,26 @@ class VirtualBoxProject(Project):
                 self.ansible_vars['reference_architecture']
 
             # Load specifications
-            env.cloud_spec = self._load_cloud_specs(env)
+            cloud_spec = self._load_cloud_specs(env)
+
+            user_spec = self._load_spec_file(os.path.join(self.project_path,
+                                             "spec.json"))
+            # Generate dbt-2 client and driver specs on the fly as it depends on how
+            # many of each are desired.
+            for i in range(user_spec['dbt2_client']['count']):
+                name = 'dbt2_client_' + str(i)
+                cloud_spec[name] = dict()
+                cloud_spec[name]['name'] = name
+                cloud_spec[name]['public_ip'] = None
+                cloud_spec[name]['private_ip'] = None
+
+            for i in range(user_spec['dbt2_driver']['count']):
+                name = 'dbt2_driver_' + str(i)
+                cloud_spec[name] = dict()
+                cloud_spec[name]['name'] = name
+                cloud_spec[name]['public_ip'] = None
+                cloud_spec[name]['private_ip'] = None
+            env.cloud_spec = merge(user_spec, cloud_spec, cloud_spec)
 
             # Build VirtualBox Ansible IP addresses
             self._build_virtualbox_ips(env)
@@ -191,8 +211,6 @@ class VirtualBoxProject(Project):
         """
         Build IP Address list for VirtualBox deployment.
         """
-        # Load specifications
-        env.cloud_spec = self._load_cloud_specs(env)
 
         try:
             output = exec_shell(
@@ -361,11 +379,84 @@ class VirtualBoxProject(Project):
                          "please check the logs for details.")
                         % env.cloud_spec['pooler_server_%s' % i]['name']
                     )
+        for i in range(env.cloud_spec['dbt2_client']['count']):
+            name = 'dbt2_client_' + str(i)
+            try:
+                output = exec_shell(
+                    [
+                        self.bin("vagrant"),
+                            "ssh",
+                            'dbt2client-' + str(i),
+                            "-c",
+                            "\"ip address",
+                            "show eth1",
+                            "|",
+                            "grep",
+                            "'inet '",
+                            "|",
+                            "sed",
+                            "-e",
+                            "'s/^.*inet //' -e 's/\/.*$//'\""
+                    ],
+                    environ=self.environ,
+                    cwd=self.vagrant_project_path
+                )
+                result = output.decode("utf-8").split('\n')
+                result[0] = result[0].strip()
+                env.cloud_spec[name]['public_ip'] = result[0]  # noqa
+                env.cloud_spec[name]['private_ip'] = result[0]  # noqa
+            except Exception as e:
+                logging.error("Failed to execute the command")
+                logging.error(e)
+                raise CliError(
+                    ("Failed to obtain VirtualBox Instance IP Address for: %s,"
+                        "please check the logs for details.")
+                    % name
+                )
+        for i in range(env.cloud_spec['dbt2_driver']['count']):
+            name = 'dbt2_driver_' + str(i)
+            try:
+                output = exec_shell(
+                    [
+                        self.bin("vagrant"),
+                            "ssh",
+                            'dbt2driver-' + str(i),
+                            "-c",
+                            "\"ip address",
+                            "show eth1",
+                            "|",
+                            "grep",
+                            "'inet '",
+                            "|",
+                            "sed",
+                            "-e",
+                            "'s/^.*inet //' -e 's/\/.*$//'\""
+                    ],
+                    environ=self.environ,
+                    cwd=self.vagrant_project_path
+                )
+                result = output.decode("utf-8").split('\n')
+                result[0] = result[0].strip()
+                env.cloud_spec[name]['public_ip'] = result[0]  # noqa
+                env.cloud_spec[name]['private_ip'] = result[0]  # noqa
+            except Exception as e:
+                logging.error("Failed to execute the command")
+                logging.error(e)
+                raise CliError(
+                    ("Failed to obtain VirtualBox Instance IP Address for: %s,"
+                        "please check the logs for details.")
+                    % name
+                )
 
     def _copy_virtualbox_configfiles(self, env):
         """
-        Create Vagrantfile and Ansible playbook in project directory.
+        Create the user specification, if defined, Vagrantfile and Ansible
+        playbook in project directory.
         """
+
+        if getattr(env, 'spec_file', False):
+            shutil.copy(env.spec_file.name,
+                        os.path.join(self.project_path, "spec.json"))
 
         self.vagrantfile = os.path.join(self.project_path, "Vagrantfile")
         fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
@@ -441,6 +532,22 @@ class VirtualBoxProject(Project):
                 current_ip += 1
                 vagrantfile.write('        pgpool.vm.hostname = "pgpool-' + i + '"\n')
                 vagrantfile.write('    end\n')
+        for i in range(env.cloud_spec['dbt2_client']['count']):
+            vagrantfile.write('\n')
+            vagrantfile.write('    config.vm.define "dbt2client-' + str(i) + '" do |dbt2client|\n')
+            vagrantfile.write('        dbt2client.vm.box = "' + image_name + '"\n')
+            vagrantfile.write('        dbt2client.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+            current_ip += 1
+            vagrantfile.write('        dbt2client.vm.hostname = "dbt2client-' + str(i) + '"\n')
+            vagrantfile.write('    end\n')
+        for i in range(env.cloud_spec['dbt2_driver']['count']):
+            vagrantfile.write('\n')
+            vagrantfile.write('    config.vm.define "dbt2driver-' + str(i) + '" do |dbt2driver|\n')
+            vagrantfile.write('        dbt2driver.vm.box = "' + image_name + '"\n')
+            vagrantfile.write('        dbt2driver.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
+            current_ip += 1
+            vagrantfile.write('        dbt2driver.vm.hostname = "dbt2driver-' + str(i) + '"\n')
+            vagrantfile.write('    end\n')
         vagrantfile.write('end\n')
         vagrantfile.close()
 
