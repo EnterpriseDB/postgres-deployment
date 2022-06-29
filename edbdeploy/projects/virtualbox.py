@@ -11,8 +11,9 @@ from ..ansible import AnsibleCli
 from ..errors import CliError, ProjectError
 from ..project import Project
 from ..system import exec_shell
+from ..spec.virtualbox import VirtualBoxSpec
+from ..specifications import default, merge
 from ..virtualbox import VirtualBoxCli
-from ..specifications import default_spec, merge
 
 
 class VirtualBoxProject(Project):
@@ -126,25 +127,48 @@ class VirtualBoxProject(Project):
 
             # Load specifications
             cloud_spec = self._load_cloud_specs(env)
+            defaults = default(cloud_spec)
 
-            user_spec = self._load_spec_file(os.path.join(self.project_path,
-                                             "spec.json"))
-            # Generate dbt-2 client and driver specs on the fly as it depends on how
-            # many of each are desired.
-            for i in range(user_spec['dbt2_client']['count']):
-                name = 'dbt2_client_' + str(i)
-                cloud_spec[name] = dict()
-                cloud_spec[name]['name'] = name
-                cloud_spec[name]['public_ip'] = None
-                cloud_spec[name]['private_ip'] = None
+            if os.path.exists(os.path.join(self.project_path, "spec.json")):
+                user_spec = self._load_spec_file(os.path.join(self.project_path,
+                                                 "spec.json"))
+            else:
+                user_spec = default(VirtualBoxSpec.get(env.reference_architecture))
 
-            for i in range(user_spec['dbt2_driver']['count']):
-                name = 'dbt2_driver_' + str(i)
-                cloud_spec[name] = dict()
-                cloud_spec[name]['name'] = name
-                cloud_spec[name]['public_ip'] = None
-                cloud_spec[name]['private_ip'] = None
-            env.cloud_spec = merge(user_spec, cloud_spec, cloud_spec)
+            # Generate dbt-2 client and driver specs on the fly as it depends on
+            # how many of each are desired.
+            if type(user_spec['dbt2_client']['count']) is int:
+                for i in range(user_spec['dbt2_client']['count']):
+                    name = 'dbt2_client_' + str(i)
+                    user_spec[name] = dict()
+                    user_spec[name]['name'] = name
+                    user_spec[name]['public_ip'] = None
+                    user_spec[name]['private_ip'] = None
+                    cloud_spec[name] = dict()
+                    cloud_spec[name]['name'] = name
+                    cloud_spec[name]['public_ip'] = None
+                    cloud_spec[name]['private_ip'] = None
+                    defaults[name] = dict()
+                    defaults[name]['name'] = name
+                    defaults[name]['public_ip'] = None
+                    defaults[name]['private_ip'] = None
+
+            if type(user_spec['dbt2_driver']['count']) is int:
+                for i in range(user_spec['dbt2_driver']['count']):
+                    name = 'dbt2_driver_' + str(i)
+                    user_spec[name] = dict()
+                    user_spec[name]['name'] = name
+                    user_spec[name]['public_ip'] = None
+                    user_spec[name]['private_ip'] = None
+                    cloud_spec[name] = dict()
+                    cloud_spec[name]['name'] = name
+                    cloud_spec[name]['public_ip'] = None
+                    cloud_spec[name]['private_ip'] = None
+                    defaults[name] = dict()
+                    defaults[name]['name'] = name
+                    defaults[name]['public_ip'] = None
+                    defaults[name]['private_ip'] = None
+            env.cloud_spec = merge(user_spec, cloud_spec, defaults)
 
             # Build VirtualBox Ansible IP addresses
             self._build_virtualbox_ips(env)
@@ -484,6 +508,7 @@ class VirtualBoxProject(Project):
 
         vagrantfile = open(self.vagrantfile, 'w')
         vagrantfile.write('Vagrant.configure("2") do |config|\n')
+        vagrantfile.write('    config.ssh.insert_key = false\n')
         vagrantfile.write('    config.ssh.forward_agent = true\n')
         vagrantfile.write('\n')
         vagrantfile.write('    config.vm.provider "virtualbox" do |v|\n')
