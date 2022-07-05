@@ -137,7 +137,8 @@ class VirtualBoxProject(Project):
 
             # Generate dbt-2 client and driver specs on the fly as it depends on
             # how many of each are desired.
-            if type(user_spec['dbt2_client']['count']) is int:
+            if 'dbt2_client' in user_spec and \
+                    'count' in user_spec['dbt2_client']:
                 for i in range(user_spec['dbt2_client']['count']):
                     name = 'dbt2_client_' + str(i)
                     user_spec[name] = dict()
@@ -153,7 +154,8 @@ class VirtualBoxProject(Project):
                     defaults[name]['public_ip'] = None
                     defaults[name]['private_ip'] = None
 
-            if type(user_spec['dbt2_driver']['count']) is int:
+            if 'dbt2_driver' in user_spec and \
+                    'count' in user_spec['dbt2_driver']:
                 for i in range(user_spec['dbt2_driver']['count']):
                     name = 'dbt2_driver_' + str(i)
                     user_spec[name] = dict()
