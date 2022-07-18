@@ -40,7 +40,7 @@ DEFAULT_SUBCOMMANDS = {
         'project_argument': False,
     },
     'specs': {
-        'help': 'Show Cloud default specifications',
+        'help': 'Show default infrastructure specifications',
         'project_argument': False,
     },
     'logs': {
