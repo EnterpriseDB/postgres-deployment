@@ -56,7 +56,7 @@ DefaultAWSSpec = {
         'RockyLinux8': {
             'image': SpecValidator(
                 type='string',
-                default="Rocky-8*"
+                default="Rocky Linux 8.4*"
             ),
             'ssh_user': SpecValidator(
                 type='choice',
