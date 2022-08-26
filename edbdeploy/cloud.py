@@ -117,7 +117,7 @@ class AWSCli:
                 self.bin("aws"),
                 "ec2",
                 "describe-images",
-                "--filters Name=name,Values=\"%s\"" % image,
+                "--filters Name=name,Values=\"%s\" Name=architecture,Values=\"x86_64\"" % image,
                 "--query 'sort_by(Images, &Name)[-1]'",
                 "--region %s" % region,
                 "--output json"
