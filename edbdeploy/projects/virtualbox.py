@@ -502,7 +502,7 @@ class VirtualBoxProject(Project):
         # self.ansible_vars['operating_system'] when we support more than one
         # operating_system.
         image_name = 'mwedb/rockylinux8'
-        ip_prefix = '192.168.81.'
+        ip_prefix = '192.168.56.'
         # TODO: Make the starting ip address configurable in the event there are
         # multiple clusters to create.  We can't ask VirtualBox for unique IP
         # addresses, but we can control the sequence.
