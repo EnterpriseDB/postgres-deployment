@@ -8,6 +8,11 @@ environment.
 Please be sure to review each section as each may or may not apply depending on
 your usage.
 
+## VirtualBox Installation
+
+Download VirtualBox and the Extension Pack for Windows:
+https://www.virtualbox.org/wiki/Downloads
+
 ## WSL Installation
 
 Complete installation instructions can be found in Microsoft's documentation:
@@ -47,6 +52,14 @@ wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt update && sudo apt install vagrant
+```
+
+Install additional plugins from the shell to enable shared folders and
+workaround a bug to enable the `vagrant ssh` command on Windows:
+
+```shell
+ vagrant plugin install vagrant_guest
+ vagrant plugin install virtualbox_WSL2
 ```
 
 ## Manual `edb-deployment` Setup
