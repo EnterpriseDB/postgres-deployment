@@ -20,7 +20,6 @@ class AnsibleCli:
         self.max_version = (2, 11, 1)
 =======
         self.min_version = (2, 10, 7)
-#        self.max_version = (2, 11, 1)
         self.max_version = (2, 12, 8)
 >>>>>>> ed16563 (PER-447)
         # Path to look up for executable

@@ -23,7 +23,7 @@ class AWSCli:
         self.max_version = (1, 19, 97)
         # Path to look up for executable
         self.bin_path = None
-        # Force aws CLI binary path if bin_path exists and contains
+        # Force AWS CLI binary path if bin_path exists and contains
         # aws file.
         if bin_path is not None and os.path.exists(bin_path):
             if os.path.exists(os.path.join(bin_path, 'aws')):
@@ -453,7 +453,6 @@ class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
-#        self.max_version = (367, 0, 0)
         self.max_version = (398, 0, 0)
         # Path to look up for executable
         self.bin_path = None
