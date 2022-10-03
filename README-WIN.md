@@ -82,6 +82,15 @@ Then restart WSL with the following command in an elevated Powershell:
 Restart-Service -Name "LxssManager"
 ```
 
+SSH key management in WSL can be done with `keychain`.  Here is an example of
+what to add to `.bashrc`:
+
+```shell
+/usr/bin/keychain -q --nogui $HOME/.ssh/private_key1
+/usr/bin/keychain -q --nogui $HOME/.ssh/private_key2
+source $HOME/.keychain/$HOST-sh
+```
+
 ## Manual `edb-deployment` Setup
 
 `edb-deployment` stores its files in `~/.edb-deployment` but the file system
