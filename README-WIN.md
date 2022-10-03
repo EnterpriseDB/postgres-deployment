@@ -62,6 +62,26 @@ workaround a bug to enable the `vagrant ssh` command on Windows:
  vagrant plugin install virtualbox_WSL2
 ```
 
+Vagrant storing its insecure SSH key on an NTFS file system causes some
+additional issues with various Vagrant commands that try to ssh with the
+insecure private key.  Create the file `/etc/wsl.conf` in the WSL environment
+with the following contents:
+
+```
+# Enable extra metadata options by default
+[automount]
+enabled = true
+root = /mnt/
+options = "metadata,umask=77,fmask=11"
+mountFsTab = false
+```
+
+Then restart WSL with the following command in an elevated Powershell:
+
+```shell
+Restart-Service -Name "LxssManager"
+```
+
 ## Manual `edb-deployment` Setup
 
 `edb-deployment` stores its files in `~/.edb-deployment` but the file system
