@@ -453,7 +453,8 @@ class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (367, 0, 0)
+#        self.max_version = (367, 0, 0)
+        self.max_version = (398, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force gcloud CLI binary path if bin_path exists and contains
@@ -489,13 +490,13 @@ class GCloudCli:
                 break
 
         if version is None:
-            raise Exception("Unable to parse gcloud CLI version")
+            raise Exception("Unable to parse GCloud CLI version")
 
         logging.info("gcloud CLI version: %s", '.'.join(map(str, version)))
 
         if not check_version(version, self.min_version, self.max_version):
             raise Exception(
-                "gcloud CLI version %s not supported, must be between %s and %s"
+                "GCloud CLI version %s not supported, must be between %s and %s"
                 % (to_str(version), to_str(self.min_version),
                    to_str(self.max_version)))
 
@@ -659,21 +660,401 @@ class GCloudCli:
 class GCloudSQLCli(GCloudCli):
     pass
 
+class GCloudCli:
+    def __init__(self, bin_path=None):
+        # gcloud CLI supported versions interval
+        self.min_version = (0, 0, 0)
+#        self.max_version = (367, 0, 0)
+        self.max_version = (398, 0, 0)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force gcloud CLI binary path if bin_path exists and contains
+        # gcloud file.
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'gcloud')):
+                self.bin_path = bin_path
+
+    def check_version(self):
+        """
+        Verify gcloud CLI version, based on the interval formed by min_version and
+        max_version.
+        gcloud CLI version is fetched using the command: gcloud --version
+        """
+        try:
+            output = exec_shell([self.bin("gcloud"), "--version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "gcloud CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^Google Cloud SDK ([0-9]+)\.([0-9]+)\.([0-9]+)")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse GCloud CLI version")
+
+        logging.info("gcloud CLI version: %s", '.'.join(map(str, version)))
+
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "GCloud CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
+    def check_instance_type_availability(self, instance_type, region):
+        try:
+            output = exec_shell([
+                self.bin("gcloud"),
+                "compute",
+                "machine-types",
+                "list",
+                "--filter=\"name=%s zone:%s*\"" % (instance_type, region),
+                "--format=json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Instance type %s not available in region %s"
+                    % (instance_type, region)
+                )
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_image_availability(self, image):
+        try:
+            cmd = [
+                self.bin("gcloud"),
+                "compute",
+                "images",
+                "list",
+                "--filter=\"family=%s\"" % image,
+                "--format=json"
+            ]
+            if image == 'rocky-linux-8':
+                cmd = cmd + [
+                        '--no-standard-images',
+                        '--project=rocky-linux-cloud'
+                        ]
+            output = exec_shell(cmd)
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0 or result[0]['status'] != 'READY':
+                raise CloudCliError("Image %s not available" % image)
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def check_instances_availability(self, project_name, region, node_count):
+        try_count = 0
+        try_max = 5
+        try_nap_time = 2
+        while True:
+            if try_count >= try_max:
+                raise CloudCliError(
+                    "Unable to check instances availability after %s trys"
+                    % try_count
+                )
+
+            try_count += 1
+
+            try:
+                output = exec_shell([
+                    self.bin("gcloud"),
+                    "compute",
+                    "instances",
+                    "list",
+                    "--filter=\"name:%s-* zone ~ %s-[a-z] status=RUNNING\""
+                    % (project_name, region),
+                    "--format=json"
+                ])
+                result = json.loads(output.decode("utf-8"))
+                logging.debug("Command output: %s", result)
+
+                if (len(result) >= node_count):
+                    # Number of ready instances is good, just break the loop
+                    break
+
+                time.sleep(try_nap_time)
+
+            except ValueError:
+                # JSON decoding error
+                logging.error("Failed to decode JSON data")
+                logging.error("Output: %s", output.decode("utf-8"))
+                raise CloudCliError(
+                    "Failed to decode JSON data, please check the logs for "
+                    "details"
+                )
+            except CalledProcessError as e:
+                logging.error("Failed to execute the command: %s", e.cmd)
+                logging.error("Return code is: %s", e.returncode)
+                logging.error("Output: %s", e.output)
+                raise CloudCliError(
+                    "Failed to execute the following command, please check the"
+                    " logs for details: %s" % e.cmd
+                )
+
+    def install(self, installation_path):
+        """
+        GCloud CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            mkdir -p {path}/gcloud/{version}
+            wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-{version}-{os_flavor}-x86_64.tar.gz -O /tmp/google-cloud-sdk.tar.gz
+            tar xvzf /tmp/google-cloud-sdk.tar.gz -C {path}/gcloud/{version}
+            rm /tmp/google-cloud-sdk.tar.gz
+            rm -f {path}/bin/gcloud
+            ln -sf {path}/gcloud/{version}/google-cloud-sdk/bin/gcloud {path}/bin/.
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+                os_flavor=uname().lower()
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
+
+class GCloudSQLCli(GCloudCli):
+    pass
+
+
+class KubectlCli:
+    def __init__(self, bin_path=None):
+    #def __init__(self):
+        # Kubectl CLI supported versions interval
+        self.min_version = (0, 0, 0)
+        self.max_version = (1, 23, 0)   
+        # Path to look up for executable
+        self.bin_path = None
+        # Force Kubectl CLI binary path if bin_path exists
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'kubectl')):
+                self.bin_path = bin_path        
+
+    def check_version(self):
+        """
+        Verify Kubectl CLI version, based on the interval formed by min_version and
+        max_version.
+        Kubectl CLI version is fetcat /tmp/ched using the command: kubectl version
+        """
+        try:
+            output = exec_shell([self.bin("kubectl"), "version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "Kubectl CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^Client Version: version.Info{Major:\"([0-9])\"\, Minor:\"([0-9])([0-9])")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse Kubectl CLI version")
+
+        logging.info("Kubectl CLI version: %s", '.'.join(map(str, version)))
+
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "Kubectl CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
+    def install(self, installation_path):
+        """
+        Kubectl CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+
+class HelmCli:
+    def __init__(self, bin_path=None):
+        # Helm CLI supported versions interval
+        self.min_version = (0, 0, 0)
+        self.max_version = (3, 9, 3)
+        # Path to look up for executable
+        self.bin_path = None
+        # Force Helm CLI binary path if bin_path exists
+        if bin_path is not None and os.path.exists(bin_path):
+            if os.path.exists(os.path.join(bin_path, 'helm')):
+                self.bin_path = bin_path        
+
+    def check_version(self):
+        """
+        Verify Helm CLI version, based on the interval formed by min_version and
+        max_version.
+        Helm CLI version is fetched using the command: helm version
+        """
+        try:
+            output = exec_shell([self.bin("helm"), "version"])
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "Helm CLI executable seems to be missing. Please install it or "
+                "check your PATH variable"
+            )
+
+        version = None
+        # Parse command output and extract the version number
+        pattern = re.compile(r"^version.BuildInfo{Version:\"v([0-9])\.([0-9])\.([0-9])")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
+
+        if version is None:
+            raise Exception("Unable to parse Helm CLI version")
+
+        logging.info("Helm CLI version: %s", '.'.join(map(str, version)))
+
+        if not check_version(version, self.min_version, self.max_version):
+            raise Exception(
+                "Helm CLI version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
+
+    def bin(self, binary):
+        """
+        Return binary's path
+        """
+        if self.bin_path is not None:
+            return os.path.join(self.bin_path, binary)
+        else:
+            return binary
+
+    def install(self, installation_path):
+        """
+        Helm CLI installation
+        """
+        # Installation bash script content
+        installation_script = textwrap.dedent("""
+            #!/bin/bash
+            set -eu
+
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            chmod 700 get_helm.sh
+            ./get_helm.sh
+        """)
+
+        # Generate the installation script as an executable tempfile
+        script_name = build_tmp_install_script(
+            installation_script.format(
+                path=installation_path,
+                version='.'.join(str(i) for i in self.max_version),
+            )
+        )
+
+        # Execute the installation script
+        execute_install_script(script_name)
+        
+        
 class CloudCli:
 
     def __init__(self, cloud, bin_path):
         self.cloud = cloud
-        if self.cloud in ['aws', 'aws-pot']:
+        if self.cloud in ['aws', 'aws-pot', 'aws-eks']:
             self.cli = AWSCli(bin_path)
         elif self.cloud == 'aws-rds':
             self.cli = AWSRDSCli(bin_path)
         elif self.cloud == 'aws-rds-aurora':
             self.cli = AWSRDSAuroraCli(bin_path)
-        elif self.cloud in ['azure', 'azure-pot']:
+        elif self.cloud in ['azure', 'azure-pot', 'azure-aks']:
             self.cli = AzureCli(bin_path)
         elif self.cloud == 'azure-db':
             self.cli = AzureDBCli(bin_path)
-        elif self.cloud in ['gcloud', 'gcloud-pot']:
+        elif self.cloud in ['gcloud', 'gcloud-pot', 'gcloud-gke']:
             self.cli = GCloudCli(bin_path)
         elif self.cloud == 'gcloud-sql':
             self.cli = GCloudSQLCli(bin_path)

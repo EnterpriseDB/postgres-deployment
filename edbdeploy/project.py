@@ -12,7 +12,7 @@ import yaml
 
 from .action import ActionManager as AM
 from .ansible import AnsibleCli
-from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
+from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli, KubectlCli, HelmCli
 from .errors import ProjectError
 from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
@@ -67,6 +67,7 @@ class Project:
         'data',
         'virtualbox'
     )
+ 
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
 
@@ -290,14 +291,14 @@ class Project:
                             d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
-    def _init_terraform_vars(self, env):
+    def _init_terraform_vars(self, env):          
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
         pem = env.cloud_spec['pem_server']
         dbt2_client = env.cloud_spec['dbt2_client']
         dbt2_driver = env.cloud_spec['dbt2_driver']
-        hammerdb = env.cloud_spec['hammerdb_server']
+        hammerdb = env.cloud_spec['hammerdb_server']         
+        os = env.cloud_spec['available_os'][env.operating_system]
 
         self.terraform_vars = {
             'barman': ra['barman'],
@@ -393,7 +394,7 @@ class Project:
     def _build_ansible_vars_file(self, env):
         """
         Build and save the file that contains Ansible variables.
-        """
+        """                  
         with AM("Building Ansible vars file %s" % self.ansible_vars_file):
             self._build_ansible_vars(env)
             logging.debug("ansible_vars=%s", self.ansible_vars)
@@ -542,7 +543,7 @@ class Project:
     def _copy_ansible_playbook(self):
         """
         Copy reference architecture Ansible playbook into project directory.
-        """
+        """    
         with AM(
             "Copying Ansible playbook file into %s" % self.ansible_playbook
         ):
@@ -582,7 +583,8 @@ class Project:
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
         # Copy SSH keys
-        self._copy_ssh_keys(env)
+        if self.env.cloud not in ['aws-eks', 'azure-aks', 'gcloud-gke']:
+            self._copy_ssh_keys(env)
 
         # Post-configure hook
         exec_hook(self, 'hook_post_configure', env)
@@ -647,6 +649,7 @@ class Project:
         Build Ansible variables for the IaaS cloud vendors: aws, gcloud and
         azure.
         """
+           
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
@@ -1136,6 +1139,16 @@ class Project:
                 'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
                 'cloud_vendors': ['gcloud-sql']
             },
+            {
+                'name': 'Kubectl',
+                'cli': KubectlCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': [ 'aws-eks', 'azure-aks', 'gcloud-gke' ]
+            },
+            {
+                'name': 'Helm',
+                'cli': HelmCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': [ 'aws-eks', 'azure-aks', 'gcloud-gke' ]
+            },            
         ]
 
         for tool in tools:
@@ -1387,7 +1400,7 @@ class Project:
         self._transform_terraform_tpl()
         # Build the vars files for Terraform and Ansible
         self._build_terraform_vars_file(env)
-        self._build_ansible_vars_file(env)
+        self._build_ansible_vars_file(env)        
         # Build edb credential file
         self._save_edb_credentials(env)
         # Copy Ansible playbook into project dir.
@@ -1725,3 +1738,162 @@ class Project:
             self.ansible_vars['route53_secret'] = n_route53_secret
             self.ansible_vars['route53_session_token'] = n_route53_session_token
             self._save_ansible_vars()
+            
+    """
+    Kubernetes related methods
+    """
+    def gcloud_gke_configure(self, env):
+        """
+        Configure sub-comand for Google Cloud GKE environment
+        """
+        # Load specifications
+        env.cloud_spec = self._load_cloud_specs(env)
+                
+        # Copy the kubernetes role in ansible project directory
+        ansible_roles_path = os.path.join(self.project_path, "roles")
+        with AM("Copying Kubernetes roles code into %s" % ansible_roles_path):
+            try:
+                shutil.copytree(self.ansible_kubernetes_role, ansible_roles_path)
+            except Exception as e:
+                raise ProjectError(str(e))
+
+        # Hook function called by Project.configure()
+        # Transform Terraform templates
+        self._transform_terraform_tpl()
+        # Build the vars files for Terraform and Ansible
+        self._build_terraform_vars_file(env)
+        # Load terraform variables
+        self._load_terraform_vars()
+        # Load cnpType
+        cnpType = self.terraform_vars['cnpType']        
+        # Assign ansible playbook to copy
+        match cnpType:
+            case 'pg':
+                self.ansible_vars = { 'reference_architecture': 'setup_cloudnativepg_sandbox', }
+            case 'postgres':
+                self.ansible_vars = { 'reference_architecture': 'setup_cloudnativepostgres_sandbox', }
+            case _:
+                self.ansible_vars = { 'reference_architecture': 'setup_cloudnativepg_sandbox', }
+        # Copy Ansible playbook into project dir.
+        self._copy_ansible_playbook()
+        
+        # Initialize Terraform so that a project removal 
+        # can immediately be followed successfully
+        # Load terraform variables
+        self._load_terraform_vars()
+        
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+        
+        with AM("Google Cloud GKE Terraform project initialization"):
+            self.update_state('terraform', 'INITIALIZATING')
+            terraform.init()
+            self.update_state('terraform', 'INITIALIZATED')
+
+        # note: we do not raise any AnsibleCliError from this function
+        # because AnsibleCliError are used to trigger stuffs when they are
+        # catched. In this case, we do not want trigger anything if something
+        # fails.
+        try:
+            output = exec_shell(
+                [self.bin("ansible-playbook"), "--version"],
+                environ=self.environ
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise Exception(
+                "Terraform executable seems to be missing. Please install it "
+                "or check your PATH variable"
+            )            
+
+    def gcloud_gke_provision(self, env):
+        # Load terraform variables
+        self._load_terraform_vars()
+        
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        with AM("Google Cloud GKE Terraform project initialization"):
+            self.update_state('terraform', 'INITIALIZATING')
+            terraform.init()
+            self.update_state('terraform', 'INITIALIZATED')
+
+        with AM("Google Cloud GKE Terraform project provisioning"):
+            self.update_state('terraform', 'PROVISIONING')
+            terraform.apply(self.terraform_vars_file)
+            self.update_state('terraform', 'PROVISIONED')
+
+        # Assign region from Terraform variables
+        region = self.terraform_vars['gcpRegion']
+        kClusterName = self.terraform_vars['kClusterName']        
+        # Get Kubernetes Cluster credentials
+        output = exec_shell(
+            [self.bin("gcloud"), "container", "clusters", "get-credentials", 
+                kClusterName, "--region", region],
+            environ=self.environ
+        )            
+            
+    def gcloud_gke_deploy(self, no_install_collection, pre_deploy_ansible=None,
+                   post_deploy_ansible=None, skip_main_playbook=False,
+                   disable_pipelining=False):
+        """
+        Deployment method for the Google Cloud GKE environments
+        """
+        # Load terraform variables
+        self._load_terraform_vars()
+       
+        # Assign region from Terraform variables
+        region = self.terraform_vars['gcpRegion']
+        kClusterName = self.terraform_vars['kClusterName']        
+        # Get Kubernetes Cluster credentials
+        output = exec_shell(
+            [self.bin("gcloud"), "container", "clusters", "get-credentials", 
+                kClusterName, "--region", region],
+            environ=self.environ
+        )
+
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        if not skip_main_playbook:
+            self.update_state('ansible', 'DEPLOYING')
+            with AM("Deploying components with Ansible"):
+                ansible.run_playbook_minimal(
+                    self.cloud,
+                    self.ansible_playbook,
+                    disable_pipelining=disable_pipelining,
+                )
+            self.update_state('ansible', 'DEPLOYED')
+
+    def gcloud_gke_destroy(self):
+        """
+        GCloud GKE destroy method
+        """
+        terraform = TerraformCli(
+            self.project_path, self.terraform_plugin_cache_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        inventory_data = None
+        ansible = AnsibleCli(
+            self.project_path,
+            bin_path=self.cloud_tools_bin_path
+        )
+
+        # Load ansible vars
+        #self._load_ansible_vars()
+
+        with AM("Destroying cloud resources"):
+            self.update_state('terraform', 'DESTROYING')
+            terraform.destroy(self.terraform_vars_file)
+            self.update_state('terraform', 'DESTROYED')
+            self.update_state('ansible', 'UNKNOWN')
