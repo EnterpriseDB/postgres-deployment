@@ -1,7 +1,7 @@
 # Get the appId and password with az cli command:
 # az ad sp create-for-rbac --skip-assignment
-appId            = "32d66de6-e8bd-41f6-8a58-327e3722dc7d"
-password         = "MYI.D1KxtQrdBV01k2x4L.Vp13nLfGWlyg"
+appId            = "<your_app_id>"
+password         = "<your_password>"
 azureLocation    = "East US 2"
 kClusterName     = "EDB-CNP"
 kEnvironmentName = "EDB-CNP"
