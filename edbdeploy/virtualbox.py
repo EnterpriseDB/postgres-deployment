@@ -139,7 +139,7 @@ class VirtualBoxCli:
                 [
                     self.bin("vagrant"),
                     "init",
-                    "rockylinux/8",
+                    "generic/rocky8",
                 ],
                 environ=self.environ,
                 cwd=self.vagrant_project_path
