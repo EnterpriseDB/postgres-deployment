@@ -122,6 +122,16 @@ def subcommands(subparser):
         help="Number of CPUS to configure"
     )
 
+    subcommand_parsers['configure'].add_argument(
+        '--ipv4',
+        dest='ipv4',
+        required=False,
+        type=IPOptionVirtualBox.IPv4Type,
+        default=IPOptionVirtualBox.ipv4_default,
+        metavar='<starting-ip-address>',
+        help=IPOptionVirtualBox.ipv4_help,
+    )
+
     # virtualbox deploy sub-command options
     subcommand_parsers['provision'].add_argument(
         '-S', '--skip-main-playbook',

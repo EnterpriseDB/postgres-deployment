@@ -1,4 +1,5 @@
 import errno
+import ipaddress
 import json
 import logging
 import os
@@ -502,11 +503,13 @@ class VirtualBoxProject(Project):
         # self.ansible_vars['operating_system'] when we support more than one
         # operating_system.
         image_name = 'mwedb/rockylinux8'
-        ip_prefix = '192.168.56.'
+        ip = ipaddress.ip_address(env.ipv4)
         # TODO: Make the starting ip address configurable in the event there are
         # multiple clusters to create.  We can't ask VirtualBox for unique IP
         # addresses, but we can control the sequence.
-        current_ip = 100
+        # TODO: Virtualbox network names used to join network
+        # and allow DHCP to serve IPs
+        ip_increment = 1
 
         vagrantfile = open(self.vagrantfile, 'w')
         vagrantfile.write('Vagrant.configure("2") do |config|\n')
@@ -522,22 +525,22 @@ class VirtualBoxProject(Project):
         vagrantfile.write('\n')
         vagrantfile.write('    config.vm.define "pem" do |pem|\n')
         vagrantfile.write('        pem.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        pem.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
+        vagrantfile.write('        pem.vm.network "private_network", ip: "' + str(ip) + '"\n')
+        ip += ip_increment
         vagrantfile.write('        pem.vm.hostname = "pem"\n')
         vagrantfile.write('    end\n')
         vagrantfile.write('\n')
         vagrantfile.write('    config.vm.define "barman" do |barman|\n')
         vagrantfile.write('        barman.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        barman.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
+        vagrantfile.write('        barman.vm.network "private_network", ip: "' + str(ip) + '"\n')
+        ip += ip_increment
         vagrantfile.write('        barman.vm.hostname = "barman"\n')
         vagrantfile.write('    end\n')
         vagrantfile.write('\n')
         vagrantfile.write('    config.vm.define "primary" do |primary|\n')
         vagrantfile.write('        primary.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        primary.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
+        vagrantfile.write('        primary.vm.network "private_network", ip: "' + str(ip) + '"\n')
+        ip += ip_increment
         vagrantfile.write('        primary.vm.hostname = "primary"\n')
         vagrantfile.write('    end\n')
         if self.ansible_vars['reference_architecture'] in ['EDB-RA-2',
@@ -546,8 +549,8 @@ class VirtualBoxProject(Project):
                 vagrantfile.write('\n')
                 vagrantfile.write('    config.vm.define "standby-' + i + '" do |standby|\n')
                 vagrantfile.write('        standby.vm.box = "' + image_name + '"\n')
-                vagrantfile.write('        standby.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-                current_ip += 1
+                vagrantfile.write('        standby.vm.network "private_network", ip: "' + str(ip) + '"\n')
+                ip += ip_increment
                 vagrantfile.write('        standby.vm.hostname = "standby-' + i + '"\n')
                 vagrantfile.write('    end\n')
         if self.ansible_vars['reference_architecture'] in ['EDB-RA-3']:
@@ -555,24 +558,24 @@ class VirtualBoxProject(Project):
                 vagrantfile.write('\n')
                 vagrantfile.write('    config.vm.define "pgpool-' + i + '" do |pgpool|\n')
                 vagrantfile.write('        pgpool.vm.box = "' + image_name + '"\n')
-                vagrantfile.write('        pgpool.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-                current_ip += 1
+                vagrantfile.write('        pgpool.vm.network "private_network", ip: "' + str(ip) + '"\n')
+                ip += ip_increment
                 vagrantfile.write('        pgpool.vm.hostname = "pgpool-' + i + '"\n')
                 vagrantfile.write('    end\n')
         for i in range(env.cloud_spec['dbt2_client']['count']):
             vagrantfile.write('\n')
             vagrantfile.write('    config.vm.define "dbt2client-' + str(i) + '" do |dbt2client|\n')
             vagrantfile.write('        dbt2client.vm.box = "' + image_name + '"\n')
-            vagrantfile.write('        dbt2client.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-            current_ip += 1
+            vagrantfile.write('        dbt2client.vm.network "private_network", ip: "' + str(ip) + '"\n')
+            ip += ip_increment
             vagrantfile.write('        dbt2client.vm.hostname = "dbt2client-' + str(i) + '"\n')
             vagrantfile.write('    end\n')
         for i in range(env.cloud_spec['dbt2_driver']['count']):
             vagrantfile.write('\n')
             vagrantfile.write('    config.vm.define "dbt2driver-' + str(i) + '" do |dbt2driver|\n')
             vagrantfile.write('        dbt2driver.vm.box = "' + image_name + '"\n')
-            vagrantfile.write('        dbt2driver.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-            current_ip += 1
+            vagrantfile.write('        dbt2driver.vm.network "private_network", ip: "' + str(ip) + '"\n')
+            ip += ip_increment
             vagrantfile.write('        dbt2driver.vm.hostname = "dbt2driver-' + str(i) + '"\n')
             vagrantfile.write('    end\n')
         vagrantfile.write('end\n')
