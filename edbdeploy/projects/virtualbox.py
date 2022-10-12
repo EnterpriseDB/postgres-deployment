@@ -504,6 +504,30 @@ class VirtualBoxProject(Project):
         # operating_system.
         image_name = 'mwedb/rockylinux8'
         ip = ipaddress.ip_address(env.ipv4)
+
+        
+        vb_cmd = ("VBoxManage" if shutil.which("VBoxManage") else "VBoxManage.exe")
+        try:
+            output = exec_shell(
+                [
+                    self.bin(vb_cmd),
+                        "list",
+                        "hostonlyifs",
+                        "|",
+                        "grep",
+                        "-i"
+                        "ipaddress",
+                        "|",
+                        "awk",
+                        "'{print $2}'",
+                    ],
+                    environ=self.environ,
+                    cwd=self.vagrant_project_path
+                )
+            result = output.decode("utf-8").split('\n')
+        except:
+            pass
+
         # TODO: Make the starting ip address configurable in the event there are
         # multiple clusters to create.  We can't ask VirtualBox for unique IP
         # addresses, but we can control the sequence.
