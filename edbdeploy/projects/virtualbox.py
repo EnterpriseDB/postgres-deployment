@@ -242,10 +242,10 @@ class VirtualBoxProject(Project):
         Build Vagrantfile variables for jinja2 template
         Templates available inside of edbdeploy/data/templates
         """
-        user_spec = self._load_user_spec(env)
-        os_image = user_spec['available_os'][env.operating_system] \
+        # user_spec = self._load_cloud_spec(env)
+        os_image = env.cloud_spec['available_os'][env.operating_system] \
             .get('image', 'mwedb/rockylinux8')
-        ip = ip_address(user_spec['ipv4'])
+        ip = ip_address(env.cloud_spec['ipv4'])
         self.vagrant_vars = {
             'mem_size': env.mem_size,
             'cpu_count': env.cpu_count,
