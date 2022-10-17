@@ -1,4 +1,5 @@
 import errno
+from ipaddress import ip_address
 import json
 import logging
 import os
@@ -14,6 +15,7 @@ from ..system import exec_shell
 from ..spec.virtualbox import VirtualBoxSpec
 from ..specifications import default, merge
 from ..virtualbox import VirtualBoxCli
+from ..render import build_vagrantfile
 
 
 class VirtualBoxProject(Project):
@@ -22,8 +24,9 @@ class VirtualBoxProject(Project):
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()
-        # Build the vars files for Ansible
+
         self._build_ansible_vars_file(env)
+        self._build_vagrant_vars(env)
         # Copy VirtualBox Vagrant Config File into project dir.
         self._copy_virtualbox_configfiles(env)
 
@@ -128,12 +131,7 @@ class VirtualBoxProject(Project):
             # Load specifications
             cloud_spec = self._load_cloud_specs(env)
             defaults = default(cloud_spec)
-
-            if os.path.exists(os.path.join(self.project_path, "spec.json")):
-                user_spec = self._load_spec_file(os.path.join(self.project_path,
-                                                 "spec.json"))
-            else:
-                user_spec = default(VirtualBoxSpec.get(env.reference_architecture))
+            user_spec = self._load_user_spec(env)
 
             # Generate dbt-2 client and driver specs on the fly as it depends on
             # how many of each are desired.
@@ -231,7 +229,52 @@ class VirtualBoxProject(Project):
             'efm_version': env.efm_version,
             'use_hostname': env.use_hostname,
         }
+    
+    def _load_user_spec(self, env):
+        if os.path.exists(os.path.join(self.project_path, "spec.json")):
+            return self._load_spec_file(os.path.join(self.project_path,
+                                                "spec.json"))
+        else:
+            return default(VirtualBoxSpec.get(env.reference_architecture))
+
+    def _build_vagrant_vars(self, env):
+        """
+        Build Vagrantfile variables for jinja2 template
+        Templates available inside of edbdeploy/data/templates
+        """
+        user_spec = self._load_user_spec(env)
+        os_image = user_spec['available_os'][env.operating_system] \
+            .get('image', 'mwedb/rockylinux8')
+        ip = ip_address(user_spec['ipv4'])
+        self.vagrant_vars = {
+            'mem_size': env.mem_size,
+            'cpu_count': env.cpu_count,
+            'image_name': os_image,
+            'image_url': '',
+            'vms': {}
+        }
         
+        # Assign ip address for virtual machines
+        self.vagrant_vars['vms']['pem'] = { 'ip': ip }
+        ip += 1
+        self.vagrant_vars['vms']['barman'] = { 'ip': ip }
+        ip += 1
+        self.vagrant_vars['vms']['primary'] = { 'ip': ip }
+        ip += 1
+        if self.ansible_vars['reference_architecture'] in ['EDB-RA-2', 'EDB-RA-3']:
+            for i in range(2, 4):
+                self.vagrant_vars['vms'][f"standby{i}"] = { 'ip': ip }
+                ip += 1
+        if self.ansible_vars['reference_architecture'] in ['EDB-RA-3']:
+            for i in  range(1, 4):
+                self.vagrant_vars['vms'][f"pgpool{i}"] = { 'ip': ip }
+                ip += 1
+        for i in range(env.cloud_spec['dbt2_client']['count']):
+            self.vagrant_vars['vms'][f'dbt2client{i}'] = { 'ip': ip }
+            ip += 1
+        for i in range(env.cloud_spec['dbt2_driver']['count']):
+            self.vagrant_vars['vms'][f'dbt2driver{i}'] = { 'ip': ip }
+            ip += 1
 
     def _build_virtualbox_ips(self, env):
         """
@@ -339,12 +382,13 @@ class VirtualBoxProject(Project):
 
         if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
             for i in range(2, 4):
+                name = f"standby{i}"
                 try:
                     output = exec_shell(
                         [
                             self.bin("vagrant"),
                                 "ssh",
-                                "standby-%s" %i,
+                                name,
                                 "-c",
                                 "\"ip address",
                                 "show eth1", 
@@ -374,11 +418,12 @@ class VirtualBoxProject(Project):
         if env.reference_architecture == 'EDB-RA-3':
             for i in range(1, 4):
                 try:
+                    name = f"pgpool{i}"
                     output = exec_shell(
                         [
                             self.bin("vagrant"),
                                 "ssh",
-                                "pgpool-%s" %i,
+                                name,
                                 "-c",
                                 "\"ip address",
                                 "show eth1", 
@@ -406,13 +451,13 @@ class VirtualBoxProject(Project):
                         % env.cloud_spec['pooler_server_%s' % i]['name']
                     )
         for i in range(env.cloud_spec['dbt2_client']['count']):
-            name = 'dbt2_client_' + str(i)
+            name = f"dbt2client{i}"
             try:
                 output = exec_shell(
                     [
                         self.bin("vagrant"),
                             "ssh",
-                            'dbt2client-' + str(i),
+                            name,
                             "-c",
                             "\"ip address",
                             "show eth1",
@@ -440,13 +485,13 @@ class VirtualBoxProject(Project):
                     % name
                 )
         for i in range(env.cloud_spec['dbt2_driver']['count']):
-            name = 'dbt2_driver_' + str(i)
+            name = f"dbt2_driver_{i}"
             try:
                 output = exec_shell(
                     [
                         self.bin("vagrant"),
                             "ssh",
-                            'dbt2driver-' + str(i),
+                            f"dbt2driver{i}",
                             "-c",
                             "\"ip address",
                             "show eth1",
@@ -479,7 +524,6 @@ class VirtualBoxProject(Project):
         Create the user specification, if defined, Vagrantfile and Ansible
         playbook in project directory.
         """
-
         if getattr(env, 'spec_file', False):
             shutil.copy(env.spec_file.name,
                         os.path.join(self.project_path, "spec.json"))
@@ -488,8 +532,7 @@ class VirtualBoxProject(Project):
         fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
         playbookfile = os.path.join(self.project_path, "playbook.yml")
 
-        with AM("Copying Vagrant Config files into %s" % self.vagrantfile):
-            # Playbook File
+        with AM(f"Copying playbook file into {playbookfile}"):
             try:
                 shutil.copy(fromplaybookfile, playbookfile)
             except IOError as e:
@@ -498,85 +541,8 @@ class VirtualBoxProject(Project):
                 os.makedirs(os.path.dirname(self.vagrantfile))
                 shutil.copy(fromplaybookfile, playbookfile)
 
-        # Add logic to handle setting the image_name based on
-        # self.ansible_vars['operating_system'] when we support more than one
-        # operating_system.
-        image_name = 'mwedb/rockylinux8'
-        ip_prefix = '192.168.56.'
-        # TODO: Make the starting ip address configurable in the event there are
-        # multiple clusters to create.  We can't ask VirtualBox for unique IP
-        # addresses, but we can control the sequence.
-        current_ip = 100
-
-        vagrantfile = open(self.vagrantfile, 'w')
-        vagrantfile.write('Vagrant.configure("2") do |config|\n')
-        vagrantfile.write('    config.ssh.insert_key = false\n')
-        vagrantfile.write('    config.ssh.forward_agent = true\n')
-        vagrantfile.write('\n')
-        vagrantfile.write('    config.vm.provider "virtualbox" do |v|\n')
-        vagrantfile.write('        v.memory = ' + env.mem_size + '\n')
-        vagrantfile.write('        v.cpus = ' + env.cpu_count + '\n')
-        vagrantfile.write('    end\n')
-        vagrantfile.write('\n')
-        vagrantfile.write('    config.vm.boot_timeout = 600\n')
-        vagrantfile.write('\n')
-        vagrantfile.write('    config.vm.define "pem" do |pem|\n')
-        vagrantfile.write('        pem.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        pem.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
-        vagrantfile.write('        pem.vm.hostname = "pem"\n')
-        vagrantfile.write('    end\n')
-        vagrantfile.write('\n')
-        vagrantfile.write('    config.vm.define "barman" do |barman|\n')
-        vagrantfile.write('        barman.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        barman.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
-        vagrantfile.write('        barman.vm.hostname = "barman"\n')
-        vagrantfile.write('    end\n')
-        vagrantfile.write('\n')
-        vagrantfile.write('    config.vm.define "primary" do |primary|\n')
-        vagrantfile.write('        primary.vm.box = "' + image_name + '"\n')
-        vagrantfile.write('        primary.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-        current_ip += 1
-        vagrantfile.write('        primary.vm.hostname = "primary"\n')
-        vagrantfile.write('    end\n')
-        if self.ansible_vars['reference_architecture'] in ['EDB-RA-2',
-                                                           'EDB-RA-3']:
-            for i in ['2', '3']:
-                vagrantfile.write('\n')
-                vagrantfile.write('    config.vm.define "standby-' + i + '" do |standby|\n')
-                vagrantfile.write('        standby.vm.box = "' + image_name + '"\n')
-                vagrantfile.write('        standby.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-                current_ip += 1
-                vagrantfile.write('        standby.vm.hostname = "standby-' + i + '"\n')
-                vagrantfile.write('    end\n')
-        if self.ansible_vars['reference_architecture'] in ['EDB-RA-3']:
-            for i in ['1', '2', '3']:
-                vagrantfile.write('\n')
-                vagrantfile.write('    config.vm.define "pgpool-' + i + '" do |pgpool|\n')
-                vagrantfile.write('        pgpool.vm.box = "' + image_name + '"\n')
-                vagrantfile.write('        pgpool.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-                current_ip += 1
-                vagrantfile.write('        pgpool.vm.hostname = "pgpool-' + i + '"\n')
-                vagrantfile.write('    end\n')
-        for i in range(env.cloud_spec['dbt2_client']['count']):
-            vagrantfile.write('\n')
-            vagrantfile.write('    config.vm.define "dbt2client-' + str(i) + '" do |dbt2client|\n')
-            vagrantfile.write('        dbt2client.vm.box = "' + image_name + '"\n')
-            vagrantfile.write('        dbt2client.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-            current_ip += 1
-            vagrantfile.write('        dbt2client.vm.hostname = "dbt2client-' + str(i) + '"\n')
-            vagrantfile.write('    end\n')
-        for i in range(env.cloud_spec['dbt2_driver']['count']):
-            vagrantfile.write('\n')
-            vagrantfile.write('    config.vm.define "dbt2driver-' + str(i) + '" do |dbt2driver|\n')
-            vagrantfile.write('        dbt2driver.vm.box = "' + image_name + '"\n')
-            vagrantfile.write('        dbt2driver.vm.network "private_network", ip: "' + ip_prefix + str(current_ip) + '"\n')
-            current_ip += 1
-            vagrantfile.write('        dbt2driver.vm.hostname = "dbt2driver-' + str(i) + '"\n')
-            vagrantfile.write('    end\n')
-        vagrantfile.write('end\n')
-        vagrantfile.close()
+        with AM(f"Building Vagrantfile into {self.vagrantfile}"):
+            build_vagrantfile(self.vagrantfile, self.vagrant_vars)
 
     def remove(self):
         # Overload Project.remove()
