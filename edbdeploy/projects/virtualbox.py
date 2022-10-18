@@ -242,9 +242,7 @@ class VirtualBoxProject(Project):
         Build Vagrantfile variables for jinja2 template
         Templates available inside of edbdeploy/data/templates
         """
-        # user_spec = self._load_cloud_spec(env)
-        os_image = env.cloud_spec['available_os'][env.operating_system] \
-            .get('image', 'mwedb/rockylinux8')
+        os_image = env.cloud_spec['available_os'][env.operating_system]['image']
         ip = ip_address(env.cloud_spec['ipv4'])
         self.vagrant_vars = {
             'mem_size': env.mem_size,
@@ -485,13 +483,13 @@ class VirtualBoxProject(Project):
                     % name
                 )
         for i in range(env.cloud_spec['dbt2_driver']['count']):
-            name = f"dbt2_driver_{i}"
+            name = f"dbt2driver{i}"
             try:
                 output = exec_shell(
                     [
                         self.bin("vagrant"),
                             "ssh",
-                            f"dbt2driver{i}",
+                            name,
                             "-c",
                             "\"ip address",
                             "show eth1",
