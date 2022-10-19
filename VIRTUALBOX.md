@@ -19,7 +19,7 @@ components before using it.
       * avoid conflicting with DHCP server even if disabled
     * `available_os` - available operating system and its vagrantbox image for selection in `configure` subcommand
 ```shell
-$ edb-deploy virtualbox spec > spec.json
+$ edb-deploy virtualbox specs > spec.json
 ```
 
 2. Project initialialization will done using the `configure` sub-command:
