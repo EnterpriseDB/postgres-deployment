@@ -15,13 +15,8 @@ class AnsibleCli:
     def __init__(self, dir, bin_path=None):
         self.dir = dir
         # Ansible supported versions interval
-<<<<<<< HEAD
         self.min_version = (2, 11, 0)
         self.max_version = (2, 11, 1)
-=======
-        self.min_version = (2, 10, 7)
-        self.max_version = (2, 12, 8)
->>>>>>> ed16563 (PER-447)
         # Path to look up for executable
         self.bin_path = None
         # Force Ansible binary path if bin_path exists and contains
