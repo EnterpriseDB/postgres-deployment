@@ -1,5 +1,4 @@
 {% macro generate_generic_vms(virtual_machines, image_name) -%}
-{% if virtual_machines is defined %}
 {% for name, configs in virtual_machines.items() -%}
     config.vm.define "{{ name }}" do |{{ name }}|
         {{ name }}.vm.box = "{{ image_name }}"
@@ -7,7 +6,6 @@
         {{ name }}.vm.hostname = "{{ name }}"
     end
 {% endfor %}
-{% endif %}
 {% endmacro %}
 
 Vagrant.configure("2") do |config|
@@ -21,6 +19,8 @@ Vagrant.configure("2") do |config|
 
     config.vm.boot_timeout = 600
 
-{{ generate_generic_vms(vms, image_name) }}
+{% if vms is defined and image_name is defined %}
+    {{ generate_generic_vms(vms, image_name) }}
+{% endif %}
 
 end
