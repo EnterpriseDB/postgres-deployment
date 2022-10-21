@@ -243,7 +243,7 @@ class VirtualBoxProject(Project):
         Templates available inside of edbdeploy/data/templates
         """
         os_image = env.cloud_spec['available_os'][env.operating_system]['image']
-        ip = ip_address(env.cloud_spec['ipv4'])
+        ip = ip_address(env.ipv4 if env.ipv4 else env.cloud_spec['ipv4'])
         self.vagrant_vars = {
             'mem_size': env.mem_size,
             'cpu_count': env.cpu_count,
