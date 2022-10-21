@@ -2,7 +2,7 @@ import os
 import re
 import argparse
 import textwrap
-import ipaddress
+from ipaddress import IPv4Address
 from .project import Project
 
 
@@ -308,22 +308,13 @@ def EDBCredentialsType(value):
         )
     return value
 
-class IPOptionVirtualBox:
-
-    ipv4_default = '192.168.81.100'
-    ipv4_help = textwrap.dedent("""
-        Set starting ip address from VirtualBox network:
-        0.0.0.0 - 255.255.255.255
-        Default: %(ipv4_default)s
-    """)
-
-    def IPv4Type(value):
-        try:
-            ipaddress.IPv4Address(value)
-            return value
-        except:
-            raise argparse.ArgumentTypeError(
-                "Enter valid IPv4 address: 0.0.0.0 - 255.255.255.255"
+def IPv4Type(value):
+    try:
+        IPv4Address(value)
+        return value
+    except:
+        raise argparse.ArgumentTypeError(
+            "Enter valid IPv4 address: 0.0.0.0 - 255.255.255.255"
             )
 
 def ProjectType(value):
