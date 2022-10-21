@@ -127,7 +127,6 @@ def subcommands(subparser):
         dest='ipv4',
         required=False,
         type=IPv4Type,
-        default='',
         metavar='<0.0.0.0 - 255.255.255.255>',
         help="Set starting ipv4 for range of ips to be given to virtual machines"
     )
