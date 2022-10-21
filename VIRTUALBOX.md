@@ -32,7 +32,8 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
   -u "<EDB_REPO_USERNAME>:<EDB_REPO_PASSWORD>" \
   -m <MEM_SIZE> \
   -c <CPU_COUNT> \
-  -s <SPEC_FILE>
+  -s <SPEC_FILE> \
+  --ipv4 <IP_ADDRESS>
 ```
 
 ***Notes:***
@@ -79,6 +80,14 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
   * `CPU_COUNT`
 
     Number of CPUS assigned to local machines **Required**.
+
+  * `SPEC_FILE`
+
+    Spec file to override default spec file configurations **Optional**
+
+  * `IP_ADDRESS`
+
+    Override spec file IPv4 address **Optional**.
 
 For more details, please use:
 ```shell
