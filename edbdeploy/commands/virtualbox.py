@@ -126,10 +126,10 @@ def subcommands(subparser):
         '--ipv4',
         dest='ipv4',
         required=False,
-        type=IPOptionVirtualBox.IPv4Type,
-        default=IPOptionVirtualBox.ipv4_default,
-        metavar='<starting-ip-address>',
-        help=IPOptionVirtualBox.ipv4_help,
+        type=IPv4Type,
+        default='',
+        metavar='<0.0.0.0 - 255.255.255.255>',
+        help="Set starting ipv4 for range of ips to be given to virtual machines"
     )
 
     # virtualbox deploy sub-command options
