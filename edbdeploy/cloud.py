@@ -453,7 +453,7 @@ class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (367, 0, 0)
+        self.max_version = (406, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force gcloud CLI binary path if bin_path exists and contains
