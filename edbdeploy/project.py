@@ -495,7 +495,7 @@ class Project:
                     }
                 })
         if env.cloud_spec['dbt2']:
-            inventory['all']['children']['primary']['hosts']['primary1']['dbt2'] = True
+            inventory['all']['children']['primary']['hosts'][pg1['name']]['dbt2'] = True
         if env.cloud_spec['dbt2_client']['count'] > 0:
             inventory['all']['children'].update({
                 'dbt2_client': {
