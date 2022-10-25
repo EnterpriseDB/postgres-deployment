@@ -132,13 +132,9 @@ $ edb-deployment <CLOUD_VENDOR> <SUB_COMMAND> [<PROJECT_NAME>]
   * `gcloud`: Google Cloud
   * `gcloud-pot`: EDB POT (Proof Of Technology) on Google Cloud
   * `gcloud-sql`: Google Cloud SQL for PostgreSQL
-
-### Local Testing
-
   * `baremetal`: Baremetal servers and VMs
-  * `vmware`: [VMWare Workstation](./VMWARE.md)
-  * `virtualbox`: [Virtualbox](./VIRTUALBOX.md)
-    * [Windows Support through WSL2](./README-WIN.md)
+  * `vmware`: VMWare Workstation
+  * `virtualbox`: Virtualbox
 
 ## Sub-commands
 

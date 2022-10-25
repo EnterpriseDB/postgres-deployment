@@ -136,6 +136,16 @@ class VirtualBoxCli:
     def up(self):
         try:
             rc = exec_shell_live(
+                [
+                    self.bin("vagrant"),
+                    "init",
+                    "rockylinux/8",
+                ],
+                environ=self.environ,
+                cwd=self.vagrant_project_path
+            )
+
+            rc = exec_shell_live(
                 [   self.bin("vagrant"),
                     "up",
                 ],

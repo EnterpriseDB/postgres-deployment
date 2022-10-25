@@ -3,7 +3,7 @@ from jinja2 import Environment, FileSystemLoader
 import pathlib
 
 
-def render_yaml_template(template_name, servers_path, vars={}):
+def render_template(template_name, servers_path, vars={}):
     """
     Function in charge of generating file content based on:
     - a template file name, that template file must reside into data/templates.
@@ -29,28 +29,12 @@ def render_yaml_template(template_name, servers_path, vars={}):
 
 
 def build_inventory_yml(dest, servers_path, vars={}):
-    inventory = render_yaml_template('inventory.yml.j2', servers_path, vars)
+    inventory = render_template('inventory.yml.j2', servers_path, vars)
     with open(dest, 'w') as f:
         f.write(inventory)
 
 
 def build_config_yml(dest, servers_path, vars={}):
-    config = render_yaml_template('config.yml.j2', servers_path, vars)
+    config = render_template('config.yml.j2', servers_path, vars)
     with open(dest, 'w') as f:
         f.write(config)
-
-def render_vagrantfile_template(template_name, vars={}):
-    # Template directory is located in ./data/templates
-    current_dir = pathlib.Path(__file__).parent.resolve()
-    templates_dir = pathlib.PurePath.joinpath(current_dir, 'data/templates')
-    
-    file_loader = FileSystemLoader(str(templates_dir))
-    env = Environment(loader=file_loader, trim_blocks=True)
-    template = env.get_template(template_name)
-
-    return template.render(**vars)
-
-def build_vagrantfile(dest, vars={}, template_name='Vagrantfile.j2'):
-    vagrantfile = render_vagrantfile_template(template_name, vars)
-    with open(dest, 'w') as f:
-        f.write(vagrantfile)
