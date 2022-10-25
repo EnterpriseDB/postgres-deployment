@@ -13,16 +13,7 @@ components before using it.
 
 ### Project initialization
 
-1. Save spec file and override if needed
-    * `ipv4` - starting ip used to begin reserving a range
-      * must be within a network available in Virtualbox's Host Network Manager
-      * avoid conflicting with DHCP server even if disabled
-    * `available_os` - available operating system and its vagrantbox image for selection in `configure` subcommand
-```shell
-$ edb-deploy virtualbox specs > spec.json
-```
-
-2. Project initialialization will done using the `configure` sub-command:
+Project initialialization will done using the `configure` sub-command:
 ```shell
 $ edb-deploy virtualbox configure <PROJECT_NAME> \
   -a <REFERENCE_ARCHITECTURE_CODE> \
@@ -31,8 +22,7 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
   -v <PG_VERSION> \
   -u "<EDB_REPO_USERNAME>:<EDB_REPO_PASSWORD>" \
   -m <MEM_SIZE> \
-  -c <CPU_COUNT> \
-  -s <SPEC_FILE>
+  -c <CPU_COUNT>
 ```
 
 ***Notes:***
@@ -66,6 +56,8 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
     EDB Packages repository credentials. **Required**.
 
   * `MEM_SIZE`
+
+    Amount of memory assigned to local machines. **Required**.
 
     Amount of memory assigned to local machines. **Required**.  
     **EDB-RA-1** deploys 3 servers: pem, barman and primary. 
