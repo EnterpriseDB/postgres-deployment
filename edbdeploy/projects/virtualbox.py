@@ -26,37 +26,10 @@ class VirtualBoxProject(Project):
         # Hook function called by Project.configure()
 
         self._build_ansible_vars_file(env)
+        env.cloud_spec = self._build_specs(env)
         self._build_vagrant_vars(env)
         # Copy VirtualBox Vagrant Config File into project dir.
         self._copy_virtualbox_configfiles(env)
-
-    def hook_instances_availability(self, cloud_cli):
-        # Update before committing with
-        # projects_root_path
-        self.vagrant_project_path = os.path.join(
-            self.projects_root_path,
-            'virtualbox',
-            self.name
-        )
-        mem_size = self.ansible_vars['mem_size']
-        cpu_count = self.ansible_vars['cpu_count']
-        vagrant = VirtualBoxCli(
-            self.cloud, self.name, self.cloud, mem_size, cpu_count,
-            self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
-        )
-        with AM("Provisioning Virtual Machines"):
-            vagrant.up()
-        # Build ip address list for virtualbox deployment
-        with AM("Build VirtualBox Ansible IP addresses"):
-            # Assigning Reference Architecture
-            self.env.reference_architecture = \
-                self.ansible_vars['reference_architecture']
-
-            # Load specifications
-            self.env.cloud_spec = self._load_cloud_specs(self.env)
-
-            # Build virtualbox Ansible IP addresses
-            self._build_virtualbox_ips(self.env)
 
     def check_avail_memory(self, mem_size):
         avail_memory = psutil.virtual_memory().available / (1024.0 ** 3)
@@ -104,8 +77,13 @@ class VirtualBoxProject(Project):
 
     def provision(self, env):
         # Overload Project.provision()
+        # Load variables
         self._load_ansible_vars()
-
+        env.reference_architecture = \
+                self.ansible_vars['reference_architecture']
+        env.cloud_spec = self._load_user_spec(env)
+        if not env.cloud_spec:
+            raise CliError('Spec file not found, was configure skipped?')
         # Update before committing with
         # projects_root_path
         self.vagrant_project_path = os.path.join(
@@ -119,58 +97,12 @@ class VirtualBoxProject(Project):
             self.cloud, self.name, self.cloud, mem_size, cpu_count,
             self.vagrant_project_path, bin_path=self.cloud_tools_bin_path
         )
+
         with AM("Provisioning Virtual Machines"):
             vagrant.up()
 
         # Build ip address list for VirtualBox deployment
         with AM("Build VirtualBox Ansible IP addresses"):
-            # Assigning Reference Architecture
-            env.reference_architecture = \
-                self.ansible_vars['reference_architecture']
-
-            # Load specifications
-            cloud_spec = self._load_cloud_specs(env)
-            defaults = default(cloud_spec)
-            user_spec = self._load_user_spec(env)
-
-            # Generate dbt-2 client and driver specs on the fly as it depends on
-            # how many of each are desired.
-            if 'dbt2_client' in user_spec and \
-                    'count' in user_spec['dbt2_client']:
-                for i in range(user_spec['dbt2_client']['count']):
-                    name = 'dbt2_client_' + str(i)
-                    user_spec[name] = dict()
-                    user_spec[name]['name'] = name
-                    user_spec[name]['public_ip'] = None
-                    user_spec[name]['private_ip'] = None
-                    cloud_spec[name] = dict()
-                    cloud_spec[name]['name'] = name
-                    cloud_spec[name]['public_ip'] = None
-                    cloud_spec[name]['private_ip'] = None
-                    defaults[name] = dict()
-                    defaults[name]['name'] = name
-                    defaults[name]['public_ip'] = None
-                    defaults[name]['private_ip'] = None
-
-            if 'dbt2_driver' in user_spec and \
-                    'count' in user_spec['dbt2_driver']:
-                for i in range(user_spec['dbt2_driver']['count']):
-                    name = 'dbt2_driver_' + str(i)
-                    user_spec[name] = dict()
-                    user_spec[name]['name'] = name
-                    user_spec[name]['public_ip'] = None
-                    user_spec[name]['private_ip'] = None
-                    cloud_spec[name] = dict()
-                    cloud_spec[name]['name'] = name
-                    cloud_spec[name]['public_ip'] = None
-                    cloud_spec[name]['private_ip'] = None
-                    defaults[name] = dict()
-                    defaults[name]['name'] = name
-                    defaults[name]['public_ip'] = None
-                    defaults[name]['private_ip'] = None
-            env.cloud_spec = merge(user_spec, cloud_spec, defaults)
-
-            # Build VirtualBox Ansible IP addresses
             self._build_virtualbox_ips(env)
 
         # Build inventory file for VirtualBox deployment
@@ -229,13 +161,58 @@ class VirtualBoxProject(Project):
             'efm_version': env.efm_version,
             'use_hostname': env.use_hostname,
         }
-    
+
     def _load_user_spec(self, env):
         if os.path.exists(os.path.join(self.project_path, "spec.json")):
             return self._load_spec_file(os.path.join(self.project_path,
                                                 "spec.json"))
+
+        return None
+
+    def _build_specs(self, env):
+        # Load specifications
+        env.reference_architecture = \
+                self.ansible_vars['reference_architecture']
+        cloud_spec = self._load_cloud_specs(env)
+        defaults = default(cloud_spec)
+        user_spec = self._load_user_spec(env)
+        merge_spec = None
+        if user_spec:
+            merge_spec = merge(user_spec, cloud_spec, defaults)
         else:
-            return default(VirtualBoxSpec.get(env.reference_architecture))
+            merge_spec = merge(cloud_spec, cloud_spec, defaults)
+        # Generate dbt-2 client and driver specs on the fly as it depends on
+        # how many of each are desired.
+        if 'dbt2_client' in merge_spec and \
+                'count' in merge_spec['dbt2_client']:
+            for i in range(merge_spec['dbt2_client']['count']):
+                name = f'dbt2_client_{i}'
+                hostname = f'dbt2client{i}'
+                merge_spec[name] = dict()
+                merge_spec[name]['name'] = hostname
+                merge_spec[name]['public_ip'] = None
+                merge_spec[name]['private_ip'] = None
+        if 'dbt2_driver' in merge_spec and \
+                'count' in merge_spec['dbt2_driver']:
+            for i in range(merge_spec['dbt2_driver']['count']):
+                name = f'dbt2_driver_{i}'
+                hostname = f'dbt2driver{i}'
+                merge_spec[name] = dict()
+                merge_spec[name]['name'] = hostname
+                merge_spec[name]['public_ip'] = None
+                merge_spec[name]['private_ip'] = None
+
+        # assign intial ips for virtual machines
+        machines = [vm for vm in merge_spec \
+            if type(merge_spec[vm]) is dict and 'name' in merge_spec[vm]]
+        ip = ip_address(merge_spec['ipv4'])
+
+        for vm in machines:
+            if not merge_spec[vm]['public_ip']:
+                merge_spec[vm]['public_ip'] = str(ip)
+                ip += 1
+
+        return merge_spec
 
     def _build_vagrant_vars(self, env):
         """
@@ -243,7 +220,6 @@ class VirtualBoxProject(Project):
         Templates available inside of edbdeploy/data/templates
         """
         os_image = env.cloud_spec['available_os'][env.operating_system]['image']
-        ip = ip_address(env.cloud_spec['ipv4'])
         self.vagrant_vars = {
             'mem_size': env.mem_size,
             'cpu_count': env.cpu_count,
@@ -251,270 +227,53 @@ class VirtualBoxProject(Project):
             'image_url': '',
             'vms': {}
         }
-        
-        # Assign ip address for virtual machines
-        self.vagrant_vars['vms']['pem'] = { 'ip': ip }
-        ip += 1
-        self.vagrant_vars['vms']['barman'] = { 'ip': ip }
-        ip += 1
-        self.vagrant_vars['vms']['primary'] = { 'ip': ip }
-        ip += 1
-        if self.ansible_vars['reference_architecture'] in ['EDB-RA-2', 'EDB-RA-3']:
-            for i in range(2, 4):
-                self.vagrant_vars['vms'][f"standby{i}"] = { 'ip': ip }
-                ip += 1
-        if self.ansible_vars['reference_architecture'] in ['EDB-RA-3']:
-            for i in  range(1, 4):
-                self.vagrant_vars['vms'][f"pgpool{i}"] = { 'ip': ip }
-                ip += 1
-        for i in range(env.cloud_spec['dbt2_client']['count']):
-            self.vagrant_vars['vms'][f'dbt2client{i}'] = { 'ip': ip }
-            ip += 1
-        for i in range(env.cloud_spec['dbt2_driver']['count']):
-            self.vagrant_vars['vms'][f'dbt2driver{i}'] = { 'ip': ip }
-            ip += 1
+
+        # Copy any vms for use with vagrantfile template
+        machines = [vm for vm in env.cloud_spec \
+            if type(env.cloud_spec[vm]) is dict and 'name' in env.cloud_spec[vm]]
+
+        for vm in machines:
+            self.vagrant_vars['vms'][vm] = env.cloud_spec[vm].copy()
 
     def _build_virtualbox_ips(self, env):
         """
         Build IP Address list for VirtualBox deployment.
         """
+        machines = [vm for vm in env.cloud_spec \
+            if type(env.cloud_spec[vm]) is dict and 'name' in env.cloud_spec[vm]]
 
-        try:
-            output = exec_shell(
-                [
-                    self.bin("vagrant"),
-                    "ssh",
-                    "pem",
-                    "-c",
-                    "\"ip address",
-                    "show eth1", 
-                    "|",
-                    "grep",
-                    "'inet '",
-                    "|",
-                    "sed",
-                    "-e",
-                    "'s/^.*inet //' -e 's/\/.*$//'\""
-                ],
-                environ=self.environ,
-                cwd=self.vagrant_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            result[0] = result[0].strip()
-            env.cloud_spec['pem_server_1']['public_ip'] = result[0]
-            env.cloud_spec['pem_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
-                 "check the logs for details.")
-                % env.cloud_spec['pem_server_1']['name']
-            )
-
-        try:
-            output = exec_shell(
-                [
-                    self.bin("vagrant"),
-                    "ssh",
-                    "barman",
-                    "-c",
-                    "\"ip address",
-                    "show eth1", 
-                    "|",
-                    "grep",
-                    "'inet '",
-                    "|",
-                    "sed",
-                    "-e",
-                    "'s/^.*inet //' -e 's/\/.*$//'\""
-                ],
-                environ=self.environ,
-                cwd=self.vagrant_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            result[0] = result[0].strip()
-            env.cloud_spec['backup_server_1']['public_ip'] = result[0]
-            env.cloud_spec['backup_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
-                 "check the logs for details.")
-                % env.cloud_spec['backup_server_1']['name']
-            )
-
-        try:
-            output = exec_shell(
-                [
-                    self.bin("vagrant"),
-                    "ssh",
-                    "primary",
-                    "-c",
-                    "\"ip address",
-                    "show eth1", 
-                    "|",
-                    "grep",
-                    "'inet '",
-                    "|",
-                    "sed",
-                    "-e",
-                    "'s/^.*inet //' -e 's/\/.*$//'\""
-                ],
-                environ=self.environ,
-                cwd=self.vagrant_project_path
-            )
-            result = output.decode("utf-8").split('\n')
-            result[0] = result[0].strip()
-            env.cloud_spec['postgres_server_1']['public_ip'] = result[0]
-            env.cloud_spec['postgres_server_1']['private_ip'] = result[0]
-        except Exception as e:
-            logging.error("Failed to execute the command")
-            logging.error(e)
-            raise CliError(
-                ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
-                 "check the logs for details.")
-                % env.cloud_spec['postgres_server_1']['name']
-            )
-
-        if env.reference_architecture in ['EDB-RA-2', 'EDB-RA-3']:
-            for i in range(2, 4):
-                name = f"standby{i}"
-                try:
-                    output = exec_shell(
-                        [
-                            self.bin("vagrant"),
-                                "ssh",
-                                name,
-                                "-c",
-                                "\"ip address",
-                                "show eth1", 
-                                "|",
-                                "grep",
-                                "'inet '",
-                                "|",
-                                "sed",
-                                "-e",
-                                "'s/^.*inet //' -e 's/\/.*$//'\""
-                        ],
-                        environ=self.environ,
-                        cwd=self.vagrant_project_path
-                    )
-                    result = output.decode("utf-8").split('\n')
-                    result[0] = result[0].strip()
-                    env.cloud_spec['postgres_server_%s' % i]['public_ip'] = result[0]  # noqa
-                    env.cloud_spec['postgres_server_%s' % i]['private_ip'] = result[0]  # noqa
-                except Exception as e:
-                    logging.error("Failed to execute the command")
-                    logging.error(e)
-                    raise CliError(
-                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
-                         "please check the logs for details.")
-                        % env.cloud_spec['postgres_server_%s' % i]['name']
-                    )
-        if env.reference_architecture == 'EDB-RA-3':
-            for i in range(1, 4):
-                try:
-                    name = f"pgpool{i}"
-                    output = exec_shell(
-                        [
-                            self.bin("vagrant"),
-                                "ssh",
-                                name,
-                                "-c",
-                                "\"ip address",
-                                "show eth1", 
-                                "|",
-                                "grep",
-                                "'inet '",
-                                "|",
-                                "sed",
-                                "-e",
-                                "'s/^.*inet //' -e 's/\/.*$//'\""
-                        ],
-                        environ=self.environ,
-                        cwd=self.vagrant_project_path
-                    )
-                    result = output.decode("utf-8").split('\n')
-                    result[0] = result[0].strip()
-                    env.cloud_spec['pooler_server_%s' % i]['public_ip'] = result[0]  # noqa
-                    env.cloud_spec['pooler_server_%s' % i]['private_ip'] = result[0]  # noqa
-                except Exception as e:
-                    logging.error("Failed to execute the command")
-                    logging.error(e)
-                    raise CliError(
-                        ("Failed to obtain VirtualBox Instance IP Address for: %s,"
-                         "please check the logs for details.")
-                        % env.cloud_spec['pooler_server_%s' % i]['name']
-                    )
-        for i in range(env.cloud_spec['dbt2_client']['count']):
-            name = f"dbt2client{i}"
+        for vm in machines:
             try:
                 output = exec_shell(
                     [
                         self.bin("vagrant"),
-                            "ssh",
-                            name,
-                            "-c",
-                            "\"ip address",
-                            "show eth1",
-                            "|",
-                            "grep",
-                            "'inet '",
-                            "|",
-                            "sed",
-                            "-e",
-                            "'s/^.*inet //' -e 's/\/.*$//'\""
+                        "ssh",
+                        vm,
+                        "-c",
+                        "\"ip address",
+                        "show eth1",
+                        "|",
+                        "grep",
+                        "'inet '",
+                        "|",
+                        "sed",
+                        "-e",
+                        "'s/^.*inet //' -e 's/\/.*$//'\""
                     ],
                     environ=self.environ,
                     cwd=self.vagrant_project_path
                 )
                 result = output.decode("utf-8").split('\n')
                 result[0] = result[0].strip()
-                env.cloud_spec[name]['public_ip'] = result[0]  # noqa
-                env.cloud_spec[name]['private_ip'] = result[0]  # noqa
+                env.cloud_spec[vm]['public_ip'] = result[0]
+                env.cloud_spec[vm]['private_ip'] = result[0]
             except Exception as e:
                 logging.error("Failed to execute the command")
                 logging.error(e)
                 raise CliError(
-                    ("Failed to obtain VirtualBox Instance IP Address for: %s,"
-                        "please check the logs for details.")
-                    % name
-                )
-        for i in range(env.cloud_spec['dbt2_driver']['count']):
-            name = f"dbt2driver{i}"
-            try:
-                output = exec_shell(
-                    [
-                        self.bin("vagrant"),
-                            "ssh",
-                            name,
-                            "-c",
-                            "\"ip address",
-                            "show eth1",
-                            "|",
-                            "grep",
-                            "'inet '",
-                            "|",
-                            "sed",
-                            "-e",
-                            "'s/^.*inet //' -e 's/\/.*$//'\""
-                    ],
-                    environ=self.environ,
-                    cwd=self.vagrant_project_path
-                )
-                result = output.decode("utf-8").split('\n')
-                result[0] = result[0].strip()
-                env.cloud_spec[name]['public_ip'] = result[0]  # noqa
-                env.cloud_spec[name]['private_ip'] = result[0]  # noqa
-            except Exception as e:
-                logging.error("Failed to execute the command")
-                logging.error(e)
-                raise CliError(
-                    ("Failed to obtain VirtualBox Instance IP Address for: %s,"
-                        "please check the logs for details.")
-                    % name
+                    ("Failed to obtain VirtualBox Instance IP Address for: %s, please "
+                     "check the logs for details.")
+                    % env.cloud_spec[vm]['name']
                 )
 
     def _copy_virtualbox_configfiles(self, env):
@@ -522,13 +281,16 @@ class VirtualBoxProject(Project):
         Create the user specification, if defined, Vagrantfile and Ansible
         playbook in project directory.
         """
-        if getattr(env, 'spec_file', False):
-            shutil.copy(env.spec_file.name,
-                        os.path.join(self.project_path, "spec.json"))
 
         self.vagrantfile = os.path.join(self.project_path, "Vagrantfile")
         fromplaybookfile = os.path.join(self.ansible_share_path, "%s.yml" % self.ansible_vars['reference_architecture'])
         playbookfile = os.path.join(self.project_path, "playbook.yml")
+
+        with AM(f'Copying specs into spec.json'):
+            spec_file = os.path.join(self.project_path, "spec.json")
+            with open(spec_file, 'w') as file:
+                json.dump(env.cloud_spec, file, indent=4)
+
 
         with AM(f"Copying playbook file into {playbookfile}"):
             try:

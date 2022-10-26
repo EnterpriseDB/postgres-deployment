@@ -1,9 +1,9 @@
 {% macro generate_generic_vms(virtual_machines, image_name) -%}
 {% for name, configs in virtual_machines.items() -%}
-    config.vm.define "{{ name }}" do |{{ name }}|
-        {{ name }}.vm.box = "{{ image_name }}"
-        {{ name }}.vm.network "private_network", ip: "{{ configs['ip'] }}"
-        {{ name }}.vm.hostname = "{{ name }}"
+    config.vm.define "{{ name }}" do | v |
+        v.vm.box = "{{ image_name }}"
+        v.vm.network "private_network", ip: "{{ configs['public_ip'] }}"
+        v.vm.hostname = "{{ configs['name'] }}"
     end
 {% endfor %}
 {% endmacro %}
