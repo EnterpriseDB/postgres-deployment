@@ -30,7 +30,7 @@ EDBRA1Spec = {
             ),
         },
     },
-    'ipv4': SpecValidator(type='ipv4', default='192.168.81.100'),
+    'ipv4': SpecValidator(type='ipv4', default='192.168.56.101'),
     'ssh_user': SpecValidator(type='string', default=None),
     'pg_data': SpecValidator(type='string', default=None),
     'pg_wal': SpecValidator(type='string', default=None),
