@@ -88,7 +88,7 @@ what to add to `.bashrc`:
 ```shell
 /usr/bin/keychain -q --nogui $HOME/.vagrant.d/insecure_private_key
 /usr/bin/keychain -q --nogui $HOME/.ssh/private_key2
-source $HOME/.keychain/$HOSTNAME-sh
+source $HOME/.keychain/$(hostname)-sh
 ```
 
 ## Manual `edb-deployment` Setup
