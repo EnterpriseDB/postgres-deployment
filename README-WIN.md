@@ -58,7 +58,7 @@ Install additional plugins from the shell to enable shared folders and
 workaround a bug to enable the `vagrant ssh` command on Windows:
 
 ```shell
- vagrant plugin install vagrant_guest
+ vagrant plugin install vagrant-vbguest
  vagrant plugin install virtualbox_WSL2
 ```
 
@@ -86,9 +86,9 @@ SSH key management in WSL can be done with `keychain`.  Here is an example of
 what to add to `.bashrc`:
 
 ```shell
-/usr/bin/keychain -q --nogui $HOME/.ssh/private_key1
+/usr/bin/keychain -q --nogui $HOME/.vagrant.d/insecure_private_key
 /usr/bin/keychain -q --nogui $HOME/.ssh/private_key2
-source $HOME/.keychain/$HOST-sh
+source $HOME/.keychain/$HOSTNAME-sh
 ```
 
 ## Manual `edb-deployment` Setup

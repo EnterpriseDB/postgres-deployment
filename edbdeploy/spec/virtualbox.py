@@ -26,7 +26,7 @@ EDBRA1Spec = {
         'RockyLinux8': {
             'image': SpecValidator(
                 type='string',
-                default='mwedb/rockylinux8',
+                default='generic/rocky8',
             ),
         },
     },
