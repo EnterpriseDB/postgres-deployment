@@ -1,12 +1,13 @@
-{% macro generate_generic_vms(virtual_machines, image_name) -%}
-{% for name, configs in virtual_machines.items() -%}
+{%- macro generate_generic_vms(virtual_machines, image_name) %}
+{%- for name, configs in virtual_machines.items() %}
     config.vm.define "{{ name }}" do | v |
         v.vm.box = "{{ image_name }}"
         v.vm.network "private_network", ip: "{{ configs['public_ip'] }}"
         v.vm.hostname = "{{ configs['name'] }}"
     end
-{% endfor %}
-{% endmacro %}
+
+{% endfor -%}
+{% endmacro -%}
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
@@ -19,8 +20,8 @@ Vagrant.configure("2") do |config|
 
     config.vm.boot_timeout = 600
 
-{% if vms is defined and image_name is defined %}
+{% if vms is defined and image_name is defined -%}
     {{ generate_generic_vms(vms, image_name) }}
-{% endif %}
+{%- endif -%}
 
 end
