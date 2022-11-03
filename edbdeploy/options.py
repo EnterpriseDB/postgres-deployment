@@ -71,18 +71,18 @@ class VirtualBoxOSOption:
     """)
 
 class PgVersionOption:
-    choices = ['11', '12', '13']
-    default = '13'
+    choices = ['11', '12', '13', '14']
+    default = '14'
     help = textwrap.dedent("""
-        PostgreSQL or EPAS version. Allowed values are: 11, 12 and 13.
+        PostgreSQL or EPAS version. Allowed values are: 11, 12, 13 and 14.
         Default: %(default)s
     """)
 
 class POTPgVersionOption:
-    choices = ['13']
-    default = '13'
+    choices = ['14']
+    default = '14'
     help = textwrap.dedent("""
-        EPAS version. Allowed values are: 13.
+        EPAS version. Allowed values are: 14.
         Default: %(default)s
     """)
 
@@ -97,26 +97,26 @@ class PgVersionOptionAzureDB:
 
 
 class EFMVersionOption:
-    choices = ['3.10', '4.0', '4.1', '4.2']
-    default = '4.2'
+    choices = ['3.10', '4.0', '4.1', '4.2', '4.3', '4.4']
+    default = '4.4'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1, 4.2, 4.3 and 4.4.
         Default: %(default)s
     """)
 
 class EFMVersionOptionVMWare:
-    choices = ['3.10', '4.0', '4.1', '4.2']
-    default = '4.2'
+    choices = ['3.10', '4.0', '4.1', '4.2', '4.3', '4.4']
+    default = '4.4'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1, 4.2, 4.3 and 4.4.
         Default: %(default)s
     """)
 
 class EFMVersionOptionVirtualBox:
-    choices = ['3.10', '4.0', '4.1', '4.2']
-    default = '4.2'
+    choices = ['3.10', '4.0', '4.1', '4.2', '4.3', '4.4']
+    default = '4.4'
     help = textwrap.dedent("""
-        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1 and 4.2.
+        EDB Failover Manager version. Allowed values are: 3.10, 4.0, 4.1, 4.2, 4.3 and 4.4.
         Default: %(default)s
     """)
 

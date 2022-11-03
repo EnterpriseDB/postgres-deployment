@@ -10,9 +10,10 @@
          3. email_id - <your email id >
          4. route53_access_key - AWS access key for route53 
          5. route53_secret - AWS secret for route53
-         6. user_expiry_date - optional. expiry date of os user
-         7. pg_project_user - optional. project postgres user
-         8. os_project_user - optional. operating system user for project
+         6. route53_session_token - AWS session token for route53
+         7. user_expiry_date - optional. expiry date of os user
+         8. pg_project_user - optional. project postgres user
+         9. os_project_user - optional. operating system user for project
   fail:
     msg: "{{ msg.split('\n')}}"
   when: project|length < 1  

@@ -75,9 +75,12 @@ class Commander:
 
     def configure(self):
         if self.project.exists():
-            msg = "Project %s already exists" % self.project.name
-            logging.error(msg)
-            raise CommanderError(msg)
+            if self.env.force_configure:
+                self.project.remove()
+            else:
+                msg = "Project %s already exists" % self.project.name
+                logging.error(msg)
+                raise CommanderError(msg)
 
         # Check 3rd party SW versions
         self.project.check_versions()
@@ -192,5 +195,5 @@ class Commander:
     def update_route53_key(self):
         self._check_project_exists()
         self.project.pot_update_route53_key(
-            self.env.route53_access_key, self.env.route53_secret
+            self.env.route53_access_key, self.env.route53_secret, self.env.route53_session_token
         )

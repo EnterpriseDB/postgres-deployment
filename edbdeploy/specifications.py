@@ -37,7 +37,8 @@ def merge(data, spec, defaults, path = []):
         elif isinstance(spec[key], SpecValidator):
             # Do user data validation if the corresponding value from the
             # specification is an instance of SpecValidator.
-            result[key] = validate(value, spec[key], path)
+            if value is not None:
+                result[key] = validate(value, spec[key], path)
 
         else:
             result[key] = value

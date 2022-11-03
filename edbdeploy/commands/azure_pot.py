@@ -59,6 +59,15 @@ def subcommands(subparser):
         help="Route53 Secret"
     )
     subcommand_parsers['configure'].add_argument(
+        '--route53-session-token',
+        dest='route53_session_token',
+        required=False,
+        type=str,
+        default="",
+        metavar='<route53-session-token>',
+        help="Route53 Session Token"
+    )
+    subcommand_parsers['configure'].add_argument(
         '--email-id',
         dest='email_id',
         required=True,
@@ -137,6 +146,12 @@ def subcommands(subparser):
         metavar='<cloud-region>',
         help=AzureRegionOption.help
     )
+    subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )
     # azure logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
@@ -197,4 +212,13 @@ def subcommands(subparser):
         type=str,
         metavar='<route53-secret>',
         help="Route53 Secret"
+    )
+    subcommand_parsers['update_route53_key'].add_argument(
+        '--route53-session-token',
+        dest='route53_session_token',
+        required=False,
+        type=str,
+        default="",
+        metavar='<route53-session-token>',
+        help="Route53 Session Token"
     )

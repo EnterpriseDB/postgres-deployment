@@ -23,10 +23,27 @@
 
 - name: Update route53
   import_tasks: update_route53.yml
-  when: inventory_hostname == groups.primary[0]
+  when:
+    - inventory_hostname == groups.primary[0]
+    - route53_session_token|length < 1
+
+- name: Update route53
+  import_tasks: update_route53_session.yml
+  when:
+    - inventory_hostname == groups.primary[0]
+    - route53_session_token|length > 0
 
 - name: Update pem server
   block:
     - import_tasks: pem_server_certs.yml
     - import_tasks: pem_server_probe_alert.yml
   when: "'pemserver' in group_names"
+
+- name: Ensure pgbouncer service is enabled and running
+  ansible.builtin.systemd:
+      name: "pgbouncer"
+      daemon_reload: true
+      state: started
+      enabled: true
+  become: true
+  when: "'pgbouncer' in group_names"

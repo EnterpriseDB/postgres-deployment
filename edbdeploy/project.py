@@ -494,6 +494,38 @@ class Project:
                         'primary_node_private_ip': pg1['private_ip'],
                     }
                 })
+        if env.cloud_spec['dbt2']:
+            inventory['all']['children']['primary']['hosts'][pg1['name']]['dbt2'] = True
+        if env.cloud_spec['dbt2_client']['count'] > 0:
+            inventory['all']['children'].update({
+                'dbt2_client': {
+                    'hosts': {}
+                }
+            })
+            for i in range(env.cloud_spec['dbt2_client']['count']):
+                name = 'dbt2_client_' + str(i)
+                clienti = env.cloud_spec[name]
+                inventory['all']['children']['dbt2_client']['hosts'].update({
+                    name: {
+                        'ansible_host': clienti['public_ip'],
+                        'private_ip': clienti['private_ip'],
+                    }
+                })
+        if env.cloud_spec['dbt2_driver']['count'] > 0:
+            inventory['all']['children'].update({
+                'dbt2_driver': {
+                    'hosts': {}
+                }
+            })
+            for i in range(env.cloud_spec['dbt2_driver']['count']):
+                name = 'dbt2_driver_' + str(i)
+                driveri = env.cloud_spec[name]
+                inventory['all']['children']['dbt2_driver']['hosts'].update({
+                    name: {
+                        'ansible_host': driveri['public_ip'],
+                        'private_ip': driveri['private_ip'],
+                    }
+                })
 
         with open(self.ansible_inventory, 'w') as f:
             f.write(yaml.dump(inventory, default_flow_style=False))
@@ -1362,6 +1394,14 @@ class Project:
         self._copy_ansible_playbook()
         # Check Cloud Instance type and Image availability.
         self._check_instance_image(env)
+        # Check tpaexec version
+        if env.reference_architecture.startswith('EDB-Always-On'):
+            tpaexec = TPAexecCli(
+                        self.project_path,
+                        tpa_subscription_token=env.tpa_subscription_token,
+                        bin_path=env.tpaexec_bin
+                      )
+            tpaexec.check_version()
 
     def pot_provision(self, env):
         self._load_ansible_vars()
@@ -1439,6 +1479,7 @@ class Project:
             'email_id': env.email_id,
             'route53_access_key': env.route53_access_key,
             'route53_secret': env.route53_secret,
+            'route53_session_token': env.route53_session_token,
             'project': self.name,
             'public_key': self.custom_ssh_keys[self.name]['ssh_pub_key'],
         }
@@ -1486,6 +1527,7 @@ class Project:
             email_id=self.ansible_vars['email_id'],
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
+            route53_session_token=self.ansible_vars['route53_session_token'],
             project=self.ansible_vars['project'],
             public_key=self.ansible_vars['public_key'],
             reference_architecture=self.ansible_vars['reference_architecture']
@@ -1639,6 +1681,7 @@ class Project:
             email_id=self.ansible_vars['email_id'],
             route53_access_key=self.ansible_vars['route53_access_key'],
             route53_secret=self.ansible_vars['route53_secret'],
+            route53_session_token=self.ansible_vars['route53_session_token'],
             project=self.ansible_vars['project'],
             public_key=self.ansible_vars['public_key']
         )
@@ -1675,9 +1718,10 @@ class Project:
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
 
-    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret):
-        with AM("Updating route53 key and secret"):
+    def pot_update_route53_key(self, n_route53_access_key, n_route53_secret, n_route53_session_token):
+        with AM("Updating route53 key, secret and session-token"):
             self._load_ansible_vars()
             self.ansible_vars['route53_access_key'] = n_route53_access_key
             self.ansible_vars['route53_secret'] = n_route53_secret
+            self.ansible_vars['route53_session_token'] = n_route53_session_token
             self._save_ansible_vars()

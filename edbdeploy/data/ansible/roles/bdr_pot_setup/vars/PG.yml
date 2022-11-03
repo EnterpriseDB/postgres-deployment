@@ -1,5 +1,5 @@
 ---
-pg_version: "13"
+pg_version: "14"
 pg_bin_path: "/usr/pgsql-{{ pg_version }}/bin"
 pg_data: "/var/lib/pgsql/{{ pg_version }}/data"
 pg_owner: "postgres"

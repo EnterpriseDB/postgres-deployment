@@ -14,7 +14,7 @@ TEST_DATA_DIR = os.path.join(
 # Global variables used for the tests
 RA = os.getenv('EDB_DEPLOY_RA', 'EDB-RA-1')
 PG_TYPE = os.getenv('EDB_DEPLOY_PG_TYPE', 'PG')
-PG_VERSION = os.getenv('EDB_DEPLOY_PG_VERSION', '13')
+PG_VERSION = os.getenv('EDB_DEPLOY_PG_VERSION', '14')
 CLOUD_VENDOR = os.getenv('EDB_DEPLOY_CLOUD_VENDOR', 'aws')
 CLOUD_REGION = os.getenv('EDB_DEPLOY_CLOUD_REGION', 'us-east-2')
 EDB_CREDENTIALS = os.getenv('EDB_DEPLOY_EDB_CREDENTIALS', 'user:password')
@@ -28,8 +28,8 @@ if RA.startswith('EDB-RA'):
     SSH_PRIV_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa')
     SSH_PUB_KEY = os.path.join(TEST_DATA_DIR, 'test_id_rsa.pub')
 elif RA.startswith('EDB-Always-On'):
-    SSH_PRIV_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pem' % PROJECT_NAME)
-    SSH_PUB_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'centos_%s_key.pub' % PROJECT_NAME)
+    SSH_PRIV_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'rocky_%s_key.pem' % PROJECT_NAME)
+    SSH_PUB_KEY = os.path.join(DEPLOY_DIR, CLOUD_VENDOR, PROJECT_NAME, 'rocky_%s_key.pub' % PROJECT_NAME)
 GCLOUD_CRED = os.getenv(
     'EDB_GCLOUD_ACCOUNTS_FILE', os.path.join(os.path.expanduser("~"), "accounts.json")
 )
@@ -38,6 +38,7 @@ GCLOUD_PROJECT_ID = os.getenv(
 )
 POT_R53_ACCESS_KEY = os.getenv('EDB_POT_R53_ACCESS_KEY')
 POT_R53_SECRET = os.getenv('EDB_POT_R53_SECRET')
+POT_R53_SESSION_TOKEN = os.getenv('EDB_POT_R53_SESSION_TOKEN')
 POT_EMAIL_ID = os.getenv('EDB_POT_EMAIL_ID')
 POT_TPAEXEC_BIN = os.getenv('EDB_POT_TPAEXEC_BIN')
 POT_TPAEXEC_SUBSCRIPTION_TOKEN = os.getenv('EDB_POT_TPAEXEC_SUBSCRIPTION_TOKEN')
@@ -63,6 +64,7 @@ def configure():
         options += [
             '--route53-access-key=%s' % POT_R53_ACCESS_KEY,
             '--route53-secret=%s' % POT_R53_SECRET,
+            '--route53-session-token=%s' % POT_R53_SESSION_TOKEN,
             '--email-id=%s' % POT_EMAIL_ID,
             '--tpaexec-bin=%s' % POT_TPAEXEC_BIN,
             '--tpaexec-subscription-token=%s' % POT_TPAEXEC_SUBSCRIPTION_TOKEN,

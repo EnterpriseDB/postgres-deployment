@@ -4,9 +4,13 @@
 # during an upgrade.
 #
 
+## Command Alias
+Cmnd_Alias PG_START_STOP = /bin/systemctl restart {{ pg_service }}, /bin/systemctl stop {{ pg_service }}, /bin/systemctl start {{ pg_service }}, /bin/systemctl status {{ pg_service }}
+Cmnd_Alias EFM_COMMANDS = {{ efm_bin_path }}/efm, {{ efm_bin_path }}/efm_reconfigure_node.sh
+
 {{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD:   {{ pg_bin_path }}/pg_ctl 
-{{ os_project_user }}  ALL=({{ pg_efm_user }})                    NOPASSWD:   {{ efm_bin_path }}/efm
-{{ os_project_user }}  ALL=({{ pg_efm_user }})                    NOPASSWD:   {{ efm_bin_path }}/efm_reconfigure_node.sh
+{{ os_project_user }}  ALL=({{ pg_efm_user }})        NOPASSWD:   EFM_COMMANDS
+{{ os_project_user }}  ALL=(ALL)                      NOPASSWD:   PG_START_STOP
 
 # relax tty requirement for user 'efm'
 Defaults:{{ pg_efm_user }} !requiretty

@@ -1,6 +1,27 @@
 from . import SpecValidator
 
 EDBRA1Spec = {
+    'dbt2': SpecValidator(
+        type='choice',
+        choices=[True, False],
+        default=False
+    ),
+    'dbt2_client': {
+        'count': SpecValidator(
+            type='integer',
+            min=0,
+            max=64,
+            default=0
+        ),
+    },
+    'dbt2_driver': {
+        'count': SpecValidator(
+            type='integer',
+            min=0,
+            max=64,
+            default=0
+        ),
+    },
     'ssh_user': SpecValidator(type='string', default=None),
     'pg_data': SpecValidator(type='string', default=None),
     'pg_wal': SpecValidator(type='string', default=None),

@@ -81,7 +81,12 @@ def subcommands(subparser):
         metavar='<baremetal-spec-file>',
         help="Baremetal servers specification file, in JSON."
     )
-    # baremetal logs sub-command options
+    subcommand_parsers['configure'].add_argument(
+        '-f', '--force',
+        dest='force_configure',
+        action='store_true',
+        help="Force project configuration."
+    )    # baremetal logs sub-command options
     subcommand_parsers['logs'].add_argument(
         '-t', '--tail',
         dest='tail',
@@ -135,3 +140,4 @@ def subcommands(subparser):
         dest='host',
         help="Node hostname"
     )
+

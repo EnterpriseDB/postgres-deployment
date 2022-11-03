@@ -38,7 +38,7 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
 
   * `OPERATING_SYSTEM`
 
-    Operating system. Allowed values are: **CentOS7** and **RockyLinux8**
+    Operating system. Allowed values are: **RockyLinux8**
     Default: **RockyLinux8**
 
   * `PG_ENGINE_TYPE`
@@ -48,8 +48,8 @@ $ edb-deploy virtualbox configure <PROJECT_NAME> \
 
   * `PG_VERSION`
 
-    PostgreSQL or EPAS version. Allowed values are: **11**, **12** and **13**.
-    Default: **13**
+    PostgreSQL or EPAS version. Allowed values are: **11**, **12**, **13** and **14**.
+    Default: **14**
 
   * `"EDB_REPO_USERNAME:EDB_REPO_PASSWORD"`
 

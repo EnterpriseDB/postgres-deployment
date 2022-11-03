@@ -4,9 +4,12 @@
 # during an upgrade.
 #
 
-{{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD:   {{ pg_bin_path }}/pg_ctl 
-{{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD:   /usr/bin/harpctl
-{{ os_project_user }}  ALL=(ALL)                      NOPASSWD:   /bin/barman
+## Command Alias
+Cmnd_Alias PG_START_STOP = /bin/systemctl restart {{ pg_service }}, /bin/systemctl stop {{ pg_service }}, /bin/systemctl start {{ pg_service }}, /bin/systemctl status {{ pg_service }}
+Cmnd_Alias HARP_START_STOP = /bin/systemctl restart harp-manager, /bin/systemctl stop harp-manager, /bin/systemctl start harp-manager, /bin/systemctl status harp-manager
+
+{{ os_project_user }}  ALL=(ALL)                      NOPASSWD: PG_START_STOP, HARP_START_STOP, /bin/barman
+{{ os_project_user }}  ALL=({{ pg_owner }})           NOPASSWD: /usr/bin/harpctl
 
 # relax tty requirement for user '{{ os_project_user }}'
 Defaults:{{ pg_owner }} !requiretty
