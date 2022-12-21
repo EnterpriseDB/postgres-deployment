@@ -91,7 +91,17 @@ class HelmCli:
             mkdir -p {path}/kubectl/{version}/bin
             wget -q https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
             chmod +x ./get_helm.sh
-            ./geth_helm.sh
+            ./get_helm.sh
+
+            # Install gcloud gke plugin
+            gcloud components install gke-gcloud-auth-plugin
+            # Install dependency packages            
+            pip install openshift pyyaml kubernetes 
+            pip install pyhelm
+            # Install Ansible Galaxy Collections
+            ansible-galaxy collection install kubernetes.core --force
+            ansible-galaxy collection install community.kubernetes --force
+            ansible-galaxy collection install edb_devops.edb_postgres --force
         """)
 
         # Generate the installation script as an executable tempfile

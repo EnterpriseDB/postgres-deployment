@@ -20,7 +20,8 @@ class AWSCli:
     def __init__(self, bin_path=None):
         # aws CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (1, 19, 97)
+        #self.max_version = (1, 19, 97)
+        self.max_version = (1, 22, 34)
         # Path to look up for executable
         self.bin_path = None
         # Force AWS CLI binary path if bin_path exists and contains
@@ -453,7 +454,7 @@ class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (398, 0, 0)
+        self.max_version = (412, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force gcloud CLI binary path if bin_path exists and contains
@@ -664,7 +665,8 @@ class GCloudCli:
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
 #        self.max_version = (367, 0, 0)
-        self.max_version = (398, 0, 0)
+        #self.max_version = (398, 0, 0)
+        self.max_version = (412, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force gcloud CLI binary path if bin_path exists and contains
@@ -1022,9 +1024,20 @@ class HelmCli:
             #!/bin/bash
             set -eu
 
-            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-            chmod 700 get_helm.sh
+            mkdir -p {path}/kubectl/{version}/bin
+            wget -q https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            chmod +x ./get_helm.sh
             ./get_helm.sh
+
+            # Install gcloud gke plugin
+            gcloud components install gke-gcloud-auth-plugin
+            # Install dependency packages
+            pip install openshift pyyaml kubernetes 
+            pip install pyhelm
+            # Install Ansible Galaxy Collections
+            ansible-galaxy collection install kubernetes.core --force
+            ansible-galaxy collection install community.kubernetes --force
+            ansible-galaxy collection install edb_devops.edb_postgres --force
         """)
 
         # Generate the installation script as an executable tempfile

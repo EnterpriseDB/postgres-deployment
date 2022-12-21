@@ -122,6 +122,8 @@ class AnsibleCli:
             else:
                 environ['ANSIBLE_PIPELINING'] = 'false'
                 environ['ANSIBLE_SSH_PIPELINING'] = 'false'
+            # Sets path to roles of collection: 'edb_postgres.edb_devops'
+            environ['ANSIBLE_ROLES_PATH'] = '~/.ansible/collections/ansible_collections/edb_devops/edb_postgres/roles/'
 
             rc = exec_shell_live(command, environ=environ, cwd=self.dir)
             if rc != 0:

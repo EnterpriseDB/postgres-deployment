@@ -70,6 +70,8 @@ class Project:
  
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
+    k8s_core_ansible_collection_name = 'kubernetes.core:>=%s,<2.3.0' % __edb_ansible_version__  # noqa
+    k8s_community_ansible_collection_name = 'kubernetes.core:>=%s,<2.0.1' % __edb_ansible_version__  # noqa        
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
@@ -837,6 +839,16 @@ class Project:
                 % self.ansible_collection_name
             ):
                 ansible.install_collection(self.ansible_collection_name)
+            with AM(
+                "Installing Kubernetes Core Ansible collection %s"
+                % self.k8s_core_ansible_collection_name
+            ):
+                ansible.install_collection(self.k8s_core_ansible_collection_name)
+            with AM(
+                "Installing Kubernetes Community Ansible collection %s"
+                % self.k8s_community_ansible_collection_name
+            ):
+                ansible.install_collection(self.k8s_community_ansible_collection_name)
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
@@ -1148,7 +1160,7 @@ class Project:
                 'name': 'Helm',
                 'cli': HelmCli(bin_path=Project.cloud_tools_bin_path),
                 'cloud_vendors': [ 'aws-eks', 'azure-aks', 'gcloud-gke' ]
-            },            
+            }, 
         ]
 
         for tool in tools:
@@ -1751,11 +1763,15 @@ class Project:
                 
         # Copy the kubernetes role in ansible project directory
         ansible_roles_path = os.path.join(self.project_path, "roles")
-        with AM("Copying Kubernetes roles code into %s" % ansible_roles_path):
-            try:
-                shutil.copytree(self.ansible_kubernetes_role, ansible_roles_path)
-            except Exception as e:
-                raise ProjectError(str(e))
+
+        # DEBUG
+        #print("INFO: self.ansible_kubernetes_role: %s" % self.ansible_kubernetes_role)
+
+        #with AM("Copying Kubernetes roles code into %s" % ansible_roles_path):
+        #    try:
+        #        shutil.copytree(self.ansible_kubernetes_role, ansible_roles_path)
+        #    except Exception as e:
+        #        raise ProjectError(str(e))
 
         # Hook function called by Project.configure()
         # Transform Terraform templates

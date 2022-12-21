@@ -1,9 +1,10 @@
 project_id    = ""
-gcpRegion     = "us-west2"
+gcpRegion     = "us-west1"
 kClusterName  = "edb-cnp"
 gke_username  = ""
 gke_password  = ""
-gke_num_nodes = 2
+initial_gke_num_nodes = "1"
+gke_num_nodes = "3"
 gke_machine_type = "n1-standard-1"
 gke_ip_cidr_range = "10.10.0.0/24"
 gcp_credentials_file = ""

@@ -13,7 +13,7 @@ class GCloudGKEProject(Project):
         # Use Gcloud terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'gcloud-gke')
         # kubernetes only attributes
-        self.ansible_kubernetes_role = os.path.join(self.ansible_share_path, 'kubernetes_roles')        
+        #self.ansible_kubernetes_role = os.path.join(self.ansible_share_path, 'kubernetes_roles')
 
     def configure(self, env):
         self.gcloud_gke_configure(env)

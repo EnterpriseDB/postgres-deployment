@@ -52,19 +52,25 @@ class AWSEKSProject(Project):
         self._init_terraform_vars(env)
 
         # Configure project specific terraform variables
-        os = env.cloud_spec['available_os'][env.operating_system]
-        pg = env.cloud_spec['postgres_server']
-
+        #os = env.cloud_spec['available_os'][env.operating_system]
+        #pg = env.cloud_spec['postgres_server']
+        
         self.terraform_vars.update({
             'aws_ami_id': getattr(env, 'aws_ami_id', None),
             'aws_image': os['image'],
             'aws_region': env.aws_region,
         })
-        self.terraform_vars['postgres_server'].update({
-            'volume': pg['volume'],
-            'additional_volumes': pg['additional_volumes'],
-            'instance_type': pg['instance_type'],
-        })
+        
+        # self.terraform_vars['postgres_server'].update({
+        #     'volume': pg['volume'],
+        #     'additional_volumes': pg['additional_volumes'],
+        #     'instance_type': pg['instance_type'],
+        # })
+        # self.terraform_vars['postgres_server'].update({
+        #     'instance_type': pg['instance_type'],
+        #     'volume': pg['volume'],
+        #     'additional_volumes': pg['additional_volumes'],            
+        # })
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()
@@ -75,8 +81,8 @@ class AWSEKSProject(Project):
         cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
 
         # Node types list available for this Cloud vendor
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
-                      'barman_server', 'pooler_server']
+        # node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
+        #               'barman_server', 'pooler_server']
 
         # Check instance type and image availability
         if not self.terraform_vars['aws_ami_id']:
