@@ -9,6 +9,7 @@ Deployment of Google Cloud Kubernetes Engine is dependent on following component
 components before using it.
 
 1. Google Cloud CLI
+2. Google Cloud CLI components: [gke-gcloud-auth-plugin](https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke), and kubernetes
 2. Packages: openshift, pyyaml, kubernetes, pyhelm
 
 ### GCloud GKE Project initialization
