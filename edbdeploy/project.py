@@ -138,11 +138,9 @@ class Project:
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         cloud_cli.check_version()
         # Check Helm CLI/SDK version
-
-        logging.info("Helm bin path: %s", '/usr/local/bin/helm/')
-
         helm = HelmCli(bin_path='/usr/local/bin/helm/')
         helm.check_version()
+        # No need to check Kubectl CLI/SDK version
 
     def create_log_dir(self):
         try:
