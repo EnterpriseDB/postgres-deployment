@@ -137,6 +137,12 @@ class Project:
         # Check cloud vendor CLI/SDK version
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         cloud_cli.check_version()
+        # Check Helm CLI/SDK version
+
+        logging.info("Helm bin path: %s", '/usr/local/bin/helm/')
+
+        helm = HelmCli(bin_path='/usr/local/bin/helm/')
+        helm.check_version()
 
     def create_log_dir(self):
         try:
@@ -1764,15 +1770,6 @@ class Project:
         # Copy the kubernetes role in ansible project directory
         ansible_roles_path = os.path.join(self.project_path, "roles")
 
-        # DEBUG
-        #print("INFO: self.ansible_kubernetes_role: %s" % self.ansible_kubernetes_role)
-
-        #with AM("Copying Kubernetes roles code into %s" % ansible_roles_path):
-        #    try:
-        #        shutil.copytree(self.ansible_kubernetes_role, ansible_roles_path)
-        #    except Exception as e:
-        #        raise ProjectError(str(e))
-
         # Hook function called by Project.configure()
         # Transform Terraform templates
         self._transform_terraform_tpl()
@@ -1904,9 +1901,6 @@ class Project:
             self.project_path,
             bin_path=self.cloud_tools_bin_path
         )
-
-        # Load ansible vars
-        #self._load_ansible_vars()
 
         with AM("Destroying cloud resources"):
             self.update_state('terraform', 'DESTROYING')

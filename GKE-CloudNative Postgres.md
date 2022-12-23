@@ -1,7 +1,7 @@
-# CloudNativePG
+# CloudNativePostgres
 
 Further detailed process on how to deploy with helm charts 
-[here](https://cloudnative-pg.io/charts/).
+[here](https://enterprisedb.github.io/cnp-sandbox/).
 
 ### Pre-Requisites
 In addition to the pre-requisites for `edb-deployment`,
@@ -24,7 +24,7 @@ Project initialialization will done using the `configure` sub-command:
 edb-deployment gcloud-gke configure gke1 --cnp-type pg --gcloud-region us-west1 --gcloud-credentials ~/accounts.json --gcloud-project-id performance-engineering-268015
 
 $ edb-deploy gcloud-gke configure <PROJECT_NAME> \
-  --cnp-type pg \
+  --cnp-type postgres \
   --gcloud-region <region> \
   --gcloud-credentials <google_credentials_file> \
   -gcloud-project-id <Google_Cloud_Project_Id>
@@ -73,11 +73,11 @@ Finally, we can destroy the components with the `destroy` sub-command:
 $ edb-deployment gcloud-gke destroy <PROJECT_NAME>
 ```
 
-## CloudNativePG Dashboard
+## CloudNative Postgres Dashboard
 
 To view the CloudNativePG Sandbox Dashboard, open a terminal and execute the command below:
 ```shell
-$ kubectl port-forward svc/cnpg-sandbox-grafana 3000:80
+$ kubectl port-forward svc/cnp-sandbox-grafana 3000:80
 ```
 Open local browser and navigate towards: http://localhost:3000
 Authenticate with the default user and password into grafana

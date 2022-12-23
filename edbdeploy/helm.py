@@ -22,8 +22,8 @@ class HelmCli:
         self.environ = os.environ.copy()
         #self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Helm supported version interval
-        #self.min_version = (1, 0, 0)
-        #self.max_version = (1, 2, 6)
+        self.min_version = (3, 10, 3)
+        self.max_version = (3, 10, 3)
         # Path to look up for executable
         self.bin_path = None
         # Force Helm binary path if bin_path exists and contains
@@ -41,19 +41,19 @@ class HelmCli:
 
     def check_version(self):
         """
-        Verify kubectl version, based on the interval formed by min_version
+        Verify Helm version, based on the interval formed by min_version
         and max_version.
-        Terraform version is fetched using the command: kubectl --version
+        Helm version is fetched using the command: helm version --template='{{.Version}}'
         """
         # note: we do not raise any HelmCliError from this function
         # because HelmCliError are used to trigger stuffs when they are
         # catched. In this case, we do not want trigger anything if something
         # fails.
         try:
-            output = exec_shell(
-                [self.bin("helm"), "version"],
-                environ=self.environ
-            )
+            output = exec_shell([
+                self.bin("helm", "version", ),
+                "--template='{{.Version}}'"
+            ])            
         except CalledProcessError as e:
             logging.error("Failed to execute the command: %s", e.cmd)
             logging.error("Return code is: %s", e.returncode)
@@ -64,11 +64,26 @@ class HelmCli:
             )
 
         version = None
+        # Parse command output and extract the version number
+        # Output can be:
+        # - helm v3.10.3
+        pattern = re.compile(r"^helmD*(\d+)\.(\d+)\.(\d+)\D*$")
+        for line in output.decode("utf-8").split("\n"):
+            m = pattern.search(line)
+            if m:
+                version = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                break
 
         if version is None:
             raise Exception("Unable to parse Helm version")
 
         logging.info("Helm version: %s", '.'.join(map(str, version)))
+
+        if not check_version(version, self.min_version, self.max_version):
+            raise HelmCliError(
+                "Helm version %s not supported, must be between %s and %s"
+                % (to_str(version), to_str(self.min_version),
+                   to_str(self.max_version)))
 
     def bin(self, binary):
         """
@@ -81,7 +96,7 @@ class HelmCli:
 
     def install(self, installation_path):
         """
-        Helm installation
+        Helm and PreReqs Installation
         """
         # Installation bash script content
         installation_script = textwrap.dedent("""
@@ -89,12 +104,14 @@ class HelmCli:
             set -eu
 
             mkdir -p {path}/kubectl/{version}/bin
-            wget -q https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
             chmod +x ./get_helm.sh
             ./get_helm.sh
+            rm ./get_helm.sh            
 
             # Install gcloud gke plugin
             gcloud components install gke-gcloud-auth-plugin
+            gcloud components install kubectl
             # Install dependency packages            
             pip install openshift pyyaml kubernetes 
             pip install pyhelm

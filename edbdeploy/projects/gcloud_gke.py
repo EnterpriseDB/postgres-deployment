@@ -12,8 +12,6 @@ class GCloudGKEProject(Project):
         super(GCloudGKEProject, self).__init__('gcloud-gke', name, env, bin_path)
         # Use Gcloud terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'gcloud-gke')
-        # kubernetes only attributes
-        #self.ansible_kubernetes_role = os.path.join(self.ansible_share_path, 'kubernetes_roles')
 
     def configure(self, env):
         self.gcloud_gke_configure(env)
@@ -24,11 +22,6 @@ class GCloudGKEProject(Project):
         self._transform_terraform_tpl()
         # Build the vars files for Terraform and Ansible
         self._build_terraform_vars_file(env)
-        #self._build_ansible_vars_file(env)
-        # Copy Ansible playbook into project dir.
-        #self._copy_ansible_playbook()
-        # Check Cloud Instance type and Image availability.
-        #self._check_instance_image(env)
 
     def hook_instances_availability(self, cloud_cli):
         # Hook function called by Project.provision()
@@ -99,6 +92,7 @@ class GCloudGKEProject(Project):
                post_deploy_ansible=None,
                skip_main_playbook=False,
                disable_pipelining=False):
+
         self.gcloud_gke_deploy(
             no_install_collection,
             pre_deploy_ansible,
