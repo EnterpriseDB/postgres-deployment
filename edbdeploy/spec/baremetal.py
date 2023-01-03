@@ -19,7 +19,38 @@ BaremetalSpec = {
             'name': SpecValidator(type='string', default='backup1'),
             'public_ip': SpecValidator(type='ipv4', default=None),
             'private_ip': SpecValidator(type='ipv4', default=None),
-        }
+        },
+        'dbt2_client_0': {
+            'name': SpecValidator(type='string', default='dbt2client'),
+            'public_ip': SpecValidator(type='ipv4', default=None),
+            'private_ip': SpecValidator(type='ipv4', default=None),
+        },
+        'dbt2_driver_0': {
+            'name': SpecValidator(type='string', default='dbt2driver'),
+            'public_ip': SpecValidator(type='ipv4', default=None),
+            'private_ip': SpecValidator(type='ipv4', default=None),
+        },
+        'dbt2': SpecValidator(
+            type='choice',
+            choices=[True, False],
+            default=False
+        ),
+        'dbt2_client': {
+            'count': SpecValidator(
+                type='integer',
+                min=0,
+                max=64,
+                default=0
+            ),
+        },
+        'dbt2_driver': {
+            'count': SpecValidator(
+                type='integer',
+                min=0,
+                max=64,
+                default=0
+            ),
+        },
     },
     'EDB-RA-2': {
         'ssh_user': SpecValidator(type='string', default=None),
