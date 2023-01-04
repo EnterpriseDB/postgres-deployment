@@ -8,11 +8,14 @@ from . import __version__, command
 from .commands import (
     aurora as aws_rds_aurora,
     aws,
+    aws_eks,
     aws_pot,
     azure,
     azure_pot,
     azure_db,
+    azure_aks,    
     baremetal,
+    gcloud_gke,
     rds as aws_rds,
     gcloud,
     gcloud_pot,
@@ -27,6 +30,8 @@ from .errors import (
     ProjectError,
     SpecValidatorError,
     TerraformCliError,
+    KubectlCliError,
+    HelmCliError,
 )
 from .project import Project
 
@@ -37,12 +42,15 @@ CLI_CLOUD_VENDORS = {
     'aws-pot': ('EDB POT on AWS Cloud', aws_pot),
     'aws-rds': ('AWS RDS Cloud', aws_rds),
     'aws-rds-aurora': ('AWS RDS Aurora Cloud', aws_rds_aurora),
+    'aws-eks': ('AWS EKS Cloud', aws_eks),    
     'azure': ('Azure Cloud', azure),
     'azure-pot': ('EDB POT on Azure Cloud', azure_pot),
     'azure-db': ('Azure Database Cloud', azure_db),
+    'azure-aks': ('Azure Kubernetes Service', azure_aks),
     'gcloud': ('Google Cloud', gcloud),
     'gcloud-pot': ('EDB POT on Google Cloud', gcloud_pot),
     'gcloud-sql': ('Google Cloud SQL', gcloud_sql),
+    'gcloud-gke': ('Google Cloud - Google Kubernetes Engine', gcloud_gke),
     'baremetal': ('Baremetal servers and VMs', baremetal),
     'vmware': ('VMWare Workstation', vmware),
     'virtualbox': ('VirtualBox', virtualbox),
@@ -172,6 +180,8 @@ class EDBDeploymentCLI():
             ProjectError,
             TerraformCliError,
             AnsibleCliError,
+            KubectlCliError,
+            HelmCliError,
             SpecValidatorError
         ) as e:
             # Update states

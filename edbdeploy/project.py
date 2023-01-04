@@ -12,7 +12,7 @@ import yaml
 
 from .action import ActionManager as AM
 from .ansible import AnsibleCli
-from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli
+from .cloud import CloudCli, AWSCli, AzureCli, GCloudCli, KubectlCli, HelmCli
 from .errors import ProjectError
 from .password import get_password, list_passwords
 from .specifications import default_spec, merge_user_spec
@@ -67,8 +67,12 @@ class Project:
         'data',
         'virtualbox'
     )
+ 
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
+    # No need to define version for kubernetes core
+    k8s_core_ansible_collection_name = 'kubernetes.core'  # noqa    
+    k8s_community_ansible_collection_name = 'kubernetes.core' # noqa
 
     def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
@@ -134,6 +138,10 @@ class Project:
         # Check cloud vendor CLI/SDK version
         cloud_cli = CloudCli(self.cloud, bin_path=self.cloud_tools_bin_path)
         cloud_cli.check_version()
+        # Check Helm CLI/SDK version
+        helm = HelmCli(bin_path='/usr/local/bin/helm/')
+        helm.check_version()
+        # No need to check Kubectl CLI/SDK version
 
     def create_log_dir(self):
         try:
@@ -290,14 +298,14 @@ class Project:
                             d.write(line.replace("%PROJECT_NAME%", self.name))
                 os.unlink(template_path)
 
-    def _init_terraform_vars(self, env):
+    def _init_terraform_vars(self, env):          
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
-        os = env.cloud_spec['available_os'][env.operating_system]
         pem = env.cloud_spec['pem_server']
         dbt2_client = env.cloud_spec['dbt2_client']
         dbt2_driver = env.cloud_spec['dbt2_driver']
-        hammerdb = env.cloud_spec['hammerdb_server']
+        hammerdb = env.cloud_spec['hammerdb_server']         
+        os = env.cloud_spec['available_os'][env.operating_system]
 
         self.terraform_vars = {
             'barman': ra['barman'],
@@ -393,7 +401,7 @@ class Project:
     def _build_ansible_vars_file(self, env):
         """
         Build and save the file that contains Ansible variables.
-        """
+        """                  
         with AM("Building Ansible vars file %s" % self.ansible_vars_file):
             self._build_ansible_vars(env)
             logging.debug("ansible_vars=%s", self.ansible_vars)
@@ -544,7 +552,7 @@ class Project:
     def _copy_ansible_playbook(self):
         """
         Copy reference architecture Ansible playbook into project directory.
-        """
+        """    
         with AM(
             "Copying Ansible playbook file into %s" % self.ansible_playbook
         ):
@@ -584,7 +592,8 @@ class Project:
         # Load specifications
         env.cloud_spec = self._load_cloud_specs(env)
         # Copy SSH keys
-        self._copy_ssh_keys(env)
+        if self.env.cloud not in ['aws-eks', 'azure-aks', 'gcloud-gke']:
+            self._copy_ssh_keys(env)
 
         # Post-configure hook
         exec_hook(self, 'hook_post_configure', env)
@@ -649,6 +658,7 @@ class Project:
         Build Ansible variables for the IaaS cloud vendors: aws, gcloud and
         azure.
         """
+           
         # Fetch EDB repo. username and password
         r = re.compile(r"^([^:]+):(.+)$")
         m = r.search(env.edb_credentials)
@@ -836,6 +846,16 @@ class Project:
                 % self.ansible_collection_name
             ):
                 ansible.install_collection(self.ansible_collection_name)
+            with AM(
+                "Installing Kubernetes Core Ansible collection %s"
+                % self.k8s_core_ansible_collection_name
+            ):
+                ansible.install_collection(self.k8s_core_ansible_collection_name)
+            with AM(
+                "Installing Kubernetes Community Ansible collection %s"
+                % self.k8s_community_ansible_collection_name
+            ):
+                ansible.install_collection(self.k8s_community_ansible_collection_name)
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
@@ -1138,6 +1158,16 @@ class Project:
                 'cli': GCloudCli(bin_path=Project.cloud_tools_bin_path),
                 'cloud_vendors': ['gcloud-sql']
             },
+            {
+                'name': 'Kubectl',
+                'cli': KubectlCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': [ 'aws-eks', 'azure-aks', 'gcloud-gke' ]
+            },
+            {
+                'name': 'Helm',
+                'cli': HelmCli(bin_path=Project.cloud_tools_bin_path),
+                'cloud_vendors': [ 'aws-eks', 'azure-aks', 'gcloud-gke' ]
+            }, 
         ]
 
         for tool in tools:
@@ -1389,7 +1419,7 @@ class Project:
         self._transform_terraform_tpl()
         # Build the vars files for Terraform and Ansible
         self._build_terraform_vars_file(env)
-        self._build_ansible_vars_file(env)
+        self._build_ansible_vars_file(env)        
         # Build edb credential file
         self._save_edb_credentials(env)
         # Copy Ansible playbook into project dir.
@@ -1727,3 +1757,4 @@ class Project:
             self.ansible_vars['route53_secret'] = n_route53_secret
             self.ansible_vars['route53_session_token'] = n_route53_session_token
             self._save_ansible_vars()
+            
