@@ -502,38 +502,40 @@ class Project:
                         'primary_node_private_ip': pg1['private_ip'],
                     }
                 })
-        if env.cloud_spec['dbt2']:
-            inventory['all']['children']['primary']['hosts']['primary1']['dbt2'] = True
-        if env.cloud_spec['dbt2_client']['count'] > 0:
-            inventory['all']['children'].update({
-                'dbt2_client': {
-                    'hosts': {}
-                }
-            })
-            for i in range(env.cloud_spec['dbt2_client']['count']):
-                name = 'dbt2_client_' + str(i)
-                clienti = env.cloud_spec[name]
-                inventory['all']['children']['dbt2_client']['hosts'].update({
-                    name: {
-                        'ansible_host': clienti['public_ip'],
-                        'private_ip': clienti['private_ip'],
+
+        # Don't do anything with dbt2 if the dbt2 key is not present
+        if 'dbt2' in env.cloud_spec:
+            inventory['all']['children']['primary']['hosts'][pg1['name']]['dbt2'] = True
+            if env.cloud_spec['dbt2_client']['count'] > 0:
+                inventory['all']['children'].update({
+                    'dbt2_client': {
+                        'hosts': {}
                     }
                 })
-        if env.cloud_spec['dbt2_driver']['count'] > 0:
-            inventory['all']['children'].update({
-                'dbt2_driver': {
-                    'hosts': {}
-                }
-            })
-            for i in range(env.cloud_spec['dbt2_driver']['count']):
-                name = 'dbt2_driver_' + str(i)
-                driveri = env.cloud_spec[name]
-                inventory['all']['children']['dbt2_driver']['hosts'].update({
-                    name: {
-                        'ansible_host': driveri['public_ip'],
-                        'private_ip': driveri['private_ip'],
+                for i in range(env.cloud_spec['dbt2_client']['count']):
+                    name = 'dbt2_client_' + str(i)
+                    clienti = env.cloud_spec[name]
+                    inventory['all']['children']['dbt2_client']['hosts'].update({
+                        name: {
+                            'ansible_host': clienti['public_ip'],
+                            'private_ip': clienti['private_ip'],
+                        }
+                    })
+            if env.cloud_spec['dbt2_driver']['count'] > 0:
+                inventory['all']['children'].update({
+                    'dbt2_driver': {
+                        'hosts': {}
                     }
                 })
+                for i in range(env.cloud_spec['dbt2_driver']['count']):
+                    name = 'dbt2_driver_' + str(i)
+                    driveri = env.cloud_spec[name]
+                    inventory['all']['children']['dbt2_driver']['hosts'].update({
+                        name: {
+                            'ansible_host': driveri['public_ip'],
+                            'private_ip': driveri['private_ip'],
+                        }
+                    })
 
         with open(self.ansible_inventory, 'w') as f:
             f.write(yaml.dump(inventory, default_flow_style=False))
