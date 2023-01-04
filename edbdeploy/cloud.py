@@ -1033,11 +1033,16 @@ class HelmCli:
             rm ./get_helm.sh
 
             # Install gcloud gke plugin
-            gcloud components install gke-gcloud-auth-plugin
-            gcloud components install kubectl
-            # Install dependency packages 
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+            gcloud components --quiet install gke-gcloud-auth-plugin
+            gcloud components --quiet install kubectl
+            # Workaround for Ansible Virtual Environment
+            source $HOME/.edb-cloud-tools/ansible/2.12.10/bin/activate
+            # Install dependency packages            
             pip install openshift pyyaml kubernetes 
             pip install pyhelm
+            # Deactivate Ansible Virtual Environment
+            deactivate
             # Install Ansible Galaxy Collections
             ansible-galaxy collection install kubernetes.core --force
             ansible-galaxy collection install community.kubernetes --force
