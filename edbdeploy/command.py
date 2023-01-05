@@ -14,10 +14,7 @@ from .projects.virtualbox import VirtualBoxProject
 from .projects.aws_pot import AWSPOTProject
 from .projects.azure_pot import AzurePOTProject
 from .projects.gcloud_pot import GCloudPOTProject
-# Kubernetes
-from .projects.aws_eks import AWSEKSProject
-from .projects.azure_aks import AzureAKSProject
-from .projects.gcloud_gke import GCloudGKEProject
+
 
 class CommanderError(Exception):
     pass
@@ -53,12 +50,6 @@ class Commander:
                 self.project = AzurePOTProject(self.env.project, self.env)
             elif self.env.cloud == 'gcloud-pot':
                 self.project = GCloudPOTProject(self.env.project, self.env)
-            elif self.env.cloud == 'aws-eks':
-                self.project = AWSEKSProject(self.env.project, self.env)
-            elif self.env.cloud == 'azure-aks':
-                self.project = AZUREAKSProject(self.env.project, self.env)
-            elif self.env.cloud == 'gcloud-gke':
-                self.project = GCloudGKEProject(self.env.project, self.env)                
             else:
                 self.project = Project(
                     self.env.cloud, self.env.project, self.env
@@ -139,7 +130,11 @@ class Commander:
         self.project.check_versions()
 
         logging.info("Deploying components for project %s", self.project.name)
-        self.project.deploy(self.env.disable_pipelining)
+        self.project.deploy(self.env.no_install_collection,
+                            self.env.pre_deploy_ansible,
+                            self.env.post_deploy_ansible,
+                            self.env.skip_main_playbook,
+                            self.env.disable_pipelining)
 
     def display(self):
         self._check_project_exists()

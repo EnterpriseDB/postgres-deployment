@@ -285,14 +285,6 @@ class GCloudRegionOption:
     """)
 
 
-class GCloudCNPOption:
-    choices = ['pg', 'postgres']
-    default = 'pg'
-    help = textwrap.dedent("""
-        CloudNative Deployment Types. Allowed values are pg, and postgres. Default: %(default)s
-    """)
-    
-    
 class GCloudCredentialsOption:
 
     help = textwrap.dedent("""

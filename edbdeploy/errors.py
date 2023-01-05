@@ -18,12 +18,6 @@ class TerraformCliError(Exception):
     pass
 
 
-class KubectlCliError(Exception):
-    pass
-
-class HelmCliError(Exception):
-    pass
-
 class TPAexecCliError(Exception):
     pass
 
