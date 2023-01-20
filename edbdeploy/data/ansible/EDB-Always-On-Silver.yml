@@ -39,7 +39,7 @@
       when: "'pemserver' in group_names"
     - role: manage_dbserver
       when: "'pemserver' in group_names"
-    - role: autotuning
+    - role: tuning
       when: "'pemserver' in group_names"
     - role: setup_pemserver
       when: "'pemserver' in group_names"

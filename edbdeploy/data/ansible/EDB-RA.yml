@@ -33,8 +33,8 @@
       when: "'setup_barmanserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: setup_barman
       when: "'setup_barman' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-    - role: autotuning
-      when: "'autotuning' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
+    - role: tuning
+      when: "'tuning' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: pot_setup
       when: group_names | select('search','barmanserver') | list | count < 1
     - role: setup_pemagent
