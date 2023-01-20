@@ -22,6 +22,15 @@ EDBRA1Spec = {
             default=0
         ),
     },
+    'available_os': {
+        'RockyLinux8': {
+            'image': SpecValidator(
+                type='string',
+                default='generic/rocky8',
+            ),
+        },
+    },
+    'ipv4': SpecValidator(type='ipv4', default='192.168.56.101'),
     'ssh_user': SpecValidator(type='string', default=None),
     'pg_data': SpecValidator(type='string', default=None),
     'pg_wal': SpecValidator(type='string', default=None),
