@@ -1,4 +1,4 @@
-__version__ = "3.12.0"
+__version__ = "3.13.0"
 # Version number of the Ansible collection we want to use
 __edb_ansible_version__ = "3.16.0"
 
