@@ -13,6 +13,8 @@ from .system import exec_shell_live, exec_shell
 from .errors import TerraformCliError
 from . import check_version, to_str
 
+import edbterraform.__main__
+
 
 class TerraformCli:
 
@@ -22,8 +24,8 @@ class TerraformCli:
         self.environ = os.environ.copy()
         self.environ['TF_PLUGIN_CACHE_DIR'] = self.plugin_cache_dir
         # Terraform supported version interval
-        self.min_version = (1, 0, 0)
-        self.max_version = (1, 0, 1)
+        self.min_version = (1, 3, 0)
+        self.max_version = (1, 3, 7)
         # Path to look up for executable
         self.bin_path = None
         # Force Terraform binary path if bin_path exists and contains
@@ -116,8 +118,6 @@ class TerraformCli:
                     self.bin("terraform"),
                     "apply",
                     "-auto-approve",
-                    "-var-file",
-                    vars_file,
                     "-no-color"
                 ],
                 environ=self.environ,
@@ -139,8 +139,6 @@ class TerraformCli:
                     self.bin("terraform"),
                     "destroy",
                     "-auto-approve",
-                    "-var-file",
-                    vars_file,
                     "-no-color"
                 ],
                 environ=self.environ,
@@ -229,3 +227,11 @@ class TerraformCli:
 
         # Execute the installation script
         execute_install_script(script_name)
+
+    def generate_terraform_files(project_directory, cloud_service_provider, infrastructure_file,):
+        terraform_output = edbterraform.__main__.main([
+            project_directory,
+            '-c',
+            cloud_service_provider,
+            infrastructure_file,
+        ])
