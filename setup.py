@@ -49,7 +49,13 @@ Advanced Server, and EDB Tools in the Cloud.
     ],
     keywords="postgresql edb epas cli deploy cloud aws rds aurora azure gcloud vmware",
     python_requires=">=2.7",
-    install_requires=["argcomplete", "PyYAML>=5.1", "psutil", "jinja2"],
+    install_requires=[
+        "argcomplete",
+        "PyYAML>=5.1",
+        "psutil",
+        "jinja2",
+        "edb-terraform@https://github.com/EnterpriseDB/edb-terraform/archive/refs/heads/v1_0.zip",
+    ],
     extras_require={},
     data_files=[],
     package_data={
