@@ -19,9 +19,5 @@
       when: "'install_dbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
     - role: init_dbserver
       when: "'init_dbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-
-    - role: setup_hammerdbserver
-      when: "'setup_hammerdbserver' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"
-
     - role: setup_hammerdb
       when: "'setup_hammerdb' in lookup('edb_devops.edb_postgres.supported_roles', wantlist=True)"

@@ -1,0 +1,54 @@
+{#-----------------------------------------------------------------------------
+Template name: ssh_config.j2
+Description: ssh configuration template based on its pg_type tag
+variables should be set:
+  - private_key_path: filepath to ssh private key
+  - servers: dictionary of dictionaries
+            { instance name =>
+                public_ip,
+                tags => {pg_type=string, type=string, pooler_type=string, index=int, priority=int, postgres_group:any},
+                operating_system => {ssh_user=string},
+            }
+    - pg_type='EPAS' from tags is optional and will default to a
+      non-epas configuration if unset
+    - pooler_type='pgpool2' from tags is optional and will default to pgbouncer
+    - postgres_group should be set for postgres, bdr, and bdr-witness instances
+-----------------------------------------------------------------------------#}
+{% set private_key_path = private_key_path %}
+{% set servers = servers %}
+{% set ordered_servers = servers.items() | sort(attribute=('1.tags.priority', '1.tags.index')) %}
+{% set hostfiles = ['known_hosts', 'tpa_known_hosts'] %}
+Host *
+    Port 22
+    IdentitiesOnly yes
+    IdentityFile {{ private_key_path }}
+    UserKnownHostsFile{% for filename in hostfiles %} {{filename}}{% if loop.last %}{{"\n"}}{% endif %}{% endfor %}
+    ServerAliveInterval 60
+
+{% for key, values in ordered_servers if values.tags.type in psql_types and values.tags.postgres_group is defined %}
+Host {% if 'pg_type' in values.tags and values.tags.pg_type == 'EPAS' %}epas{% else %}pgsql{% endif %}{{ loop.index }}
+    # servers.yml machine key: {{ key }}
+    User {{ values.operating_system.ssh_user }}
+    Hostname {{ values.public_ip }}
+{% endfor %}
+
+{% for key, values in ordered_servers if values.tags.type == 'pem_server' and values.tags.priority | int == 1 %}
+Host pemserver{{ values.tags.index }}
+    # servers.yml machine key: {{ key }}
+    User {{ values.operating_system.ssh_user }}
+    Hostname {{ values.public_ip }}
+{% endfor %}
+
+{% for key, values in ordered_servers if values.tags.type == 'barman_server' %}
+Host barmanserver{{ values.tags.index }}
+    # servers.yml machine key: {{ key }}
+    User {{ values.operating_system.ssh_user }}
+    Hostname {{ values.public_ip }}
+{% endfor %}
+
+{% for key, values in ordered_servers if values.tags.type == 'pooler_server' %}
+Host {% if 'pooler_type' in values.tags and values.tags.pooler_type == 'pgpool2' %}pgpool2{% else %}pgbouncer{% endif %}{{ values.tags.index }}
+    # servers.yml machine key: {{ key }}
+    User {{ values.operating_system.ssh_user }}
+    Hostname {{ values.public_ip }}
+{% endfor %}

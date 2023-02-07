@@ -1,0 +1,166 @@
+---
+all:
+  children:
+{% if servers.get('pem_server', []) | length > 0 %}
+    pemserver:
+      hosts:
+{%   if vars['reference_architecture'].startswith('EDB-Always-On') %}
+        pemserver1:
+{%   else %}
+        pemserver1.{{ vars['cluster_name'] }}.internal:
+{%   endif %}
+          ansible_host: {{ servers['pem_server'][0]['public_ip'] }}
+          private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{% endif %}
+{% if servers.get('barman_server', []) | length > 0 %}
+    barmanserver:
+      hosts:
+{%   for barman_server in servers['barman_server'] %}
+{%     if vars['reference_architecture'].startswith('EDB-Always-On') %}
+        barmandc{{ barman_server['id'] }}:
+{%     else %}
+        barmanserver{{ barman_server['id']}}.{{ vars['cluster_name'] }}.internal:
+{%     endif %}
+          ansible_host: {{ barman_server['public_ip'] }}
+          private_ip: {{ barman_server['private_ip'] }}
+{%     if servers.get('pem_server', []) | length > 0 %}
+          pem_agent: true
+          pem_server_private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if servers.get('postgres_server', []) | length > 0 %}
+{%   for postgres_server in servers['postgres_server'] %}
+{%     if postgres_server['id'] == 1 %}
+    primary:
+      hosts:
+{%     elif postgres_server['id'] == 2 %}
+    standby:
+      hosts:
+{%     endif %}
+{%     if vars['pg_type'] == 'EPAS' %}
+        epas{{ postgres_server['id'] }}.{{ vars['cluster_name'] }}.internal:
+{%     else %}
+        pgsql{{ postgres_server['id'] }}.{{ vars['cluster_name'] }}.internal:
+{%     endif %}
+          ansible_host: {{ postgres_server['public_ip'] }}
+          private_ip: {{ postgres_server['private_ip'] }}
+{%     if servers.get('barman_server', []) | length > 0 %}
+          barman: true
+          barman_server_private_ip: {{ servers['barman_server'][0]['private_ip'] }}
+          barman_backup_method: postgres
+{%     endif %}
+{%     if vars['dbt2'] == true %}
+          dbt2: true
+{%     endif %}
+{%     if servers.get('dbt2_client', []) | length > 0 %}
+{%       for dbt2_client in servers['dbt2_client'] %}
+          dbt2_client_private_ip{{ dbt2_client['id']}}: {{ dbt2_client['private_ip'] }}
+{%       endfor %}
+{%     endif %}
+{%     if servers.get('hammerdb_server', []) | length > 0 %}
+          hammerdb: true
+          hammerdb_server_private_ip: {{ servers['hammerdb_server'][0]['private_ip'] }}
+{%     endif %}
+{%     if vars['pooler_local'] == True and vars['pooler_type'] == 'pgbouncer' %}
+          pgbouncer: true
+{%     endif %}
+{%     if postgres_server['id'] > 1 %}
+{%       if postgres_server['id'] == 2 %}
+          replication_type: {{ vars['replication_type'] }}
+{%       else %}
+          replication_type: asynchronous
+{%       endif %}
+          upstream_node_private_ip: {{ servers['postgres_server'][0]['private_ip'] }}
+{%     endif %}
+{%     if servers.get('pem_server', []) | length > 0 %}
+          pem_agent: true
+          pem_server_private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if servers.get('bdr_server', []) | length > 0 %}
+{%   for bdr_server in servers['bdr_server'] %}
+{%     if bdr_server['id'] == 1 %}
+    primary:
+      hosts:
+{%     endif %}
+{%     if vars['pg_type'] == 'EPAS' %}
+        epas{{ bdr_server['id'] }}:
+{%     else %}
+        pgsql{{ bdr_server['id'] }}:
+{%     endif %}
+          ansible_host: {{ bdr_server['public_ip'] }}
+          private_ip: {{ bdr_server['private_ip'] }}
+{%     if servers.get('pem_server', []) | length > 0 %}
+          pem_agent: true
+          pem_server_private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if servers.get('bdr_witness_server', []) | length > 0 %}
+{%   for bdr_witness_server in servers['bdr_witness_server'] %}
+{%     if vars['pg_type'] == 'EPAS' %}
+        epas{{ bdr_witness_server['id'] + (servers['bdr_server'] | length) }}:
+{%     else %}
+        pgsql{{ bdr_witness_server['id'] + (servers['bdr_server'] | length) }}:
+{%     endif %}
+          ansible_host: {{ bdr_witness_server['public_ip'] }}
+          private_ip: {{ bdr_witness_server['private_ip'] }}
+{%     if servers.get('pem_server', []) | length > 0 %}
+          pem_agent: true
+          pem_server_private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if servers.get('pooler_server', []) | length > 0 %}
+{%   if vars['pooler_type'] == 'pgpool2' %}
+    pgpool2:
+{%   elif vars['pooler_type'] == 'pgbouncer' %}
+    pgbouncer:
+{%   endif %}
+      hosts:
+{%   for pooler_server in servers['pooler_server'] %}
+{%    if servers.get('bdr_server', []) | length > 0 %}
+        pgbouncer{{ pooler_server['id'] }}:
+{%    else %}
+        {{ vars['pooler_type'] }}{{ pooler_server['id'] }}.{{ vars['cluster_name'] }}.internal:
+{%    endif %}
+          ansible_host: {{ pooler_server['public_ip'] }}
+          private_ip: {{ pooler_server['private_ip'] }}
+{%     if servers.get('postgres_server', []) | length > 0 %}
+          primary_private_ip: {{ servers['postgres_server'][0]['private_ip'] }}
+{%     endif %}
+{%     if servers.get('pem_server', []) | length > 0 %}
+          pem_agent: true
+          pem_server_private_ip: {{ servers['pem_server'][0]['private_ip'] }}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if servers.get('dbt2_client', []) | length > 0 %}
+    dbt2_client:
+      hosts:
+{%   for dbt2_client in servers['dbt2_client'] %}
+        dbt2_client{{ dbt2_client['id']}}.{{ vars['cluster_name'] }}.internal:
+          ansible_host: {{ dbt2_client['public_ip'] }}
+          private_ip: {{ dbt2_client['private_ip'] }}
+{%   endfor %}
+{% endif %}
+{% if servers.get('dbt2_driver', []) | length > 0 %}
+    dbt2_driver:
+      hosts:
+{%   for dbt2_driver in servers['dbt2_driver'] %}
+        dbt2_driver{{ dbt2_driver['id']}}.{{ vars['cluster_name'] }}.internal:
+          ansible_host: {{ dbt2_driver['public_ip'] }}
+          private_ip: {{ dbt2_driver['private_ip'] }}
+{%   endfor %}
+{% endif %}
+{% if servers.get('hammerdb_server', []) | length > 0 %}
+    hammerdbserver:
+      hosts:
+{%   for hammerdb_server in servers['hammerdb_server'] %}
+        hammerdbserver{{ hammerdb_server['id']}}.{{ vars['cluster_name'] }}.internal:
+          ansible_host: {{ hammerdb_server['public_ip'] }}
+          private_ip: {{ hammerdb_server['private_ip'] }}
+{%   endfor %}
+{% endif %}

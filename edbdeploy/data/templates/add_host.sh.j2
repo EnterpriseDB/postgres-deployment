@@ -1,0 +1,21 @@
+{#-----------------------------------------------------------------------------
+Template name: add_host.sh.j2
+Description: Script template to set an ssh key and a list of ips with ssh-add 
+    and ssh-keyscan. Output be added to tpa_known_hosts and .ssh/known_hosts .
+    When public dns is available, it will be set if with ssh-keygen.
+variables should be set:
+  - private_key_path: filepath to ssh private key
+  - servers: dictionary of { instance name => public_ip, public_dns }
+    - hostname is optional and will default to ip if not set
+-----------------------------------------------------------------------------#}
+{% set servers = servers %}
+{% set private_key_path = private_key_path %}
+
+echo "Setting SSH Keys"
+ssh-add {{ private_key_path }}
+echo "Adding IPs"
+{% for key, values in servers.items() %}
+ssh-keyscan -H {{ values.public_ip }} >> ~/.ssh/known_hosts
+ssh-keyscan -H {{ values.public_ip }} >> tpa_known_hosts
+ssh-keygen -f ~/.ssh/known_hosts -R {{ values.public_dns|default(values.public_ip) }}
+{% endfor %}
