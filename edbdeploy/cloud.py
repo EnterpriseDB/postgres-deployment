@@ -20,7 +20,7 @@ class AWSCli:
     def __init__(self, bin_path=None):
         # aws CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (1, 19, 97)
+        self.max_version = (1, 22, 34)
         # Path to look up for executable
         self.bin_path = None
         # Force aws CLI binary path if bin_path exists and contains
@@ -77,7 +77,7 @@ class AWSCli:
         else:
             return binary
 
-    def check_instance_type_availability(self, instance_type, region):
+    def check_instance_type_availability(self, instance_type, region) -> list:
         try:
             output = exec_shell([
                 self.bin("aws"),
@@ -90,11 +90,51 @@ class AWSCli:
             ])
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
-            if len(result["InstanceTypeOfferings"]) == 0:
+            instance_type_offerings = result.get("InstanceTypeOfferings", [])
+            if len(instance_type_offerings) == 0:
                 raise CloudCliError(
                     "Instance type %s not available in region %s"
                     % (instance_type, region)
                 )
+            aws_var = 'Location'
+            filtered = [value[aws_var] for value in instance_type_offerings if value.get(aws_var)]
+            if len(filtered) == 0:
+                raise CloudCliError('Variable %s not found' % (aws_var))
+            return filtered
+
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def get_image_info(self, image, region):
+        try:
+            output = exec_shell([
+                self.bin("aws"),
+                "ec2",
+                "describe-images",
+                "--filters Name=name,Values=\"%s\"" % image,
+                "--query 'sort_by(Images, &Name)[-1]'",
+                "--region %s" % region,
+                "--output json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+
+            if result.get('State') == 'available':
+                return result
+
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -112,21 +152,64 @@ class AWSCli:
             )
 
     def get_image_id(self, image, region):
+        result = self.get_image_info(image, region)
+        return result.get('ImageId')
+    
+    def get_image_owner(self, image, region):
+        result = self.get_image_info(image, region)
+        return result.get('OwnerId')
+    
+    def get_caller_info(self) -> str:
+        try:
+            output = exec_shell([
+                self.bin("aws"),
+                "sts",
+                "get-caller-identity",
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+
+            return result.get('UserId')
+
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+
+    def get_available_zones(self, region) -> list:
         try:
             output = exec_shell([
                 self.bin("aws"),
                 "ec2",
-                "describe-images",
-                "--filters Name=name,Values=\"%s\"" % image,
-                "--query 'sort_by(Images, &Name)[-1]'",
+                "describe-availability-zones",
+                "--filters Name=state,Values=available",
                 "--region %s" % region,
                 "--output json"
             ])
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
-
-            if result.get('State') == 'available':
-                return result.get('ImageId')
+            availability_zones = result.get('AvailabilityZones', [])
+            if len(availability_zones) == 0:
+                raise CloudCliError(
+                    "Region %s has no available zones"
+                    % (region)
+                )
+            aws_var = 'ZoneName'
+            filtered = [value[aws_var] for value in availability_zones if value.get(aws_var)]
+            if len(filtered) == 0:
+                raise CloudCliError('Variable %s not found' % (aws_var))
+            return filtered
 
         except ValueError:
             # JSON decoding error

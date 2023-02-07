@@ -54,7 +54,7 @@ Advanced Server, and EDB Tools in the Cloud.
         "PyYAML>=5.1",
         "psutil",
         "jinja2",
-        "edb-terraform@https://github.com/EnterpriseDB/edb-terraform/archive/refs/heads/v1_0.zip",
+        "edb-terraform@https://github.com/EnterpriseDB/edb-terraform/archive/refs/heads/v1_2.zip",
     ],
     extras_require={},
     data_files=[],

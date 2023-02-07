@@ -20,6 +20,9 @@ from .spec.reference_architecture import ReferenceArchitectureSpec
 from .system import exec_shell
 from .terraform import TerraformCli
 from .tpaexec import TPAexecCli
+from .render import redirect_io, build_add_host_sh, build_ssh_config, load_yaml_file
+import edbterraform.__main__
+
 from . import __edb_ansible_version__
 
 
@@ -70,10 +73,11 @@ class Project:
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
 
-    def __init__(self, cloud, name, env, bin_path=None):
+    def __init__(self, cloud, name, env, bin_path=None, using_edbterraform=False):
         self.env = env
         self.name = name
         self.cloud = cloud
+        self.cloud_provider = self.cloud.split('-')[0] # ex: aws, aws-rds, azure, azure-db, gcloud, gcloud-sql
         self.project_path = os.path.join(
             self.projects_root_path,
             self.cloud,
@@ -93,6 +97,14 @@ class Project:
         self.terraform_vars_file = os.path.join(
             self.project_path,
             'terraform_vars.json'
+        )
+        self.using_edbterraform = using_edbterraform
+        self.edbterraform_dir = 'terraform-infrastructure'
+        self.edbterraform_vars_file = 'terraform.tfvars.json'
+        self.servers_file = 'servers.yml'
+        self.project_terraform_path = os.path.join(
+            self.project_path,
+            self.edbterraform_dir
         )
         self.edb_creds_file = os.path.join(
             self.project_path,
@@ -203,12 +215,20 @@ class Project:
         # Pre-create hook
         exec_hook(self, 'hook_pre_create')
 
-        # Copy terraform code
-        with AM("Copying Terraform code from into %s" % self.project_path):
-            try:
-                shutil.copytree(self.terraform_path, self.project_path)
-            except Exception as e:
-                raise ProjectError(str(e))
+        # Copy of terraform is only needed if not using edb-terraform
+        # edb-terraform handles the terraform file generation
+        if not self.using_edbterraform:
+            with AM("Copying Terraform code from into %s" % self.project_path):
+                try:
+                    shutil.copytree(self.terraform_path, self.project_path)
+                except Exception as e:
+                    raise ProjectError(str(e))
+        else:
+            with AM("Creating project directory %s" % self.project_path):
+                try:
+                    os.makedirs(name=self.project_path,mode=0o750)
+                except Exception as e:
+                    raise ProjectError(str(e))
         with AM("Initializing state file"):
             self.init_state()
 
@@ -622,6 +642,199 @@ class Project:
             logging.error(str(e))
             raise ProjectError(msg)
 
+    def _get_terraform_directory(self) -> str:
+        '''
+        With edb-terraform added, files may now be generated inside of
+        terraform-infrastructure directory or the default project directory
+
+        This will return the path to edb-terraform and fallback if it can't be found or using_edbterraform is False
+        '''
+        return  self.project_path if not self.using_edbterraform or not os.path.isdir(self.project_terraform_path) else self.project_terraform_path
+    
+    def _get_terraform_vars_file(self) -> str:
+        return self.terraform_vars_file if self._get_terraform_directory() == self.project_path else self.edbterraform_vars_file
+
+    def _get_servers_filepath(self) -> str:
+        return os.path.join(self._get_terraform_directory(), self.servers_file)
+    
+    def _load_terraform_outputs(self) -> dict:
+        return load_yaml_file(self._get_servers_filepath())
+
+    def _get_terraform_instances(self) -> dict:
+        '''
+        Available instances from servers.yml:
+        { 'servers': {'machines': dict(), 'databases': dict(), 'other': dict()} }
+        All instances are grouped without the type is (machine/database/other)
+        and None/Falsy will be filtered out.
+        '''
+        terraform_output = self._load_terraform_outputs()
+        servers = terraform_output.get('servers').copy()
+        filtered = {
+            name: values
+            for _, instances in servers.items()
+            if instances for name, values in instances.items()
+        }
+        return filtered
+
+    def _get_default_ports(self):
+        '''
+        Get the default needed ports for most reference architectures.
+        Returned as a tuple of (service_ports, region_ports) for use with edb-terraform
+        '''
+        service_ports = list()
+        service_ports.append({'port': 22, 'protocol': 'tcp', 'description': 'SSH default'})
+        service_ports.append({'port': 80, 'protocol': 'tcp', 'description': 'http'})
+        service_ports.append({'port': 8443, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.append({'port': 5432, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.append({'port': 5444, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.extend([{'port': port, 'protocol': 'tcp', 'description': 'tcp'} for port in range(7800,7811)])
+        service_ports.append({'port': 9999, 'protocol': 'tcp', 'description': 'pgpool2 user connections'})
+        service_ports.append({'port': 9898, 'protocol': 'tcp', 'description': 'pgpool2 pcp'})
+        service_ports.append({'port': 9898, 'protocol': 'udp', 'description': 'pgpool2 pcp'})
+        service_ports.append({'port': 9000, 'protocol': 'tcp', 'description': 'pgpool2 watchdog'})
+        service_ports.append({'port': 9000, 'protocol': 'udp', 'description': 'pgpool2 watchdog'})
+        service_ports.append({'port': 9694, 'protocol': 'tcp', 'description': 'pgpool2 heartbeat'})
+        service_ports.append({'port': 9694, 'protocol': 'udp', 'description': 'pgpool2 heartbeat'})
+        service_ports.append({'port': 6432, 'protocol': 'tcp', 'description': 'pgbouncer'})
+        service_ports.append({'port': 5442, 'protocol': 'tcp', 'description': 'HARP'})
+        service_ports.append({'port': 2379, 'protocol': 'tcp', 'description': 'etcd client'})
+        service_ports.append({'port': 2380, 'protocol': 'tcp', 'description': 'etcd peer'})
+        service_ports.append({'port': 30000, 'protocol': 'tcp', 'description': 'dbt2 client'})
+        region_ports = list()
+        region_ports.append({'protocol': 'icmp', 'description': 'regional ping'})
+
+        return service_ports, region_ports
+
+    def _build_edbterraform_vars(self):
+        '''
+        Get variables ready for use with edbterraform
+        We can reuse the terraform_vars.json
+        to store the infrastructure since json is valid yaml
+
+        edb-terraform takes in an infrastructure yaml
+        then it converts  { cloud service provider: variables } to { spec: variables }
+        which is then used to generate our terraform files.
+
+        Each cloud provider will have a specification module which shows which variables can/should be defined:
+        - aws [spec](https://github.com/EnterpriseDB/edb-terraform/blob/main/edbterraform/data/terraform/aws/modules/specification/variables.tf)
+        - gcloud [spec](https://github.com/EnterpriseDB/edb-terraform/blob/main/edbterraform/data/terraform/gcloud/modules/specification/variables.tf)
+        - azure [spec](https://github.com/EnterpriseDB/edb-terraform/blob/main/edbterraform/data/terraform/azure/modules/specification/variables.tf)
+        '''
+        spec = dict()
+        # regions
+        zone_name_default = 'zone_default'
+        region_name_default = self.terraform_vars['region']
+        regions = dict()        
+        base_region = dict()
+        base_region['cidr_block'] = '10.2.0.0/16'
+        base_region['zones'] = dict()
+        base_region['zones'][zone_name_default] = dict()
+        base_region['zones'][zone_name_default]['cidr'] = '10.2.1.0/24'
+        base_region['zones'][zone_name_default]['zone'] = self.terraform_vars.get('zones')[-1]
+        # AWS requires a second zone for the VPC even if single zoned for services like RDS
+        base_region['zones']['second_zone'] = dict()
+        base_region['zones']['second_zone']['cidr'] = '10.2.2.0/24'
+        base_region['zones']['second_zone']['zone'] = self.terraform_vars.get('zones')[-2]
+        base_region['service_ports'] = self.terraform_vars.get('service_ports',[]).copy()
+        base_region['region_ports'] = self.terraform_vars.get('region_ports',[]).copy()
+        regions[region_name_default] = base_region
+        spec['regions'] = regions
+        # images
+        image_name_default = 'image_default'
+        images = dict()
+        images[image_name_default] = self.terraform_vars['image']
+        spec['images'] = images
+        # global tags
+        global_tags = dict()
+        global_tags['created_by'] = self.terraform_vars.get('created_by', 'postgres-deployment')
+        global_tags['cluster_name'] = self.terraform_vars['cluster_name']
+        spec['tags'] = global_tags
+        # machines
+        filtered_machines: dict = {
+            key: values for key, values in self.terraform_vars.items()
+            if any(substr in key for substr in ['dbt2_client', 'dbt2_driver', '_server']) and
+            isinstance(values, dict) and
+            values.get('count', 0) >= 1
+        }
+        machines = dict()
+        default_mounts = [ "/pgdata", "/pgwal", "/pgtblspc1", "/pgtblspc2", "/pgtblspc3" ]
+        barman_mount = '/var/lib/barman'
+        for key, values in filtered_machines.items():
+            for index in range(values.get('count',0)):
+                new_key = f'{key}-{index}' # each key must be unique
+                machines[new_key] = values.copy()
+                machine = machines[new_key]
+                del machine['count'] # remove since we will expand the machines
+                machine['image_name'] = image_name_default
+                machine['region'] = region_name_default
+                machine['zone_name'] = zone_name_default
+                machine['volume']['size_gb'] = machine['volume'].get('size', None)
+                machine['tags'] = dict({
+                    'reference_architecture': self.env.reference_architecture,
+                    'type': key,
+                    'pg_type': self.terraform_vars.get('pg_type', None),
+                    'index': index,
+                    'count': values.get('count'),
+                    'priority': index,
+                })
+                postgres_ordering = [
+                    'postgres_server',
+                    'bdr_server',
+                    'bdr_witness_server',
+                ]
+                if key in postgres_ordering:
+                    machine['tags']['priority'] = postgres_ordering.index(key)
+                    machine['tags']['postgres_group'] = key
+                if 'postgres' in key:
+                    if index == 1:
+                        machine['tags']['replication_type'] = self.terraform_vars.get('replication_type')
+                    elif index > 1:
+                        machine['tags']['replication_type'] = 'asynchronous'
+                if 'pooler' in key:
+                    machine['tags']['pooler_type'] = self.terraform_vars.get('pooler_type', 'pgbouncer')
+                    machine['tags']['pooler_local'] = self.terraform_vars.get('pooler_local', False)
+                additional_volumes = list()
+                if 'barman' in key and values.get('additional_volumes'):
+                    volume = values['additional_volumes'].copy()
+                    volume['mount_point'] = barman_mount
+                    volume['size_gb'] = values['additional_volumes'].get('size', None)
+                    additional_volumes.append(volume)
+                else:
+                    for idx in range(values.get('additional_volumes',{}).get('count', 0)):
+                        volume = values['additional_volumes'].copy()
+                        del volume['count'] # remove count since volumes are expanded
+                        volume['mount_point'] = default_mounts[idx]
+                        volume['size_gb'] = values['additional_volumes'].get('size', None)
+                        additional_volumes.append(volume)
+                machine['additional_volumes'] = additional_volumes
+        spec['machines'] = machines
+
+        # ssh keys
+        ssh_key = dict()
+        ssh_key['private_path'] = self.terraform_vars['ssh_priv_key']
+        ssh_key['public_path'] = self.terraform_vars['ssh_pub_key']
+        spec['ssh_key'] = ssh_key
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+        self.terraform_vars[self.cloud_provider].update(**spec)
+        self._save_terraform_vars()
+
+    def _build_terraform_files(self):
+        """
+        - Generate an infrastructure file based on edb-terraform v1.2
+        - Render terraform files with edb-terraform into project directory
+        """
+        self._build_terraform_vars_file(self.env)
+        with AM(f"Building EDB-Terraform variables for {self.cloud_provider}"):
+            self._build_edbterraform_vars()
+        with AM("Generating Terraform files"):
+            edb_terraform_entry = redirect_io(edbterraform.__main__.main)
+            terraform_output = edb_terraform_entry([
+                self.project_terraform_path,
+                '--cloud-service-provider', self.cloud_provider,
+                self.terraform_vars_file,
+            ])
+
     def _load_ansible_vars(self):
         try:
             with open(self.ansible_vars_file) as json_file:
@@ -724,7 +937,7 @@ class Project:
 
     def remove(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
+            self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
         # Prevent project deletion if some cloud resources are still present
@@ -765,7 +978,7 @@ class Project:
         self._load_terraform_vars()
 
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
+            self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
 
@@ -776,7 +989,7 @@ class Project:
 
         with AM("Applying cloud resources creation"):
             self.update_state('terraform', 'PROVISIONING')
-            terraform.apply(self.terraform_vars_file)
+            terraform.apply(self._get_terraform_vars_file())
             self.update_state('terraform', 'PROVISIONED')
 
         # inventory.yml and config.yml generation
@@ -801,17 +1014,25 @@ class Project:
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
         with AM("SSH configuration"):
+            if self.using_edbterraform:
+                template_vars = dict()
+                server_vars = self._load_terraform_outputs()
+                server_vars = server_vars.get('servers')
+                template_vars['servers'] = server_vars.get('machines', {})
+                template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
+                build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
+                build_ssh_config(dest=self.project_path, vars=template_vars)
             terraform.exec_add_host_sh()
 
     def destroy(self):
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
+            self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
 
         with AM("Destroying cloud resources"):
             self.update_state('terraform', 'DESTROYING')
-            terraform.destroy(self.terraform_vars_file)
+            terraform.destroy(self._get_terraform_vars_file())
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
 
@@ -1409,7 +1630,7 @@ class Project:
         self._load_ansible_vars()
 
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
+            self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
 
@@ -1420,7 +1641,7 @@ class Project:
 
         with AM("Applying cloud resources creation"):
             self.update_state('terraform', 'PROVISIONING')
-            terraform.apply(self.terraform_vars_file)
+            terraform.apply(self._get_terraform_vars_file())
             self.update_state('terraform', 'PROVISIONED')
 
         # Checking instance availability
@@ -1659,7 +1880,7 @@ class Project:
         POT destroy method
         """
         terraform = TerraformCli(
-            self.project_path, self.terraform_plugin_cache_path,
+            self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
 
@@ -1716,7 +1937,7 @@ class Project:
 
         with AM("Destroying cloud resources"):
             self.update_state('terraform', 'DESTROYING')
-            terraform.destroy(self.terraform_vars_file)
+            terraform.destroy(self._get_terraform_vars_file())
             self.update_state('terraform', 'DESTROYED')
             self.update_state('ansible', 'UNKNOWN')
 

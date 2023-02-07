@@ -13,9 +13,6 @@ from .system import exec_shell_live, exec_shell
 from .errors import TerraformCliError
 from . import check_version, to_str
 
-import edbterraform.__main__
-
-
 class TerraformCli:
 
     def __init__(self, dir, plugin_cache_dir, bin_path=None):
@@ -97,7 +94,11 @@ class TerraformCli:
     def init(self):
         try:
             rc = exec_shell_live(
-                [self.bin("terraform"), "init", "-no-color"],
+                [
+                    self.bin("terraform"),
+                    "init",
+                    "-no-color"
+                ],
                 environ=self.environ,
                 cwd=self.dir
             )
@@ -111,13 +112,15 @@ class TerraformCli:
                 " for details."
             )
 
-    def apply(self, vars_file):
+    def apply(self, vars_file='terraform.tfvars.json'):
         try:
             rc = exec_shell_live(
                 [
                     self.bin("terraform"),
                     "apply",
                     "-auto-approve",
+                    "-var-file",
+                    vars_file,
                     "-no-color"
                 ],
                 environ=self.environ,
@@ -132,13 +135,15 @@ class TerraformCli:
                 "Failed to apply Terraform, please check the logs for details."
             )
 
-    def destroy(self, vars_file):
+    def destroy(self, vars_file='terraform.tfvars.json'):
         try:
             rc = exec_shell_live(
                 [
                     self.bin("terraform"),
                     "destroy",
                     "-auto-approve",
+                    "-var-file",
+                    vars_file,
                     "-no-color"
                 ],
                 environ=self.environ,
@@ -227,11 +232,3 @@ class TerraformCli:
 
         # Execute the installation script
         execute_install_script(script_name)
-
-    def generate_terraform_files(project_directory, cloud_service_provider, infrastructure_file,):
-        terraform_output = edbterraform.__main__.main([
-            project_directory,
-            '-c',
-            cloud_service_provider,
-            infrastructure_file,
-        ])
