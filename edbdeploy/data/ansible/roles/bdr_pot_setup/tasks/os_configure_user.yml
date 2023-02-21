@@ -51,7 +51,7 @@
     group: root
     mode: 0644
   become: yes
-  when: group_names is subset(['pgbouncer'])
+  when: group_names is subset(['pgbouncer', 'primary'])
 
 - name: Add harp-proxy-pgbouncer-monitor.sh file
   template:
@@ -61,7 +61,7 @@
     group: root
     mode: 0755
   become: yes
-  when: group_names is subset(['pgbouncer'])
+  when: group_names is subset(['pgbouncer', 'primary'])
 
 - name: Add barman-backup-monitor.py file
   template:

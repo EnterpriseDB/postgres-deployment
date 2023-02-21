@@ -26,8 +26,8 @@ class TPAexecCli:
         self.environ['ANSIBLE_PIPELINING'] = 'true'
         self.environ['ANSIBLE_SSH_PIPELINING'] = 'true'
         # Terraform supported version interval
-        self.min_version = (22, 14)
-        self.max_version = (22, 14)
+        self.min_version = (22, 15)
+        self.max_version = (23, 11)
         # Path to look up for executable
         self.bin_path = None
         # Force tpaexec binary path if bin_path exists and contains
