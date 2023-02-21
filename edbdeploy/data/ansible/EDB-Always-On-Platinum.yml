@@ -15,8 +15,8 @@
         disable_logging: false
         pg_unix_socket_directories:
             - "/tmp"
-        pem_agent_package: "edb-pem-agent-8.4.0"
-        pem_server_packages: "edb-pem-server-8.4.0"
+        pem_agent_package: "edb-pem-agent-9.0.0"
+        pem_server_packages: "edb-pem-server-9.0.0"
         reference_architecture: "EDB-Always-On-Platinum"
 
   post_tasks:

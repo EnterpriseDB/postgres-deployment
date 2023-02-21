@@ -44,23 +44,74 @@ PGBIN="{{ pg_bin_path }}"
 PGPORT="{{ pg_port }}"
 PGOWNER="{{ pg_owner }}"
 STATUS_MSG="status\tmessage"
-HARPPROXY_SERVICE="harp-proxy"
+HARP_PROXY_SERVICE="harp-proxy"
+HARP_PROXY_PORT="{{ harp_proxy_port }}"
+HARP_MANAGER_SERVICE="harp-manager"
+ETCD_SERVICE="etcd"
 PGBOUNCER_PORT="{{ pgbouncer_port }}"
 PYTHON3="/usr/bin/python3"
 PGDATABASE="{{ pg_database }}"
-export PGBIN HARPPROXY_SERVICE PGPORT STATUS_MSG
+export PGBIN HARP_PROXY_SERVICE PGPORT STATUS_MSG
+export ETCD_SERVICE HARP_MANAGER_SERVICE
+
+################################################################################
+# harp-proxy is running or not
+################################################################################
 
 function is_harp-proxy_running()
 {
-    /bin/systemctl status ${HARPPROXY_SERVICE} >/dev/null 2>&1
+    /bin/systemctl status ${HARP_PROXY_SERVICE} >/dev/null 2>&1
     if [[ $? -ne 0 ]]
     then
         echo -e "${STATUS_MSG}"
         echo -e "NOT OK\tharp-proxy is not running"
         exit 0
     fi
+    ${PGBIN}/pg_isready -h 127.0.0.1 -p ${HARP_PROXY_PORT} -d ${PGDATABASE} -q
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tharp-proxy is not redirecting connections"
+        exit 0
+    fi
     echo -e "${STATUS_MSG}"
     echo -e "OK\tharp-proxy is running"
+    exit 0
+}
+
+################################################################################
+# harp-manager is running or not
+################################################################################
+
+function is_harp-manager_running()
+{
+    /bin/systemctl status ${HARP_MANAGER_SERVICE} >/dev/null 2>&1
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tharp-manager is not running"
+        exit 0
+    fi
+    echo -e "${STATUS_MSG}"
+    echo -e "OK\tharp-manager is running"
+    exit 0
+}
+
+################################################################################
+# etcd is running or not
+################################################################################
+
+function is_etcd_running()
+{
+    /bin/systemctl status ${ETCD_SERVICE} >/dev/null 2>&1
+    if [[ $? -ne 0 ]]
+    then
+        echo -e "${STATUS_MSG}"
+        echo -e "NOT OK\tetcd is not running"
+        exit 0
+    fi
+    echo -e "${STATUS_MSG}"
+    echo -e "OK\tetcd is running"
     exit 0
 }
 
@@ -114,6 +165,12 @@ case "$1" in
     --harp-proxy-health)
         is_harp-proxy_running
         ;;
+    --harp-manager-health)
+        is_harp-manager_running
+        ;;
+    --etcd-health)
+        is_etcd_running
+        ;;
     --pgbouncer-health)
         is_pgbouncer_running
         ;;
@@ -123,6 +180,8 @@ case "$1" in
     *)
         echo "ERROR: Unknown Option. Options are listed below"
 	echo "   --harp-proxy-health"
+	echo "   --harp-manager-health"
+	echo "   --etcd-health"
 	echo "   --pgbouncer-health"
 	echo "   --pgbouncer-stats"
         ;;
