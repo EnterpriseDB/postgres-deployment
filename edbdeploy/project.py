@@ -756,6 +756,9 @@ class Project:
             isinstance(values, dict) and
             values.get('count', 0) >= 1
         }
+
+        # Azure uses storage_account_type / aws/gcloud use type for volume type
+        volume_type_var = 'type' if self.cloud_provider != 'azure' else 'storage_account_type'
         machines = dict()
         default_mounts = [ "/pgdata", "/pgwal", "/pgtblspc1", "/pgtblspc2", "/pgtblspc3" ]
         barman_mount = '/var/lib/barman'
@@ -769,6 +772,7 @@ class Project:
                 machine['region'] = region_name_default
                 machine['zone_name'] = zone_name_default
                 machine['volume']['size_gb'] = machine['volume'].get('size', None)
+                machine['volume']['type'] = machine['volume'].get(volume_type_var, None)
                 machine['tags'] = dict({
                     'reference_architecture': self.env.reference_architecture.lower(),
                     'type': key.lower(),
@@ -798,6 +802,7 @@ class Project:
                     volume = values['additional_volumes'].copy()
                     volume['mount_point'] = barman_mount
                     volume['size_gb'] = values['additional_volumes'].get('size', None)
+                    volume['type'] = values['additional_volumes'].get(volume_type_var, None)
                     additional_volumes.append(volume)
                 else:
                     for idx in range(values.get('additional_volumes',{}).get('count', 0)):
@@ -805,6 +810,7 @@ class Project:
                         del volume['count'] # remove count since volumes are expanded
                         volume['mount_point'] = default_mounts[idx]
                         volume['size_gb'] = values['additional_volumes'].get('size', None)
+                        volume['type'] = values['additional_volumes'].get(volume_type_var, None)
                         additional_volumes.append(volume)
                 machine['additional_volumes'] = additional_volumes
         spec['machines'] = machines

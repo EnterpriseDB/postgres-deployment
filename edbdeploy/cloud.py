@@ -322,7 +322,7 @@ class AzureCli:
     def __init__(self, bin_path=None):
         # azure CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (2, 32, 0)
+        self.max_version = (2, 44, 1)
         # Path to look up for executable
         self.bin_path = None
         # Force azure CLI binary path if bin_path exists and contains
@@ -394,6 +394,7 @@ class AzureCli:
                     "Instance type %s not available in region %s"
                     % (instance_type, region)
                 )
+            return self.get_available_zones()
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -527,6 +528,39 @@ class AzureCli:
         # Execute the installation script
         execute_install_script(script_name)
 
+    def get_available_zones(self, region=None) -> list:
+        # TODO: verify zones as azure either has 3 or none
+        # CLI only returns available regions
+        return [1,2,3]
+
+    def get_caller_info(self) -> str:
+        try:
+            output = exec_shell([
+                self.bin("az"),
+                "account",
+                "show",
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            # contains email so split and replace any non-alphanumerics so it can be used as a tag
+            name = re.sub(r'\W+', '-', result['user']['name'].split('@')[0]).lower()
+            return name
+
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
 
 class AzureDBCli(AzureCli):
     pass

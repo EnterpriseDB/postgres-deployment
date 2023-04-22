@@ -1,30 +1,32 @@
-import getpass
-
 from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..errors import ProjectError
 from ..project import Project
-from ..spec.aws_rds import TPROCC_GUC
-
+from ..spec.azure_db import TPROCC_GUC
+from ..password import get_password, random_password, save_password
+from ..render import build_ansible_inventory
 
 class AzureDBProject(Project):
-    def __init__(self, name, env, bin_path=None):
-        super(AzureDBProject, self).__init__('azure-db', name, env, bin_path)
+    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
+        super(AzureDBProject, self).__init__('azure-db', name, env, bin_path, using_edbterraform)
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()
         # Transform Terraform templates
-        self._transform_terraform_tpl()
-        # Build the vars files for Terraform and Ansible
-        self._build_terraform_vars_file(env)
-        self._build_ansible_vars_file(env)
-        # Copy Ansible playbook into project dir.
-        self._copy_ansible_playbook()
+        # Build a random master user password
+        with AM("Building master user password"):
+            save_password(self.project_path, 'postgres', random_password())
 
-    def hook_pre_create(self):
-        # Hook function called by Project.configure()
-        msg = "Set Initial Database Super User Password:"
-        self.postgres_passwd = getpass.getpass(msg)
+        # Build the vars files for Terraform and Ansible
+        super()._build_terraform_files()
+        super()._build_ansible_vars_file(env)
+        # Copy Ansible playbook into project dir.
+        super()._copy_ansible_playbook()
+
+
+    def _check_instance_image(self, env):
+        # Overload Project._check_instance_image()
+        pass
 
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()
@@ -42,65 +44,150 @@ class AzureDBProject(Project):
         ra = self.reference_architecture[env.reference_architecture]
         pg = env.cloud_spec['postgres_server']
         os = env.cloud_spec['available_os'][env.operating_system]
-        pem = env.cloud_spec['pem_server']
-        hammerdb = env.cloud_spec['hammerdb_server']
         guc = TPROCC_GUC
 
         self.terraform_vars.update({
             'azure_offer': os['offer'],
             'azure_publisher': os['publisher'],
             'azure_sku': os['sku'],
-            'azuredb_passwd': self.postgres_passwd,
+            'azuredb_passwd': get_password(self.project_path, 'postgres'),
             'azuredb_sku': pg['sku'],
             'azure_region': env.azure_region,
             'guc_effective_cache_size': guc[env.shirt]['effective_cache_size'],
             'guc_max_wal_size': guc[env.shirt]['max_wal_size'],
             'pg_version': env.postgres_version,
+            'rocky': True if env.operating_system == 'RockyLinux8' else False
         })
         self.terraform_vars['postgres_server'].update({
-            'count': ra['pg_count'],
+            'instance_type': pg['sku'],
+            'count': 0,
             'size': pg['size'],
-            'sku': pg['sku'],
         })
 
-    def _check_instance_image(self, env):
-        # Overload Project._check_instance_image()
-        """
-        Check AWS instance type and image id availability in specified region.
-        """
-        # Instanciate a new CloudCli
-        cloud_cli = CloudCli(env.cloud, bin_path=self.cloud_tools_bin_path)
+        # set variables for use with edbterraform
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+                # set variables for use with edbterraform
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+        # Setup cloudsql
+        settings = list()
+        settings.extend(self.database_settings(env))
+        databases = dict({
+            "postgres": {
+                'public_access': True,
+                'region': self.terraform_vars['azure_region'],
+                'engine': "postgres",
+                'engine_version': env.postgres_version,
+                'dbname': 'dbname',
+                'instance_type': pg['sku'],
+                'volume': {
+                    'size_gb': pg['size'],
+                },
+                'username':'postgres',
+                'password': get_password(self.project_path, 'postgres'),
+                'settings': settings,
+                'port': 5432,
+                'tags': {
+                    'type': 'postgres_server',
+                    'priority': 0,
+                    'index': 0,
+                    'postgres_group': 'postgres_server',
+                    'replication_type': self.terraform_vars['replication_type'] if self.terraform_vars.get('replication_type') else 'unset',
+                    'pooler_type': self.terraform_vars['pooler_type'] if self.terraform_vars.get('pooler_type') else 'pgbouncer',
+                    'pooler_local': self.terraform_vars.get('pooler_local', False),
+                }
+            },
+        })
+        self.terraform_vars[self.cloud_provider]['databases'] = databases
 
-        # Node types list available for this Cloud vendor
-        node_types = ['postgres_server', 'pem_server', 'hammerdb_server',
-                      'barman_server', 'pooler_server']
+        azure_cli = CloudCli(self.cloud_provider, bin_path=self.cloud_tools_bin_path)
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+        self.terraform_vars['created_by'] = azure_cli.cli.get_caller_info()
+        # ports needed
+        self.terraform_vars['service_ports'], self.terraform_vars['region_ports'] = super()._get_default_ports()
+        self.terraform_vars['image'] = dict({
+            'offer': os['offer'].lower(),
+            # Azure's plans are case sensitive and will cause terraform to fail.
+            # Error:
+            #   Code="VMMarketplaceInvalidInput" Message="Unable to deploy from the Marketplace image
+            #   or a custom image sourced from Marketplace image. The part number in the purchase information
+            #   for VM '/subscriptions/resourceGroups/...' is not as expected. 
+            #   Beware that the Plan object's properties are case-sensitive. 
+            # There are cases where the shell vs powershell cli give back different results as well:
+            # ex: Redhat vs redhat
+            'publisher': os['publisher'].lower(),
+            'sku': os['sku'],
+            'ssh_user': self.terraform_vars['ssh_user'],
+            'version': azure_cli.cli.check_image_availability(
+                self.terraform_vars['azure_publisher'],
+                self.terraform_vars['azure_offer'],
+                self.terraform_vars['azure_sku'],
+                env.azure_region,
+            ).get('version')
+        })
+        self.terraform_vars['region'] = self.terraform_vars['azure_region']
+        # create a set of zones from each machine's instance type and region availability zone  
+        instance_types: set = {
+            values['instance_type'] for key, values in self.terraform_vars.items()
+            if any(substr in key for substr in ['dbt2_client', 'dbt2_driver', '_server']) and
+            isinstance(values, dict) and
+            values.get('count', 0) >= 1
+            and values.get('instance_type')
+        }
+        filtered_zones: set = {zone for instance in instance_types for zone in azure_cli.check_instance_type_availability(instance, self.terraform_vars['azure_region'])}
+        filtered_zones.intersection_update(azure_cli.cli.get_available_zones(self.terraform_vars['azure_region']))
+        self.terraform_vars['zones'] = list(filtered_zones)
 
-        # Check instance type and image availability
-        if not self.terraform_vars['aws_ami_id']:
-            for instance_type in self._get_instance_types(node_types):
-                with AM(
-                    "Checking instance type %s availability in %s"
-                    % (instance_type, env.aws_region)
-                ):
-                    cloud_cli.check_instance_type_availability(
-                        instance_type, env.aws_region
-                    )
+    def hook_instances_availability(self, cloud_cli):
+        # Hook function called by Project.provision()
+        with AM("Checking instances availability in region %s"
+                % self.terraform_vars['azure_region']):
+            cloud_cli.cli.check_instances_availability(
+                self.name,
+                self.terraform_vars['azure_region'],
+                # Total number of nodes
+                (self.terraform_vars['postgres_server']['count']
+                 + self.terraform_vars['pem_server']['count'])
+            )
 
-            # Check availability of image in target region and get its ID
-            with AM(
-                "Checking image '%s' availability in %s"
-                % (self.terraform_vars['aws_image'], env.aws_region)
-            ):
-                aws_ami_id = cloud_cli.cli.get_image_id(
-                    self.terraform_vars['aws_image'], env.aws_region
-                )
-                if not aws_ami_id:
-                    raise ProjectError(
-                        "Unable to get Image Id for image %s in region %s"
-                        % (self.terraform_vars['aws_image'], env.aws_region)
-                    )
-            with AM("Updating Terraform vars with the AMI id %s" % aws_ami_id):
-                # Useless variable for Terraform
-                del(self.terraform_vars['aws_image'])
-                self.terraform_vars['aws_ami_id'] = aws_ami_id
-                self._save_terraform_vars()
+    def hook_inventory_yml(self, vars):
+        # Hook function called by Project.provision()
+        with AM("Generating the inventory.yml file"):
+            template_vars = dict()
+            template_vars['vars'] = vars
+            template_vars['servers'] = super()._get_terraform_instances()
+            build_ansible_inventory(
+                self.project_path,
+                vars=template_vars
+            )
+
+    def _get_default_ports(self):
+        '''
+        Override Project._get_default_ports()
+        Get the default needed ports for most reference architectures.
+        Returned as a tuple of (service_ports, region_ports) for use with edb-terraform
+        '''
+        service_ports = list()
+        service_ports.append({'port': 22, 'protocol': 'tcp', 'description': 'SSH default'})
+        service_ports.append({'port': 80, 'protocol': 'tcp', 'description': 'http'})
+        service_ports.append({'port': 8443, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.append({'port': 5432, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.append({'port': 5444, 'protocol': 'tcp', 'description': 'tcp'})
+        service_ports.extend([{'port': port, 'protocol': 'tcp', 'description': 'tcp'} for port in range(7800,7811)])
+        service_ports.append({'port': 30000, 'protocol': 'tcp', 'description': 'dbt2 client'})
+        region_ports = list()
+        region_ports.append({'protocol': 'icmp', 'description': 'regional ping'})
+
+        return service_ports, region_ports
+
+    def database_settings(self, env):
+        guc = TPROCC_GUC
+        return [
+            {'name': 'checkpoint_timeout', 'value': 900 },
+            {'name': 'effective_cache_size', 'value': guc[env.shirt]['effective_cache_size']},
+            {'name': 'max_connections', 'value': 300},
+            {'name': 'max_wal_size', 'value': guc[env.shirt]['max_wal_size']},
+            {'name': 'work_mem', 'value': 65536},
+        ]
