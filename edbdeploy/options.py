@@ -88,7 +88,7 @@ class POTPgVersionOption:
 
 
 class PgVersionOptionAzureDB:
-    choices = ['11']
+    choices = ['11', '12', '13', '14']
     default = '11'
     help = textwrap.dedent("""
         Azure Database for PostgreSQL version. Allowed values are: 11.
