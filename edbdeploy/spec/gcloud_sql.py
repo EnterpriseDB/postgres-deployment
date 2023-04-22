@@ -27,10 +27,11 @@ GCSQLSpec = {
     }
 }
 
+# Shared buffers must be between 10% - 60% of memory for gcloud-sql
 TPROCC_GUC = {
     'small': {
         'effective_cache_size': '524288',
-        'shared_buffers': '3145728',
+        'shared_buffers': '2044723',
         'max_wal_size': '51200',
     },
     'medium': {

@@ -536,7 +536,7 @@ class GCloudCli:
     def __init__(self, bin_path=None):
         # gcloud CLI supported versions interval
         self.min_version = (0, 0, 0)
-        self.max_version = (406, 0, 0)
+        self.max_version = (413, 0, 0)
         # Path to look up for executable
         self.bin_path = None
         # Force gcloud CLI binary path if bin_path exists and contains
@@ -608,6 +608,12 @@ class GCloudCli:
                     "Instance type %s not available in region %s"
                     % (instance_type, region)
                 )
+            gcloud_var = 'zone'
+            filtered = [value[gcloud_var] for value in result if value.get(gcloud_var)]
+            if len(filtered) == 0:
+                raise CloudCliError('Variable %s not found' % (gcloud_var))
+            return filtered
+
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -738,6 +744,75 @@ class GCloudCli:
         # Execute the installation script
         execute_install_script(script_name)
 
+    def get_caller_info(self) -> str:
+        try:
+            output = exec_shell([
+                self.bin("gcloud"),
+                "config",
+                "get-value",
+                "account",
+                "--format json",
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            # contains email so split and replace any non-alphanumerics so it can be used as a tag
+            name = re.sub(r'\W+', '-', result.split('@')[0]).lower()
+            return name
+
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
+        
+    def get_available_zones(self, region) -> list:
+        try:
+            output = exec_shell([
+                self.bin("gcloud"),
+                "compute",
+                "zones",
+                "list",
+                "--format json",
+                "--filter=\"status=%s region:%s*\"" % ("UP", region),
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Region %s has no available zones"
+                    % (region)
+                )
+            gcloud_var = 'name'
+            filtered = [value[gcloud_var] for value in result if value.get(gcloud_var)]
+            if len(filtered) == 0:
+                raise CloudCliError('Variable %s not found' % (gcloud_var))
+            return filtered
+
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
 
 class GCloudSQLCli(GCloudCli):
     pass

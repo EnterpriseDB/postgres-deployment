@@ -722,7 +722,7 @@ class Project:
         '''
         spec = dict()
         # regions
-        zone_name_default = 'zone_default'
+        zone_name_default = 'default'
         region_name_default = self.terraform_vars['region']
         regions = dict()        
         base_region = dict()
@@ -732,9 +732,9 @@ class Project:
         base_region['zones'][zone_name_default]['cidr'] = '10.2.1.0/24'
         base_region['zones'][zone_name_default]['zone'] = self.terraform_vars.get('zones')[-1]
         # AWS requires a second zone for the VPC even if single zoned for services like RDS
-        base_region['zones']['second_zone'] = dict()
-        base_region['zones']['second_zone']['cidr'] = '10.2.2.0/24'
-        base_region['zones']['second_zone']['zone'] = self.terraform_vars.get('zones')[-2]
+        base_region['zones']['redundant'] = dict()
+        base_region['zones']['redundant']['cidr'] = '10.2.2.0/24'
+        base_region['zones']['redundant']['zone'] = self.terraform_vars.get('zones')[-2]
         base_region['service_ports'] = self.terraform_vars.get('service_ports',[]).copy()
         base_region['region_ports'] = self.terraform_vars.get('region_ports',[]).copy()
         regions[region_name_default] = base_region
@@ -761,7 +761,7 @@ class Project:
         barman_mount = '/var/lib/barman'
         for key, values in filtered_machines.items():
             for index in range(values.get('count',0)):
-                new_key = f'{key}-{index}' # each key must be unique
+                new_key = f'{key}-{index}'.replace('_', '-') # each key must be unique and replace underscores
                 machines[new_key] = values.copy()
                 machine = machines[new_key]
                 del machine['count'] # remove since we will expand the machines
@@ -770,9 +770,9 @@ class Project:
                 machine['zone_name'] = zone_name_default
                 machine['volume']['size_gb'] = machine['volume'].get('size', None)
                 machine['tags'] = dict({
-                    'reference_architecture': self.env.reference_architecture,
-                    'type': key,
-                    'pg_type': self.terraform_vars.get('pg_type', None),
+                    'reference_architecture': self.env.reference_architecture.lower(),
+                    'type': key.lower(),
+                    'pg_type': self.terraform_vars.get('pg_type', 'unset').lower(),
                     'index': index,
                     'count': values.get('count'),
                     'priority': index,
@@ -784,10 +784,10 @@ class Project:
                 ]
                 if key in postgres_ordering:
                     machine['tags']['priority'] = postgres_ordering.index(key)
-                    machine['tags']['postgres_group'] = key
+                    machine['tags']['postgres_group'] = key.lower()
                 if 'postgres' in key:
                     if index == 1:
-                        machine['tags']['replication_type'] = self.terraform_vars.get('replication_type')
+                        machine['tags']['replication_type'] = self.terraform_vars.get('replication_type', 'unset')
                     elif index > 1:
                         machine['tags']['replication_type'] = 'asynchronous'
                 if 'pooler' in key:
