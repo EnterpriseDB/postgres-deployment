@@ -387,6 +387,7 @@ class AzureCli:
                 "--query \"[?name == '%s']\"" % instance_type,
                 "--output json"
             ])
+            
             result = json.loads(output.decode("utf-8"))
             logging.debug("Command output: %s", result)
             if len(result) == 0:
@@ -394,7 +395,9 @@ class AzureCli:
                     "Instance type %s not available in region %s"
                     % (instance_type, region)
                 )
-            return self.get_available_zones()
+            zones = self.get_available_zones(instance_type, region)
+            # Not all regions have zones yet so set to 0 for handling
+            return zones if zones else ['0']
         except ValueError:
             # JSON decoding error
             logging.error("Failed to decode JSON data")
@@ -528,9 +531,43 @@ class AzureCli:
         # Execute the installation script
         execute_install_script(script_name)
 
-    def get_available_zones(self, region=None) -> list:
-        # TODO: verify zones as azure either has 3 or none
-        # CLI only returns available regions
+    def get_available_zones(self, instance_type, region) -> list:
+        '''
+        Get a list of available zones
+        '''
+        try:
+            output = exec_shell([
+                self.bin("az"),
+                "vm",
+                "list-skus",
+                "--location %s" % region,
+                "--query \"[?name == '%s']\"" % instance_type,
+                "--output json"
+            ])
+            result = json.loads(output.decode("utf-8"))
+            logging.debug("Command output: %s", result)
+            if len(result) == 0:
+                raise CloudCliError(
+                    "Instance type %s not available in region %s"
+                    % (instance_type, region)
+                )
+            zones = result[0]['locationInfo'][0]['zones']
+            return zones
+        except ValueError:
+            # JSON decoding error
+            logging.error("Failed to decode JSON data")
+            logging.error("Output: %s", output.decode("utf-8"))
+            raise CloudCliError(
+                "Failed to decode JSON data, please check the logs for details"
+            )
+        except CalledProcessError as e:
+            logging.error("Failed to execute the command: %s", e.cmd)
+            logging.error("Return code is: %s", e.returncode)
+            logging.error("Output: %s", e.output)
+            raise CloudCliError(
+                "Failed to execute the following command, please check the "
+                "logs for details: %s" % e.cmd
+            )
         return [1,2,3]
 
     def get_caller_info(self) -> str:

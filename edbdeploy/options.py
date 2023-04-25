@@ -266,7 +266,7 @@ class AWSIAMIDOption:
 
 class AzureRegionOption:
     choices = ['centralus', 'eastus', 'eastus2', 'westus', 'westcentralus',
-               'westus2', 'northcentralus', 'southcentralus']
+               'westus2', 'westus3', 'northcentralus', 'southcentralus']
     default = 'eastus'
     help = textwrap.dedent("""
         Azure region. Allowed values are centralus, eastus, eastus2, westus,

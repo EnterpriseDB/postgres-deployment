@@ -13,7 +13,11 @@ pg_unix_socket_directories:
 pg_pot_sql_scripts:
   - file_path: "/usr/edb/as{{ pg_version }}/share/edb-sample.sql"
     db: edb
-  - file_path: "/usr/edb/as{{ pg_version }}/share/contrib/sql-profiler.sql"
+
+sql_extensions:
+  - name: edb_wait_states
     db: edb
-  - file_path: "/usr/edb/as{{ pg_version }}/share/contrib/index_advisor.sql"
+  - name: sql_profiler
+    db: edb
+  - name: index_advisor
     db: edb

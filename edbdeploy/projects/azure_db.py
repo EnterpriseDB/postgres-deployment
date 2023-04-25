@@ -137,7 +137,6 @@ class AzureDBProject(Project):
             and values.get('instance_type')
         }
         filtered_zones: set = {zone for instance in instance_types for zone in azure_cli.check_instance_type_availability(instance, self.terraform_vars['azure_region'])}
-        filtered_zones.intersection_update(azure_cli.cli.get_available_zones(self.terraform_vars['azure_region']))
         self.terraform_vars['zones'] = list(filtered_zones)
 
     def hook_instances_availability(self, cloud_cli):

@@ -114,7 +114,6 @@ class AzureProject(Project):
             and values.get('instance_type')
         }
         filtered_zones: set = {zone for instance in instance_types for zone in cloud_cli.check_instance_type_availability(instance, self.terraform_vars['azure_region'])}
-        filtered_zones.intersection_update(cloud_cli.cli.get_available_zones(self.terraform_vars['azure_region']))
         self.terraform_vars['zones'] = list(filtered_zones)
 
     def _check_instance_image(self, env):

@@ -39,8 +39,6 @@
       when: "'pemserver' in group_names"
     - role: manage_dbserver
       when: "'pemserver' in group_names"
-    - role: tuning
-      when: "'pemserver' in group_names"
     - role: setup_pemserver
       when: "'pemserver' in group_names"
     - role: setup_pemagent
@@ -58,4 +56,6 @@
         efm_enabled: false
         force_register_db: True
       when: "'pgbouncer' in group_names"
+    - role: tuning
+      when: "'pemserver' in group_names"
     - role: bdr_pot_setup
