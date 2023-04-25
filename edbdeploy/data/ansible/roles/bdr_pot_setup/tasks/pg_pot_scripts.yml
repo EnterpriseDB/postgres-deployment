@@ -9,11 +9,14 @@
   become_user: "{{ pg_owner }}"
   ignore_errors: yes
 
-- name: Create exention edb_wait_states
+- name: Create exentions
   shell: >
        psql -h "{{ pg_unix_socket_directories[0] }}" \
             -d "{{ pg_database }}" \
-            -c "CREATE EXTENSION IF NOT EXISTS edb_wait_states;"
+            -c "CREATE EXTENSION IF NOT EXISTS {{ line_item.name }};"
+  with_items: "{{ sql_extensions }}"
+  loop_control:
+       loop_var: line_item
   become: yes
   become_user: "{{ pg_owner }}"
   ignore_errors: yes

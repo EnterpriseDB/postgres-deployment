@@ -4,7 +4,7 @@ from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
 from .. import __edb_ansible_version__
-from ..render import build_config_yml, build_inventory_yml
+from ..render import build_config_yml, build_inventory_yml, build_ansible_inventory
 
 
 class GCloudPOTProject(Project):
@@ -12,9 +12,9 @@ class GCloudPOTProject(Project):
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
     aws_collection_name = 'community.aws:1.4.0'
 
-    def __init__(self, name, env, bin_path=None):
+    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
         super(GCloudPOTProject, self).__init__(
-            'gcloud-pot', name, env, bin_path
+            'gcloud-pot', name, env, bin_path, using_edbterraform
         )
         # Use Gcloud terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'gcloud')
@@ -26,8 +26,8 @@ class GCloudPOTProject(Project):
         self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
         # Force PG version to 14 in POT env.
-        self.postgres_version = '14'
-        self.operating_system = "RockyLinux8"
+        self.postgres_version = env.postgres_version = '14'
+        self.operating_system = env.operating_system = "RockyLinux8"
 
     def configure(self, env):
         self.pot_configure(env)
@@ -49,18 +49,29 @@ class GCloudPOTProject(Project):
     def hook_inventory_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the inventory.yml file"):
-            build_inventory_yml(
-                self.ansible_inventory,
-                os.path.join(self.project_path, 'servers.yml'),
-                vars=vars
-            )
+            if self.using_edbterraform:
+                template_vars = dict()
+                template_vars['vars'] = vars
+                server_vars = super()._load_terraform_outputs()
+                server_vars = server_vars.get('servers')
+                template_vars['servers'] = server_vars.get('machines', {})
+                build_ansible_inventory(
+                    self.project_path,
+                    vars=template_vars
+                )
+            else:
+                build_inventory_yml(
+                    self.ansible_inventory,
+                    super()._get_servers_filepath(),
+                    vars=vars
+                )
 
     def hook_config_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the config.yml file"):
             build_config_yml(
                 os.path.join(self.project_path, 'config.yml'),
-                os.path.join(self.project_path, 'servers.yml'),
+                super()._get_servers_filepath(),
                 vars=vars
             )
 
@@ -95,7 +106,7 @@ class GCloudPOTProject(Project):
             'cluster_name': self.name,
             'gcloud_image': os_['image'],
             'gcloud_region': env.gcloud_region,
-            'gcloud_credentials': env.gcloud_credentials.name,
+            'gcloud_credentials': env.gcloud_credentials.name if env.gcloud_credentials else None,
             'gcloud_project_id': env.gcloud_project_id,
             'dbt2': ra['dbt2'],
             'dbt2_client': {
@@ -150,6 +161,29 @@ class GCloudPOTProject(Project):
             'ssh_pub_key': self.custom_ssh_keys[os_['ssh_user']]['ssh_pub_key'],  # noqa
             'ssh_user': os_['ssh_user'],
         }
+
+        # set variables for use with edbterraform
+        cloud_cli = CloudCli(self.cloud_provider, bin_path=self.cloud_tools_bin_path)
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+        self.terraform_vars['created_by'] = cloud_cli.cli.get_caller_info()
+        # ports needed
+        self.terraform_vars['service_ports'], self.terraform_vars['region_ports'] = super()._get_default_ports()
+        self.terraform_vars['image'] = dict()
+        self.terraform_vars['image']['name'] = self.terraform_vars['gcloud_image']
+        self.terraform_vars['image']['ssh_user'] = self.terraform_vars['ssh_user']
+        self.terraform_vars['region'] = self.terraform_vars['gcloud_region']
+        # create a set of zones from each machine's instance type and region availability zone  
+        instance_types: set = {
+            values['instance_type'] for key, values in self.terraform_vars.items()
+            if any(substr in key for substr in ['dbt2_client', 'dbt2_driver', '_server']) and
+            isinstance(values, dict) and
+            values.get('count', 0) >= 1
+            and values.get('instance_type')
+        }
+        filtered_zones: set = {zone for instance in instance_types for zone in cloud_cli.check_instance_type_availability(instance, self.terraform_vars['gcloud_region'])}
+        filtered_zones.intersection_update(cloud_cli.cli.get_available_zones(self.terraform_vars['gcloud_region']))
+        self.terraform_vars['zones'] = list(filtered_zones)
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

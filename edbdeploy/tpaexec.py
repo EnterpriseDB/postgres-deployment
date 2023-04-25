@@ -22,12 +22,15 @@ class TPAexecCli:
         self.dir = dir
         self.environ = os.environ.copy()
         self.environ['TPA_2Q_SUBSCRIPTION_TOKEN'] = tpa_subscription_token
+        #self.environ['EDB_SUBSCRIPTION_TOKEN'] = tpa_subscription_token
         self.environ['EDB_REPO_CREDENTIALS_FILE'] = os.path.join(self.dir, 'edb-credentials')
         self.environ['ANSIBLE_PIPELINING'] = 'true'
         self.environ['ANSIBLE_SSH_PIPELINING'] = 'true'
-        # Terraform supported version interval
+        self.environ['ANSIBLE_HOST_KEY_CHECKING'] = 'false'
+        
+        # TPAExec supported version interval
         self.min_version = (22, 15)
-        self.max_version = (23, 11)
+        self.max_version = (23, 16)
         # Path to look up for executable
         self.bin_path = None
         # Force tpaexec binary path if bin_path exists and contains

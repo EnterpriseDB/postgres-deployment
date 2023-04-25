@@ -27,7 +27,7 @@ all:
     barmanserver:
       hosts:
 {%   endif %}
-{%   if values.tags.reference_architecture.startswith('edb-always-On') %}
+{%   if values.tags.reference_architecture.startswith('edb-always-on') %}
         barmandc{{ 1 + values.tags.index|int }}:
 {%   else %}
         barmanserver{{ 1 + values.tags.index|int }}.{{ values.tags.cluster_name }}.internal:
@@ -100,9 +100,9 @@ all:
 {% endfor %}
 {% for key, values in bdr_witness_machines %}
 {%   if values.tags.pg_type == 'epas' %}
-        epas{{ 1 + values.tags.index|int + barman_machines|length }}:
+        epas{{ 1 + values.tags.index|int + bdr_machines|length }}:
 {%   else %}
-        pgsql{{ 1 + values.tags.index|int + barman_machines|length }}:
+        pgsql{{ 1 + values.tags.index|int + bdr_machines|length }}:
 {%   endif %}
           ansible_host: {{ values.public_ip }}
           private_ip: {{ values.private_ip }}

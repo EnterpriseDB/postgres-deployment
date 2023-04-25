@@ -4,7 +4,7 @@ from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
 from .. import __edb_ansible_version__
-from ..render import build_config_yml, build_inventory_yml
+from ..render import build_config_yml, build_inventory_yml, build_ansible_inventory
 
 
 class AzurePOTProject(Project):
@@ -13,7 +13,7 @@ class AzurePOTProject(Project):
     aws_collection_name = 'community.aws:1.4.0'
 
     def __init__(self, name, env, bin_path=None):
-        super(AzurePOTProject, self).__init__('azure-pot', name, env, bin_path)
+        super(AzurePOTProject, self).__init__('azure-pot', name, env, bin_path, using_edbterraform=True)
         # Use Azure terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'azure')
         # Route53 entry removal playbook
@@ -24,8 +24,8 @@ class AzurePOTProject(Project):
         self.tpaexec_pot_hooks = os.path.join(self.tpaexec_share_path, 'hooks')
         self.custom_ssh_keys = {}
         # Force PG version to 14 in POT env.
-        self.postgres_version = '14'
-        self.operating_system = "RockyLinux8"
+        self.postgres_version = env.postgres_version = '14'
+        self.operating_system = env.operating_system = "RockyLinux8"
 
     def configure(self, env):
         self.pot_configure(env)
@@ -38,18 +38,29 @@ class AzurePOTProject(Project):
     def hook_inventory_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the inventory.yml file"):
-            build_inventory_yml(
-                self.ansible_inventory,
-                os.path.join(self.project_path, 'servers.yml'),
-                vars=vars
-            )
+            if self.using_edbterraform:
+                template_vars = dict()
+                template_vars['vars'] = vars
+                server_vars = super()._load_terraform_outputs()
+                server_vars = server_vars.get('servers')
+                template_vars['servers'] = server_vars.get('machines', {})
+                build_ansible_inventory(
+                    self.project_path,
+                    vars=template_vars
+                )
+            else:
+                build_inventory_yml(
+                    self.ansible_inventory,
+                    super()._get_servers_filepath(),
+                    vars=vars
+                )
 
     def hook_config_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the config.yml file"):
             build_config_yml(
                 os.path.join(self.project_path, 'config.yml'),
-                os.path.join(self.project_path, 'servers.yml'),
+                super()._get_servers_filepath(),
                 vars=vars
             )
 
@@ -139,6 +150,45 @@ class AzurePOTProject(Project):
             'ssh_pub_key': self.custom_ssh_keys[os_['ssh_user']]['ssh_pub_key'],  # noqa 
             'ssh_user': os_['ssh_user'],
         }
+
+        # set variables for use with edbterraform
+        cloud_cli = CloudCli(self.cloud_provider, bin_path=self.cloud_tools_bin_path)
+        if not self.terraform_vars.get(self.cloud_provider):
+            self.terraform_vars[self.cloud_provider] = dict()
+        self.terraform_vars['created_by'] = cloud_cli.cli.get_caller_info()
+        # ports needed
+        self.terraform_vars['service_ports'], self.terraform_vars['region_ports'] = super()._get_default_ports()
+        self.terraform_vars['image'] = dict({
+            'offer': os_['offer'].lower(),
+            # Azure's plans are case sensitive and will cause terraform to fail.
+            # Error:
+            #   Code="VMMarketplaceInvalidInput" Message="Unable to deploy from the Marketplace image
+            #   or a custom image sourced from Marketplace image. The part number in the purchase information
+            #   for VM '/subscriptions/resourceGroups/...' is not as expected. 
+            #   Beware that the Plan object's properties are case-sensitive. 
+            # There are cases where the shell vs powershell cli give back different results as well:
+            # ex: Redhat vs redhat
+            'publisher': os_['publisher'].lower(),
+            'sku': os_['sku'],
+            'ssh_user': self.terraform_vars['ssh_user'],
+            'version': cloud_cli.cli.check_image_availability(
+                self.terraform_vars['azure_publisher'],
+                self.terraform_vars['azure_offer'],
+                self.terraform_vars['azure_sku'],
+                env.azure_region,
+            ).get('version')
+        })
+        self.terraform_vars['region'] = self.terraform_vars['azure_region']
+        # create a set of zones from each machine's instance type and region availability zone  
+        instance_types: set = {
+            values['instance_type'] for key, values in self.terraform_vars.items()
+            if any(substr in key for substr in ['dbt2_client', 'dbt2_driver', '_server']) and
+            isinstance(values, dict) and
+            values.get('count', 0) >= 1
+            and values.get('instance_type')
+        }
+        filtered_zones: set = {zone for instance in instance_types for zone in cloud_cli.check_instance_type_availability(instance, self.terraform_vars['azure_region'])}
+        self.terraform_vars['zones'] = list(filtered_zones)
 
     def _check_instance_image(self, env):
         # Overload Project._check_instance_image()

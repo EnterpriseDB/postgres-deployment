@@ -318,7 +318,6 @@ class Project:
         dbt2_client = env.cloud_spec['dbt2_client']
         dbt2_driver = env.cloud_spec['dbt2_driver']
         hammerdb = env.cloud_spec['hammerdb_server']
-
         self.terraform_vars = {
             'barman': ra['barman'],
             'cluster_name': self.name,
@@ -730,11 +729,17 @@ class Project:
         base_region['zones'] = dict()
         base_region['zones'][zone_name_default] = dict()
         base_region['zones'][zone_name_default]['cidr'] = '10.2.1.0/24'
-        base_region['zones'][zone_name_default]['zone'] = self.terraform_vars.get('zones')[-1]
         # AWS requires a second zone for the VPC even if single zoned for services like RDS
         base_region['zones']['redundant'] = dict()
         base_region['zones']['redundant']['cidr'] = '10.2.2.0/24'
-        base_region['zones']['redundant']['zone'] = self.terraform_vars.get('zones')[-2]
+        try:
+            base_region['zones'][zone_name_default]['zone'] = self.terraform_vars.get('zones')[0]
+            base_region['zones']['redundant']['zone'] = self.terraform_vars.get('zones')[1 % len(self.terraform_vars['zones'])]
+        except Exception as e:
+            logging.error("Failed to load any zones")
+            raise ProjectError(
+                "Failed to load any zones from terraform variables"
+            )
         base_region['service_ports'] = self.terraform_vars.get('service_ports',[]).copy()
         base_region['region_ports'] = self.terraform_vars.get('region_ports',[]).copy()
         regions[region_name_default] = base_region
@@ -890,6 +895,9 @@ class Project:
             'use_hostname': env.use_hostname,
         }
 
+        if self.cloud_provider in 'gcloud':
+            self.ansible_vars['google_project_id'] = env.gcloud_project_id
+
         # Add configuration for pg_data and pg_wal accordingly to the
         # number of additional volumes
         if pg_spec['additional_volumes']['count'] > 0:
@@ -988,6 +996,9 @@ class Project:
             bin_path=self.cloud_tools_bin_path
         )
 
+        if self.cloud_provider in 'gcloud' and self.ansible_vars.get('google_project_id'):
+            terraform.environ['GOOGLE_PROJECT'] = self.ansible_vars['google_project_id']
+
         with AM("Terraform project initialization"):
             self.update_state('terraform', 'INITIALIZATING')
             terraform.init()
@@ -1035,6 +1046,9 @@ class Project:
             self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
         )
+
+        if self.cloud_provider in 'gcloud' and self.ansible_vars.get('google_project_id'):
+            terraform.environ['GOOGLE_PROJECT'] = self.ansible_vars['google_project_id']
 
         with AM("Destroying cloud resources"):
             self.update_state('terraform', 'DESTROYING')
@@ -1542,7 +1556,6 @@ class Project:
 
     def tpaexec_deploy(self):
         self._load_ansible_vars()
-
         tpaexec = TPAexecCli(
             self.project_path,
             tpa_subscription_token=self.ansible_vars['tpa_subscription_token'],
@@ -1610,12 +1623,11 @@ class Project:
 
         with AM("Creating customer ssh keys for project"):
             self.ssh_key_gen(env, self.name, True)
-
+        
         # Hook function called by Project.configure()
         # Transform Terraform templates
-        self._transform_terraform_tpl()
         # Build the vars files for Terraform and Ansible
-        self._build_terraform_vars_file(env)
+        self._build_terraform_files()
         self._build_ansible_vars_file(env)
         # Build edb credential file
         self._save_edb_credentials(env)
@@ -1640,6 +1652,9 @@ class Project:
             bin_path=self.cloud_tools_bin_path
         )
 
+        if self.cloud_provider in 'gcloud' and self.ansible_vars.get('google_project_id'):
+            terraform.environ['GOOGLE_PROJECT'] = self.ansible_vars['google_project_id']
+
         with AM("Terraform project initialization"):
             self.update_state('terraform', 'INITIALIZATING')
             terraform.init()
@@ -1661,6 +1676,7 @@ class Project:
             reference_architecture=self.ansible_vars['reference_architecture'],
             cluster_name=self.ansible_vars['cluster_name'],
             pg_type=self.ansible_vars['pg_type'],
+            pg_version=self.ansible_vars['pg_version'],
             pooler_local=self.terraform_vars['pooler_local'],
             pooler_type=self.terraform_vars['pooler_type'],
             replication_type=self.terraform_vars['replication_type'],
@@ -1679,6 +1695,14 @@ class Project:
             self.tpaexec_provision()
 
         with AM("SSH configuration"):
+            if self.using_edbterraform:
+                template_vars = dict()
+                server_vars = self._load_terraform_outputs()
+                server_vars = server_vars.get('servers')
+                template_vars['servers'] = server_vars.get('machines', {})
+                template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
+                build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
+                build_ssh_config(dest=self.project_path, vars=template_vars)
             terraform.exec_add_host_sh()
 
     def pot_build_ansible_vars(self, env):
@@ -1719,6 +1743,9 @@ class Project:
             self.ansible_vars.update(dict(pg_data='/pgdata/pg_data'))
         if pg_spec['additional_volumes']['count'] > 1:
             self.ansible_vars.update(dict(pg_wal='/pgwal/pg_wal'))
+
+        if self.cloud_provider in 'gcloud':
+            self.ansible_vars['google_project_id'] = env.gcloud_project_id
 
     def pot_deploy(self, no_install_collection, pre_deploy_ansible=None,
                    post_deploy_ansible=None, skip_main_playbook=False,
@@ -1761,6 +1788,26 @@ class Project:
             public_key=self.ansible_vars['public_key'],
             reference_architecture=self.ansible_vars['reference_architecture']
         )
+        if self.ansible_vars.get('pg_data'):
+            extra_vars.update(dict(
+                pg_data=self.ansible_vars['pg_data']
+            ))
+        if self.ansible_vars.get('pg_wal'):
+            extra_vars.update(dict(
+                pg_wal=self.ansible_vars['pg_wal']
+            ))
+        if self.ansible_vars.get('efm_version'):
+            extra_vars.update(dict(
+                efm_version=self.ansible_vars['efm_version'],
+            ))
+        if self.ansible_vars.get('ssh_pass'):
+            extra_vars.update(dict(
+                ansible_ssh_pass=self.ansible_vars['ssh_pass'],
+            ))
+        if self.ansible_vars.get('use_hostname'):
+            extra_vars.update(dict(
+                use_hostname=self.ansible_vars['use_hostname'],
+            ))
         if self.ansible_vars.get('pg_data'):
             extra_vars.update(dict(
                 pg_data=self.ansible_vars['pg_data']
@@ -1898,6 +1945,9 @@ class Project:
 
         # Load ansible vars
         self._load_ansible_vars()
+
+        if self.cloud_provider in 'gcloud' and self.ansible_vars.get('google_project_id'):
+            terraform.environ['GOOGLE_PROJECT'] = self.ansible_vars['google_project_id']
 
         # Building extra vars to pass to ansible because it's not safe to pass
         # the content of ansible_vars as it.
