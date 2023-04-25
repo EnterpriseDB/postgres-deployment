@@ -87,8 +87,8 @@ class GCloudSQLProject(Project):
                 'port': 5432,
                 'tags': {
                     'type': 'postgres_server',
-                    'priority': 1,
-                    'index': 1,
+                    'priority': 0,
+                    'index': 0,
                     'postgres_group': 'postgres_server',
                     'replication_type': self.terraform_vars['replication_type'] if self.terraform_vars.get('replication_type') else 'unset',
                     'pooler_type': self.terraform_vars['pooler_type'] if self.terraform_vars.get('pooler_type') else 'pgbouncer',
