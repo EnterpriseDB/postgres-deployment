@@ -44,3 +44,5 @@ pgbouncer_port: 6432
 pem_agent_bin_path: "/usr/edb/pem/agent/bin"
 pem_web_home_dir: "/usr/edb/pem/web"
 pem_server_service: "httpd"
+
+harp_proxy_port: 6432
