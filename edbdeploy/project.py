@@ -1025,6 +1025,9 @@ class Project:
             terraform.exec_add_host_sh()
 
     def destroy(self):
+        # Load ansible vars
+        self._load_ansible_vars()
+
         terraform = TerraformCli(
             self._get_terraform_directory(), self.terraform_plugin_cache_path,
             bin_path=self.cloud_tools_bin_path
