@@ -5,7 +5,7 @@ from ..cloud import CloudCli
 from ..errors import ProjectError
 from ..project import Project
 from .. import __edb_ansible_version__
-from ..render import build_config_yml, build_inventory_yml, build_ansible_inventory
+from ..render import build_config_yml, build_ansible_inventory
 
 
 class AWSPOTProject(Project):
@@ -13,8 +13,8 @@ class AWSPOTProject(Project):
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
     aws_collection_name = 'community.aws:1.4.0'
 
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
-        super(AWSPOTProject, self).__init__('aws-pot', name, env, bin_path, using_edbterraform)
+    def __init__(self, name, env, bin_path=None):
+        super(AWSPOTProject, self).__init__('aws-pot', name, env, bin_path)
         # Use AWS terraform code
         self.terraform_path = os.path.join(self.terraform_share_path, 'aws')
         # POT only attributes
@@ -40,22 +40,15 @@ class AWSPOTProject(Project):
     def hook_inventory_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the inventory.yml file"):
-            if self.using_edbterraform:
-                template_vars = dict()
-                template_vars['vars'] = vars
-                server_vars = super()._load_terraform_outputs()
-                server_vars = server_vars.get('servers')
-                template_vars['servers'] = server_vars.get('machines', {})
-                build_ansible_inventory(
-                    self.project_path,
-                    vars=template_vars
-                )
-            else:
-                build_inventory_yml(
-                    self.ansible_inventory,
-                    super()._get_servers_filepath(),
-                    vars=vars
-                )
+            template_vars = dict()
+            template_vars['vars'] = vars
+            server_vars = super()._load_terraform_outputs()
+            server_vars = server_vars.get('servers')
+            template_vars['servers'] = server_vars.get('machines', {})
+            build_ansible_inventory(
+                self.project_path,
+                vars=template_vars
+            )
 
     def hook_config_yml(self, vars):
         # Hook function called by Project.provision()

@@ -4,9 +4,9 @@ from ..spec.aws_rds import TPROCC_GUC
 
 
 class AWSRDSAuroraProject(AWSRDSProject):
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
+    def __init__(self, name, env, bin_path=None):
         super(AWSRDSProject, self).__init__(
-            'aws-rds-aurora', name, env, bin_path, using_edbterraform
+            'aws-rds-aurora', name, env, bin_path
         )
 
     def hook_instances_availability(self, env):

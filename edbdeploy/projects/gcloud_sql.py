@@ -6,9 +6,9 @@ from ..spec.gcloud_sql import TPROCC_GUC
 from ..cloud import CloudCli
 
 class GCloudSQLProject(Project):
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
+    def __init__(self, name, env, bin_path=None):
         super(GCloudSQLProject, self).__init__(
-            'gcloud-sql', name, env, bin_path, using_edbterraform
+            'gcloud-sql', name, env, bin_path
         )
 
     def hook_post_configure(self, env):
