@@ -11,8 +11,8 @@ from collections import ChainMap
 
 
 class AWSRDSProject(Project):
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
-        super(AWSRDSProject, self).__init__('aws-rds', name, env, bin_path, using_edbterraform)
+    def __init__(self, name, env, bin_path=None):
+        super(AWSRDSProject, self).__init__('aws-rds', name, env, bin_path)
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()

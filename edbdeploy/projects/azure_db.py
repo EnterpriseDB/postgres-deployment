@@ -7,8 +7,8 @@ from ..password import get_password, random_password, save_password
 from ..render import build_ansible_inventory
 
 class AzureDBProject(Project):
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
-        super(AzureDBProject, self).__init__('azure-db', name, env, bin_path, using_edbterraform)
+    def __init__(self, name, env, bin_path=None):
+        super(AzureDBProject, self).__init__('azure-db', name, env, bin_path)
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()

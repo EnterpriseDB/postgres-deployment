@@ -3,12 +3,12 @@ import os
 from ..action import ActionManager as AM
 from ..cloud import CloudCli
 from ..project import Project
-from ..render import build_inventory_yml, build_ansible_inventory
+from ..render import build_ansible_inventory
 
 
 class AzureProject(Project):
-    def __init__(self, name, env, bin_path=None, using_edbterraform=True):
-        super(AzureProject, self).__init__('azure', name, env, bin_path, using_edbterraform)
+    def __init__(self, name, env, bin_path=None):
+        super(AzureProject, self).__init__('azure', name, env, bin_path)
 
     def hook_post_configure(self, env):
         # Hook function called by Project.configure()
@@ -31,22 +31,15 @@ class AzureProject(Project):
     def hook_inventory_yml(self, vars):
         # Hook function called by Project.provision()
         with AM("Generating the inventory.yml file"):
-            if self.using_edbterraform:
-                template_vars = dict()
-                template_vars['vars'] = vars
-                server_vars = super()._load_terraform_outputs()
-                server_vars = server_vars.get('servers')
-                template_vars['servers'] = server_vars.get('machines', {})
-                build_ansible_inventory(
-                    self.project_path,
-                    vars=template_vars
-                )
-            else:
-                build_inventory_yml(
-                    self.ansible_inventory,
-                    super()._get_servers_filepath(),
-                    vars=vars
-                )
+            template_vars = dict()
+            template_vars['vars'] = vars
+            server_vars = super()._load_terraform_outputs()
+            server_vars = server_vars.get('servers')
+            template_vars['servers'] = server_vars.get('machines', {})
+            build_ansible_inventory(
+                self.project_path,
+                vars=template_vars
+            )
 
     def _build_ansible_vars(self, env):
         # Overload Project._build_ansible_vars()

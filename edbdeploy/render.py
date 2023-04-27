@@ -38,12 +38,6 @@ def load_yaml_file(filepath):
     except:
         raise 'Failed to load yaml file'
 
-def build_inventory_yml(dest, servers_path, vars={}):
-    inventory = render_yaml_template('inventory_v1.yml.j2', servers_path, vars)
-    with open(dest, 'w') as f:
-        f.write(inventory)
-
-
 def build_config_yml(dest, servers_path, vars={}):
     config = render_yaml_template('config.yml.j2', servers_path, vars)
     with open(dest, 'w') as f:

@@ -73,7 +73,7 @@ class Project:
     terraform_templates = ['variables.tf.template', 'tags.tf.template']
     ansible_collection_name = 'edb_devops.edb_postgres:>=%s,<4.0.0' % __edb_ansible_version__  # noqa
 
-    def __init__(self, cloud, name, env, bin_path=None, using_edbterraform=False):
+    def __init__(self, cloud, name, env, bin_path=None):
         self.env = env
         self.name = name
         self.cloud = cloud
@@ -98,7 +98,6 @@ class Project:
             self.project_path,
             'terraform_vars.json'
         )
-        self.using_edbterraform = using_edbterraform
         self.edbterraform_dir = 'terraform-infrastructure'
         self.edbterraform_vars_file = 'terraform.tfvars.json'
         self.servers_file = 'servers.yml'
@@ -215,20 +214,11 @@ class Project:
         # Pre-create hook
         exec_hook(self, 'hook_pre_create')
 
-        # Copy of terraform is only needed if not using edb-terraform
-        # edb-terraform handles the terraform file generation
-        if not self.using_edbterraform:
-            with AM("Copying Terraform code from into %s" % self.project_path):
-                try:
-                    shutil.copytree(self.terraform_path, self.project_path)
-                except Exception as e:
-                    raise ProjectError(str(e))
-        else:
-            with AM("Creating project directory %s" % self.project_path):
-                try:
-                    os.makedirs(name=self.project_path,mode=0o750)
-                except Exception as e:
-                    raise ProjectError(str(e))
+        with AM("Creating project directory %s" % self.project_path):
+            try:
+                os.makedirs(name=self.project_path,mode=0o750)
+            except Exception as e:
+                raise ProjectError(str(e))
         with AM("Initializing state file"):
             self.init_state()
 
@@ -642,13 +632,7 @@ class Project:
             raise ProjectError(msg)
 
     def _get_terraform_directory(self) -> str:
-        '''
-        With edb-terraform added, files may now be generated inside of
-        terraform-infrastructure directory or the default project directory
-
-        This will return the path to edb-terraform and fallback if it can't be found or using_edbterraform is False
-        '''
-        return  self.project_path if not self.using_edbterraform or not os.path.isdir(self.project_terraform_path) else self.project_terraform_path
+        return  self.project_terraform_path
     
     def _get_terraform_vars_file(self) -> str:
         return self.terraform_vars_file if self._get_terraform_directory() == self.project_path else self.edbterraform_vars_file
@@ -1031,14 +1015,13 @@ class Project:
         exec_hook(self, 'hook_instances_avaiblability', cloud_cli)
 
         with AM("SSH configuration"):
-            if self.using_edbterraform:
-                template_vars = dict()
-                server_vars = self._load_terraform_outputs()
-                server_vars = server_vars.get('servers')
-                template_vars['servers'] = server_vars.get('machines', {})
-                template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
-                build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
-                build_ssh_config(dest=self.project_path, vars=template_vars)
+            template_vars = dict()
+            server_vars = self._load_terraform_outputs()
+            server_vars = server_vars.get('servers')
+            template_vars['servers'] = server_vars.get('machines', {})
+            template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
+            build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
+            build_ssh_config(dest=self.project_path, vars=template_vars)
             terraform.exec_add_host_sh()
 
     def destroy(self):
@@ -1695,14 +1678,13 @@ class Project:
             self.tpaexec_provision()
 
         with AM("SSH configuration"):
-            if self.using_edbterraform:
-                template_vars = dict()
-                server_vars = self._load_terraform_outputs()
-                server_vars = server_vars.get('servers')
-                template_vars['servers'] = server_vars.get('machines', {})
-                template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
-                build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
-                build_ssh_config(dest=self.project_path, vars=template_vars)
+            template_vars = dict()
+            server_vars = self._load_terraform_outputs()
+            server_vars = server_vars.get('servers')
+            template_vars['servers'] = server_vars.get('machines', {})
+            template_vars['private_key_path'] = self.terraform_vars.get('ssh_priv_key', None)
+            build_add_host_sh(dest=self._get_terraform_directory(), vars=template_vars)
+            build_ssh_config(dest=self.project_path, vars=template_vars)
             terraform.exec_add_host_sh()
 
     def pot_build_ansible_vars(self, env):
