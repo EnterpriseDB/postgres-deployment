@@ -35,7 +35,7 @@ Third party pre-requisites:
    Depending on the cloud provider, install the **latest version** for: AWS
    CLI, Azure CLI or Google Cloud SDK on the system.
 
-2. **Terraform** >= 0.15.1
+2. **Terraform** >= 1.3.6
 3. **Ansible** >= 2.10.8
 4. **AWS CLI** >= 2.0.45
 5. **Azure CLI** >= 2.23.0
